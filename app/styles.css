@@ -1,0 +1,82 @@
+.panel-body{
+	background:#efefef;
+}
+
+.btn-default {
+  background-color: #efefef;
+}
+.btn.selected{
+background-color: #ccc;
+border-color: #ccc;
+}
+.btn.verticaloffset{
+	margin-bottom:5px;
+}
+.tooltip.top .tooltip-inner {
+    background-color:green;
+  }
+.tooltip.top .tooltip-arrow {
+          border-top-color:green;
+       }
+.tooltip.right .tooltip-inner {
+    background-color:green;
+  }
+.tooltip.right .tooltip-arrow {
+          border-right-color: green;
+       }
+.tooltip.bottom .tooltip-inner {
+    background-color:green;
+  }
+.tooltip.bottom .tooltip-arrow {
+          border-bottom-color: green;
+       }  
+.tooltip.left .tooltip-inner {
+    background-color:green;
+  }
+.tooltip.left .tooltip-arrow {
+          border-left-color:green;
+       } 
+.nopadding {
+   padding: 0 !important;
+   margin: 0 !important;
+}
+
+// Bootstrap: Small screen / tablet
+$screen-sm: 768px;
+
+@mixin row-table {
+  display: table !important;
+
+  > [class*="col-"]{
+    float:none!important;
+    display: table-cell!important;
+    vertical-align: middle;
+    &.td-top{ vertical-align: top!important; }
+    &.td-bottom { vertical-align: bottom!important; }
+  }  
+}
+.row-table.row-table-xs {
+  @include row-table;
+}
+@media (min-width: $screen-sm) {
+  .row-table {
+    @include row-table;
+  }
+};
+
+       
+.voffset  { margin-top: 2px; }
+.voffset1 { margin-top: 5px; }
+.voffset2 { margin-top: 10px; }
+.voffset3 { margin-top: 15px; }
+.voffset4 { margin-top: 30px; }
+.voffset5 { margin-top: 40px; }
+.voffset6 { margin-top: 60px; }
+.voffset7 { margin-top: 80px; }
+.voffset8 { margin-top: 100px; }
+.voffset9 { margin-top: 150px; }
+
+.no-gutter > [class*='col-'] {
+    padding-right:0;
+    padding-left:0;
+}

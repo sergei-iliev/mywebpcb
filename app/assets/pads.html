@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>pads</title> 
+  <link rel="stylesheet" href="/app.css">
+  <script src="/vendor.js"></script>
+  <script src="/pads/pads.js"></script>
+  <script>require('pads/pads.js');</script>
+</head>
+<body>
+<div class="container-fluid">	
+<div class="row">
+  <div class="col-md-4">
+    <h3>Pads</h3>
+  </div>
+</div>
+
+<div id="mywebpadsid">
+<div class="row">
+  <div class="col-md-12">
+		<div class="panel panel-default">
+  		<div class="panel-body">
+        <!-- TOP -->
+        <div class="row">
+           <div class="col-md-12">
+			<button class="btn btn-default" id="newfootprintid" data-toggle="tooltip" data-placement="bottom" title="Add new footprint"><img src="../images/new.png" border="0"/></button>
+			<button class="btn btn-default" id="printfootrpintid" data-toggle="tooltip" data-placement="bottom" title="Print footprint"><img src="../images/print.png" border="0"/></button>
+			<button class="btn btn-default" id="saveid" data-toggle="tooltip" data-placement="bottom" title="Save"><img src="../images/save.png" border="0"/></button>
+			<button class="btn btn-default" id="loadid" data-toggle="tooltip" data-placement="bottom" title="Load"><img src="../images/folder.png" border="0"/></button>
+			<button class="btn btn-default" id="zoominid" data-toggle="tooltip" data-placement="bottom" title="Zoom in"><img src="../images/zoom_out.png" border="0"/></button>
+			<button class="btn btn-default" id="zoomoutid" data-toggle="tooltip" data-placement="bottom" title="Zoom out"><img src="../images/zoom_in.png" border="0"/></button>
+			<button class="btn btn-default" id="rotateleftid" data-toggle="tooltip" data-placement="bottom" title="Rotate left"><img src="../images/rotate_left.png" border="0"/></button>
+			<button class="btn btn-default" id="rotaterightid" data-toggle="tooltip" data-placement="bottom" title="Rotate right"><img src="../images/rotate_right.png" border="0"/></button>
+			<button class="btn btn-default" id="grabid" data-toggle="tooltip" data-placement="bottom" title="Drag to view"><img src="../images/grab.png" border="0"/></button>
+			<button class="btn btn-default" id="tocenterid" data-toggle="tooltip" data-placement="bottom" title="Position viewport to center"><img src="../images/tocenter.png" border="0"/></button>			
+           </div>
+        </div>	
+        <div class="row voffset2">
+            <div class="col-md-1">
+			  <button class="btn btn-default voffset1 active" id="selectionid" data-toggle="tooltip" data-placement="bottom" title="Selection"><img src="../images/selection.png" border="0"/></button>
+			  <button class="btn btn-default voffset1" id="rectid" data-toggle="tooltip" data-placement="bottom" title="Draw rectangle"><img src="../images/rect.png" border="0"/></button>
+  			  <button class="btn btn-default voffset1" id="ellipseid" data-toggle="tooltip" data-placement="bottom" title="Draw ellipse"><img src="../images/ellipse.png" border="0"/></button>
+			  <button class="btn btn-default voffset1" id="arcid" data-toggle="tooltip" data-placement="bottom" title="Draw arc"><img src="../images/arc.png" border="0"/></button>
+  			  <button class="btn btn-default voffset1" id="lineid" data-toggle="tooltip" data-placement="bottom" title="Draw line"><img src="../images/line.png" border="0"/></button>
+			  <button class="btn btn-default voffset1" id="padid" data-toggle="tooltip" data-placement="bottom" title="Add pad"><img src="../images/pad.png" border="0"/></button>
+  			  <button class="btn btn-default voffset1" id="labelid" data-toggle="tooltip" data-placement="bottom" title="Add label"><img src="../images/label.png" border="0"/></button>
+			  <button class="btn btn-default voffset1" id="anchorid" data-toggle="tooltip" data-placement="bottom" title="Snap dragging point to grid"><img src="../images/anchor.png" border="0"/></button>
+			  <button class="btn btn-default voffset1" id="originid" data-toggle="tooltip" data-placement="bottom" title="Change coordinate origin"><img src="../images/origin.png" border="0"/></button>
+			  <button class="btn btn-default voffset1" id="measureid" data-toggle="tooltip" data-placement="bottom" title="Distance measurement"><img src="../images/measure.png" border="0"/></button>
+            </div>
+            <div class="col-md-9" id="mycanvasframe">
+            <table width="100%" height="700px">
+            	<tr height="100%">
+				<td width="*%">
+                  <canvas id="mycanvas" width='100%' height='100%' style='width:100%;height:100%;border:1px solid #ccc;' tabindex='100'>
+                  </canvas>            	
+            	</td>
+            	<td width="18px">
+            	  <div style='width:18px;height:100%;float:left;' id='jqxVerticalScrollBar'>
+                  </div>
+            	</td>
+            	</tr>
+            	<tr>
+            	<td>
+            	  <div  id='jqxScrollBar'></div>
+            	</td>
+            	</tr>
+            </table>	                 
+          </div>  
+          <div class="col-md-2">  
+            <div class="row">
+               <div class="col-md-12">  
+                <div id='jqxTree'>
+                <ul>
+                    <li id='root'>Footprints</li>					
+                </ul>
+                </div>  
+               </div>
+            </div>
+			<div class="row">
+			<div class="col-md-12">  
+               <div id="footprintsinspectorid" style="width:100%;height:100%;overflow-y: auto;"/>               
+            </div>
+            </div>         
+          </div>           
+        </div>
+        <!-- BOTTOM -->
+        <div class="row">
+        </div>	
+  	  </div>
+	</div>
+  </div>
+</div>
+</div>
+    <div class="row">
+	<footer style="border-top:1px solid #f1eeee;">
+	    <div class="col-md-6">
+		    <small>Copyright © 2014 Sergey Iliev</small>
+		</div>
+		<div class="col-md-6 text-right">
+			<small>Sofia: +359 897 43 44 33</small>
+		</div>
+	</footer>
+</div>
+<!-- Load Footprint Dialog -->
+<div id="FootprintLoadDialog" style='display: none;'>
+                <div>
+                    <span style="float: left">Load Footprint</span>
+                </div>
+                <div style="overflow-y: auto;overflow-x:hidden;">
+                    <div class="row" style="height:300px;">
+                       <div class="col-sm-4">
+                         <table width="100%" height="300px">                         
+                         <tr height="30px"><td>
+                         <div id="librarycomboslot">
+                         </div>
+                         </td></tr>
+                         <tr height="260px"><td>
+                           <div class="voffset2" id="footprinttree" style="height:100%">
+                           </div>  
+                         </td></tr>
+                         </table>
+                       </div>
+                       <div class="col-sm-8">
+                          <div id="unitselectionpanel" style="overflow: auto;width:300px;height:300px;background-color:black;">
+                          </div>
+                       </div>                       
+                    </div>
+                    <div class="row voffset2 text-center" style="height:40px;">
+                      <div class="col-sm-12" id='buttonslot'>
+                      </div>
+                    </div>
+                </div>
+</div>
+<!-- Save Footprint Dialog -->
+<div id="FootprintSaveDialog" style='display: none;'>
+                <div >
+                    <span  style="float: left">Save Footprint</span>
+                </div>
+                <div  id="savedialogcontentslot"  style="overflow-y: auto;overflow-x:hidden;">
+
+                </div>
+</div>	
+</div>
+</body>
