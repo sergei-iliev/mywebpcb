@@ -527,6 +527,16 @@ Paint(g2, viewportWindow, scale) {
 			this.drawControlShape(g2, viewportWindow, scale);
 			this.calculate(g2, viewportWindow, scale);
 		}
+		
+		//draw line
+		utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.getMidPoint()]);
+}
+//find the point between start and end point
+getMidPoint(){
+    let r=this.getWidth();  
+    let x = r * Math.cos(-Math.PI/180*(this.startAngle+(this.extendAngle/2))) + this.getX();
+    let y = r * Math.sin(-Math.PI/180*(this.startAngle+(this.extendAngle/2))) + this.getY();
+    return new core.Point(x,y);
 }
 
 getStartPoint() {
