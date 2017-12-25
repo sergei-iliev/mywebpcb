@@ -395,6 +395,7 @@ constructor(x,y,r,thickness,layermaskid){
         this.startAngle=90;
         this.extendAngle=230;
 		this.setDisplayName("Arc");
+		this.resizingPoint=null;
 }
 clone() {
 		var copy = new Arc(this.x, this.y, this.width,
@@ -437,11 +438,26 @@ isControlRectClicked(x,y) {
 	 if(this.isExtendAnglePointClicked(x,y)){
 	    return this.getEndPoint();
 	 }
+	 if(this.isMidPointClicked(x,y)){
+	    return this.getMidPoint();	 
+	 }
      return null;	 
    }else{
      return result;
    }
    
+}
+isMidPointClicked(x,y){
+	let rect=new core.Rectangle();
+
+    let p=this.getMidPoint();
+    rect.setRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
+                 this.selectionRectWidth, this.selectionRectWidth);
+    if (rect.contains(x,y)) {
+        return true;
+    }else{                   
+        return false;
+	}	
 }
 isStartAnglePointClicked(x,y){
 			let rect=new core.Rectangle();
@@ -530,6 +546,26 @@ Paint(g2, viewportWindow, scale) {
 		
 		//draw line
 		utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.getMidPoint()]);
+        if(this.resizingPoint!=null){
+		   this.drawMousePoint(g2,viewportWindow,scale);
+        }
+}
+
+drawMousePoint(g2,viewportWindow,scale){
+	let a=this.getMidPoint();
+	let b=new core.Point(this.x,this.y);
+	let p=this.resizingPoint;
+	
+	let atob = { x: b.x - a.x, y: b.y - a.y };
+    let atop = { x: p.x - a.x, y: p.y - a.y };
+    let len = atob.x * atob.x + atob.y * atob.y;
+    let dot = atop.x * atob.x + atop.y * atob.y;
+    let t = dot / len ;
+  
+    let point=new core.Point(a.x + atob.x * t,a.y + atob.y * t);
+    
+    utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[point]);
+        	
 }
 //find the point between start and end point
 getMidPoint(){

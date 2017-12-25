@@ -500,6 +500,8 @@ mouseDown(event){
                          this.getEventMgr().setEventHandle("arc.start.angle",shape);                    
                      }else if(shape.isExtendAnglePointClicked(scaledEvent.x , scaledEvent.y)){
                          this.getEventMgr().setEventHandle("arc.extend.angle",shape);                      
+                     }else if(shape.isMidPointClicked(scaledEvent.x , scaledEvent.y)){
+                    	  this.getEventMgr().setEventHandle("arc.mid.point",shape);
                      }else{
                           this.getEventMgr().setEventHandle("resize",shape);    
                      }

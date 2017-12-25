@@ -2,6 +2,43 @@ var EventHandle = require('core/events').EventHandle;
 var events = require('core/events');
 var core = require('core/core');
 
+
+class ArcMidPointEventHandle extends EventHandle{
+constructor(component) {
+		 super(component);
+	 }
+Attach(){	  	    
+   super.Attach();
+   this.target.resizingPoint=new core.Point();	   
+} 
+ 
+mousePressed(event){
+	 }
+mouseDragged(event){
+	 	let new_mx = event.x;
+	    let new_my = event.y;	    		
+	        
+	    this.target.resizingPoint.x=event.x;
+	    this.target.resizingPoint.y=event.y;
+	        
+	    			
+		this.component.Repaint();
+    }
+mouseReleased(event){
+	this.target.resizingPoint=null; 
+	this.component.Repaint();
+} 
+mouseMove(event){
+	 
+	}
+Detach(){
+   if(this.target!=null){
+	   this.target.resizingPoint=null;  
+   }	     
+   super.Detach();
+} 
+}
+
 class ArcStartAngleEventHandle extends EventHandle{
  constructor(component) {
 	 super(component);
@@ -266,6 +303,7 @@ class FootprintEventMgr{
     this.component=component;
 	this.targetEventHandle=null;	
 	this.hash = new Map();
+	this.hash.set("arc.mid.point",new ArcMidPointEventHandle(component));
 	this.hash.set("arc.start.angle",new ArcStartAngleEventHandle(component));
 	this.hash.set("arc.extend.angle",new ArcExtendAngleEventHandler(component));
 	this.hash.set("move",new events.MoveEventHandle(component));
