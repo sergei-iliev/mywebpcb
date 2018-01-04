@@ -344,11 +344,11 @@ drawControlShape(g2, viewportWindow, scale) {
             line.draw(g2, viewportWindow, scale);
       
 //center
-            line.setLine((this.getX()) - this.selectionRectWidth, this.getY(), (this.getX()) + this.selectionRectWidth, this.getY());
-            line.draw( g2, viewportWindow, scale);
-
-            line.setLine((this.getX()), this.getY() - this.selectionRectWidth, this.getX(), this.getY() + this.selectionRectWidth);
-            line.draw( g2, viewportWindow, scale);
+//            line.setLine((this.getX()) - this.selectionRectWidth, this.getY(), (this.getX()) + this.selectionRectWidth, this.getY());
+//            line.draw( g2, viewportWindow, scale);
+//
+//            line.setLine((this.getX()), this.getY() - this.selectionRectWidth, this.getX(), this.getY() + this.selectionRectWidth);
+//            line.draw( g2, viewportWindow, scale);
 
        
 }
@@ -428,6 +428,12 @@ fromXML(data){
 		this.extendAngle = parseInt(j$(data).attr("extend"));
 		
 		this.thickness = (parseInt(j$(data).attr("thickness")));				
+}
+setExtendAngle(extendAngle){
+    this.extendAngle=Math.round(extendAngle*100.0)/100.0;
+}
+setStartAngle(startAngle){        
+    this.startAngle=Math.round(startAngle*100.0)/100.0;
 }
 isControlRectClicked(x,y) {
    let result= super.isControlRectClicked(x, y);
@@ -551,7 +557,7 @@ Paint(g2, viewportWindow, scale) {
         }
 }
 
-drawMousePoint(g2,viewportWindow,scale){
+calculateResizingPoint(){
 	let a=this.getMidPoint();
 	let b=new core.Point(this.x,this.y);
 	let p=this.resizingPoint;
@@ -562,11 +568,86 @@ drawMousePoint(g2,viewportWindow,scale){
     let dot = atop.x * atob.x + atop.y * atob.y;
     let t = dot / len ;
   
-    let point=new core.Point(a.x + atob.x * t,a.y + atob.y * t);
-    
-    utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[point]);
-        	
+    return new core.Point(a.x + atob.x * t,a.y + atob.y * t);	
 }
+
+drawMousePoint(g2,viewportWindow,scale){
+
+	let point=this.calculateResizingPoint();
+    
+	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[point]);
+    
+    this.drawRadius(g2,viewportWindow,scale);
+}
+
+distance(p1,p2){
+	   let dx=(p1.x-p2.x);
+	   let dy=(p1.y-p2.y);
+	   return Math.sqrt(dx*dx + dy*dy);	
+}
+/*
+ * draw current radius static
+ */
+drawRadius(g2,viewportWindow,scale){
+   let a=this.getStartPoint();
+   let b=this.getEndPoint();
+  
+   let P=new core.Point((a.x+b.x)/2,(a.y+b.y)/2);
+   
+   
+   //distance
+   let m=this.distance(a,P);
+   let q=this.distance(a,b);
+  
+   let midP=this.getMidPoint();
+   let A=this.distance(midP,P);
+
+   //radius
+   let R=((m*m)+(A*A))/(2*A);
+   //console.log('radius-'+Math.round(R));
+   
+   //calculate centeX and centerY
+   let basex = Math.sqrt(Math.pow(R,2)-Math.pow(m,2))*((a.y-b.y)/q); //calculate once
+   let basey = Math.sqrt(Math.pow(R,2)-Math.pow(m,2))*((b.x-a.x)/q); //calculate once   
+   
+   let cX=basex+P.x;
+   let cY=basey+P.y;
+   let C1=new core.Point(cX,cY);
+   
+   
+    cX=P.x-basex;
+    cY=P.y-basey;
+    let C2=new core.Point(cX,cY);
+    
+     
+    
+  
+    //which of the 2 points is correct
+    let dist1=Math.round(this.distance(midP,C1));
+    let dist2=Math.round(this.distance(midP,C2));
+    
+
+    if(Math.round(R)==dist1){
+    	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[C1]);
+    	let startAngle = (180/Math.PI*Math.atan2(a.y-C1.y, a.x-C1.x));
+    	console.log(startAngle);
+    	
+    	let endAngle =  (180/Math.PI*Math.atan2(b.y-C1.y, b.x-C1.x));
+    	console.log(endAngle);
+    	
+    }else{
+    	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[C2]);
+    	let startAngle = (180/Math.PI*Math.atan2(a.y-C2.y, a.x-C2.x));
+    	console.log(startAngle);
+    	
+    	let endAngle =  (180/Math.PI*Math.atan2(b.y-C2.y, b.x-C2.x));
+    	console.log(endAngle);
+
+    }
+    
+    
+}
+
 //find the point between start and end point
 getMidPoint(){
     let r=this.getWidth();  

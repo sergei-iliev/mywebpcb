@@ -58,9 +58,9 @@ class ArcStartAngleEventHandle extends EventHandle{
     let start = (180/Math.PI*Math.atan2(new_my-centerY,new_mx-centerX));
 
     if(start<0){
-        this.target.startAngle=(-1*(start));            
+        this.target.setStartAngle(-1*(start));            
     }else{
-        this.target.startAngle=(360-(start));            
+        this.target.setStartAngle(360-(start));            
     }
 		
 	this.mx = new_mx;
@@ -105,15 +105,15 @@ class ArcExtendAngleEventHandler extends EventHandle{
     let extendAngle=this.target.extendAngle;
     if(extendAngle<0){        
           if(extend-this.target.startAngle>0) {                
-              this.target.extendAngle=(((extend-this.target.startAngle))-360);
+              this.target.setExtendAngle(((extend-this.target.startAngle))-360);
           }else{
-              this.target.extendAngle=(extend-this.target.startAngle);
+              this.target.setExtendAngle(extend-this.target.startAngle);
             }
         }else{           
             if(extend-this.target.startAngle>0) {
-              this.target.extendAngle=(extend-this.target.startAngle);
+              this.target.setExtendAngle(extend-this.target.startAngle);
             }else{
-              this.target.extendAngle=((360-this.target.startAngle)+extend);
+              this.target.setExtendAngle((360-this.target.startAngle)+extend);
             }
         }
         
