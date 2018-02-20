@@ -9,7 +9,8 @@ constructor(component) {
 	 }
 Attach(){	  	    
    super.Attach();
-   this.target.resizingPoint=new core.Point();	   
+   this.target.resizingPoint=new core.Point();
+   this.isClockwise=this.target.extendAngle<0
 } 
  
 mousePressed(event){
@@ -20,8 +21,8 @@ mouseDragged(event){
 	        
 	    this.target.resizingPoint.x=event.x;
 	    this.target.resizingPoint.y=event.y;
-	        
-	    			
+	    
+	    this.target.recalculateArc(this.isClockwise);
 		this.component.Repaint();
     }
 mouseReleased(event){

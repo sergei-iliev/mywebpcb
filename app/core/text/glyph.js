@@ -388,16 +388,14 @@ Paint(g2,viewportWindow,scale,layermaskId){
 
         let lineThickness = this.thickness * scale.getScale();
 
-
-
-       let r = this.getBoundingShape();
+        let r = this.getBoundingShape();
 	   
 	   
-       let rect = r.getScaledRect(scale);	  
-       g2.beginPath();
-       g2.rect(rect.x - viewportWindow.x, rect.y
-				- viewportWindow.y, rect.width, rect.height);		 
-       g2.stroke();	
+       //let rect = r.getScaledRect(scale);	  
+       //g2.beginPath();
+       //g2.rect(rect.x - viewportWindow.x, rect.y
+		//		- viewportWindow.y, rect.width, rect.height);		 
+       //g2.stroke();	
 
 	   let line=new core.Line();
 	   g2.lineWidth = this.thickness * scale.getScale();
@@ -455,12 +453,12 @@ Paint(g2,viewportWindow,scale,layermaskId){
                     
                      utilities.mirrorPoint(A, B, start);                     
                     
-                     let end=new Point(glyph.points[j + 1].x + this.anchorPoint.x + xoffset -r.width,
+                     let end=new core.Point(glyph.points[j + 1].x + this.anchorPoint.x + xoffset -r.width,
                                     glyph.points[j + 1].y + this.anchorPoint.y - r.height);
                     
                     
                      utilities.mirrorPoint(A, B, end);
-					 line.setLine(start.getX()-r.width, start.getY(),end.getX()-r.width, end.getY());
+					 line.setLine(start.x-r.width, start.y,end.x-r.width, end.y);
 					 line.draw(g2,viewportWindow,scale);
                     }else{
 					 line.setLine(glyph.points[j].x + this.anchorPoint.x + xoffset - r.width,glyph.points[j].y + this.anchorPoint.y - r.height,glyph.points[j + 1].x + this.anchorPoint.x + xoffset -r.width,glyph.points[j + 1].y + this.anchorPoint.y - r.height);
@@ -492,7 +490,7 @@ Paint(g2,viewportWindow,scale,layermaskId){
                     
                     
                      utilities.mirrorPoint(A, B, end);
-                     line.setLine(start.getX(), start.getY()-r.height,end.getX(), end.getY()-r.height);
+                     line.setLine(start.x, start.y-r.height,end.x, end.y-r.height);
                      line.draw(g2,viewportWindow,scale);
 					}else{
                      line.setLine(glyph.points[j].x + this.anchorPoint.x  - r.width,
@@ -525,7 +523,7 @@ Paint(g2,viewportWindow,scale,layermaskId){
                     
                     utilities.mirrorPoint(A, B, end);        
                     
-					line.setLine(start.getX(), start.getY()+r.height,end.getX(), end.getY()+r.height); 
+					line.setLine(start.x, start.y+r.height,end.x, end.y+r.height); 
                     line.draw(g2,viewportWindow,scale);					
                    }else{ 
                     line.setLine(glyph.points[j].x + this.anchorPoint.x  - r.width,glyph.points[j].y + this.anchorPoint.y-yoffset+r.height,glyph.points[j + 1].x + this.anchorPoint.x  - r.width,glyph.points[j + 1].y + this.anchorPoint.y-yoffset+r.height);
@@ -546,9 +544,16 @@ drawControlShape(g2, viewportWindow,scale){
     utilities.drawCrosshair(g2, viewportWindow, scale, null, this.selectionRectWidth, [this.anchorPoint]);
 }
 fromXML(node){	
+	
 	if (node == null || j$(node).text().length==0) {
          this.text = "";
          return;
+     }
+	 //layer?
+     if(j$(node).attr("copper")!=null){
+        this.layermaskId=core.Layer.Copper.valueOf(j$(data).attr("copper")).getLayerMaskID();
+       }else{
+    	this.layermaskId=core.Layer.SILKSCREEN_LAYER_FRONT;	
      }
 	 var tokens=j$(node).text().split(',');
      this.text=tokens[0];
@@ -557,9 +562,8 @@ fromXML(node){
              parseInt(tokens[2]));  
 	 this.alignment.set(AlignEnum.parse(tokens[3]));
 	 this.thickness=parseInt(tokens[4]); 
-      
-     let size=20000||parseInt(tokens[5]);
-      
+	  
+     let size=parseInt(tokens[5])||20000; 
      //invalidate
      this.setSize(size);
 	

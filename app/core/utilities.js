@@ -15,6 +15,9 @@ var QUADRANT=(function(){
         FORTH:4
 	}
 })();
+var round=function(angle){
+	return Math.round(angle*100.0)/100.0;
+}
 var mirrorPoint=function(A,B,sourcePoint){
         let x = sourcePoint.x, y = sourcePoint.y;
         //***is this right-left mirroring
@@ -228,10 +231,11 @@ version=(function(){
 
 module.exports = {
   version,
+  round,
   getQuadrantLocation,
   textHeight,
   drawCrosshair,
-  ellipse,
+  //ellipse,
   roundrect,
   intersectLineRectangle,
   intersectLineLine,

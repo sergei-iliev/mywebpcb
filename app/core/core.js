@@ -1176,46 +1176,46 @@ Move(xoffset, yoffset) {
 	this.setY(this.getY() + yoffset);
 }
 Rotate(rotation) {
-	var a = new Point();
-	var b = new Point();
+	let a = new Point();
+	let b = new Point();
 	if (rotation.angle > 0) {
 		a.setLocation(this.upperLeft.x, this.upperLeft.y);
-		p = utilities.rotate(this.bottomLeft, rotation.originx,
+		let p = utilities.rotate(this.bottomLeft, rotation.originx,
 			rotation.originy, rotation.angle);
 		this.upperLeft.setLocation(p.x, p.y);
 
-	b.setLocation(this.upperRight.x, this.upperRight.y);
-	p = utilities.rotate(a, rotation.originx,
+	   b.setLocation(this.upperRight.x, this.upperRight.y);
+	   p = utilities.rotate(a, rotation.originx,
 			rotation.originy, rotation.angle);
-	this.upperRight.setLocation(p.x, p.y);
+	   this.upperRight.setLocation(p.x, p.y);
 
-	a.setLocation(this.bottomRight.x, this.bottomRight.y);
-	p = utilities.rotate(b, rotation.originx,
+	   a.setLocation(this.bottomRight.x, this.bottomRight.y);
+	   p = utilities.rotate(b, rotation.originx,
 			rotation.originy, rotation.angle);
-	this.bottomRight.setLocation(p.x, p.y);
+	   this.bottomRight.setLocation(p.x, p.y);
 
-	p = utilities.rotate(a, rotation.originx,
+	   p = utilities.rotate(a, rotation.originx,
 			rotation.originy, rotation.angle);
-	this.bottomLeft.setLocation(p.x, p.y);
+	   this.bottomLeft.setLocation(p.x, p.y);
 } else {
-	a.setLocation(this.upperLeft.x, this.upperLeft.y);
-	p = utilities.rotate(this.upperRight, rotation.originx,
+	   a.setLocation(this.upperLeft.x, this.upperLeft.y);
+	   let p = utilities.rotate(this.upperRight, rotation.originx,
 			rotation.originy, rotation.angle);
-	this.upperLeft.setLocation(p.x, p.y);
+	   this.upperLeft.setLocation(p.x, p.y);
 
-	b.setLocation(this.bottomLeft.x, this.bottomLeft.y);
-	p = utilities.rotate(a, rotation.originx,
+	   b.setLocation(this.bottomLeft.x, this.bottomLeft.y);
+	   p = utilities.rotate(a, rotation.originx,
 			rotation.originy, rotation.angle);
-	this.bottomLeft.setLocation(p.x, p.y);
+	   this.bottomLeft.setLocation(p.x, p.y);
 
-	a.setLocation(this.bottomRight.x, this.bottomRight.y);
-	p = utilities.rotate(b, rotation.originx,
+	   a.setLocation(this.bottomRight.x, this.bottomRight.y);
+	   p = utilities.rotate(b, rotation.originx,
 			rotation.originy, rotation.angle);
-	this.bottomRight.setLocation(p.x, p.y);
+	   this.bottomRight.setLocation(p.x, p.y);
 
-	p = utilities.rotate(a, rotation.originx,
+	   p = utilities.rotate(a, rotation.originx,
 			rotation.originy, rotation.angle);
-	this.upperRight.setLocation(p.x, p.y);
+	   this.upperRight.setLocation(p.x, p.y);
 }
 }
 Resize(xOffset, yOffset, clickedPoint) {

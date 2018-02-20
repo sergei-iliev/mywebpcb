@@ -282,9 +282,6 @@ isControlRectClicked(xx,yy) {
 		g2.beginPath(); // clear the canvas context
 		g2.arc(rect.getCenterX() - viewportWindow.x,rect.getCenterY() - viewportWindow.y,rect.width/2,0,2*Math.PI);
 		
-		//mywebpcb.utilities.ellipse(g2, rect.getCenterX() - viewportWindow.x,
-		//		rect.getCenterY() - viewportWindow.y, rect.width, rect.height,
-		//		0);
 		g2.closePath();
 		g2.lineWidth = this.thickness * scale.getScale();
 
@@ -392,8 +389,8 @@ Resize(xoffset, yoffset,point) {
 class Arc extends Circle{
 constructor(x,y,r,thickness,layermaskid){	
         super(x, y, r,thickness,layermaskid);  
-        this.startAngle=90;
-        this.extendAngle=230;
+        this.startAngle=30;
+        this.extendAngle=50;
 		this.setDisplayName("Arc");
 		this.resizingPoint=null;
 }
@@ -430,10 +427,10 @@ fromXML(data){
 		this.thickness = (parseInt(j$(data).attr("thickness")));				
 }
 setExtendAngle(extendAngle){
-    this.extendAngle=Math.round(extendAngle*100.0)/100.0;
+    this.extendAngle=utilities.round(extendAngle);
 }
 setStartAngle(startAngle){        
-    this.startAngle=Math.round(startAngle*100.0)/100.0;
+    this.startAngle=utilities.round(startAngle);
 }
 isControlRectClicked(x,y) {
    let result= super.isControlRectClicked(x, y);
@@ -504,6 +501,120 @@ convert(start,extend){
 		}
 		return new core.Point(s,e);
 }
+recalculateArc(isClockwise){
+	let resizingMidPoint=this.calculateResizingMidPoint();
+	this.drawRadius();
+
+}
+calculateResizingMidPoint(){
+	let a=this.getMidPoint();
+	let b=new core.Point(this.x,this.y);
+	let p=this.resizingPoint;
+	
+	let atob = { x: b.x - a.x, y: b.y - a.y };
+    let atop = { x: p.x - a.x, y: p.y - a.y };
+    let len = atob.x * atob.x + atob.y * atob.y;
+    let dot = atop.x * atob.x + atop.y * atob.y;
+    let t = dot / len ;
+  
+    return new core.Point(a.x + atob.x * t,a.y + atob.y * t);	
+}
+
+drawMousePoint(g2,viewportWindow,scale){
+
+	let point=this.calculateResizingMidPoint();
+    
+	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[point]);
+    
+    //this.drawRadius(g2,viewportWindow,scale);
+}
+
+distance(p1,p2){
+	   let dx=(p1.x-p2.x);
+	   let dy=(p1.y-p2.y);
+	   return Math.sqrt(dx*dx + dy*dy);	
+}
+/*
+ * draw current radius static
+ */
+drawRadius(){
+   let a=this.getStartPoint();
+   let b=this.getEndPoint();
+  
+   let P=new core.Point((a.x+b.x)/2,(a.y+b.y)/2);
+   
+   
+   //distance
+   let m=this.distance(a,P);
+   let q=this.distance(a,b);
+  
+   let midP=this.getMidPoint();
+   let A=this.distance(midP,P);
+
+   //radius
+   let R=((m*m)+(A*A))/(2*A);
+   
+   
+   //calculate centeX and centerY
+   let basex = Math.sqrt(Math.pow(R,2)-Math.pow(m,2))*((a.y-b.y)/q); //calculate once
+   let basey = Math.sqrt(Math.pow(R,2)-Math.pow(m,2))*((b.x-a.x)/q); //calculate once   
+   
+   let cX=basex+P.x;
+   let cY=basey+P.y;
+   let C1=new core.Point(cX,cY);
+   
+   
+    cX=P.x-basex;
+    cY=P.y-basey;
+    let C2=new core.Point(cX,cY);
+    
+     
+    
+  
+    //which of the 2 points is correct
+    let dist1=Math.round(this.distance(midP,C1));
+    let dist2=Math.round(this.distance(midP,C2));
+    
+
+    if(Math.round(R)==dist1){
+    	//utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[C1]);
+    	let startAngle = (180/Math.PI*Math.atan2(a.y-C1.y, a.x-C1.x));    	    	
+    	
+    	if(-180<startAngle&&startAngle<0){
+    		startAngle=Math.abs(startAngle);
+    	}else if(0<startAngle&&startAngle<=180){
+    		startAngle=360-startAngle;
+    	}
+    	
+    	let endAngle =  (180/Math.PI*Math.atan2(b.y-C1.y, b.x-C1.x));
+    	
+    	console.log(startAngle+' -------------- '+endAngle);
+    	
+    }else{
+    	//utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[C2]);
+    	let startAngle = (180/Math.PI*Math.atan2(a.y-C2.y, a.x-C2.x));
+    	if(-180<startAngle&&startAngle<0){
+    		startAngle=Math.abs(startAngle);
+    	}else{
+    		startAngle=360-startAngle;
+    	}
+    	let endAngle =  (180/Math.PI*Math.atan2(b.y-C2.y, b.x-C2.x));
+    	console.log(endAngle);
+    	if(-180<endAngle&&endAngle<0){
+    		endAngle=Math.abs(endAngle);
+    	}else{
+    		endAngle=(360-endAngle);
+    	}
+    	
+    	
+    	
+    	console.log(startAngle+' ++++++ '+endAngle);
+    	
+
+    }
+    
+    
+}
 Paint(g2, viewportWindow, scale) {
 		
 		var rect = this.getBoundingShape().getScaledRect(scale);
@@ -547,105 +658,13 @@ Paint(g2, viewportWindow, scale) {
 
 		if (this.isSelected()) {
 			this.drawControlShape(g2, viewportWindow, scale);
-			this.calculate(g2, viewportWindow, scale);
+			this.drawArcPoints(g2, viewportWindow, scale);
 		}
 		
-		//draw line
-		utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.getMidPoint()]);
+
         if(this.resizingPoint!=null){
 		   this.drawMousePoint(g2,viewportWindow,scale);
         }
-}
-
-calculateResizingPoint(){
-	let a=this.getMidPoint();
-	let b=new core.Point(this.x,this.y);
-	let p=this.resizingPoint;
-	
-	let atob = { x: b.x - a.x, y: b.y - a.y };
-    let atop = { x: p.x - a.x, y: p.y - a.y };
-    let len = atob.x * atob.x + atob.y * atob.y;
-    let dot = atop.x * atob.x + atop.y * atob.y;
-    let t = dot / len ;
-  
-    return new core.Point(a.x + atob.x * t,a.y + atob.y * t);	
-}
-
-drawMousePoint(g2,viewportWindow,scale){
-
-	let point=this.calculateResizingPoint();
-    
-	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[point]);
-    
-    this.drawRadius(g2,viewportWindow,scale);
-}
-
-distance(p1,p2){
-	   let dx=(p1.x-p2.x);
-	   let dy=(p1.y-p2.y);
-	   return Math.sqrt(dx*dx + dy*dy);	
-}
-/*
- * draw current radius static
- */
-drawRadius(g2,viewportWindow,scale){
-   let a=this.getStartPoint();
-   let b=this.getEndPoint();
-  
-   let P=new core.Point((a.x+b.x)/2,(a.y+b.y)/2);
-   
-   
-   //distance
-   let m=this.distance(a,P);
-   let q=this.distance(a,b);
-  
-   let midP=this.getMidPoint();
-   let A=this.distance(midP,P);
-
-   //radius
-   let R=((m*m)+(A*A))/(2*A);
-   //console.log('radius-'+Math.round(R));
-   
-   //calculate centeX and centerY
-   let basex = Math.sqrt(Math.pow(R,2)-Math.pow(m,2))*((a.y-b.y)/q); //calculate once
-   let basey = Math.sqrt(Math.pow(R,2)-Math.pow(m,2))*((b.x-a.x)/q); //calculate once   
-   
-   let cX=basex+P.x;
-   let cY=basey+P.y;
-   let C1=new core.Point(cX,cY);
-   
-   
-    cX=P.x-basex;
-    cY=P.y-basey;
-    let C2=new core.Point(cX,cY);
-    
-     
-    
-  
-    //which of the 2 points is correct
-    let dist1=Math.round(this.distance(midP,C1));
-    let dist2=Math.round(this.distance(midP,C2));
-    
-
-    if(Math.round(R)==dist1){
-    	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[C1]);
-    	let startAngle = (180/Math.PI*Math.atan2(a.y-C1.y, a.x-C1.x));
-    	console.log(startAngle);
-    	
-    	let endAngle =  (180/Math.PI*Math.atan2(b.y-C1.y, b.x-C1.x));
-    	console.log(endAngle);
-    	
-    }else{
-    	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[C2]);
-    	let startAngle = (180/Math.PI*Math.atan2(a.y-C2.y, a.x-C2.x));
-    	console.log(startAngle);
-    	
-    	let endAngle =  (180/Math.PI*Math.atan2(b.y-C2.y, b.x-C2.x));
-    	console.log(endAngle);
-
-    }
-    
-    
 }
 
 //find the point between start and end point
@@ -668,10 +687,11 @@ getEndPoint() {
         let y = r * Math.sin(-Math.PI/180*(this.startAngle+this.extendAngle)) + this.getY();
         return new core.Point(x,y);
 }
-calculate(g2, viewportWindow, scale){
+drawArcPoints(g2, viewportWindow, scale){
         let start=this.getStartPoint();
         let end=this.getEndPoint();
-
+		let mid=this.getMidPoint();
+		
         let line=new core.Line();
         line.setLine(start.x - this.selectionRectWidth, start.y, start.x + this.selectionRectWidth, start.y);
         line.draw(g2, viewportWindow, scale);		
@@ -684,6 +704,13 @@ calculate(g2, viewportWindow, scale){
 		
         line.setLine(end.x, end.y- this.selectionRectWidth, end.x , end.y+ this.selectionRectWidth);
         line.draw(g2, viewportWindow, scale);    
+        
+        line.setLine(mid.x - this.selectionRectWidth, mid.y, mid.x + this.selectionRectWidth, mid.y);
+        line.draw(g2, viewportWindow, scale);		
+		
+        line.setLine(mid.x, mid.y- this.selectionRectWidth, mid.x , mid.y+ this.selectionRectWidth);
+        line.draw(g2, viewportWindow, scale);    
+
     }
 
 }
@@ -1063,7 +1090,7 @@ fromXML(data) {
 	   for (var index = 0; index < len; index += 2) {
 			var x = parseInt(tokens[index]);
 			var y = parseInt(tokens[index + 1]);
-			this.points.push(new mywebpcb.core.Point(x, y));
+			this.points.push(new core.Point(x, y));
 		}
 }
 }

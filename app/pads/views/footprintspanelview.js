@@ -2,6 +2,7 @@ var mywebpcb=require('core/core').mywebpcb;
 var events=require('core/events');
 var core=require('core/core');
 var GlyphLabel=require('pads/shapes').GlyphLabel;
+var utilities =require('core/utilities');
 
 	
 var	Line=require('pads/shapes').Line;
@@ -596,10 +597,10 @@ var ArcPanelBuilder=BaseBuilder.extend({
 			   this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#widthid').val())));			 
 		 } 
 		 if(event.target.id=='startangleid'){
-			   this.target.startAngle=parseInt(j$('#startangleid').val());			 
+			   this.target.startAngle=utilities.round(j$('#startangleid').val());			 
 		 } 
 		 if(event.target.id=='extendangleid'){
-			   this.target.extendAngle=parseInt(j$('#extendangleid').val());	
+			   this.target.extendAngle=utilities.round(j$('#extendangleid').val());	
 		 } 	
 		 this.component.Repaint(); 	
     },
