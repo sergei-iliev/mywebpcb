@@ -1,5 +1,7 @@
 const express = require('express');
+const fs = require('fs');
 const app = express();
+
 
 app.use(express.static(__dirname + '/public'));
 
@@ -33,7 +35,11 @@ app.get('/rest/footprints/Atmel/CPU', (req, res, next) => {
 '</units>'
 );
 });
-
+app.get('/rest/footprints/Atmel/CPU/mega8', (req, res, next) => {
+    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\library\\footprints\\Atmel\\CPU\\mega8.xml','utf8', function(err, data) {
+		res.send(data);
+  });
+});
 app.get('/rest/footprints/Atmel/CPU/Tiny2313', (req, res, next) => {
   res.send(
 '<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>'+
