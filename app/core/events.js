@@ -131,18 +131,29 @@ class UnitEventHandle extends EventHandle{
 	     this.selectionRect.setRect(0,0,0,0);
 	 }
 	 mousePressed(event){
-		this.mx=event.windowx;
-		this.my=event.windowy;
 		this.component.getModel().getUnit().setSelected(false);
 		this.component.Repaint();
+			
+		if(super.isRightMouseButton(event)){
+			this.component.popup.registerUnitPopup(this.target,event);
+			this.component.popup.open(event.data.originalEvent.clientX,event.data.originalEvent.clientY);		
+			return;
+		} 
+		this.mx=event.windowx;
+		this.my=event.windowy;
 	 }
 	 mouseReleased(event){
+		 if(super.isRightMouseButton(event)){
+			 return;
+		 }
 	     let r=new Rectangle(this.component.viewportWindow.x+this.selectionRect.x,this.component.viewportWindow.y+this.selectionRect.y,this.selectionRect.width,this.selectionRect.height);
 		 this.component.getModel().getUnit().setSelectedInRect(this.component.getModel().getUnit().getScalableTransformation().getInverseRect(r));
 	     this.component.Repaint();
 	 }
 	 mouseDragged(event){
-
+		 if(super.isRightMouseButton(event)){
+			 return;
+		 }
 	 	  let w = event.windowx-this.mx;
 	      let h = event.windowy-this.my;
 		
@@ -163,7 +174,7 @@ class UnitEventHandle extends EventHandle{
 		  this.component.ctx.globalCompositeOperation='source-over';
 	 }
 	 mouseMove(event){
-	 
+
 	 }	 
 }
 
@@ -268,7 +279,7 @@ class BlockEventHandle extends EventHandle{
 		this.my=event.y;
 	 }
 	 mouseReleased(event){
-		UnitMgr.getInstance().alignBlock(this.component.getModel().getUnit(), this.selectedShapes);
+		UnitMgr.getInstance().alignBlock(this.component.getModel().getUnit().grid, this.selectedShapes);
 		this.component.Repaint();
 	 }
 	 mouseDragged(event){
@@ -358,12 +369,13 @@ mouseMove(e) {
 }
 
 class MouseScaledEvent{
- constructor(x,y,basePoint,which) {
+ constructor(x,y,basePoint,originalEvent) {
    this.windowx=x;
    this.windowy=y;
    this.x=basePoint.x;
    this.y=basePoint.y;
-   this.which=which;
+   this.which=originalEvent.which;
+   this.data=originalEvent;
  }
  toString(){
    return    "base x="+this.x+

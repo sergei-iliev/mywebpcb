@@ -149,7 +149,7 @@ var ToggleButtonView=Backbone.View.extend({
 			var r=this.footprintComponent.getModel().getUnit().getShapesRect(shapes);
             var footprintMgr = core.UnitMgr.getInstance();
             footprintMgr.rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.getCenterX(),r.getCenterY(),(event.data.model.id==("rotateleftid")?-1:1)*(90.0)));   
-            footprintMgr.alignBlock(this.footprintComponent.getModel().getUnit(),shapes);  
+            footprintMgr.alignBlock(this.footprintComponent.getModel().getUnit().grid,shapes);  
             
             this.footprintComponent.Repaint();
 		}

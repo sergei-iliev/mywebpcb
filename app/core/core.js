@@ -1615,12 +1615,12 @@ var UnitMgr=(function(){
         };
 
 class manager{
-        alignBlock(unit,shapes) {
+        alignBlock(grid,shapes) {
             let r = getPinsRect(shapes);
             if (r == null) {
                 return;
             }
-            let point =unit.getGrid().positionOnGrid(r.x, r.y); 
+            let point =grid.positionOnGrid(r.x, r.y); 
             
       	   shapes.forEach(function(shape) {
       		 shape.Move((point.x - r.x),(point.y - r.y));

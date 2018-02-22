@@ -13,8 +13,7 @@ var Drill=require('pads/shapes').Drill;
 var GlyphLabel=require('pads/shapes').GlyphLabel;
 var Line=require('pads/shapes').Line;
 var LineEventHandle=require('pads/events').LineEventHandle;
-
-
+var FootprintContextMenu=require('pads/popup/footprintpopup').FootprintContextMenu;
 var GlyphManager=require('core/text/glyph').GlyphManager;
 
 class Footprint extends Unit{
@@ -215,7 +214,7 @@ class FootprintContainer{
 
 
 class FootprintComponent{
-  constructor(hbar,vbar,canvas) {
+  constructor(hbar,vbar,canvas,popup) {
 	GlyphManager.getInstance();
 	
     if(canvas!=null){	
@@ -324,7 +323,7 @@ class FootprintComponent{
 	this.viewportWindow=new ViewportWindow(0,0,this.width,this.height);
 	this.parameters=new Map();
 	this.parameters.set("snaptogrid",false);
-	
+	this.popup=new FootprintContextMenu(this,popup);
 	if(hbar!=null&&vbar!=null){
 		this.hbar = j$('#'+hbar);
 		this.vbar=j$('#'+vbar);
@@ -398,7 +397,7 @@ getScaledEvent(event){
 	       x -= parseInt(this.canvas.offset().left);
 	       y -= parseInt(this.canvas.offset().top);
 	  
-	  return new events.MouseScaledEvent(x,y,this.getModel().getUnit().getScalableTransformation().getInversePoint(this.viewportWindow.x+x,this.viewportWindow.y+y),event.which);     
+	  return new events.MouseScaledEvent(x,y,this.getModel().getUnit().getScalableTransformation().getInversePoint(this.viewportWindow.x+x,this.viewportWindow.y+y),event);     
   }
 dblClick(event){
 	  event.preventDefault();

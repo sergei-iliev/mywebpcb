@@ -7,17 +7,21 @@ var mywebpcb=require('core/core').mywebpcb;
 var FootprintsPanelView=require('pads/views/footprintspanelview').FootprintsPanelView;
 var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
 
+
 (function($){
 	
 	j$=jQuery.noConflict();
 	
 	j$( document ).ready(function() {
 		    _.extend(mywebpcb, Backbone.Events);
-		
-		    //enable tooltips
+		    
+			//prevent context menu
+			document.body.oncontextmenu = (e) => {e.preventDefault()};
+		    
+			//enable tooltips
 			j$('[data-toggle="tooltip"]').tooltip();
 
-			var fc=new FootprintComponent('jqxScrollBar','jqxVerticalScrollBar','mycanvas');
+			var fc=new FootprintComponent('jqxScrollBar','jqxVerticalScrollBar','mycanvas','popup-menu');
 			
 			//create ui
 			var toggleButtonCollection=new togglebutton.ToggleButtonCollection(

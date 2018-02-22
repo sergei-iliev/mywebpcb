@@ -615,6 +615,22 @@ drawRadius(){
     
     
 }
+Rotate(rotation){
+   super.Rotate(rotation);
+   if(rotation.angle>0) {        //right                               
+       if((this.startAngle-90)<0){
+          this.startAngle=360-(90-this.startAngle); 
+       }else{
+          this.startAngle+=-90;   
+       }                                 
+   }else{                          //left                                
+       if((this.startAngle+90)>360){
+         this.startAngle=90-(360-this.startAngle);
+       }else{
+         this.startAngle+=90; 
+       }             
+   } 
+}
 Paint(g2, viewportWindow, scale) {
 		
 		var rect = this.getBoundingShape().getScaledRect(scale);

@@ -344,6 +344,8 @@ class FootprintEventMgr{
     }
  
  resetEventHandle(){
+	    //hide context menu
+	    this.component.popup.close();
         if (this.targetEventHandle != null) {
             this.targetEventHandle.Detach();
         }
