@@ -18,8 +18,43 @@ registerUnitPopup(target,event){
 	    items+="<tr id='positiontocenterid'><td style='padding: 0.4em'>Position drawing to center</td></tr>";
 	    items+="</table></div>";
 	    this.setContent(items,{target:target});	    
+	    this.open(event.data.originalEvent.offsetX,event.data.originalEvent.offsetY);	
 }
-
+registerBlockPopup(target,event){
+	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
+	    items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
+	    items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
+	    items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
+	    items+="<tr id='mirrorleftid'><td style='padding: 0.4em'>Mirror Left</td></tr>";
+	    items+="<tr id='mirrorrightid'><td style='padding: 0.4em'>Mirror Right</td></tr>";
+	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
+	    items+="</table></div>";
+	    this.setContent(items,{target:target});	
+		this.open(event.data.originalEvent.offsetX,event.data.originalEvent.offsetY);		
+}
+registerLineSelectPopup(target,event){
+	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
+	    items+="<tr id='cloneid' ><td style='padding: 0.4em;'>Clone</td></tr>";
+	    items+="<tr id='resumeid'><td style='padding: 0.4em;'>Resume</td></tr>";	  
+	    items+="<tr id='addbendingpointid'><td style='padding: 0.4em;'>Add Bending point</td></tr>";
+	    items+="<tr id='deletebendingpointid'><td style='padding: 0.4em'>Delete Bending point</td></tr>";
+	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
+	    items+="</table></div>";
+	    this.setContent(items,{target:target});	
+	    this.open(event.data.originalEvent.offsetX,event.data.originalEvent.offsetY);	
+}
+registerShapePopup(target,event){
+	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
+	    items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
+	    items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
+	    items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
+	    items+="<tr id='mirrorleftid'><td style='padding: 0.4em'>Mirror Left</td></tr>";
+	    items+="<tr id='mirrorrightid'><td style='padding: 0.4em'>Mirror Right</td></tr>";
+	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
+	    items+="</table></div>";
+	    this.setContent(items,{target:target});	
+	    this.open(event.data.originalEvent.offsetX,event.data.originalEvent.offsetY);	
+}
 attachEventListeners(context){
 	  var placeholder=document.getElementById('menu-items');		  
 	  var rows=placeholder.getElementsByTagName("table")[0].rows;
@@ -35,26 +70,7 @@ attachEventListeners(context){
 	  }
 }
 actionPerformed(id,context){
- if(id=='positiontocenterid'){
-     let unit=this.component.getModel().getUnit();           
-     let rect =unit.getBoundingRect();
-    
-     let x=rect.getCenterX();
-     let y=rect.getCenterY();
-     
-     let unitMgr = core.UnitMgr.getInstance();
-     
-     unitMgr.moveBlock(unit.shapes, (unit.width/2)-x, (unit.height/2)-y);
-     unitMgr.alignBlock(unit.grid,unit.shapes);
-      
-     //scroll to center
-     this.component.setScrollPosition((unit.width/2), (unit.height/2));
-    
- }
- if(id=='selectallid'){ 
-     this.component.getModel().getUnit().setSelected(true);
-     this.component.Repaint();  
- }
+   super.actionPerformed(id,context);
  
 }
 

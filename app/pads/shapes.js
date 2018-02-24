@@ -858,6 +858,9 @@ constructor(thickness,layermaskId) {
 																			// forming
 			this.floatingEndPoint = new core.Point(0, 0);
 }
+getLinePoints(){
+	return this.points;
+}
 Clear(){
 	this.points=null;
 }

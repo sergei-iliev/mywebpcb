@@ -1636,6 +1636,20 @@ class manager{
         		shape.Rotate(rotation);
                 });
         }
+        deleteBlock(unit,shapes){
+        	shapes.forEach(function(shape) {               
+               unit.remove(shape.uuid);
+            });	
+        }
+        cloneBlock(unit,shapes){
+            //***disselect old block
+            unit.setSelected(false);
+            shapes.forEach(function(shape) {
+            	let copy = shape.clone();
+            	copy.setSelected(true);
+            	unit.add(copy);
+            });
+        }
         isBlockSelected(shapes){
             var count = 0;
     	    shapes.forEach(function(shape) {

@@ -470,7 +470,7 @@ mouseMove(event){
   }
 mouseDown(event){
     event.preventDefault();
-    //this.canvas.focus();
+
 	if (this.getModel().getUnit() == null) { 
 	   return; 
 	}

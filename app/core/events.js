@@ -63,11 +63,24 @@ class MoveEventHandle extends EventHandle{
 	 mousePressed(event){
 	    this.component.getModel().getUnit().setSelected(false);
 	    this.target.setSelected(true);
-		this.mx=event.x;
-		this.my=event.y;
 		this.component.Repaint();
+		if(super.isRightMouseButton(event)){
+            if (this.target["getLinePoints"]!=undefined){
+            	this.component.popup.registerLineSelectPopup(this.target,event);
+            }else{
+                this.component.popup.registerShapePopup(this.target,event);
+                
+            }
+            return;
+        }
+	    
+	    this.mx=event.x;
+		this.my=event.y;
 	 }
 	 mouseReleased(event){
+		if(super.isRightMouseButton(event)){
+			 return;
+		}
 		this.target.alignToGrid(false || this.component.getParameter("snaptogrid"));
 				 
 		this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
@@ -75,6 +88,9 @@ class MoveEventHandle extends EventHandle{
 	 }
 	 
 	 mouseDragged(event){
+		if(super.isRightMouseButton(event)){
+			 return;
+		} 
 	 	let new_mx = event.x;
 	    let new_my = event.y;
 		
@@ -136,7 +152,7 @@ class UnitEventHandle extends EventHandle{
 			
 		if(super.isRightMouseButton(event)){
 			this.component.popup.registerUnitPopup(this.target,event);
-			this.component.popup.open(event.data.originalEvent.clientX,event.data.originalEvent.clientY);		
+			//this.component.popup.open(event.data.originalEvent.clientX,event.data.originalEvent.clientY);		
 			return;
 		} 
 		this.mx=event.windowx;
@@ -222,6 +238,7 @@ class CursorEventHandle extends EventHandle{
 		 super(component);
 	 }
 	 mousePressed(event){
+		 console.log('press');
 		 if(event.which==3){
 			 this.component.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
 	         this.component.setMode(core.ModeEnum.COMPONENT_MODE);  
@@ -242,6 +259,7 @@ class CursorEventHandle extends EventHandle{
 
 	 }
 	 mouseMove(event){
+		 console.log('move');
 		    let new_mx;
 			let new_my;
 			if(this.target instanceof ResizeableShape){
@@ -275,15 +293,25 @@ class BlockEventHandle extends EventHandle{
 	     super.Detach();
 	 }
 	 mousePressed(event){
+		if(super.isRightMouseButton(event)){
+		   this.component.popup.registerBlockPopup(this.target,event);					
+		   return;
+		}   
 		this.mx=event.x;
 		this.my=event.y;
 	 }
 	 mouseReleased(event){
+		if(super.isRightMouseButton(event)){
+		  return;
+		}
 		UnitMgr.getInstance().alignBlock(this.component.getModel().getUnit().grid, this.selectedShapes);
 		this.component.Repaint();
 	 }
 	 mouseDragged(event){
-	 	let new_mx = event.x;
+		if(super.isRightMouseButton(event)){
+		  return;	 
+		}
+		let new_mx = event.x;
 	    let new_my = event.y;
 		
 	    core.UnitMgr.getInstance().moveBlock(this.selectedShapes,new_mx - this.mx, new_my - this.my);
