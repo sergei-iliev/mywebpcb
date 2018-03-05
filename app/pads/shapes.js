@@ -2,7 +2,6 @@ var core=require('core/core');
 var utilities =require('core/utilities');
 var Shape=require('core/core').Shape;
 var ResizeableShape=require('core/core').ResizeableShape;
-var SquareResizableShape =require('core/core').SquareResizableShape;
 var glyph=require('core/text/glyph');
 var font=require('core/text/font');
 
@@ -67,7 +66,9 @@ isSelected() {
 Rotate(rotation) {
   this.texture.Rotate(rotation);
 }
-
+Mirror(A,B) {
+  this.texture.Mirror(A,B);
+}
 Move(xoffset,yoffset) {
   this.texture.Move(xoffset, yoffset);
 }
@@ -631,6 +632,24 @@ Rotate(rotation){
        }             
    } 
 }
+Mirror(A,B) {
+    super.Mirror(A,B);
+    if(A.x==B.x){
+      //***which place in regard to x origine   
+      //***tweak angles 
+        if(this.startAngle<=180){
+         this.startAngle=(180-this.startAngle);
+        }else{
+         this.startAngle=(180+(360 -this.startAngle));
+        }
+      this.extendAngle=(-1)*this.extendAngle;
+    }else{    //***top-botom mirroring
+      //***which place in regard to y origine    
+      //***tweak angles
+      this.startAngle=360-this.startAngle;
+      this.extendAngle=(-1)*this.extendAngle;
+    }
+}
 Paint(g2, viewportWindow, scale) {
 		
 		var rect = this.getBoundingShape().getScaledRect(scale);
@@ -989,6 +1008,11 @@ Move(xoffset, yoffset) {
 									wirePoint.y + yoffset);
 	});
 }
+Mirror(A,B) {
+	this.points.forEach(function(wirePoint) {
+		wirePoint.setLocationPoint(utilities.mirrorPoint(A,B, wirePoint));
+	});
+}
 Rotate(rotation) {
 	this.points.forEach(function(wirePoint) {
 				var p = utilities.rotate(wirePoint,
@@ -1128,7 +1152,7 @@ class Drill extends Shape{
 	      this.y+=yoffset;
 	    }
 	Rotate(rotation) {
-	    	var a=new core.Point(this.getX(),this.getY());
+	    	var a=new core.Point(this.x,this.y);
 	    	var p=utilities.rotate(a, rotation.originx, rotation.originy, rotation.angle);
 	        this.setX(p.x);
 	        this.setY(p.y);
@@ -1136,6 +1160,12 @@ class Drill extends Shape{
 	        this.setWidth(this.getHeight());
 	        this.setHeight(w);        
 	 } 
+    Mirror(A,B) {
+        let source=new core.Point(this.x,this.y);
+        utilities.mirrorPoint(A,B, source); 
+        this.setX(source.x);
+        this.setY(source.y);
+    }	
 	calculateShape() {
 		 return new core.Rectangle((this.getX()-this.getWidth()/2),(this.getY()-this.getWidth()/2),this.getWidth(),this.getWidth());
 	}
@@ -1345,6 +1375,17 @@ Move(xoffset, yoffset){
 	   this.text.Move(xoffset,yoffset);
 	   
 	}
+
+Mirror(A,B) {
+    let source = new core.Point(this.x,this.y);
+    utilities.mirrorPoint(A, B, source);
+    this.setX(source.x);
+    this.setY(source.y);
+    if (this.drill != null) {
+        this.drill.Mirror(A, B);
+    }
+    this.text.Mirror(A, B);
+}
 Rotate(rotation){
 		var a=new core.Point(this.getX(),this.getY());
 		var p=utilities.rotate(a, rotation.originx, rotation.originy, rotation.angle);

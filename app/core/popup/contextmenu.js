@@ -32,6 +32,37 @@ attachEventListeners(context){
 }
 
 actionPerformed(id,context){
+	console.log(id);
+	 if(id=='topbottomid'||id=='leftrightid'){
+         let shapes= this.component.getModel().getUnit().getSelectedShapes(false);         
+         if(shapes.length==0){
+             return; 
+         }
+         
+         let r=this.component.getModel().getUnit().getShapesRect(shapes);       
+         let unitMgr = core.UnitMgr.getInstance();
+         let p=this.component.getModel().getUnit().grid.positionOnGrid(r.getCenterX(),r.getCenterY()); 
+         if(id=='topbottomid'){
+             unitMgr.mirrorBlock(shapes,new core.Point(p.x-10,p.y),new core.Point(p.x+10,p.y));
+         }else{
+             unitMgr.mirrorBlock(shapes,new core.Point(p.x,p.y-10),new core.Point(p.x,p.y+10));
+         }         
+         unitMgr.alignBlock(this.component.getModel().getUnit().grid,shapes);
+         this.component.Repaint();		 
+	 }	
+	 if(id=='rotaterightid'||id=='rotateleftid'){
+         let shapes= this.component.getModel().getUnit().getSelectedShapes(false);         
+         if(shapes.length==0){
+             return; 
+         }
+         
+         let r=this.component.getModel().getUnit().getShapesRect(shapes);       
+         let unitMgr = core.UnitMgr.getInstance();
+         
+         unitMgr.rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.getCenterX(),r.getCenterY(),(id==("rotateleftid")?-1:1)*(90.0)));
+         unitMgr.alignBlock(this.component.getModel().getUnit().grid,shapes);
+         this.component.Repaint();		 
+	 }
 	 if(id=='positiontocenterid'){
 	     let unit=this.component.getModel().getUnit();           
 	     let rect =unit.getBoundingRect();
@@ -46,7 +77,7 @@ actionPerformed(id,context){
 	      
 	     //scroll to center
 	     this.component.setScrollPosition((unit.width/2), (unit.height/2));
-	    
+	     this.component.Repaint();
 	 }
      if (id=='deleteid') {
     	 let unit=this.component.getModel().getUnit(); 

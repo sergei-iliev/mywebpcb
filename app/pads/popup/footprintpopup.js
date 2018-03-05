@@ -25,8 +25,8 @@ registerBlockPopup(target,event){
 	    items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
 	    items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
 	    items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
-	    items+="<tr id='mirrorleftid'><td style='padding: 0.4em'>Mirror Left</td></tr>";
-	    items+="<tr id='mirrorrightid'><td style='padding: 0.4em'>Mirror Right</td></tr>";
+	    items+="<tr id='topbottomid'><td style='padding: 0.4em'>Mirror Top-Bottom</td></tr>";
+	    items+="<tr id='leftrightid'><td style='padding: 0.4em'>Mirror Left-Right</td></tr>";
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
 	    this.setContent(items,{target:target});	
@@ -48,8 +48,8 @@ registerShapePopup(target,event){
 	    items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
 	    items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
 	    items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
-	    items+="<tr id='mirrorleftid'><td style='padding: 0.4em'>Mirror Left</td></tr>";
-	    items+="<tr id='mirrorrightid'><td style='padding: 0.4em'>Mirror Right</td></tr>";
+	    items+="<tr id='topbottomid'><td style='padding: 0.4em'>Mirror Top-Bottom</td></tr>";
+	    items+="<tr id='leftrightid'><td style='padding: 0.4em'>Mirror Left-Right</td></tr>";
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
 	    this.setContent(items,{target:target});	

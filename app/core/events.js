@@ -28,10 +28,7 @@ class EventHandle{
 	 Attach(){
 	     this.ctrlButtonPress = false;
 	     this.mx=0;
-	     this.my=0;  
-	     if(this.target!=null){
-	          this.target.enableCache(false);
-	     }	     
+	     this.my=0;  	     
 	 }
 	 dblClick(){
  
@@ -46,9 +43,6 @@ class EventHandle{
 		 
 	 }
 	 Detach(){
-	        if(this.target!=null){
-	            this.target.enableCache(true);
-	          }
 	          this.Clear();
 	 }
 isRightMouseButton(e){	 

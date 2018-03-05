@@ -374,6 +374,16 @@ getBoundingShape() {
 Move(xoffset,yoffset) {
     this.anchorPoint.setLocation(this.anchorPoint.x + xoffset, this.anchorPoint.y + yoffset);
 }	
+
+Mirror(A,B) {
+    utilities.mirrorPoint(A,B, this.anchorPoint);
+            
+    if (A.x ==B.x) { //right-left mirroring
+        this.alignment.Mirror(true);            
+    } else { //***top-botom mirroring
+        this.alignment.Mirror(false);          
+    }                
+}
 Paint(g2,viewportWindow,scale,layermaskId){
         if (this.isEmpty()) {
             return;

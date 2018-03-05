@@ -1,13 +1,34 @@
+var FontMetrics=require('core/text/fontmetrics');
 
 var getCanvas=function(){
 	  return j$('#mycanvas')[0].getContext("2d");
 };
-
+/*Text Rectangle
+*
+*                  |-ascent----------------|
+*                  |                       |
+*       anchorPoint|-----------------------|
+*                  |_descent_______________|
+*
+*
+*
+*
+*
+*/
 class TextMetrics{
 	 constructor() {
 	        this.updated = false;
 	        this.fontSize=-1;
 	        this.width=this.height=0;
+	        this.descent=0;
+	        this.ascent=0;
+//	        this.metrics = FontMetrics({
+//	        	  fontFamily: 'Monospace',	        	  
+//	        	  fontWeight: 'normal',
+//	        	  fontSize: 12,
+//	        	  origin: 'baseline'
+//	        	});
+//	        console.log(this.metrics);
 		 }	
 UpdateMetrics() {
 	this.updated=false;
@@ -156,6 +177,27 @@ isClicked(x,y){
          this.anchorPoint.setLocation(this.anchorPoint.x + xoffset,
                                 this.anchorPoint.y + yoffset);
  }
+Mirror(A,B) {
+     utilities.mirrorPoint(A,B, this.anchorPoint);
+     if (A.x ==B.x) { //right-left mirroring
+         this.alignment.Mirror(true);
+         //if (this.alignment == oldAlignment) {
+         //    this.anchorPoint.setLocation(this.anchorPoint.x +
+         //                            (compositeTextMetrics.getBaseTextMetrics().getAscent() - compositeTextMetrics.getBaseTextMetrics().getDescent()),
+         //                            anchorPoint.y);
+         //}
+     } else { //***top-botom mirroring
+         this.alignment.Mirror(false);
+         //if (this.alignment == oldAlignment) {
+         //    this.anchorPoint.setLocation(anchorPoint.x,
+         //                            anchorPoint.y +
+         //                            (compositeTextMetrics.getBaseTextMetrics().getAscent() - compositeTextMetrics.getBaseTextMetrics().getDescent()));
+         //}
+     }
+     
+     this.baseTextMetrics.UpdateMetrics();
+
+ }
  Rotate(rotation){
 	 let p=utilities.rotate(this.anchorPoint, rotation.originx, rotation.originy, rotation.angle);
 	 this.anchorPoint.setLocation(p.x,p.y);
@@ -235,6 +277,7 @@ isClicked(x,y){
 
 var core=require('core/core');
 var utilities=require('core/utilities');
+
 
 module.exports ={
    FontTexture

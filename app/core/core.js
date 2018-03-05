@@ -74,6 +74,19 @@ var Alignment=function(_alignment){
 	  set:function(_alignment){
 		alignment=_alignment;  
 	  },
+	  Mirror:function(isHorizontal){
+          if(isHorizontal){
+              if(alignment==AlignEnum.LEFT)
+                alignment= AlignEnum.RIGHT;
+              else if(alignment==AlignEnum.RIGHT)
+            	  alignment= AlignEnum.LEFT;
+             }else{
+              if(alignment==AlignEnum.BOTTOM)
+            	  alignment= AlignEnum.TOP;
+              else if(alignment==AlignEnum.TOP)
+            	  alignment= AlignEnum.BOTTOM;              
+             } 		  
+	  },
 	  Rotate:function(isClockwise){
            if(alignment==AlignEnum.LEFT){
               if(isClockwise){
@@ -411,6 +424,10 @@ class Point{
  constructor(x,y) {
     this.x=x;
 	this.y=y;
+ }
+ setLocationPoint(p){
+   this.x=p.x;
+   this.y=p.y;	 
  }
  setLocation(x,y){
    this.x=parseInt(x);
@@ -844,6 +861,11 @@ Move( xoffset,  yoffset) {
 	     texture.Move(xoffset,yoffset); 
 	   });         
 	 }	
+Mirror( A, B) {
+	  this.text.forEach(function(texture){
+		 texture.Mirror(A,B); 
+	  });         
+}
 Rotate(rotation) {
 		  this.text.forEach(function(texture){
 		     texture.Rotate(rotation); 
@@ -984,8 +1006,6 @@ class Shape{
 		this.height = height;
 		this.thickness = thickness;
 		this.selection = false;
-		this.isCasheEnabled = true;
-		this.shapeCacheBounds = null;
 		this.displayname = "noname";
 		this.fill = Fill.EMPTY;
 		this.fillColor;
@@ -1007,7 +1027,10 @@ alignToGrid(isRequired) {
         this.setX(point.x);
         this.setY(point.y);      
         return null;
-}	
+}
+getCenter(){
+	return new Point(this.x,this.y);
+}
 setX(x) {
 		this.x = x;
 	}
@@ -1038,9 +1061,6 @@ getOrderWeight() {
 getUUID() {
 		return this.uuid;
 	}
-enableCache(enable) {
-		this.isCasheEnabled = enable;
-	}
 calculateShape() {
 
 	}
@@ -1059,13 +1079,7 @@ isClicked(x,y) {
          return false;           
     }
 getBoundingShape() {
-		// if(this.shapeCacheBounds==null||(!this.isCasheEnabled)){
-		this.shapeCacheBounds = this.calculateShape();
-		// }
-		return this.shapeCacheBounds;
-	}
-clearCache() {
-		this.shapeCacheBounds = null;
+	return this.calculateShape();
 	}
 setSelected (selection) {
 		this.selection = selection;
@@ -1078,14 +1092,14 @@ Move(xoffset,yoffset) {
       this.setX(this.getX() + xoffset);
       this.setY(this.getY() + yoffset);    
 }
-/*
+
 Mirror(A,B) {
-        let point = new Point(this.getX(),this.getY());
+        let point = new Point(this.x,this.y);
         utilities.mirrorPoint(A,B, point);
         this.setX(point.x);
         this.setY(point.y);
 }
-*/    
+    
 
 Rotate(rotation) {
 		let point = new Point(this.getX(), this.getY());
@@ -1093,20 +1107,7 @@ Rotate(rotation) {
 	
         this.x=(point.x);
         this.y=(point.y);
-}
-/*    
-Mirror(Moveable.Mirror type) {
-        Rectangle r=getBoundingShape().getBounds();
-        Point p=new Point((int)r.getCenterX(),(int)r.getCenterY()); 
-        switch(type){
-         case HORIZONTAL:
-            Mirror(new Point(p.x-10,p.y),new Point(p.x+10,p.y));
-        break;
-         case VERTICAL:
-            Mirror(new Point(p.x,p.y-10),new Point(p.x,p.y+10)); 
-        }
-}
-*/	
+}	
 fromXML(data) {
 
 	}
@@ -1117,19 +1118,20 @@ fromXML(data) {
 class ResizeableShape extends Shape{
 constructor (x, y, width, height, thickness,
 	layermask) {
-super(x, y, width, height, thickness, layermask);
-this.upperLeft = new Point();
-this.upperRight = new Point();
-this.bottomLeft = new Point();
-this.bottomRight = new Point();
-this.resizingPoint = null;
-this.init(x, y, width, height);
+	super(x, y, width, height, thickness, layermask);
+	this.upperLeft = new Point();
+	this.upperRight = new Point();
+	this.bottomLeft = new Point();
+	this.bottomRight = new Point();
+	this.resizingPoint = null;
+	this.init(x, y, width, height);
 }
+
 init(x, y, width, height) {
-this.upperLeft.setLocation(x, y);
-this.upperRight.setLocation(x + width, y);
-this.bottomLeft.setLocation(x, y + height);
-this.bottomRight.setLocation(x + width, y + height);
+	this.upperLeft.setLocation(x, y);
+	this.upperRight.setLocation(x + width, y);
+	this.bottomLeft.setLocation(x, y + height);
+	this.bottomRight.setLocation(x + width, y + height);
 }
 alignToGrid(isRequired) {
     if(isRequired){
@@ -1139,35 +1141,35 @@ alignToGrid(isRequired) {
     }
 }
 getResizingPoint() {
-return this.resizingPoint;
+	return this.resizingPoint;
 }
 setResizingPoint(point) {
-this.resizingPoint = point;
+	this.resizingPoint = point;
 }
 isControlRectClicked(x, y) {
-var rect = new Rectangle(0, 0, 0, 0);
-rect.setRect(this.upperLeft.x - SELECT_RECT_WIDTH / 2, this.upperLeft.y
+	var rect = new Rectangle(0, 0, 0, 0);
+	rect.setRect(this.upperLeft.x - SELECT_RECT_WIDTH / 2, this.upperLeft.y
 		- SELECT_RECT_WIDTH / 2, SELECT_RECT_WIDTH, SELECT_RECT_WIDTH);
-if (rect.contains(x, y)) {
-	return this.upperLeft;
-}
-rect.setRect(this.upperRight.x - SELECT_RECT_WIDTH / 2,
+	if (rect.contains(x, y)) {
+		return this.upperLeft;
+	}
+	rect.setRect(this.upperRight.x - SELECT_RECT_WIDTH / 2,
 		this.upperRight.y - SELECT_RECT_WIDTH / 2, SELECT_RECT_WIDTH,
 		SELECT_RECT_WIDTH);
-if (rect.contains(x, y))
-	return this.upperRight;
+	if (rect.contains(x, y))
+		return this.upperRight;
 
-rect.setRect(this.bottomLeft.x - SELECT_RECT_WIDTH / 2,
+	rect.setRect(this.bottomLeft.x - SELECT_RECT_WIDTH / 2,
 		this.bottomLeft.y - SELECT_RECT_WIDTH / 2, SELECT_RECT_WIDTH,
 		SELECT_RECT_WIDTH);
-if (rect.contains(x, y))
-	return this.bottomLeft;
+	if (rect.contains(x, y))
+		return this.bottomLeft;
 
-rect.setRect(this.bottomRight.x - SELECT_RECT_WIDTH / 2,
+	rect.setRect(this.bottomRight.x - SELECT_RECT_WIDTH / 2,
 		this.bottomRight.y - SELECT_RECT_WIDTH / 2, SELECT_RECT_WIDTH,
 		SELECT_RECT_WIDTH);
-if (rect.contains(x, y))
-	return this.bottomRight;
+	if (rect.contains(x, y))
+		return this.bottomRight;
 
 return null;
 }
@@ -1217,6 +1219,27 @@ Rotate(rotation) {
 			rotation.originy, rotation.angle);
 	   this.upperRight.setLocation(p.x, p.y);
 }
+}
+Mirror(A,B){
+    let p = new Point();
+    //***is this right-left mirroring
+    if (A.x == B.x) {
+        //***which place in regard to x origine
+        p.setLocationPoint(this.upperRight);
+        this.upperRight.setLocationPoint(utilities.mirrorPoint(A,B, this.upperLeft));
+        this.upperLeft.setLocationPoint(utilities.mirrorPoint(A,B, p));
+        p.setLocationPoint(this.bottomRight);
+        this.bottomRight.setLocationPoint(utilities.mirrorPoint(A,B, this.bottomLeft));
+        this.bottomLeft.setLocationPoint(utilities.mirrorPoint(A,B, p));
+    } else { //***top-botom mirroring
+        //***which place in regard to y origine
+        p.setLocationPoint(this.bottomLeft);
+        this.bottomLeft.setLocationPoint(utilities.mirrorPoint(A,B, this.upperLeft));
+        this.upperLeft.setLocationPoint(utilities.mirrorPoint(A,B, p));
+        p.setLocationPoint(this.bottomRight);
+        this.bottomRight.setLocationPoint(utilities.mirrorPoint(A,B, this.upperRight));
+        this.upperRight.setLocationPoint(utilities.mirrorPoint(A,B, p));
+    }	
 }
 Resize(xOffset, yOffset, clickedPoint) {
 if (clickedPoint.equals(this.upperLeft)) {
@@ -1307,76 +1330,76 @@ getHeight() {
 
 }
 
-class SquareResizableShape extends ResizeableShape{
-	constructor( x, y, width, thickness,
-			layermask) {
-		super(x, y, width, width, thickness, layermask);
-	}
-
-	Resize(xoffset, yoffset, clickedPoint) {
-		var offset = 0;
-		if (xoffset == 0) {
-			offset = yoffset;
-		} else {
-			if (yoffset == 0) {
-				offset = xoffset;
-			} else {
-				offset = Math.max(xoffset, yoffset);
-			}
-		}
-		var width = this.getWidth() + offset;
-
-		if (clickedPoint.equals(this.upperLeft)) {
-			this.upperLeft.setLocation(this.upperLeft.x + xoffset,
-					this.upperLeft.y + yoffset);
-			this.upperRight.setLocation(this.upperLeft.x + width,
-					this.upperLeft.y);
-			this.bottomLeft.setLocation(this.upperLeft.x,
-					this.upperLeft.y + width);
-			this.bottomRight.setLocation(this.upperLeft.x + width,
-					this.upperLeft.y + width);
-		} else if (clickedPoint.equals(this.upperRight)) {
-			this.upperRight.setLocation(this.upperRight.x + xoffset,
-					this.upperRight.y + yoffset);
-			this.bottomRight.setLocation(this.upperRight.x,
-					this.upperRight.y + width);
-			this.upperLeft.setLocation(this.upperRight.x - width,
-					this.upperRight.y);
-			this.bottomLeft.setLocation(this.upperRight.x - width,
-					this.upperRight.y + width);
-		} else if (clickedPoint.equals(this.bottomLeft)) {
-			this.bottomLeft.setLocation(this.bottomLeft.x + xoffset,
-					this.bottomLeft.y + yoffset);
-			this.bottomRight.setLocation(this.bottomLeft.x + width,
-					this.bottomLeft.y);
-			this.upperLeft.setLocation(this.bottomLeft.x,
-					this.bottomLeft.y - width);
-			this.upperRight.setLocation(this.bottomLeft.x + width,
-					this.bottomLeft.y - width);
-		} else if (clickedPoint.equals(this.bottomRight)) {
-			this.bottomRight.setLocation(this.bottomRight.x + xoffset,
-					this.bottomRight.y + yoffset);
-			this.bottomLeft.setLocation(this.bottomRight.x - width,
-					this.bottomRight.y);
-			this.upperRight.setLocation(this.bottomRight.x,
-					this.bottomRight.y - width);
-			this.upperLeft.setLocation(this.bottomRight.x - width,
-					this.bottomRight.y - width);
-		}
-	}
-	setWidth(width) {
-		this.upperRight.setLocation(this.upperLeft.x + width,
-				this.upperRight.y);
-		this.bottomRight.setLocation(this.upperLeft.x + width,
-				this.upperLeft.y + width);
-		this.bottomLeft.setLocation(this.upperLeft.x, this.upperLeft.y
-				+ width);
-	}
-	setHeight(height) {
-
-	}
-
-}
+//class SquareResizableShape extends ResizeableShape{
+//	constructor( x, y, width, thickness,
+//			layermask) {
+//		super(x, y, width, width, thickness, layermask);
+//	}
+//
+//	Resize(xoffset, yoffset, clickedPoint) {
+//		var offset = 0;
+//		if (xoffset == 0) {
+//			offset = yoffset;
+//		} else {
+//			if (yoffset == 0) {
+//				offset = xoffset;
+//			} else {
+//				offset = Math.max(xoffset, yoffset);
+//			}
+//		}
+//		var width = this.getWidth() + offset;
+//
+//		if (clickedPoint.equals(this.upperLeft)) {
+//			this.upperLeft.setLocation(this.upperLeft.x + xoffset,
+//					this.upperLeft.y + yoffset);
+//			this.upperRight.setLocation(this.upperLeft.x + width,
+//					this.upperLeft.y);
+//			this.bottomLeft.setLocation(this.upperLeft.x,
+//					this.upperLeft.y + width);
+//			this.bottomRight.setLocation(this.upperLeft.x + width,
+//					this.upperLeft.y + width);
+//		} else if (clickedPoint.equals(this.upperRight)) {
+//			this.upperRight.setLocation(this.upperRight.x + xoffset,
+//					this.upperRight.y + yoffset);
+//			this.bottomRight.setLocation(this.upperRight.x,
+//					this.upperRight.y + width);
+//			this.upperLeft.setLocation(this.upperRight.x - width,
+//					this.upperRight.y);
+//			this.bottomLeft.setLocation(this.upperRight.x - width,
+//					this.upperRight.y + width);
+//		} else if (clickedPoint.equals(this.bottomLeft)) {
+//			this.bottomLeft.setLocation(this.bottomLeft.x + xoffset,
+//					this.bottomLeft.y + yoffset);
+//			this.bottomRight.setLocation(this.bottomLeft.x + width,
+//					this.bottomLeft.y);
+//			this.upperLeft.setLocation(this.bottomLeft.x,
+//					this.bottomLeft.y - width);
+//			this.upperRight.setLocation(this.bottomLeft.x + width,
+//					this.bottomLeft.y - width);
+//		} else if (clickedPoint.equals(this.bottomRight)) {
+//			this.bottomRight.setLocation(this.bottomRight.x + xoffset,
+//					this.bottomRight.y + yoffset);
+//			this.bottomLeft.setLocation(this.bottomRight.x - width,
+//					this.bottomRight.y);
+//			this.upperRight.setLocation(this.bottomRight.x,
+//					this.bottomRight.y - width);
+//			this.upperLeft.setLocation(this.bottomRight.x - width,
+//					this.bottomRight.y - width);
+//		}
+//	}
+//	setWidth(width) {
+//		this.upperRight.setLocation(this.upperLeft.x + width,
+//				this.upperRight.y);
+//		this.bottomRight.setLocation(this.upperLeft.x + width,
+//				this.upperLeft.y + width);
+//		this.bottomLeft.setLocation(this.upperLeft.x, this.upperLeft.y
+//				+ width);
+//	}
+//	setHeight(height) {
+//
+//	}
+//
+//}
 /**********************Ruler**********************************/
 class Ruler extends Shape{
 constructor () {
@@ -1630,7 +1653,12 @@ class manager{
         	   shapes.forEach(function(shape) {
          		shape.Move(xoffset,yoffset);
                });
-         }       
+         }    
+        mirrorBlock(shapes,A,B){
+     	   shapes.forEach(function(shape) {
+        		shape.Mirror(A,B);
+           });
+        }
         rotateBlock(shapes, rotation){
        	   shapes.forEach(function(shape) {
         		shape.Rotate(rotation);
@@ -1974,7 +2002,6 @@ module.exports ={
 	UnitFrame,
 	Shape,
 	ResizeableShape,
-	SquareResizableShape,
 	UnitMgr,
 	Unit,
 	AffineTransform,
