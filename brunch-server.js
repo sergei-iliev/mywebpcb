@@ -6,19 +6,19 @@ const app = express();
 app.use(express.static(__dirname + '/public'));
 
 // AJAX to /action.
-app.get('/rest/footprints', (req, res, next) => {
+app.get('/rest/footprints/libraries', (req, res, next) => {
   res.send(
   '<?xml version="1.0" encoding="UTF-8"?><library>'+
   '<name>Atmel</name>'+
   '<name>DIP</name>'+
   '<name>Demo</name>'+
   '<name>QFP</name>'+
-  '<name>headers</name>'+
+  '<name>Microchip</name>'+
   '</library>'
 );
 });
 
-app.get('/rest/footprints/Atmel', (req, res, next) => {
+app.get('/rest/footprints/libraries/Atmel/categories', (req, res, next) => {
   res.send(
 '<?xml version="1.0" encoding="UTF-8"?><category>'+
 '<name library="Atmel" category="CPU">CPU</name>'+
@@ -26,7 +26,7 @@ app.get('/rest/footprints/Atmel', (req, res, next) => {
 );
 });
 
-app.get('/rest/footprints/Atmel/CPU', (req, res, next) => {
+app.get('/rest/footprints/libraries/Atmel/categories/CPU', (req, res, next) => {
   res.send(
 '<?xml version="1.0" encoding="UTF-8"?><units>'+
 '<name fullname="mega8" category="CPU"  library="Atmel">mega8</name>'+
@@ -35,12 +35,12 @@ app.get('/rest/footprints/Atmel/CPU', (req, res, next) => {
 '</units>'
 );
 });
-app.get('/rest/footprints/Atmel/CPU/mega8', (req, res, next) => {
+app.get('/rest/footprints/libraries/Atmel/categories/CPU/mega8', (req, res, next) => {
     fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\library\\footprints\\Atmel\\CPU\\mega8.xml','utf8', function(err, data) {
 		res.send(data);
   });
 });
-app.get('/rest/footprints/Atmel/CPU/Tiny2313', (req, res, next) => {
+app.get('/rest/footprints/libraries/Atmel/categories/CPU/Tiny2313', (req, res, next) => {
   res.send(
 '<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>'+
 '<footprints identity="Footprint" version="1.0">'+
