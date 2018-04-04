@@ -7,7 +7,7 @@
 let initialized = false
 let padding
 let context
-let canvas
+var canvas
 
 // ——————————————————————————————————————————————————
 // Settings
@@ -33,7 +33,10 @@ const initialize = () => {
   context = canvas.getContext('2d')
   initialized = true
 }
-
+const getCanvasContext=()=>{
+ if (!initialized) initialize()
+   return context;
+}
 const setFont = (fontFamily, fontSize, fontWeight) => {
   if (!initialized) initialize()
   padding = fontSize * 0.5
@@ -133,9 +136,11 @@ const FontMetrics = ({
 )
 
 FontMetrics.settings = settings
-
 // ——————————————————————————————————————————————————
 // Exports
 // ——————————————————————————————————————————————————
 
-module.exports = FontMetrics
+module.exports = {
+		FontMetrics,
+		getCanvasContext
+}

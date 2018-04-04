@@ -595,7 +595,7 @@ initialize(){
   	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/fonts/defaultfont.xml',
+	        url: 'fonts/defaultfont.xml',
 	        dataType: "xml",	        
 	        success: j$.proxy(this.onLoadFont,this),
 	        

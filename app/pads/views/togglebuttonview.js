@@ -2,6 +2,7 @@ var mywebpcb=require('core/core').mywebpcb;
 var core=require('core/core');
 var events=require('core/events');
 var FootprintLoadView=require('pads/views/footprintloadview');
+var FootprintSaveView=require('pads/views/footprintsaveview');
 
 var ToggleButtonView=Backbone.View.extend({
 
@@ -72,7 +73,7 @@ var ToggleButtonView=Backbone.View.extend({
 //		        	j$('#mywebpadsid').unblock();
 //		        }
 //		    });
-			new mywebpcb.pads.views.FootprintSaveView({footprintComponent:this.footprintComponent}).render();			
+			new FootprintSaveView({footprintComponent:this.footprintComponent}).render();			
 		}
 
 		if(event.data.model.id=='loadid'){

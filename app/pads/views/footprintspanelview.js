@@ -285,21 +285,21 @@ var PadPanelBuilder=BaseBuilder.extend({
         }
         
         if(event.target.id=='numberorientationid'){
-      	  this.target.getChipText().get(0).getAlignment().setOrientation(parseInt((j$('#numberorientationid :selected').val())));
+      	  this.target.getChipText().get(0).setOrientation(parseInt((j$('#numberorientationid :selected').val())));
       	  //update 
       	  this.validateAlignmentComboText('numberalignmentid',this.target.getChipText().get(0));
         }
         if(event.target.id=='numberalignmentid'){
-      	  this.target.getChipText().get(0).getAlignment().set(parseInt((j$('#numberalignmentid :selected').val()))); 
+      	  this.target.getChipText().get(0).setAlignment(parseInt((j$('#numberalignmentid :selected').val()))); 
         }
         
         if(event.target.id=='netvalueorientationid'){
-        	  this.target.getChipText().get(1).getAlignment().setOrientation(parseInt((j$('#netvalueorientationid :selected').val())));
+        	  this.target.getChipText().get(1).setOrientation(parseInt((j$('#netvalueorientationid :selected').val())));
         	  //update 
         	  this.validateAlignmentComboText('netvaluealignmentid',this.target.getChipText().get(1));
         }
         if(event.target.id=='netvaluealignmentid'){
-        	  this.target.getChipText().get(1).getAlignment().set(parseInt((j$('#netvaluealignmentid :selected').val()))); 
+        	  this.target.getChipText().get(1).setAlignment(parseInt((j$('#netvaluealignmentid :selected').val()))); 
         }
        this.component.Repaint(); 
       },
@@ -314,7 +314,7 @@ var PadPanelBuilder=BaseBuilder.extend({
 	    	this.target.setHeight(core.MM_TO_COORD(parseFloat(j$('#padheightid').val()))); 
 	     }
 		 if(event.target.id=='numberid'){ 
-			 this.target.getChipText().getTextureByTag("number").text=j$('#numberid').val();			   
+			 this.target.getChipText().getTextureByTag("number").setText(j$('#numberid').val());			   
 		 }
 		 if(event.target.id=='numbersizeid'){ 
 			 this.target.getChipText().getTextureByTag("number").fontSize=core.MM_TO_COORD(parseFloat(j$('#numbersizeid').val()));  
@@ -327,7 +327,7 @@ var PadPanelBuilder=BaseBuilder.extend({
 		 }
 		 //--------netvalue-------
 		 if(event.target.id=='netvalueid'){ 
-			 this.target.getChipText().getTextureByTag("netvalue").text=j$('#netvalueid').val(); 
+			 this.target.getChipText().getTextureByTag("netvalue").setText(j$('#netvalueid').val()); 
 		 }
 		 if(event.target.id=='netvaluesizeid'){ 
 			 this.target.getChipText().getTextureByTag("netvalue").fontSize=core.MM_TO_COORD(parseFloat(j$('#netvaluesizeid').val())); 

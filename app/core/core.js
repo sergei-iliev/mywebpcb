@@ -79,13 +79,13 @@ var Alignment=function(_alignment){
               if(alignment==AlignEnum.LEFT)
                 alignment= AlignEnum.RIGHT;
               else if(alignment==AlignEnum.RIGHT)
-            	  alignment= AlignEnum.LEFT;
-             }else{
+            	  alignment= AlignEnum.LEFT;                          	  
+           }else{
               if(alignment==AlignEnum.BOTTOM)
             	  alignment= AlignEnum.TOP;
               else if(alignment==AlignEnum.TOP)
             	  alignment= AlignEnum.BOTTOM;              
-             } 		  
+           } 		  
 	  },
 	  Rotate:function(isClockwise){
            if(alignment==AlignEnum.LEFT){
@@ -1688,7 +1688,7 @@ class manager{
             return count > 1;
         }        
         getTextureByTag(unit,tag){
-           result=null;
+           let result=null;
        	   unit.shapes.forEach(function(shape) {
         		 if(shape instanceof mywebpcb.pads.shapes.Label){
         			if(shape.getChipText().get(0).getTag()==tag){

@@ -79,14 +79,14 @@ format(){
    var xml="<footprint width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
    xml+="<name>"+this.name+"</name>\r\n";
    //***reference
-   var text=mywebpcb.core.UnitMgr.getInstance().getTextureByTag(this,'reference');
+   var text=core.UnitMgr.getInstance().getTextureByTag(this,'reference');
    if(text!=null){
        xml+="<reference>";
        xml+=text.toXML();
        xml+="</reference>\r\n";
    } 
    //value
-   text=mywebpcb.core.UnitMgr.getInstance().getTextureByTag(this,'value');
+   text=core.UnitMgr.getInstance().getTextureByTag(this,'value');
    if(text!=null){
        xml+="<value>";
        xml+=text.toXML();
@@ -94,7 +94,7 @@ format(){
    }    
    xml+="<units raster=\""+this.grid.getGridValue()+"\">MM</units>\r\n"; 
    xml+="<shapes>\r\n";
-   this.shapes.each(function(shape) {
+   this.shapes.forEach(function(shape) {
 	   xml+=shape.toXML();
    });
    xml+="</shapes>\r\n";   
@@ -162,10 +162,12 @@ class FootprintContainer{
     format() {
         var xml="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n"; 
         xml+="<footprints identity=\"Footprint\" version=\"1.0\">\r\n";      
-    	this.unitsmap.values().each(function(item) {
-  		  xml+=item.format();
+    	let units=this.unitsmap.values();
+  	    for(let i=0;i<this.unitsmap.size;i++){
+          let unit=units.next().value;
+          xml+=unit.format();
   		  xml+="\r\n";
-  		},this);        
+  	    }    	    	
         xml+="</footprints>";
         return xml;
     }

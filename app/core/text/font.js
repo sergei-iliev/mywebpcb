@@ -1,8 +1,10 @@
-var FontMetrics=require('core/text/fontmetrics');
+var fontmetrics=require('core/text/fontmetrics');
 
-var getCanvas=function(){
-	  return j$('#mycanvas')[0].getContext("2d");
-};
+
+//var getCanvas=function(){
+//	  return j$('#mycanvas')[0].getContext("2d");
+//};
+ 
 /*Text Rectangle
 *
 *                  |-ascent----------------|
@@ -17,62 +19,68 @@ var getCanvas=function(){
 */
 class TextMetrics{
 	 constructor() {
-	        this.updated = false;
+		    this.BUG_FONT_SIZE=100;
+		    this.updated = false;
 	        this.fontSize=-1;
 	        this.width=this.height=0;
 	        this.descent=0;
 	        this.ascent=0;
-//	        this.metrics = FontMetrics({
-//	        	  fontFamily: 'Monospace',	        	  
-//	        	  fontWeight: 'normal',
-//	        	  fontSize: 12,
-//	        	  origin: 'baseline'
-//	        	});
-//	        console.log(this.metrics);
 		 }	
-UpdateMetrics() {
-	this.updated=false;
-	this.fontSize=-1;
+	
+updateMetrics() {
+       this.updated=false;
+       this.fontSize=-1;
 }
-
 calculateMetrics(alignment,fontSize,text) {
-    if(this.fontSize!=fontSize){
-        this.fontSize=fontSize;
-        this.updated = false;
-    }
-    
-    if(this.updated==true){
-        return;
-    }
-    
-    if(fontSize>1000){
-        this.fixTextMetrics(alignment, fontSize,  text);
-        this.updated=true;
-        return;
-    }    
-    
-    var ctx=getCanvas();
-    ctx.font=""+this.fontSize+"px monospace";
-    
-    this.width=ctx.measureText(text).width;
-    this.height=this.fontSize;
-    
-    this.updated=true;
+	    if(this.fontSize!=fontSize){
+	        this.fontSize=fontSize;
+	        this.updated = false;
+	    }else{
+	       return;	
+	    }
+	    console.log('44444');        
+	    
+	    var ctx=fontmetrics.getCanvasContext();	    	    
+	    	    
+	    if(this.fontSize>100){
+		   let metrics = fontmetrics.FontMetrics({
+	  	           fontFamily: 'Monospace',	        	  
+	  	           fontWeight: 'normal',
+	  	           fontSize: this.BUG_FONT_SIZE,
+	  	           origin: 'baseline'
+	  	   });
+		   let scale=fontSize/this.BUG_FONT_SIZE;	
+		   
+		   ctx.font=""+this.BUG_FONT_SIZE+"px Monospace";	
+		   let w=ctx.measureText(text).width;
+		   
+		   this.width=parseInt(Math.round(scale))*w;	
+		   
+		   this.ascent=Math.abs(metrics.ascent*this.fontSize);
+		   this.descent=Math.abs(metrics.descent*this.fontSize);
+		   this.height=this.fontSize;
+		    
+        }else{
+        	let metrics = fontmetrics.FontMetrics({
+   	           fontFamily: 'Monospace',	        	  
+   	           fontWeight: 'normal',
+   	           fontSize: 20,
+   	           origin: 'baseline'
+   	        });
+        	
+        	ctx.font=""+this.fontSize+"px Monospace";		
+            this.width=ctx.measureText(text).width;
+           
+    	    this.ascent=Math.abs(metrics.ascent*this.fontSize);
+	        this.descent=Math.abs(metrics.descent*this.fontSize);
+	        this.height=this.fontSize;	    
+        } 
+	    
+	    this.updated=true; 
+	    	    
+	       	 
 }
-
-fixTextMetrics(alignment, fontSize, text){
-	tmHelper.UpdateMetrics();
-	tmHelper.calculateMetrics(alignment,600, text);
-    
-    
-    let scale=parseFloat(fontSize/tmHelper.fontSize);
-    this.width=(Math.round(scale))*tmHelper.width;
-    this.height=(Math.round(scale))*tmHelper.height;
 }
-		 
-}
-
-var tmHelper=new TextMetrics();
 
 class FontTexture{
  constructor(tag,text,x,y,alignment,fontSize) {
@@ -95,7 +103,7 @@ class FontTexture{
      this.tag = texture.tag;
      this.alignment=texture.alignment;
      this.fontSize=texture.fontSize;               
-     this.baseTextMetrics.UpdateMetrics();
+     this.baseTextMetrics.updateMetrics();
  }
 isEmpty() {
      return this.text==null||this.text.length==0;
@@ -124,8 +132,30 @@ isEmpty() {
  getTag(){
 	 return this.tag;
  }
+ setOrientation(orientation){
+	 this.alignment.setOrientation(orientation);
+	 this.baseTextMetrics.updateMetrics();
+ }
  getAlignment(){
    return this.alignment;
+ }
+ setAlignment(alignment){
+     if (alignment == core.AlignEnum.LEFT)
+         this.anchorPoint.setLocation(this.anchorPoint.x - this.baseTextMetrics.width,
+        		 this.anchorPoint.y);
+     else if (alignment == core.AlignEnum.RIGHT)
+    	 this.anchorPoint.setLocation(this.anchorPoint.x + this.baseTextMetrics.width,
+    			 this.anchorPoint.y);
+     else if (alignment == core.AlignEnum.TOP)
+    	 this.anchorPoint.setLocation(this.anchorPoint.x,
+    			 this.anchorPoint.y - this.baseTextMetrics.width);
+     else
+    	 this.anchorPoint.setLocation(this.anchorPoint.x,
+    			 this.anchorPoint.y + this.baseTextMetrics.width);
+	 
+	 this.alignment.set(alignment);
+	 
+	 this.baseTextMetrics.updateMetrics();
  }
  setSelected(selection) {
      this.selection=selection;
@@ -135,7 +165,7 @@ isSelected() {
 }
 setText(text) {
     this.text = text;
-    this.baseTextMetrics.UpdateMetrics();
+    this.baseTextMetrics.updateMetrics();
 }
 isClicked(x,y){
     var r=this.getBoundingRect();
@@ -154,17 +184,17 @@ isClicked(x,y){
      var r=null;
 	 switch(this.alignment.get()){
 	   case AlignEnum.RIGHT:
-	    r= new core.Rectangle(this.anchorPoint.x-this.baseTextMetrics.width,this.anchorPoint.y-this.baseTextMetrics.height,this.baseTextMetrics.width,this.baseTextMetrics.height);
+	    r= new core.Rectangle(this.anchorPoint.x-this.baseTextMetrics.width,this.anchorPoint.y-this.baseTextMetrics.ascent,this.baseTextMetrics.width,this.baseTextMetrics.height);
 	    break;
 	   case AlignEnum.LEFT:
-	    r= new core.Rectangle(this.anchorPoint.x,this.anchorPoint.y-this.baseTextMetrics.height,this.baseTextMetrics.width,this.baseTextMetrics.height);
+	    r= new core.Rectangle(this.anchorPoint.x,this.anchorPoint.y-this.baseTextMetrics.ascent,this.baseTextMetrics.width,this.baseTextMetrics.height);
 	   break;
 	   case AlignEnum.TOP:
-	    r= new core.Rectangle(this.anchorPoint.x - this.baseTextMetrics.height,
+	    r= new core.Rectangle(this.anchorPoint.x - this.baseTextMetrics.ascent,
                            this.anchorPoint.y, this.baseTextMetrics.height,this.baseTextMetrics.width);
 	   break;
 	   case AlignEnum.BOTTOM:
-	   	 r= new core.Rectangle(this.anchorPoint.x - this.baseTextMetrics.height,
+	   	 r= new core.Rectangle(this.anchorPoint.x - this.baseTextMetrics.ascent,
                            this.anchorPoint.y - this.baseTextMetrics.width,
                            this.baseTextMetrics.height, this.baseTextMetrics.width);
 
@@ -173,29 +203,30 @@ isClicked(x,y){
 	 return r;
 	 
  }
- Move(xoffset, yoffset){
+Move(xoffset, yoffset){
          this.anchorPoint.setLocation(this.anchorPoint.x + xoffset,
                                 this.anchorPoint.y + yoffset);
  }
 Mirror(A,B) {
+	 let oldAlignment=this.alignment.get();
      utilities.mirrorPoint(A,B, this.anchorPoint);
      if (A.x ==B.x) { //right-left mirroring
          this.alignment.Mirror(true);
-         //if (this.alignment == oldAlignment) {
-         //    this.anchorPoint.setLocation(this.anchorPoint.x +
-         //                            (compositeTextMetrics.getBaseTextMetrics().getAscent() - compositeTextMetrics.getBaseTextMetrics().getDescent()),
-         //                            anchorPoint.y);
-         //}
+         if (this.alignment.get() == oldAlignment) {
+             this.anchorPoint.setLocation(this.anchorPoint.x +
+                                     (this.baseTextMetrics.ascent - this.baseTextMetrics.descent),
+                                     this.anchorPoint.y);
+         }
      } else { //***top-botom mirroring
          this.alignment.Mirror(false);
-         //if (this.alignment == oldAlignment) {
-         //    this.anchorPoint.setLocation(anchorPoint.x,
-         //                            anchorPoint.y +
-         //                            (compositeTextMetrics.getBaseTextMetrics().getAscent() - compositeTextMetrics.getBaseTextMetrics().getDescent()));
-         //}
+         if (this.alignment.get() == oldAlignment) {
+             this.anchorPoint.setLocation(this.anchorPoint.x,
+                                     this.anchorPoint.y +
+                                     (this.baseTextMetrics.ascent - this.baseTextMetrics.descent));
+         }
      }
      
-     this.baseTextMetrics.UpdateMetrics();
+     this.baseTextMetrics.calculateMetrics(this.alignment, this.fontSize, this.text);
 
  }
  Rotate(rotation){
@@ -205,27 +236,32 @@ Mirror(A,B) {
 	 if(rotation.angle>0){  //clockwise
 	    this.alignment.Rotate(true);
 	    if(oldorientation == OrientEnum.HORIZONTAL){
-	    	this.anchorPoint.setLocation(this.anchorPoint.x+this.fontSize/2,this.anchorPoint.y);
+	    	this.anchorPoint.setLocation(this.anchorPoint.x+(this.baseTextMetrics.ascent-this.baseTextMetrics.descent),this.anchorPoint.y);            
 	    }
 	 }else{
 		this.alignment.Rotate(false);  
 	    if(oldorientation == OrientEnum.VERTICAL){
-	       this.anchorPoint.setLocation(this.anchorPoint.x,this.anchorPoint.y+this.fontSize/2);	
+	       this.anchorPoint.setLocation(this.anchorPoint.x,this.anchorPoint.y+(this.baseTextMetrics.ascent-this.baseTextMetrics.descent));	           
 	    }
 	 }
- }
-  Paint(g2,viewportWindow,scalableTransformation){
+	 
+     this.baseTextMetrics.calculateMetrics(this.alignment, this.fontSize, this.text);
+}
+  Paint(g2,viewportWindow,scale){
 	 if(this.isEmpty()){
 	   return;	 
 	 } 
-	 g2.font = ""+parseInt(this.fontSize*scalableTransformation.getScale())+"px monospace";
+	 //this.baseTextMetrics.calculateMetrics(this.alignment,parseInt(this.fontSize*scale.getScale()),this.text);
+	 
+	 g2.font = ""+parseInt(this.fontSize*scale.getScale())+"px Monospace";
+	 
 	 if(this.selection)
 	   g2.fillStyle = 'gray';
 	 else
 	   g2.fillStyle = 'white';
 	 
-	
-	 var scaledPoint=this.anchorPoint.getScaledPoint(scalableTransformation);
+	 
+	 var scaledPoint=this.anchorPoint.getScaledPoint(scale);
 	 scaledPoint.setLocation(scaledPoint.x-viewportWindow.x, scaledPoint.y-viewportWindow.y);
      
 	 
@@ -257,8 +293,9 @@ Mirror(A,B) {
 	 
 	 
 	 if(this.selection){
-		 this.drawControlShape(g2,viewportWindow,scalableTransformation); 
+		 this.drawControlShape(g2,viewportWindow,scale); 
 	 }
+	 	
   }
   drawControlShape(g2,viewportWindow,scale){
       

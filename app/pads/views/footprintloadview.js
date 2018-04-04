@@ -57,10 +57,10 @@ var LibraryView=Backbone.View.extend({
     	var callback=null;
     	if(item.value.fullname!=undefined&&item.value.category!=undefined){
     		callback=this.loadfootprint;
-    	  url=item.value.library+"/"+item.value.category+"/"+item.value.fullname;	
+    	  url=item.value.library+"/categories/"+item.value.category+"/"+item.value.fullname;	
     	}else if(item.value.category==undefined){
     		callback=this.loadfootprint;
-        	  url=item.value.library+"/null/"+item.value.fullname;	    	
+        	  url=item.value.library+"/categories/null/"+item.value.fullname;	    	
     	}else{
     		//escape if full 
     	  var children = j$(item.element).find("li");
@@ -68,13 +68,13 @@ var LibraryView=Backbone.View.extend({
         	  return;
           }
     	  callback=this.loadfootprints;
-    	  url=item.value.library+"/"+item.value.category;
+    	  url=item.value.library+"/categories/"+item.value.category;
     	}
     	
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/rest/footprints/'+url,
+	        url: '/rest/footprints/libraries/'+url,
 	        dataType: "xml",
 	        beforeSend:function(){
 		          j$('#FootprintLoadDialog').block({message:'<h5>Loading...</h5>'});	
@@ -126,7 +126,7 @@ var LibraryView=Backbone.View.extend({
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/rest/footprints',
+	        url: '/rest/footprints/libraries',
 	        dataType: "xml",
 	        beforeSend:function(){
 		          j$('#FootprintLoadDialog').block({message:'<h5>Loading...</h5>'});	
@@ -154,7 +154,7 @@ var LibraryView=Backbone.View.extend({
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/rest/footprints/'+library,
+	        url: '/rest/footprints/libraries/'+library+'/categories',
 	        dataType: "xml",
 	        beforeSend:function(){
 		          j$('#FootprintLoadDialog').block({message:'<h5>Loading...</h5>'});	
