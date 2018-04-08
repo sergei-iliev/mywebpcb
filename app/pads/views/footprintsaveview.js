@@ -89,13 +89,14 @@ var FootprintSaveView=Backbone.View.extend({
   	  this.unbind();
     },		  
     onsave:function(){
+    	console.log(j$('#savelibrarycombo').val());
     	let library=j$('#savelibrarycombo').val()!=''?j$('#savelibrarycombo').val():'null';
     	let category=j$('#savecategorycombo').val()!=''?j$('#savecategorycombo').val():'null'
 	    let name=j$('#name').val()!=''?j$('#name').val():'null'
     	j$.ajax({
 	        type: 'POST',
 	        contentType: 'application/xml',
-	        url: '/rest/footprints/'+library+'/categories/'+category+'/'+name+'?overwrite='+j$('#overrideCheck').is(":checked"),
+	        url: '/rest/footprints/libraries/'+library+'/categories/'+category+'?footprintName='+name+'&overwrite='+j$('#overrideCheck').is(":checked"),
 	        dataType: "xml",
 	        data:this.footprintComponent.getModel().format(),
 	        beforeSend:function(){
@@ -122,7 +123,7 @@ var FootprintSaveView=Backbone.View.extend({
     },
     onremove:function(){
       j$('#FootprintSaveDialog').jqxWindow('close'); 	
-    },
+    },  
     render:function(){
 		j$(this.el).html(    	
         "<div class=\"row voffset3\">"+                       
@@ -167,6 +168,9 @@ var FootprintSaveView=Backbone.View.extend({
 	    "<button  id=\"closebutton\" class=\"btn btn-default\">Close</button>"+        
         "</div>"+
         "</div>");  	
+		j$('#savelibrarycombo').editableSelect();
+		j$('#savecategorycombo').editableSelect();
+		return this;
     }
 		  
 });

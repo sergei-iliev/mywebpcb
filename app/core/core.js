@@ -1687,17 +1687,19 @@ class manager{
                });
             return count > 1;
         }        
-        getTextureByTag(unit,tag){
+        getLabelByTag(unit,tag){
            let result=null;
-       	   unit.shapes.forEach(function(shape) {
-        		 if(shape instanceof mywebpcb.pads.shapes.Label){
-        			if(shape.getChipText().get(0).getTag()==tag){
-        				result=shape.getChipText().get(0);
-        			    $break;
+       	   unit.shapes.some(function(shape) {
+       		if(undefined !=shape['getTexture']){
+       			let text=shape.getTexture();
+       		    if (text.tag==tag){        			
+        				result=shape;
+        			    return true;
         			}
         				
-        		 }
-                });
+            }
+       		return false;
+           });
             return result;
         }
     

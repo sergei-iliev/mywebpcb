@@ -79,23 +79,24 @@ format(){
    var xml="<footprint width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
    xml+="<name>"+this.name+"</name>\r\n";
    //***reference
-   var text=core.UnitMgr.getInstance().getTextureByTag(this,'reference');
+   var text=core.UnitMgr.getInstance().getLabelByTag(this,'reference');
    if(text!=null){
        xml+="<reference>";
-       xml+=text.toXML();
+       xml+=text.getTexture().toXML();
        xml+="</reference>\r\n";
    } 
    //value
-   text=core.UnitMgr.getInstance().getTextureByTag(this,'value');
+   text=core.UnitMgr.getInstance().getLabelByTag(this,'value');
    if(text!=null){
        xml+="<value>";
-       xml+=text.toXML();
+       xml+=text.getTexture().toXML();
        xml+="</value>\r\n";
    }    
    xml+="<units raster=\""+this.grid.getGridValue()+"\">MM</units>\r\n"; 
    xml+="<shapes>\r\n";
    this.shapes.forEach(function(shape) {
 	   xml+=shape.toXML();
+	   xml+='\r\n';
    });
    xml+="</shapes>\r\n";   
    xml+="</footprint>";
@@ -123,7 +124,7 @@ class FootprintContainer{
       this.fireUnitEvent({target:unit,type:events.Event.ADD_UNIT});
       
 	}
-    Delete( uuid) {
+    delete( uuid) {
         var _unit = this.unitsmap.get(uuid);
         if(_unit==null){
             return;
@@ -134,11 +135,11 @@ class FootprintContainer{
             this.unit = null;
         }
         _unit = null;
-        //this.unitsmap.unset(uuid);
+        this.unitsmap.delete(uuid);
     }
     clear(){
     	for(let item of this.unitsmap.keys()){
-    		  this.Delete(item);
+    		  this.delete(item);
     		  this.unitsmap.delete(item);
         };
 		this.unitsmap.clear();
@@ -169,6 +170,8 @@ class FootprintContainer{
   		  xml+="\r\n";
   	    }    	    	
         xml+="</footprints>";
+        
+        console.log(xml);
         return xml;
     }
 	getUnits() {

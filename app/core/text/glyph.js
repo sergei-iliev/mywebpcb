@@ -553,6 +553,11 @@ Paint(g2,viewportWindow,scale,layermaskId){
 drawControlShape(g2, viewportWindow,scale){
     utilities.drawCrosshair(g2, viewportWindow, scale, null, this.selectionRectWidth, [this.anchorPoint]);
 }
+toXML() {
+    return (this.text=="" ? "" :
+            this.text + "," + this.anchorPoint.x + "," + this.anchorPoint.y +
+            "," + AlignEnum.format(this.alignment.get())+","+this.thickness+","+this.size);
+}
 fromXML(node){	
 	
 	if (node == null || j$(node).text().length==0) {
@@ -580,6 +585,7 @@ fromXML(node){
 	
 }
 }
+
 var GlyphManager = (function () {
 
 var instance=null;

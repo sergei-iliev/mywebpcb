@@ -12,7 +12,7 @@ registerUnitPopup(target,event){
 	    items+="<tr id='redoid'><td style='padding: 0.4em;'>Redo</td></tr>";
 	    items+="<tr id='loadid'><td style='padding: 0.4em'>Load</td></tr>";
 	    items+="<tr id='reloadid'><td style='padding: 0.4em'>Reload</td></tr>";
-	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
+	    items+="<tr id='deleteunit'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="<tr id='copyid'><td style='padding: 0.4em'>Copy</td></tr>";
 	    items+="<tr id='pasteid'><td style='padding: 0.4em'>Paste</td></tr>";		    
 	    items+="<tr id='positiontocenterid'><td style='padding: 0.4em'>Position drawing to center</td></tr>";

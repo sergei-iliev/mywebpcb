@@ -57,6 +57,9 @@ clone(){
 calculateShape(){ 
   return this.texture.getBoundingShape();
 }
+getTexture(){
+  return this.texture;    
+}
 setSelected(selected) {
     this.texture.isSelected=selected;
 }
@@ -71,6 +74,12 @@ Mirror(A,B) {
 }
 Move(xoffset,yoffset) {
   this.texture.Move(xoffset, yoffset);
+}
+toXML() {
+    if (!this.texture.isEmpty())
+        return "<label layer=\""+this.copper.getName()+"\">" + this.texture.toXML() + "</label>";
+    else
+        return "";
 }
 fromXML(data){
         //extract layer info        
@@ -136,10 +145,12 @@ class RoundRect extends ResizeableShape{
 				+ "\" width=\"" + this.getWidth() + "\" height=\""
 				+ this.getHeight() + "\" thickness=\"" + this.thickness
 				+ "\" fill=\"" + this.fill + "\" arc=\"" + this.arc
-				+ "\"/>\r\n";
+				+ "\"/>";
 	}
 	fromXML(data) {
-		this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
+		if(j$(data)[0].hasAttribute("copper")){
+		  this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
+		}
 		this.setX(parseInt(j$(data).attr("x")));
 		this.setY(parseInt(j$(data).attr("y")));
 		this.setWidth(parseInt(j$(data).attr("width")));
@@ -245,11 +256,7 @@ isControlRectClicked(xx,yy) {
         return null;
     }	
 	toXML() {
-		return "<ellipse copper=\"" + this.copper.getName() + "\" x=\""
-				+ this.upperLeft.x + "\" y=\"" + this.upperLeft.y
-				+ "\" width=\"" + this.getWidth() + "\" height=\""
-				+ this.getHeight() + "\" thickness=\"" + this.thickness
-				+ "\" fill=\"" + this.fill + "\"/>\r\n";
+        return "<ellipse copper=\""+this.copper.getName()+"\" x=\""+(this.x-this.width)+"\" y=\""+(this.y-this.width)+"\" width=\""+(2*this.width)+"\" height=\""+(2*this.width)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
 	}
 	fromXML(data) {	
         if(j$(data).attr("copper")!=null){
@@ -426,6 +433,9 @@ fromXML(data){
 		this.extendAngle = parseInt(j$(data).attr("extend"));
 		
 		this.thickness = (parseInt(j$(data).attr("thickness")));				
+}
+toXML() {
+    return '<arc copper="'+this.copper.getName()+'"  x="'+(this.x-this.width)+'" y="'+(this.y-this.width)+'" width="'+(2*this.width)+'"  thickness="'+this.thickness+'" start="'+this.startAngle+'" extend="'+this.extendAngle+'" />';
 }
 setExtendAngle(extendAngle){
     this.extendAngle=utilities.round(extendAngle);
@@ -1118,7 +1128,7 @@ toXML() {
 	this.points.forEach(function(point) {
 		result += point.x + "," + point.y + ",";
 	});
-	result += "</line>\r\n";
+	result += "</line>";
 	return result;
 }
 fromXML(data) {
@@ -1292,7 +1302,7 @@ getChipText() {
 	    return this.text;
 }
 toXML(){
-	    var xml="<pad copper=\""+this.copper.getName()+"\" type=\"" + mywebpcb.pads.shapes.Type.format(this.type) + "\" shape=\""+mywebpcb.pads.shapes.Shape.format(this.getShape())+"\" x=\""+this.getX()+"\" y=\""+this.getY()+"\" width=\""+this.getWidth()+"\" height=\""+this.getHeight()+"\" arc=\""+this.arc+"\">\r\n";
+	    var xml="<pad copper=\""+this.copper.getName()+"\" type=\"" +PadType.format(this.type) + "\" shape=\""+PadShape.format(this.getShape())+"\" x=\""+this.getX()+"\" y=\""+this.getY()+"\" width=\""+this.getWidth()+"\" height=\""+this.getHeight()+"\" arc=\""+this.arc+"\">\r\n";
 	        xml+="<offset x=\""+this.offset.x+"\" y=\""+this.offset.y+"\" />\r\n";
 	    
 	        if (!this.text.getTextureByTag("number").isEmpty())
@@ -1306,7 +1316,7 @@ toXML(){
 	    if(this.drill!=null){
 	        xml+=this.drill.toXML()+"\r\n";  
 	    }
-	    xml+="</pad>\r\n";
+	    xml+="</pad>";
 	    return xml;	
 	}	
 fromXML(data){   

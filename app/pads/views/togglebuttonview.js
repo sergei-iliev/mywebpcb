@@ -3,6 +3,7 @@ var core=require('core/core');
 var events=require('core/events');
 var FootprintLoadView=require('pads/views/footprintloadview');
 var FootprintSaveView=require('pads/views/footprintsaveview');
+var Footprint=require('pads/d/footprintcomponent').Footprint;
 
 var ToggleButtonView=Backbone.View.extend({
 

@@ -79,6 +79,17 @@ actionPerformed(id,context){
 	     this.component.setScrollPosition((unit.width/2), (unit.height/2));
 	     this.component.Repaint();
 	 }
+	 if(id=='deleteunit'){
+         this.component.getModel().delete(this.component.getModel().getUnit().getUUID());
+         if (this.component.getModel().unitsmap.size> 0) {
+        	 this.component.getModel().setActiveUnit(0);
+        	 this.component.getModel().fireUnitEvent({target:this.component.getModel().getUnit(),type:Event.SELECT_UNIT});
+         }else{
+        	 this.component.Clear();
+        	 this.component.fireContainerEvent({target:null, type:Event.DELETE_CONTAINER});
+         }
+         this.component.Repaint();  
+	 }
      if (id=='deleteid') {
     	 let unit=this.component.getModel().getUnit(); 
     	 let unitMgr = core.UnitMgr.getInstance();        
