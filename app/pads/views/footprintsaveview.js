@@ -16,7 +16,8 @@ var FootprintSaveView=Backbone.View.extend({
     events: {
        "click  #savebutton" : "onsave",	
 	   "click  #closebutton" : "onremove",
-       "change #savelibrarycombo": "onchangelibrary",
+       //"change #savelibrarycombo": "onchangelibrary",
+       "select #savelibrarycombo": "onchangelibrary",
 	},	
     loadlibrary:function(){
 	    j$.ajax({
@@ -40,8 +41,9 @@ var FootprintSaveView=Backbone.View.extend({
 	}, 	
 	onloadlibraries:function(data, textStatus, jqXHR){
 		var that=this; 
+		j$('#savelibrarycombo').editableSelect('clear');
 		j$(data).find("name").each(j$.proxy(function(){
-		  j$('#savelibrarycombo').append('<option value=' +j$(this).text()+ '>' +  j$(this).text() + '</option>');
+		  j$('#savelibrarycombo').editableSelect('add',j$(this).text());  //('<option value=' +j$(this).text()+ '>' +  j$(this).text() + '</option>');
 		}),that);
 		//set library
 		j$('#savelibrarycombo').val(this.footprintComponent.getModel().libraryname);
@@ -58,7 +60,7 @@ var FootprintSaveView=Backbone.View.extend({
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/rest/footprints/libraries/'+library+'/categories',
+	        url: '/rest/footprints/libraries/'+library+'/categories?includefiles=false',
 	        dataType: "xml",
 	        beforeSend:function(){
 		          j$('#FootprintSaveDialog').block({message:'<h5>Loading...</h5>'});	
@@ -75,9 +77,10 @@ var FootprintSaveView=Backbone.View.extend({
 	},	
 	onloadcategories:function(data, textStatus, jqXHR){
 		var that=this; 
+		j$('#savecategorycombo').editableSelect('clear');
 		j$('#savecategorycombo').empty();
 		j$(data).find("name").each(j$.proxy(function(){
-			  j$('#savecategorycombo').append('<option value=' +j$(this).text()+ '>' +  j$(this).text() + '</option>');
+			  j$('#savecategorycombo').editableSelect('add',j$(this).text()); //('<option value=' +j$(this).text()+ '>' +  j$(this).text() + '</option>');
 		}),that);
 		
 		//set category
@@ -168,8 +171,8 @@ var FootprintSaveView=Backbone.View.extend({
 	    "<button  id=\"closebutton\" class=\"btn btn-default\">Close</button>"+        
         "</div>"+
         "</div>");  	
-		j$('#savelibrarycombo').editableSelect();
-		j$('#savecategorycombo').editableSelect();
+		j$('#savelibrarycombo').editableSelect({ filter: false });
+		j$('#savecategorycombo').editableSelect({ filter: false });
 		return this;
     }
 		  
