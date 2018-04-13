@@ -13,6 +13,7 @@ var FootprintSaveView=Backbone.View.extend({
 			this.delegateEvents();	
 			this.loadlibrary();
 	},
+	
     events: {
        "click  #savebutton" : "onsave",	
 	   "click  #closebutton" : "onremove",

@@ -577,8 +577,13 @@ fromXML(node){
              parseInt(tokens[2]));  
 	 this.alignment.set(AlignEnum.parse(tokens[3]));
 	 this.thickness=parseInt(tokens[4]); 
-	  
-     let size=parseInt(tokens[5])||20000; 
+	 if(isNaN(this.tickness)){
+		 this.thickness=2000;
+	 } 
+     let size=parseInt(tokens[5]);
+     if(isNaN(size)){
+    	 size=20000;
+     }
      //invalidate
      this.setSize(size);
 	
