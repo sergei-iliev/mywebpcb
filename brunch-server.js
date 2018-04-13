@@ -171,7 +171,7 @@ app.get('/rest/footprints/libraries/Atmel/categories/CPU/Tiny2313', (req, res, n
 '<netvalue>GND,328984,234487,LEFT,PLAIN,1500</netvalue>'+
 '<drill height="6000" type="CIRCULAR" width="8100" x="330200" y="228600"/>'+
 '</pad>'+
-'<rectangle arc="2000" copper="FSilkS" fill="0" height="65000" thickness="2000" width="256000" x="86336" y="158028"/>'+
+'<rectangle arc="2000" fill="0" height="65000" thickness="2000" width="256000" x="86336" y="158028"/>'+
 '<arc copper="FSilkS" extend="180" fill="0" start="-90" thickness="2000" type="0" width="10608" x="81224" y="185928"/>'+
 '</shapes>'+
 '</footprint>'+
@@ -262,7 +262,7 @@ app.get('/rest/footprints/libraries/Atmel/categories/CPU/Tiny2313', (req, res, n
 '<offset x="0" y="0"/>'+
 '<number>6,141640,169128,BOTTOM,PLAIN,2000</number>'+
 '</pad>'+
-'<rectangle arc="0" copper="FSilkS" fill="0" height="40000" thickness="2000" width="40000" x="130576" y="130424"/>'+
+'<rectangle arc="0" fill="0" height="40000" thickness="2000" width="40000" x="130576" y="130424"/>'+
 '<ellipse copper="FSilkS" fill="0" height="3000" thickness="1000" width="3000" x="135016" y="135008"/>'+
 '</shapes>'+
 '</footprint>'+
@@ -352,7 +352,7 @@ app.get('/rest/footprints/libraries/Atmel/categories/CPU/Tiny2313', (req, res, n
 '<offset x="0" y="0"/>'+
 '<number>11,305824,202560,BOTTOM,PLAIN,4000</number>'+
 '</pad>'+
-'<rectangle arc="8000" copper="FSilkS" fill="0" height="75000" thickness="2100" width="125968" x="185000" y="210004"/>'+
+'<rectangle arc="8000" fill="0" height="75000" thickness="2100" width="125968" x="185000" y="210004"/>'+
 '<ellipse copper="FSilkS" fill="0" height="9840" thickness="1000" width="9840" x="192136" y="267924"/>'+
 '</shapes>'+
 '</footprint>'+
