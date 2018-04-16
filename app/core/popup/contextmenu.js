@@ -5,6 +5,7 @@ constructor(component,placeholderid){
 	this.component=component;
 	this.placeholder = document.getElementById(placeholderid);	
 	this.content="";
+	this.opened = false;	
 }	
 open(x,y){  
     this.placeholder.style.left=x+"px";
@@ -20,7 +21,10 @@ show(){
 close() {        
     this.placeholder.className = "hidden";
     this.opened = false;  
-}	
+}
+isOpen(){
+	return this.opened;
+}
 setContent(content,context) {
     this.placeholder.innerHTML ="<div class='content'>" + content + "</div>";
     //attach event listeners
@@ -32,7 +36,33 @@ attachEventListeners(context){
 }
 
 actionPerformed(id,context){
-	console.log(id);
+	 if(id=='cancelid') {
+		   this.component.getEventMgr().resetEventHandle();
+		   context.target.setSelected(false);
+		   this.component.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
+	       this.component.setMode(core.ModeEnum.COMPONENT_MODE); 
+	       this.component.Repaint();
+	 }
+     if(id=='deletelastpointid') {
+        let line=context.target;
+        line.deleteLastPoint();
+
+        if (line.points.length <= 1) {
+            //getUnitComponent().getModel().getUnit().registerMemento(getTarget().getState(MementoType.DELETE_MEMENTO));
+            this.component.getEventMgr().resetEventHandle();
+            this.component.getModel().getUnit().remove(line.uuid);
+        }
+
+         this.component.Repaint();
+         return;
+     }
+     if (id=="deletelineid") {
+    	 let line=context.target;
+         //this.component.getModel().getUnit().registerMemento(getTarget().getState(MementoType.DELETE_MEMENTO));
+         this.component.getEventMgr().resetEventHandle();
+         this.component.getModel().getUnit().remove(line.uuid);
+         this.component.Repaint();                    
+   } 
 	 if(id=='topbottomid'||id=='leftrightid'){
          let shapes= this.component.getModel().getUnit().getSelectedShapes(false);         
          if(shapes.length==0){

@@ -372,20 +372,12 @@ keyPress(event){
 	  if(event.target.tagName=="INPUT"){
 		  return;
 	  }
+	  
 	 //if(event.target instanceof HTMLBodyElement||event.target instanceof HTMLCanvasElement){
 		 event.preventDefault();
-		 if (this.getModel().getUnit() != null) { 
-			 if (event.keyCode == 8) { //BACKSPACE
-				 this.getModel().getUnit().getSelectedShapes().forEach(function(shape) {
-					 this.getModel().getUnit().remove(shape.getUUID());	
-		           }.bind(this));  
-				 this.Repaint();
-			 }
-			 if (this.getEventMgr().getTargetEventHandle() != null&&event.keyCode==27) {	
-			   this.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
-		       this.setMode(core.ModeEnum.COMPONENT_MODE);       
-		     } 
-		 }
+	     if (this.getEventMgr().targetEventHandle != null && this.getModel().getUnit() != null) {
+	            this.getEventMgr().targetEventHandle.keyPressed(event);
+	     }
 	 //}	 
   }
 getScaledEvent(event){

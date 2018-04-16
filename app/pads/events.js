@@ -240,14 +240,19 @@ constructor(component) {
 		 })(this);
 	 }
 mousePressed(event){
+	this.component.popup.close();
+	
 	if(super.isRightMouseButton(event)){
-	  if(this.target.points.length<2){		 
-	     this.component.getModel().getUnit().remove(this.target.getUUID());                
-	     this.target=null;
-	  }
-	  this.component.setMode(core.ModeEnum.LINE_MODE);
-	  this.component.Repaint();	
-	  return; 
+	  //if(this.target.points.length<2){		 
+	  //   this.component.getModel().getUnit().remove(this.target.getUUID());                
+	  //   this.target=null;
+	  //}		
+	  //this.component.setMode(core.ModeEnum.LINE_MODE);
+	  //this.component.Repaint();	
+	   this.component.popup.registerLinePopup(this.target,event);
+	  	
+		
+	   return; 
 	}
 	
 	this.component.getModel().getUnit().setSelected(false);
@@ -273,7 +278,6 @@ mousePressed(event){
  mouseMove(event){
 	 this.target.floatingEndPoint.setLocation(event.x,event.y); 
 	 this.target.floatingMidPoint.setLocation(event.x,event.y);
-	 this.target.getResizingPoint().setLocation(event.x,event.y);
 	 this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:events.Event.PROPERTY_CHANGE});
 	 this.component.Repaint(); 
    }
@@ -283,13 +287,14 @@ mousePressed(event){
      this.component.getEventMgr().resetEventHandle();
      this.component.Repaint();	 
 	 } 
-// keyPress:function(keyevent){
-//		 if(keyevent.keyCode==27){   //ESCAPE
-//           this.dblClick(null);
-//		   this.component.getView().setButtonGroup(ModeEnum.COMPONENT_MODE);
-//	       this.component.setMode(ModeEnum.COMPONENT_MODE);  
-//         }   
-// },	 
+// keyPressed(event){
+//	 if(event.keyCode==27){   //ESCAPE
+//       console.log(33);      
+//			 //this.dblClick(null);
+//		   //this.component.getView().setButtonGroup(ModeEnum.COMPONENT_MODE);
+//	       //this.component.setMode(ModeEnum.COMPONENT_MODE);  
+//     }   
+// }
  Detach(){
 	 if(this.target!=null){
 		 this.lineBendingProcessor.Release();

@@ -33,8 +33,24 @@ class EventHandle{
 	 dblClick(){
  
 	 }
-	 keyPress(keyevent){
-		 
+	 keyPressed(event){
+		 //default
+		 if(this.component.popup.isOpen()){
+			this.component.popup.close(); 
+			return; 
+		 }
+		 if (this.component.getModel().getUnit() != null) { 
+			 if (event.keyCode == 8) { //BACKSPACE
+				 this.component.getModel().getUnit().getSelectedShapes().forEach(function(shape) {
+					 this.component.getModel().getUnit().remove(shape.getUUID());	
+		           }.bind(this));  
+				 this.component.Repaint();
+			 }
+			 if (this.component.getEventMgr().getTargetEventHandle() != null&&event.keyCode==27) {	
+			   this.component.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
+		       this.component.setMode(core.ModeEnum.COMPONENT_MODE);       
+		     } 
+		 }		 
 	 }
 	 setTarget(target){
        this.target=target;

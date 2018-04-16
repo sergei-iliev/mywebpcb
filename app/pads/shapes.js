@@ -969,11 +969,11 @@ deleteLastPoint() {
 	if (this.points.length == 0)
 		return;
 
-	this.points.remove(points.get(points.size() - 1));
+	this.points.pop();
 
 						// ***reset floating start point
 	if (this.points.length > 0)
-					floatingStartPoint
+					this.floatingStartPoint
 									.setLocation(this.points[this.points.length - 1]);
 }
 
