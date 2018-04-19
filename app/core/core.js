@@ -546,7 +546,44 @@ setLine(x1,y1,x2,y2){
   this.x2=x2;
   this.y2=y2; 
 }
+/*
+ * Line segment given as 2 points
+ */
+intersectLine(b1, b2) {    
+    
+    var ua_t = (b2.x - b1.x) * (this.y1 - b1.y) - (b2.y - b1.y) * (this.x1 - b1.x);
+    var ub_t = (this.x2 -this.x1) * (this.y1 - b1.y) - (this.y2 - this.y1) * (this.x1 - b1.x);
+    var u_b  = (b2.y - b1.y) * (this.x2 - this.x1) - (b2.x - b1.x) * (this.y2 - this.y1);
 
+    if ( u_b != 0 ) {
+        var ua = ua_t / u_b;
+        var ub = ub_t / u_b;
+
+        if ( 0 <= ua && ua <= 1 && 0 <= ub && ub <= 1 ) {
+             return true;
+        } else {
+             return false;
+        }
+    } else {
+        if ( ua_t == 0 || ub_t == 0 ) {
+            return true;   //"Coincident"
+        } else {
+            return false;
+        }
+    }
+}
+intersectRect(r) {
+    var min        = r.getP1();
+    var max        = r.getP2();
+    var topRight   = new Point(max.x, min.y );
+    var bottomLeft = new Point(min.x, max.y );
+	
+    var inter1 = this.intersectLine(min, topRight);
+    var inter2 = this.intersectLine(topRight, max);
+    var inter3 = this.intersectLine(max, bottomLeft);
+    var inter4 = this.intersectLine(bottomLeft, min);
+    return inter1||inter2||inter3||inter4;
+}
 getP1(){
   return new Point(this.x1,this.y1);
 }

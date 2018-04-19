@@ -115,6 +115,51 @@ class MoveEventHandle extends EventHandle{
 	 }	 
 }
 
+class ResizeEventHandle extends EventHandle{
+	 constructor(component) {
+		 super(component);
+		 this.targetPoint=null;
+	 }
+	 mousePressed(event){
+		if(super.isRightMouseButton(event)){
+	            if (this.target["getLinePoints"]!=undefined){
+	            	this.component.popup.registerLineSelectPopup(this.target,event);            
+	            }            
+	    }
+	     
+	    this.component.getModel().getUnit().setSelected(false);
+	    this.target.setSelected(true);
+		this.mx=event.x;
+		this.my=event.y;
+	        
+	    this.targetPoint=this.target.isControlRectClicked(event.x,event.y);
+	    this.target.setResizingPoint(this.targetPoint);
+	    
+	    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
+	    
+		this.component.Repaint();
+	 }
+	 mouseReleased(event){
+		    if(this.component.getParameter("snaptogrid")){
+	         this.target.alignResizingPointToGrid(this.targetPoint);
+		     this.component.Repaint();	 
+			}
+			
+	 }
+	 mouseDragged(event){
+	 	let new_mx = event.x;
+	    let new_my = event.y;
+	    this.target.Resize(new_mx - this.mx, new_my - this.my,this.targetPoint);
+	    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
+	    this.mx = new_mx;
+	    this.my = new_my;
+		this.component.Repaint();
+	 }
+	 mouseMove(event){
+	 
+	 }
+	 
+}
 class DragingEventHandle extends EventHandle{
 constructor(component) {
 		 super(component);
@@ -435,6 +480,7 @@ module.exports ={
    UnitEventHandle,
    DragingEventHandle,
    MoveEventHandle,
+   ResizeEventHandle,
    EventHandle,
    MeasureEventHandle
 }

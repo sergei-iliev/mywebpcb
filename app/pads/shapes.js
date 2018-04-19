@@ -951,20 +951,75 @@ getOrderWeight() {
 setResizingPoint(point) {
   this.resizingPoint = point;
 }
-ResetToPoint(point) {
-	this.floatingStartPoint.setLocation(point);
-	this.floatingMidPoint.setLocation(point);
-	this.floatingEndPoint.setLocation(point);
+resetToPoint(point) {
+	this.floatingStartPoint.setLocationPoint(point);
+	this.floatingMidPoint.setLocationPoint(point);
+	this.floatingEndPoint.setLocationPoint(point);
 }
-Reset() {
-	this.ResetToPoint(this.floatingStartPoint);
+reset() {
+	this.resetToPoint(this.floatingStartPoint);
 }
-
+reverse(x,y) {
+    let p=this.isBendingPointClicked(x, y);
+    if (this.points[0].x == p.x &&
+        this.points[0].y == p.y) {
+    	this.points.reverse(); 
+    }       
+}
 Resize(xoffset, yoffset, clickedPoint) {
 	clickedPoint.setLocation(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);
 }
 
+insertPoint( x, y) {
+    
+    let flag = false;
+    let point = this.owningUnit.grid.positionOnGrid(x, y);
+
+    var rect = new core.Rectangle(x - this.owningUnit.grid.getGridPointToPoint(),
+                      y - this.owningUnit.grid.getGridPointToPoint() ,
+                      2*this.owningUnit.grid.getGridPointToPoint(),
+                      2*this.owningUnit.grid.getGridPointToPoint());
+
+    let line = new core.Line();
+
+
+    let tmp = new core.Point(point.x, point.y);
+    let midium = new core.Point();
+
+    //***add point to the end;
+    this.points.push(point);
+
+    let prev = this.points[0];
+    this.points.forEach(function(next){
+        if(prev!=next){
+    	 if (!flag) {
+            //***find where the point is - 2 points between the new one
+            line.setLine(prev.x,prev.y, next.x,next.y);
+            if (line.intersectRect(rect))
+                flag = true;
+         } else {
+            midium.setLocationPoint(tmp); //midium.setPin(tmp.getPin());
+            tmp.setLocationPoint(prev); //tmp.setPin(prev.getPin());
+            prev.setLocationPoint(midium); //prev.setPin(midium.getPin());
+         }
+        }
+        prev = next;
+    });
+    if (flag)
+        prev.setLocationPoint(tmp); //prev.setPin(tmp.getPin());
+}
+removePoint(x, y) {
+    let point = this.isBendingPointClicked(x, y);
+    if (point != null) {
+    	
+    	var tempArr = this.points.filter(function(item) { 
+    	    return item !== point;
+    	});
+        
+    	this.points=tempArr;
+    }
+}
 deleteLastPoint() {
 	if (this.points.length == 0)
 		return;
@@ -976,7 +1031,25 @@ deleteLastPoint() {
 					this.floatingStartPoint
 									.setLocation(this.points[this.points.length - 1]);
 }
+isEndPoint(x,y){
+    if (this.points.length< 2) {
+        return false;
+    }
 
+    let point = this.isBendingPointClicked(x, y);
+    if (point == null) {
+        return false;
+    }
+    //***head point
+    if (this.points[0].x == point.x && this.points[0].y == point.y) {
+        return true;
+    }
+    //***tail point
+    if ((this.points[this.points.length - 1].x == point.x )&& (this.points[this.points.length - 1].y == point.y)) {
+        return true;
+    }
+    return false;	
+}
 isInRect(r) {
 	var result = true;
 	this.points.some(function(wirePoint) {
@@ -994,7 +1067,25 @@ setSelected(selection) {
      if (!selection) {
         this.resizingPoint = null;
      }
-}					
+}
+isBendingPointClicked( x,  y) {
+	var rect = new core.Rectangle(x
+			- this.selectionRectWidth / 2, y - this.selectionRectWidth
+			/ 2, this.selectionRectWidth, this.selectionRectWidth);
+
+    let point = null;
+
+	this.points.some(function(wirePoint) {
+		if (rect.contains(wirePoint.x, wirePoint.y)) {
+					point = wirePoint;
+		  return true;
+		}else{
+		  return false;
+		}
+	});
+
+	return point;
+}
 isControlRectClicked(x, y) {
 	var rect = new core.Rectangle(x
 								- this.selectionRectWidth / 2, y - this.selectionRectWidth

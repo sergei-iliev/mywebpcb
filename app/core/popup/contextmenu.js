@@ -5,11 +5,14 @@ constructor(component,placeholderid){
 	this.component=component;
 	this.placeholder = document.getElementById(placeholderid);	
 	this.content="";
+	this.x=this.y=0;
 	this.opened = false;	
 }	
-open(x,y){  
-    this.placeholder.style.left=x+"px";
-    this.placeholder.style.top=y+"px";
+open(event){ 
+	this.x=event.x;
+	this.y=event.y;
+    this.placeholder.style.left=event.data.originalEvent.offsetX+"px";
+    this.placeholder.style.top=event.data.originalEvent.offsetY+"px";
     this.show();				  
 }
 show(){
@@ -36,6 +39,7 @@ attachEventListeners(context){
 }
 
 actionPerformed(id,context){
+	console.log(id);
 	 if(id=='cancelid') {
 		   this.component.getEventMgr().resetEventHandle();
 		   context.target.setSelected(false);
@@ -43,16 +47,34 @@ actionPerformed(id,context){
 	       this.component.setMode(core.ModeEnum.COMPONENT_MODE); 
 	       this.component.Repaint();
 	 }
+     if (id=="addbendingpointid") {
+    	 let line=context.target;
+         line.insertPoint(this.x, this.y);
+         
+         this.component.Repaint();
+         return;
+    }	 
      if(id=='deletelastpointid') {
         let line=context.target;
         line.deleteLastPoint();
 
-        if (line.points.length <= 1) {
+        if (line.points.length == 1) {
             //getUnitComponent().getModel().getUnit().registerMemento(getTarget().getState(MementoType.DELETE_MEMENTO));
             this.component.getEventMgr().resetEventHandle();
             this.component.getModel().getUnit().remove(line.uuid);
         }
 
+         this.component.Repaint();
+         return;
+     }
+     if(id=='deletebendingpointid'){
+    	 let line=context.target;
+    	 line.removePoint(this.x,this.y);
+         //***delete wire if one point remains only
+         if (line.getLinePoints().length == 1) {
+        	 this.component.getEventMgr().resetEventHandle();
+        	 this.component.getModel().getUnit().remove(line.uuid);
+         }
          this.component.Repaint();
          return;
      }

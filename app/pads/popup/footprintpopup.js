@@ -18,7 +18,7 @@ registerUnitPopup(target,event){
 	    items+="<tr id='positiontocenterid'><td style='padding: 0.4em'>Position drawing to center</td></tr>";
 	    items+="</table></div>";
 	    this.setContent(items,{target:target});	    
-	    this.open(event.data.originalEvent.offsetX,event.data.originalEvent.offsetY);	
+	    this.open(event);	
 }
 registerBlockPopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -30,18 +30,27 @@ registerBlockPopup(target,event){
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
 	    this.setContent(items,{target:target});	
-		this.open(event.data.originalEvent.offsetX,event.data.originalEvent.offsetY);		
+		this.open(event);		
 }
 registerLineSelectPopup(target,event){
+	  let bending=target.isBendingPointClicked(event.x,event.y);
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
 	    items+="<tr id='cloneid' ><td style='padding: 0.4em;'>Clone</td></tr>";
-	    items+="<tr id='resumeid'><td style='padding: 0.4em;'>Resume</td></tr>";	  
-	    items+="<tr id='addbendingpointid'><td style='padding: 0.4em;'>Add Bending point</td></tr>";
-	    items+="<tr id='deletebendingpointid'><td style='padding: 0.4em'>Delete Bending point</td></tr>";
+	    if(bending!=null){
+	      if(target.isEndPoint(event.x,event.y)){	
+	        items+="<tr id='resumeid'><td style='padding: 0.4em;'>Resume</td></tr>";
+	      }
+	    }else{
+	    	items+="<tr id='addbendingpointid'><td style='padding: 0.4em;'>Add Bending point</td></tr>";	
+	    }
+	    
+	    if(bending!=null){
+	      items+="<tr id='deletebendingpointid'><td style='padding: 0.4em'>Delete Bending point</td></tr>";
+	    }
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
 	    this.setContent(items,{target:target});	
-	    this.open(event.data.originalEvent.offsetX,event.data.originalEvent.offsetY);	
+	    this.open(event);	
 }
 registerLinePopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -50,7 +59,7 @@ registerLinePopup(target,event){
 	    items+="<tr id='cancelid'><td style='padding: 0.4em;'>Cancel</td></tr>";	    	    	
 	    items+="</table></div>";
 	    this.setContent(items,{target:target});	
-	    this.open(event.data.originalEvent.offsetX,event.data.originalEvent.offsetY);	  	
+	    this.open(event);	  	
 }
 registerShapePopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -62,7 +71,7 @@ registerShapePopup(target,event){
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
 	    this.setContent(items,{target:target});	
-	    this.open(event.data.originalEvent.offsetX,event.data.originalEvent.offsetY);	
+	    this.open(event);	
 }
 attachEventListeners(context){
 	  var placeholder=document.getElementById('menu-items');		  
@@ -79,8 +88,14 @@ attachEventListeners(context){
 	  }
 }
 actionPerformed(id,context){
+   if (id=="resumeid") {
+        this.component.getView().setButtonGroup(core.ModeEnum.LINE_MODE);
+        this.component.setMode(core.ModeEnum.LINE_MODE);         
+        this.component.resumeLine(context.target,"line", {x:this.x, y:this.y,which:3});
+    }  	
+	
    super.actionPerformed(id,context);
- 
+   
 }
 
 

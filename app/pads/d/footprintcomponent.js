@@ -338,7 +338,13 @@ class FootprintComponent{
 		this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
 	}
 }
- 
+resumeLine(line,handleKey,event) {
+      
+      line.reset(event.x,event.y);
+      //***do we need to reorder
+      line.reverse(event.x,event.y);     
+      this.getEventMgr().setEventHandle(handleKey,line);
+} 
 getParameter(key) {
 	return this.parameters.get(key); 
 }
@@ -525,7 +531,9 @@ mouseDown(event){
             //***is this a new wire
             if ((this.getEventMgr().getTargetEventHandle() == null) ||
                 !(this.getEventMgr().getTargetEventHandle() instanceof LineEventHandle)) {
-
+            	if(event.which!=1){
+            		return;
+            	}
                 shape = new Line(core.MM_TO_COORD(0.3),core.Layer.SILKSCREEN_LAYER_FRONT);
                 this.getModel().getUnit().add(shape);
                 

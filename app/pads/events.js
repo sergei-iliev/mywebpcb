@@ -131,45 +131,6 @@ mouseMove(event){
 }
 
 }
-class ResizeEventHandle extends EventHandle{
- constructor(component) {
-	 super(component);
-	 this.targetPoint=null;
- }
- mousePressed(event){
-    this.component.getModel().getUnit().setSelected(false);
-    this.target.setSelected(true);
-	this.mx=event.x;
-	this.my=event.y;
-        
-    this.targetPoint=this.target.isControlRectClicked(event.x,event.y);
-    this.target.setResizingPoint(this.targetPoint);
-    
-    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:events.Event.PROPERTY_CHANGE});
-    
-	this.component.Repaint();
- }
- mouseReleased(event){
-	    if(this.component.getParameter("snaptogrid")){
-         this.target.alignResizingPointToGrid(this.targetPoint);
-	     this.component.Repaint();	 
-		}
-		
- }
- mouseDragged(event){
- 	let new_mx = event.x;
-    let new_my = event.y;
-    this.target.Resize(new_mx - this.mx, new_my - this.my,this.targetPoint);
-    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:events.Event.PROPERTY_CHANGE});
-    this.mx = new_mx;
-    this.my = new_my;
-	this.component.Repaint();
- }
- mouseMove(event){
- 
- }
- 
-}
 
 class LineEventHandle extends EventHandle{
 constructor(component) {
@@ -224,11 +185,11 @@ constructor(component) {
 				                result=true;
 				            }               
 				        }         
-				        line.ResetToPoint(p); 
+				        line.resetToPoint(p); 
 				        return result;
 			   },
 			   Release:function(){
-			          line.Reset(); 
+			          line.reset(); 
 			          if(line.points.length<2){
 			                line.owningUnit.remove(line.getUUID());                
 			          }
@@ -282,7 +243,7 @@ mousePressed(event){
 	 this.component.Repaint(); 
    }
  dblClick(){
-     this.target.Reset();  
+     this.target.reset();  
      this.target.setSelected(false);
      this.component.getEventMgr().resetEventHandle();
      this.component.Repaint();	 
@@ -298,7 +259,7 @@ mousePressed(event){
  Detach(){
 	 if(this.target!=null){
 		 this.lineBendingProcessor.Release();
-	     this.target.Reset();  
+	     this.target.reset();  
 	 }	     
 	 super.Detach();
  }    
@@ -313,7 +274,7 @@ class FootprintEventMgr{
 	this.hash.set("arc.start.angle",new ArcStartAngleEventHandle(component));
 	this.hash.set("arc.extend.angle",new ArcExtendAngleEventHandler(component));
 	this.hash.set("move",new events.MoveEventHandle(component));
-	this.hash.set("resize",new ResizeEventHandle(component));
+	this.hash.set("resize",new events.ResizeEventHandle(component));
     this.hash.set("component",new events.UnitEventHandle(component));
 	this.hash.set("block",new events.BlockEventHandle(component));
 	this.hash.set("line",new LineEventHandle(component));
@@ -361,6 +322,5 @@ class FootprintEventMgr{
 
 module.exports ={
 	  FootprintEventMgr,
-	  LineEventHandle,
-	  ResizeEventHandle
+	  LineEventHandle
 }

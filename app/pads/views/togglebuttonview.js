@@ -234,6 +234,13 @@ var ToggleButtonView=Backbone.View.extend({
      	     model.attributes.active=true;
     		 this.update();
          }
+         if(requestedMode==core.ModeEnum.LINE_MODE){
+        	 var model=this.collection.get('lineid');
+        	 this.togglegroup(model.attributes.group);
+     	     model.attributes.active=true;
+    		 this.update();
+          
+         }
 
 }
 });
