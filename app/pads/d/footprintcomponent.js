@@ -1,7 +1,9 @@
+var Unit = require('core/unit').Unit;
+var UnitContainer = require('core/unit').UnitContainer;
+var UnitComponent = require('core/unit').UnitComponent;
+var UnitMgr = require('core/unit').UnitMgr;
 var mywebpcb=require('core/core').mywebpcb;
 var core = require('core/core');
-var Unit = require('core/core').Unit;
-var ViewportWindow=require('core/core').ViewportWindow;
 var FootprintEventMgr = require('pads/events').FootprintEventMgr;
 var events=require('core/events');
 var RoundRect=require('pads/shapes').RoundRect;
@@ -79,14 +81,14 @@ format(){
    var xml="<footprint width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
    xml+="<name>"+this.name+"</name>\r\n";
    //***reference
-   var text=core.UnitMgr.getInstance().getLabelByTag(this,'reference');
+   var text=UnitMgr.getInstance().getLabelByTag(this,'reference');
    if(text!=null){
        xml+="<reference>";
        xml+=text.getTexture().toXML();
        xml+="</reference>\r\n";
    } 
    //value
-   text=core.UnitMgr.getInstance().getLabelByTag(this,'value');
+   text=UnitMgr.getInstance().getLabelByTag(this,'value');
    if(text!=null){
        xml+="<value>";
        xml+=text.getTexture().toXML();
@@ -104,46 +106,12 @@ format(){
 }	
 }
 
-class FootprintContainer{
+class FootprintContainer extends UnitContainer{
     constructor(silent) {
-      this.silent= silent || false;;	
-	  this.unitsmap=new Map();
-	  this.unit=null;
-	  this.formatedFileName="Footprints";
-	  this.libraryname="";
-	  this.categoryname="";
+       super(silent);
+       this.formatedFileName="Footprints"
 	}
-    setFileName(formatedFileName) {
-        this.formatedFileName = formatedFileName;
-    }
-	add(unit){
-	  this.unitsmap.set(unit.getUUID(), unit);
-      if(this.unitsmap.size==1){
-          this.setActiveUnit(0);   
-      }
-      this.fireUnitEvent({target:unit,type:events.Event.ADD_UNIT});
-      
-	}
-    delete( uuid) {
-        var _unit = this.unitsmap.get(uuid);
-        if(_unit==null){
-            return;
-        }
-        _unit.release();
-        this.fireUnitEvent({target:_unit,type:events.Event.DELETE_UNIT});
-        if (_unit == this.unit) {
-            this.unit = null;
-        }
-        _unit = null;
-        this.unitsmap.delete(uuid);
-    }
-    clear(){
-    	for(let item of this.unitsmap.keys()){
-    		  this.delete(item);
-    		  this.unitsmap.delete(item);
-        };
-		this.unitsmap.clear();
-    }
+
     parse(xml){
     	  this.formatedFileName=(j$(xml).find("filename").text());
     	  this.libraryname=(j$(xml).find("library").text());
@@ -174,71 +142,15 @@ class FootprintContainer{
         console.log(xml);
         return xml;
     }
-	getUnits() {
-        return this.unitsmap.values();
-    }
-    setActiveUnitUUID(uuid){
-    	this.unit=this.unitsmap.get(Number(uuid));
-    }
-	setActiveUnit(index) {	
-	let units=this.unitsmap.values();
-	  for(let i=0;i<this.unitsmap.size;i++){
-        let aunit=units.next();
-		if(index==i){
-		  this.unit=aunit.value;
-		  break;
-		}
-	  }
-    }
-	getUnit(){
-	  return this.unit;
-	}
-	fireUnitEvent(event){
-		if(this.silent)
-			return;
-		switch(event.type){
-		  case events.Event.ADD_UNIT:
-			  mywebpcb.trigger('unit:inspector',event);
-			  break;
-		  case events.Event.DELETE_UNIT:
-			  mywebpcb.trigger('unit:inspector',event);
-			  break;
-		  case events.Event.SELECT_UNIT:
-			  mywebpcb.trigger('unit:inspector',event);
-			  break;
-		  case events.Event.RENAME_UNIT:	 
-			  mywebpcb.trigger('unit:inspector',event);
-			  break;
-		  case events.Event.PROPERTY_CHANGE:
-			  mywebpcb.trigger('unit:inspector',event);
-			  break;
-		}  		
-	}
 	
 }
 
 
-class FootprintComponent{
+class FootprintComponent extends UnitComponent{
   constructor(hbar,vbar,canvas,popup) {
-	GlyphManager.getInstance();
+	super(hbar,vbar,canvas,popup); 
 	
-    if(canvas!=null){	
-      this.canvas = j$('#'+canvas);
-	  this.ctx = this.canvas[0].getContext("2d");
-	  
-	  //keypress
-	  j$('body').keydown(j$.proxy(this.keyPress,this));
-	  //right popup
-	  j$('body').on('contextmenu', '#'+canvas, function(e){ return false; });
-	  //mouse wheel event
-	  j$('#'+canvas).bind('mousewheel',j$.proxy(this.mouseWheelMoved,this));
-	  //mouse click event 
-	  j$('#'+canvas).on('mouseup',j$.proxy(this.mouseUp,this)); 
-	  j$('#'+canvas).on('mousedown',j$.proxy(this.mouseDown,this));
-	  j$('#'+canvas).on('mousemove',j$.proxy(this.mouseMove,this));
-	  j$(window).resize(j$.proxy(this.screenResized,this));
-	  j$('#'+canvas).dblclick(j$.proxy(this.dblClick,this));
-	}
+	
 	
 	(function(that){
 	  let eventMgr=new FootprintEventMgr(that); 
@@ -317,26 +229,8 @@ class FootprintComponent{
 	 }; 
 	})(this);
 
-    var container = j$(this.canvas).parent();	  
-	this.width=j$(container).width();
-	this.height=j$(container).height();
-
-	//set canvas width
-	this.canvas.attr('width',this.width);
-	this.canvas.attr('height',this.height); 
-	
-	this.viewportWindow=new ViewportWindow(0,0,this.width,this.height);
-	this.parameters=new Map();
-	this.parameters.set("snaptogrid",false);
 	this.popup=new FootprintContextMenu(this,popup);
-	if(hbar!=null&&vbar!=null){
-		this.hbar = j$('#'+hbar);
-		this.vbar=j$('#'+vbar);
-		this.hbar.jqxScrollBar({ width: '100%', height: 18, min: 0, max: 100});
-		this.vbar.jqxScrollBar({ width: 18, height:'100%', min: 0, max: 100, vertical: true});
-		this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
-		this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
-	}
+
 }
 resumeLine(line,handleKey,event) {
       
@@ -516,7 +410,7 @@ mouseDown(event){
 		     shape = this.getModel().getUnit().getClickedShape(scaledEvent.x, scaledEvent.y, true);
 		     
 		     if(shape!=null){
-			   if (core.UnitMgr.getInstance().isBlockSelected(this.getModel().getUnit().shapes) && shape.isSelected()){
+			   if (UnitMgr.getInstance().isBlockSelected(this.getModel().getUnit().shapes) && shape.isSelected()){
                  this.getEventMgr().setEventHandle("block", null);						 
 		       }else if ((!(shape instanceof GlyphLabel))&&(undefined !=shape['getChipText'])&&shape.getChipText().isClicked(scaledEvent.x, scaledEvent.y)){
 			     this.getEventMgr().setEventHandle("texture",shape);

@@ -1,4 +1,5 @@
 var core=require('core/core');
+var UnitMgr = require('core/unit').UnitMgr;
 
 class ContextMenu{
 constructor(component,placeholderid){
@@ -92,7 +93,7 @@ actionPerformed(id,context){
          }
          
          let r=this.component.getModel().getUnit().getShapesRect(shapes);       
-         let unitMgr = core.UnitMgr.getInstance();
+         let unitMgr = UnitMgr.getInstance();
          let p=this.component.getModel().getUnit().grid.positionOnGrid(r.getCenterX(),r.getCenterY()); 
          if(id=='topbottomid'){
              unitMgr.mirrorBlock(shapes,new core.Point(p.x-10,p.y),new core.Point(p.x+10,p.y));
@@ -109,7 +110,7 @@ actionPerformed(id,context){
          }
          
          let r=this.component.getModel().getUnit().getShapesRect(shapes);       
-         let unitMgr = core.UnitMgr.getInstance();
+         let unitMgr = UnitMgr.getInstance();
          
          unitMgr.rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.getCenterX(),r.getCenterY(),(id==("rotateleftid")?-1:1)*(90.0)));
          unitMgr.alignBlock(this.component.getModel().getUnit().grid,shapes);
@@ -122,7 +123,7 @@ actionPerformed(id,context){
 	     let x=rect.getCenterX();
 	     let y=rect.getCenterY();
 	     
-	     let unitMgr = core.UnitMgr.getInstance();
+	     let unitMgr = UnitMgr.getInstance();
 	     
 	     unitMgr.moveBlock(unit.shapes, (unit.width/2)-x, (unit.height/2)-y);
 	     unitMgr.alignBlock(unit.grid,unit.shapes);
@@ -144,13 +145,13 @@ actionPerformed(id,context){
 	 }
      if (id=='deleteid') {
     	 let unit=this.component.getModel().getUnit(); 
-    	 let unitMgr = core.UnitMgr.getInstance();        
+    	 let unitMgr = UnitMgr.getInstance();        
          unitMgr.deleteBlock(unit,unit.getSelectedShapes(false));
          this.component.Repaint();                     
      } 
 	 if(id=='cloneid'){
 		 let unit=this.component.getModel().getUnit();  
-		 let unitMgr = core.UnitMgr.getInstance();
+		 let unitMgr = UnitMgr.getInstance();
          unitMgr.cloneBlock(unit,unit.getSelectedShapes(true));
          let shapes= unit.getSelectedShapes(false); 
          let r=unit.getShapesRect(shapes);

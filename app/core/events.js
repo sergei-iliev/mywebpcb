@@ -1,7 +1,7 @@
 var core = require('core/core');
 var ResizeableShape = require('core/core').ResizeableShape;
-var UnitMgr = require('core/core').UnitMgr;
 var Rectangle = require('core/core').Rectangle;
+
 
 Event={
 	    SELECT_SHAPE:1,
@@ -369,7 +369,7 @@ class BlockEventHandle extends EventHandle{
 		let new_mx = event.x;
 	    let new_my = event.y;
 		
-	    core.UnitMgr.getInstance().moveBlock(this.selectedShapes,new_mx - this.mx, new_my - this.my);
+	    UnitMgr.getInstance().moveBlock(this.selectedShapes,new_mx - this.mx, new_my - this.my);
 		
 	    this.mx = new_mx;
 	    this.my = new_my;
@@ -484,3 +484,4 @@ module.exports ={
    EventHandle,
    MeasureEventHandle
 }
+var UnitMgr = require('core/unit').UnitMgr;

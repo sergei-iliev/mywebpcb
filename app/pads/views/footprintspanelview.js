@@ -1,10 +1,10 @@
 var mywebpcb=require('core/core').mywebpcb;
 var events=require('core/events');
 var core=require('core/core');
-var GlyphLabel=require('pads/shapes').GlyphLabel;
+var UnitMgr = require('core/unit').UnitMgr;
 var utilities =require('core/utilities');
 
-	
+var GlyphLabel=require('pads/shapes').GlyphLabel;	
 var	Line=require('pads/shapes').Line;
 var	RoundRect=require('pads/shapes').RoundRect;
 var	Circle=require('pads/shapes').Circle;
@@ -150,7 +150,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 			this.component.Repaint();
 		}		
 		if(event.target.id=='referenceid'){
-			var texture=mywebpcb.core.UnitMgr.getInstance().getTextureByTag(this.target,'reference');
+			var texture=UnitMgr.getInstance().getTextureByTag(this.target,'reference');
 			if(texture!=null){
 				texture.tag='label';
 			}
@@ -162,7 +162,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 			this.component.Repaint();
 		}
 		if(event.target.id=='valueid'){
-			var texture=mywebpcb.core.UnitMgr.getInstance().getTextureByTag(this.target,'value');
+			var texture=UnitMgr.getInstance().getTextureByTag(this.target,'value');
 			if(texture!=null){
 				texture.tag='label';
 			}

@@ -4,6 +4,7 @@ var events=require('core/events');
 var FootprintLoadView=require('pads/views/footprintloadview');
 var FootprintSaveView=require('pads/views/footprintsaveview');
 var Footprint=require('pads/d/footprintcomponent').Footprint;
+var UnitMgr = require('core/unit').UnitMgr;
 
 var ToggleButtonView=Backbone.View.extend({
 
@@ -149,9 +150,9 @@ var ToggleButtonView=Backbone.View.extend({
             }  
 			//shapes= this.footprintComponent.getModel().getUnit().getSelectedShapes();
 			var r=this.footprintComponent.getModel().getUnit().getShapesRect(shapes);
-            var footprintMgr = core.UnitMgr.getInstance();
-            footprintMgr.rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.getCenterX(),r.getCenterY(),(event.data.model.id==("rotateleftid")?-1:1)*(90.0)));   
-            footprintMgr.alignBlock(this.footprintComponent.getModel().getUnit().grid,shapes);  
+            
+            UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.getCenterX(),r.getCenterY(),(event.data.model.id==("rotateleftid")?-1:1)*(90.0)));   
+            UnitMgr.getInstance().alignBlock(this.footprintComponent.getModel().getUnit().grid,shapes);  
             
             this.footprintComponent.Repaint();
 		}
