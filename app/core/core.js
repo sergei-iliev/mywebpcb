@@ -246,12 +246,31 @@ var Layer=(function(){
 	      ECO2_LAYER             : (1 << 28),
 	      EDGE_LAYER             : (1 << 29),
 	      
+	      LAYER_ALL :0xFFFFFF,
+	          
 	      BOARD_COLOR_FRONT:'rgb(56,0,0)',
 	      BOARD_COLOR_BACK:'rgb(0,0,56)',
 	      BOARD_COLOR_ALL:'black',
 	    Side:{
 		   TOP:1,
            BOTTOM:2,
+           change:function(copper){
+               if (copper.getLayerMaskID() == LAYER_FRONT) {
+                   return Copper.BCu;
+               } else if (copper.getLayerMaskID() == SILKSCREEN_LAYER_FRONT) {
+                   return Copper.BSilkS;
+               } else if (copper.getLayerMaskID() == SOLDERMASK_LAYER_FRONT) {
+                   return Copper.BMask;
+               } else if (copper.getLayerMaskID() == LAYER_BACK) {
+                   return Copper.FCu;
+               } else if (copper.getLayerMaskID() == SILKSCREEN_LAYER_BACK) {
+                   return Copper.FSilkS;
+               } else if (copper.getLayerMaskID() == SOLDERMASK_LAYER_BACK) {
+                   return Copper.FMask;
+               }
+
+               return copper;        	   
+           },
 		   resolve:function(layermaskId) {
             if (layermaskId == Layer.LAYER_BACK) {
                 return Layer.Side.BOTTOM;
@@ -357,7 +376,7 @@ var Layer=(function(){
 	                return "All";
 	            },
 	            getLayerMaskID:function(){
-	                return 0xFFFFFFFF;
+	                return Layer.LAYER_ALL;
 	            },	            
 	            getColor:function(){
 	                return 'rgb(128,128,0)';
@@ -419,6 +438,17 @@ var Layer=(function(){
 		}
 	};
 })();
+
+class CompositeLayer{
+  constructor() {
+	     this.compositelayer=Layer.Copper.All;
+	     this.activeside=Layer.Side.TOP;
+  }
+isLayerVisible(mask) {
+	     return (compositelayer & mask)!=0;          
+  } 
+	  
+}
 
 class Point{
  constructor(x,y) {
@@ -921,7 +951,7 @@ setLocation( x,  y) {
 getTextureByTag(tag){
 	 var _texture=null; 
 	 this.text.some(function(texture){
-	        if(texture.getTag()==tag){
+	        if(texture.tag==tag){
 	           _texture= texture;
 	           return true;
 	        }
@@ -1678,7 +1708,8 @@ module.exports ={
     COORD_TO_MM,
 	UnitSelectionPanel,
 	CoordinateSystem,
-	Ruler
+	Ruler,
+	CompositeLayer
 }
 
 var events=require('core/events');

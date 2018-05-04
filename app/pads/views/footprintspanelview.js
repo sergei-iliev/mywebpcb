@@ -3,6 +3,7 @@ var events=require('core/events');
 var core=require('core/core');
 var UnitMgr = require('core/unit').UnitMgr;
 var utilities =require('core/utilities');
+var BaseBuilder = require('core/views/panelview').BaseBuilder;
 
 var GlyphLabel=require('pads/shapes').GlyphLabel;	
 var	Line=require('pads/shapes').Line;
@@ -11,65 +12,6 @@ var	Circle=require('pads/shapes').Circle;
 var	Arc=require('pads/shapes').Arc;
 var	Pad=require('pads/shapes').Pad;
 
-//**********************BaseBuilder*******************************************
-var BaseBuilder=Backbone.View.extend({
-	  initialize:function(component){
-		this.component=component;  
-	  }, 	
-	  setTarget:function(target){
-		  this.target=target;
-	  },
-	  fillComboBox:function(items){
-		  var result="";
-		  var len = items.length;
-		  for (var i=0; i<len; ++i) {
-			  if(items[i].selected!=undefined&&items[i].selected==true){
-				 selected="selected"; 
-			  }else{
-				 selected=""; 
-			  }
-			  result+="<option value='"+items[i].id+"' "+selected+">"+ items[i].value+"</option>";
-		  }
-		  return result;
-	  },
-	  reloadComboBox:function(combo,items){
-			j$('#'+combo).empty();  
-			  var len = items.length;
-			  for (var i=0; i<len; ++i) {
-				  if(items[i].selected!=undefined&&items[i].selected==true){
-					  j$('#'+combo).append('<option value=' + items[i].id + ' selected>' +  items[i].value + '</option>'); 
-				  }else{
-					  j$('#'+combo).append('<option value=' + items[i].id + '>' +  items[i].value + '</option>');
-				  }
-			  }			
-	  },
-	  validateAlignmentComboText:function(combo,texture){
-		if(texture.alignment.getOrientation()==OrientEnum.HORIZONTAL){
-			this.reloadComboBox(combo,[{id:0,value:'LEFT',selected:true},{id:1,value:'RIGHT'}]);
-		}else{
-			this.reloadComboBox(combo,[{id:2,value:'TOP',selected:true},{id:3,value:'BOTTOM'}]);
-		}
-		j$('#'+combo).val(texture.alignment.get());
-	  },
-	  
-	  toUnitX:function(value){        
-	      var coordinateSystem=this.component.getModel().getUnit().getCoordinateSystem();
-	      return this.component.getModel().getUnit().getGrid().COORD_TO_UNIT(value-coordinateSystem.x);      
-	  },
-	  toUnitY:function(value){
-	      var coordinateSystem =this.component.getModel().getUnit().getCoordinateSystem();
-	      return this.component.getModel().getUnit().getGrid().COORD_TO_UNIT(value-coordinateSystem.y);
-	  },  
-	  fromUnitX:function(value){
-	      var coordinateSystem =this.component.getModel().getUnit().getCoordinateSystem();
-	      return this.component.getModel().getUnit().getGrid().UNIT_TO_COORD(parseFloat(value))+coordinateSystem.x;  
-	  },
-	  fromUnitY:function(value){
-	      var coordinateSystem =this.component.getModel().getUnit().getCoordinateSystem();
-	      return this.component.getModel().getUnit().getGrid().UNIT_TO_COORD(parseFloat(value))+coordinateSystem.y;         
-	  }
-	  
-});
 var ComponentPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
 	  ComponentPanelBuilder.__super__.initialize(component);	
@@ -88,7 +30,7 @@ var ComponentPanelBuilder=BaseBuilder.extend({
 	     }
 		 if(event.target.id=='nameid'){
 			 this.target.getModel().setFileName(j$("#nameid").val()); 
-			 this.target.fireContainerEvent({target:null,type:mywebpcb.events.Event.RENAME_CONTAINER});
+			 this.target.fireContainerEvent({target:null,type:events.Event.RENAME_CONTAINER});
 		 }
 		 //mycanvas.focus();
 		

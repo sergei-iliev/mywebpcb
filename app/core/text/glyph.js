@@ -139,6 +139,15 @@ constructor(text,tag, x,y,size){
     this.layermaskId=core.Layer.SILKSCREEN_LAYER_FRONT;	
     this.isSelected=false;	
 }
+copy( _copy){    
+    this.anchorPoint.setLocation(_copy.anchorPoint.x,_copy.anchorPoint.y); 
+    this.text = _copy.text;
+    this.tag = _copy.tag;   
+    this.fillColor=_copy.fillColor;
+    this.alignment=_copy.alignment;
+    this.thickness=_copy.thickness;
+    this.setSize(_copy.size);                
+}
 clone(){
        var copy = new GlyphTexture(this.text,this.tag,this.x,this.y,this.size);
        copy.anchorPoint = new core.Point(this.anchorPoint.x,this.anchorPoint.y);       
@@ -336,6 +345,9 @@ setAlignment(alignment){
             this.alignment.set(alignment); 
           
 }
+getAlignment(){
+	   return this.alignment;
+	 }
 setOrientation(orientation) { 
 
       let r=this.getBoundingShape();

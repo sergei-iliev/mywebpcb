@@ -35,19 +35,6 @@ clone(){
 	  }
 	  copy.silent=false;
 	  return copy;
-	}
-add(shape){
-	 if(shape==undefined){
-		return;	
-	 }
-
-	 if(shape instanceof Pad){
-	   this.shapes.unshift(shape); 	 
-	 }else{	
-	   this.shapes.push(shape);
-	 }
-	 shape.owningUnit=this;
-	 this.fireShapeEvent({target:shape,type:events.Event.ADD_SHAPE});
 	}	
 parse(data){
 	 	   //this.width=j$(data).attr("width");
@@ -150,88 +137,57 @@ class FootprintComponent extends UnitComponent{
   constructor(hbar,vbar,canvas,popup) {
 	super(hbar,vbar,canvas,popup); 
 	
-	
-	
-	(function(that){
-	  let eventMgr=new FootprintEventMgr(that); 
-	  let model=new FootprintContainer();
-	  let mode=core.ModeEnum.COMPONENT_MODE;
-	  let cursor=null;
-	  let view=null;
-	  var shape=null;
-	  
-	  that.getEventMgr=function(){
-	     return eventMgr;
-	  };	  
-	  that.getModel=function(){
-		return model;
-	  };
-	  that.setContainerCursor=function(_cursor) {
-	        //this.setCursor(Cursor.getDefaultCursor());
-	        cursor = _cursor;
-	  };
-	  that.getContainerCursor=function() {
-	        return cursor;
-	  };
-	  that.setView=function(_view){
-		 view=_view; 
-	  };
-	  that.getView=function(){
-		return view;  
-	  };
-	  that.setMode=function(_mode){
-		mode=_mode;
-        if (cursor != null) {
-            cursor.Clear();
-            cursor = null;
-        }
-        eventMgr.resetEventHandle();
-        
-        switch (mode) {
-        case core.ModeEnum.PAD_MODE:
-            shape=new Pad(0,0,core.MM_TO_COORD(1.52),core.MM_TO_COORD(1.52));
-            shape.drill=new Drill(core.MM_TO_COORD(0.8),core.MM_TO_COORD(0.8));			                        
-            this.setContainerCursor(shape);               
-            this.getEventMgr().setEventHandle("cursor",shape);  
-          break;
-        case  core.ModeEnum.RECT_MODE:
-            shape=new RoundRect(0,0,core.MM_TO_COORD(7),core.MM_TO_COORD(7),core.MM_TO_COORD(0.8),core.MM_TO_COORD(0.2),core.Layer.SILKSCREEN_LAYER_FRONT);
-            this.setContainerCursor(shape);               
-            this.getEventMgr().setEventHandle("cursor",shape); 
-          break;
-        case  core.ModeEnum.LINE_MODE:
-          
-          break;
-        case  core.ModeEnum.ELLIPSE_MODE:	
-            shape=new Circle(0,0,core.MM_TO_COORD(3.4),core.MM_TO_COORD(0.2),core.Layer.SILKSCREEN_LAYER_FRONT);
-            this.setContainerCursor(shape);               
-            this.getEventMgr().setEventHandle("cursor",shape); 
-          break;
-        case  core.ModeEnum.ARC_MODE:
-        	shape=new Arc(0,0,core.MM_TO_COORD(3.4),core.MM_TO_COORD(0.2),core.Layer.SILKSCREEN_LAYER_FRONT);
-            this.setContainerCursor(shape);               
-            this.getEventMgr().setEventHandle("cursor",shape); 
-          break;
-        case  core.ModeEnum.LABEL_MODE:
-            shape=new GlyphLabel("sergei_iliev@yahoo.com",core.MM_TO_COORD(0.3),core.Layer.SILKSCREEN_LAYER_FRONT);			
-	        this.setContainerCursor(shape);               
-            this.getEventMgr().setEventHandle("cursor",shape); 
-          break;
-        case core.ModeEnum.ORIGIN_SHIFT_MODE:  
-            this.getEventMgr().setEventHandle("origin",null);   
-            break;          
-        default:
-          that.Repaint();
-      }       
-	  };
-	 that.getMode=function(){
-		return mode; 
-	 }; 
-	})(this);
-
+	this.eventMgr=new FootprintEventMgr(this); 
+	this.model=new FootprintContainer();
 	this.popup=new FootprintContextMenu(this,popup);
-
+	  
 }
+setMode(_mode){
+	this.mode=_mode;
+	let shape=null;
+	 if (this.cursor != null) {
+	     this.cursor.Clear();
+	     this.cursor = null;
+	 }
+	 this.eventMgr.resetEventHandle();
+	        
+	 switch (this.mode) {
+	        case core.ModeEnum.PAD_MODE:
+	            shape=new Pad(0,0,core.MM_TO_COORD(1.52),core.MM_TO_COORD(1.52));
+	            shape.drill=new Drill(core.MM_TO_COORD(0.8),core.MM_TO_COORD(0.8));			                        
+	            this.setContainerCursor(shape);               
+	            this.getEventMgr().setEventHandle("cursor",shape);  
+	          break;
+	        case  core.ModeEnum.RECT_MODE:
+	            shape=new RoundRect(0,0,core.MM_TO_COORD(7),core.MM_TO_COORD(7),core.MM_TO_COORD(0.8),core.MM_TO_COORD(0.2),core.Layer.SILKSCREEN_LAYER_FRONT);
+	            this.setContainerCursor(shape);               
+	            this.getEventMgr().setEventHandle("cursor",shape); 
+	          break;
+	        case  core.ModeEnum.LINE_MODE:
+	          
+	          break;
+	        case  core.ModeEnum.ELLIPSE_MODE:	
+	            shape=new Circle(0,0,core.MM_TO_COORD(3.4),core.MM_TO_COORD(0.2),core.Layer.SILKSCREEN_LAYER_FRONT);
+	            this.setContainerCursor(shape);               
+	            this.getEventMgr().setEventHandle("cursor",shape); 
+	          break;
+	        case  core.ModeEnum.ARC_MODE:
+	        	shape=new Arc(0,0,core.MM_TO_COORD(3.4),core.MM_TO_COORD(0.2),core.Layer.SILKSCREEN_LAYER_FRONT);
+	            this.setContainerCursor(shape);               
+	            this.getEventMgr().setEventHandle("cursor",shape); 
+	          break;
+	        case  core.ModeEnum.LABEL_MODE:
+	            shape=new GlyphLabel("sergei_iliev@yahoo.com",core.MM_TO_COORD(0.3),core.Layer.SILKSCREEN_LAYER_FRONT);			
+		        this.setContainerCursor(shape);               
+	            this.getEventMgr().setEventHandle("cursor",shape); 
+	          break;
+	        case core.ModeEnum.ORIGIN_SHIFT_MODE:  
+	            this.getEventMgr().setEventHandle("origin",null);   
+	            break;          
+	        default:
+	          this.Repaint();
+	      }       
+} 
 resumeLine(line,handleKey,event) {
       
       line.reset(event.x,event.y);
@@ -239,75 +195,10 @@ resumeLine(line,handleKey,event) {
       line.reverse(event.x,event.y);     
       this.getEventMgr().setEventHandle(handleKey,line);
 } 
-getParameter(key) {
-	return this.parameters.get(key); 
-}
- 
-setParameter(key,value){
-    this.parameters.set(key,value); 
-}
 
-setScrollPosition(x,y) {
-     var xx=x*this.getModel().getUnit().getScalableTransformation().getScale();
-     var yy=y*this.getModel().getUnit().getScalableTransformation().getScale();
-     
-     xx=parseInt(xx-(this.width/2));
-     yy=parseInt(yy-(this.height/2));
 
-     this.hbar.jqxScrollBar('setPosition',xx); 
-     this.vbar.jqxScrollBar('setPosition',yy);
-}
-setSize( width, height){
-      this.viewportWindow.setSize(width,height);      
-  }
-Clear(){
-		this.viewportWindow.setSize(1,1); 
-	    this.getEventMgr().resetEventHandle();
-	    this.getModel().clear();
-	  }
-fireContainerEvent(event){
-	  mywebpcb.trigger('container:inspector',event); 
-}
-keyPress(event){
-	  if(event.target.tagName=="INPUT"){
-		  return;
-	  }
-	  
-	 //if(event.target instanceof HTMLBodyElement||event.target instanceof HTMLCanvasElement){
-		 event.preventDefault();
-	     if (this.getEventMgr().targetEventHandle != null && this.getModel().getUnit() != null) {
-	            this.getEventMgr().targetEventHandle.keyPressed(event);
-	     }
-	 //}	 
-  }
-getScaledEvent(event){
-	  var x,y;
-	  if (event.pageX != undefined && event.pageY != undefined) {
-		   x = event.pageX;
-		   y = event.pageY;
-	  }else {
-		   x = event.clientX + document.body.scrollLeft +
-	            document.documentElement.scrollLeft;
-		   y = event.clientY + document.body.scrollTop +
-	            document.documentElement.scrollTop;
-	 }
-	       x -= parseInt(this.canvas.offset().left);
-	       y -= parseInt(this.canvas.offset().top);
-	  
-	  return new events.MouseScaledEvent(x,y,this.getModel().getUnit().getScalableTransformation().getInversePoint(this.viewportWindow.x+x,this.viewportWindow.y+y),event);     
-  }
-dblClick(event){
-	  event.preventDefault();
-	  if (this.getModel().getUnit() == null) { 
-		 return; 
-	  }
-		
-      var scaledEvent =this.getScaledEvent(event);
 
-	  if (this.getEventMgr().getTargetEventHandle() != null) {
-	            this.getEventMgr().getTargetEventHandle().dblClick(scaledEvent);
-	  } 	  
-}
+
 //  contextMenu:function(event){ 
 //	  var x,y;
 //	  if (event.pageX != undefined && event.pageY != undefined) {
@@ -324,47 +215,9 @@ dblClick(event){
 //	       
 //	       
 //  },
-mouseUp(event){
-    event.preventDefault();
-	if (this.getModel().getUnit() == null) { 
-			 return; 
-    }
-	this.canvas.off('mousemove',j$.proxy(this.mouseDrag,this));
-	this.canvas.on('mousemove',j$.proxy(this.mouseMove,this));
-	
-    var scaledEvent =this.getScaledEvent(event);
 
-	if (this.getEventMgr().getTargetEventHandle() != null) {
-            this.getEventMgr().getTargetEventHandle().mouseReleased(scaledEvent);
-    }      
-	   	
-}
-mouseDrag(event){
-    event.preventDefault();
-	  if (this.getModel().getUnit() == null) { 
-			 return; 
-	  }
-       
-     var scaledEvent =this.getScaledEvent(event);  
-	  
-	if(event.button==0&&this.getEventMgr().getTargetEventHandle() != null) {		
-            this.getEventMgr().getTargetEventHandle().mouseDragged(scaledEvent);
-      }
-	   
-  }
-mouseMove(event){
-	   event.preventDefault();
-	   if (this.getModel().getUnit() == null) { 
-			return; 
-	   }
-	   
-	   var scaledEvent =this.getScaledEvent(event);  
-	     
-	   if(this.getEventMgr().getTargetEventHandle() != null) {		
-	            this.getEventMgr().getTargetEventHandle().mouseMove(scaledEvent);
-	   }
 
-  }
+
 mouseDown(event){
     event.preventDefault();
 
@@ -457,108 +310,7 @@ mouseDown(event){
     } 
 	
   }
-mouseWheelMoved(event){
-      event.preventDefault();
-	  if (this.getModel().getUnit() == null) { 
-		return; 
-	  }
-	var e=this.getScaledEvent(event);
-	if(event.originalEvent.wheelDelta /120 > 0) {
-		   this.ZoomIn(e.windowx,e.windowy);
-        }
-        else{
-		   this.ZoomOut(e.windowx,e.windowy);
-        }
-  }
-ZoomIn(x,y){
-        if(this.getModel().getUnit().getScalableTransformation().ScaleOut()){
-            this.viewportWindow.scalein(x,y, this.getModel().getUnit().getScalableTransformation());
-            this.Repaint();         
-        }else{
-            return false;
-        } 
-		this.hbar.off(); 
-		this.vbar.off(); 
-		//set new maximum 
-		this.hbar.jqxScrollBar({ value:this.viewportWindow.x,width: this.width, height: 18, min: 0, max: parseInt(this.getModel().getUnit().getWidth()*this.getModel().getUnit().getScalableTransformation().getScale()-this.width)});
-		this.vbar.jqxScrollBar({ value:this.viewportWindow.y,width: 18, min: 0, max: parseInt(this.getModel().getUnit().getHeight()*this.getModel().getUnit().getScalableTransformation().getScale()-this.height)});
-		
-		this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
-		this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
-		
-		return true;
-  }
-ZoomOut(x,y){
-        if(this.getModel().getUnit().getScalableTransformation().ScaleIn()){
-                this.viewportWindow.scaleout(x,y, this.getModel().getUnit().getScalableTransformation());
-                this.Repaint();                       
-        }else{
-                return false;
-        }
 
-		this.hbar.off(); 
-		this.vbar.off(); 
-                  //set new maximum 
-	   	this.hbar.jqxScrollBar({value:this.viewportWindow.x, width: this.width, height: 18, min: 0, max: parseInt(this.getModel().getUnit().getWidth()*this.getModel().getUnit().getScalableTransformation().getScale()-this.width)});
-		this.vbar.jqxScrollBar({value:this.viewportWindow.y, width: 18, min: 0, max: parseInt(this.getModel().getUnit().getHeight()*this.getModel().getUnit().getScalableTransformation().getScale()-this.height)});
-	
-		this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
-		this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
-		
-		return true;
-  }
-vStateChanged(event){
-    this.viewportWindow.y= parseInt(event.currentValue);
-    this.Repaint();
-	
-  }
-hStateChanged(event){
-    this.viewportWindow.x= parseInt(event.currentValue);
-    this.Repaint();
-  }
-screenResized(e){	  
-	  var container = j$('#mycanvasframe');	  
-	  var oldwidth=this.width;
-	  this.width=j$(container).width()-18;  //mind combo width
-	  
-	  if(oldwidth==this.width){
-		  return;
-	  }
-	  //set canvas width
-	  this.canvas.attr('width',this.width);
-	  this.componentResized();
-	  this.Repaint();
-}
-componentResized(){
-      if(this.getModel().getUnit()==null){
-    	  this.setSize(1,1);
-    	  this.hbar.jqxScrollBar({ width: this.width, height: 18, min: 0, max: 1});
-		  this.vbar.jqxScrollBar({ width: 18, min: 0, max: 1, vertical: true});
-      }else{
-    	this.setSize(this.width,this.height); 
-        
-    	var hCurrentValue = this.hbar.jqxScrollBar('value');
-        var vCurrentValue = this.vbar.jqxScrollBar('value');
-    	
-    	
-  		this.hbar.jqxScrollBar({ value:hCurrentValue,width:this.width, height: 18, min: 0, max: parseInt(this.getModel().getUnit().getWidth()*this.getModel().getUnit().getScalableTransformation().getScale()-this.width)});
-  		this.vbar.jqxScrollBar({ value:vCurrentValue,width: 18, min: 0, max: parseInt(this.getModel().getUnit().getHeight()*this.getModel().getUnit().getScalableTransformation().getScale()-this.height), vertical: true});
-      }  
-	  
-  }
-Repaint(){
-	  if(this.getModel().getUnit()!=null){
-        this.ctx.fillStyle = "rgb(0,0,0)";
-        this.ctx.fillRect(0, 0, this.width, this.height); 
-		this.getModel().getUnit().paint(this.ctx,this.viewportWindow);
-        if (this.getContainerCursor() != null) {
-        	this.getContainerCursor().Paint(this.ctx,this.viewportWindow, this.getModel().getUnit().getScalableTransformation());
-
-        }
-	  }else{
-	        this.ctx.clearRect(0, 0, this.width, this.height);  
-	  }
-  }
  
 }
 
