@@ -258,6 +258,14 @@ setText(text) {
         this.resetGlyphBox();
         
 }	
+isClicked(x, y) {
+    let r=this.getBoundingShape();
+    if ((r != null) && (r.contains(x, y)))
+        return true;
+    else
+        return false;
+
+}
 Rotate(rotation){
 	 let p=utilities.rotate(this.anchorPoint, rotation.originx, rotation.originy, rotation.angle);
 	 this.anchorPoint.setLocation(p.x,p.y);
