@@ -293,7 +293,6 @@ class CursorEventHandle extends EventHandle{
 		 super(component);
 	 }
 	 mousePressed(event){
-		 console.log('press');
 		 if(event.which==3){
 			 this.component.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
 	         this.component.setMode(core.ModeEnum.COMPONENT_MODE);  
@@ -352,6 +351,13 @@ class BlockEventHandle extends EventHandle{
 		   this.component.popup.registerBlockPopup(this.target,event);					
 		   return;
 		}   
+		if(event.data.ctrlKey){
+		  this.component.getModel().getUnit().setSelectedShape(this.target.uuid,
+	                   !this.target.isSelected());
+	      this.ctrlButtonPress = true;
+	      this.component.Repaint();
+	      return;		   
+		}		
 		this.mx=event.x;
 		this.my=event.y;
 	 }

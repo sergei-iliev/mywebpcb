@@ -337,11 +337,21 @@ getSelected() {
         }.bind(this));
          return uuid;
      }
- 	
+setSelectedShape(uuid,flag){
+	   this.shapes.some(function(shape) {
+		   if(shape.uuid==uuid){
+			   shape.setSelected(flag);
+			   return true;
+		   }else{
+			   return false;
+		   }	
+		   
+       });	
+} 	
 setSelected(flag) {
- 	   this.shapes.forEach(j$.proxy(function(shape) {
+ 	   this.shapes.forEach(function(shape) {
  			shape.setSelected(flag);
-        },this));
+        });
      }
 setSelectedInRect(r){
  	   this.shapes.forEach(j$.proxy(function(shape) {
