@@ -12,6 +12,7 @@ var BoardContextMenu=require('board/popup/boardpopup').BoardContextMenu;
 var PCBFootprint=require('board/shapes').PCBFootprint;
 var PCBLabel=require('board/shapes').PCBLabel;
 var PCBCircle=require('board/shapes').PCBCircle;
+var PCBArc=require('board/shapes').PCBArc;
 
 var shapes=require('pads/shapes');
 //**********************UnitMgr***************************************
@@ -123,11 +124,11 @@ setMode(_mode){
           this.setContainerCursor(shape);               
           this.eventMgr.setEventHandle("cursor",shape); 
         break;
-//      case  mywebpads.ModeEnum.ARC_MODE:
-//      	shape=new mywebpads.Arc(this.getModel().getUnit(),0,0,mywebpads.Grid.MM_TO_COORD(4),mywebpads.Grid.MM_TO_COORD(4),mywebpads.Grid.MM_TO_COORD(0.2));
-//          this.setContainerCursor(shape);               
-//          this.getEventMgr().setEventHandle("cursor",shape); 
-//        break;
+      case  core.ModeEnum.ARC_MODE:
+      	  shape=new PCBArc(0,0,core.MM_TO_COORD(4),core.MM_TO_COORD(0.2), core.Layer.SILKSCREEN_LAYER_FRONT);
+          this.setContainerCursor(shape);               
+          this.getEventMgr().setEventHandle("cursor",shape); 
+        break;
 //      case  mywebpads.ModeEnum.LABEL_MODE:
 //          shape=new mywebpads.Label(this.getModel().getUnit(),0,0,mywebpads.Grid.MM_TO_COORD(1));
 //          this.setContainerCursor(shape);               

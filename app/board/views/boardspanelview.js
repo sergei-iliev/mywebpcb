@@ -10,6 +10,7 @@ var PCBLabel=require('board/shapes').PCBLabel;
 var PCBTrack=require('board/shapes').PCBTrack;
 var PCBVia=require('board/shapes').PCBVia;
 var PCBCircle=require('board/shapes').PCBCircle;
+var PCBArc=require('board/shapes').PCBArc;
 
 var ComponentPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
@@ -122,6 +123,85 @@ var CirclePanelBuilder=BaseBuilder.extend({
 				
 		"</table>");
 			
+		return this;
+	}
+});
+var ArcPanelBuilder=BaseBuilder.extend({
+	initialize:function(component){
+		ArcPanelBuilder.__super__.initialize(component);
+		this.id="arcpanelbuilder";  
+    },	
+    events: {
+        'keypress #xid' : 'onenter',	
+        'keypress #yid' : 'onenter',
+        'keypress #thicknessid' : 'onenter',
+        'keypress #widthid' : 'onenter',
+        'keypress #startangleid' : 'onenter',
+        'keypress #extendangleid' : 'onenter',
+        'change #fillid': 'onchange', 
+        'change #layerid':'onchange',
+    },
+    onchange:function(event){
+        if(event.target.id=='layerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        }
+        if(event.target.id=='fillid'){        
+        	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
+        }
+        this.component.Repaint(); 
+    }, 
+    onenter:function(event){
+		 if(event.keyCode != 13){
+				return; 
+		 }
+		 if(event.target.id=='thicknessid'){
+			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
+		 } 
+		 if(event.target.id=='widthid'){
+			   this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#widthid').val())));			 
+		 } 
+		 if(event.target.id=='startangleid'){
+			   this.target.startAngle=utilities.round(j$('#startangleid').val());			 
+		 } 
+		 if(event.target.id=='extendangleid'){
+			   this.target.extendAngle=utilities.round(j$('#extendangleid').val());	
+		 } 	
+		 this.component.Repaint(); 	
+    },
+	updateui:function(){
+		j$('#layerid').val(this.target.copper.getName());
+		j$("#startangleid").val(this.target.startAngle);    
+		j$("#extendangleid").val(this.target.extendAngle);		
+        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
+        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
+        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:(this.target.resizingPoint.x)));
+        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:(this.target.resizingPoint.y))); 
+		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
+		j$("#widthid").val(core.COORD_TO_MM(this.target.getWidth()));
+		j$("#fillid").val(this.target.fill);
+	},
+	render:function(){
+						
+		j$(this.el).empty();
+		j$(this.el).append(
+				"<table width='100%'>"+
+				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+			    "</select>" +
+				"</td></tr>"+				
+				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Fill</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"fillid\">"+
+				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+			    "</select>" +
+				"</td></tr>"+
+				"<tr><td style='padding:7px'>Radius</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Start&deg</td><td><input type='text' id='startangleid' value='' class='form-control input-sm\'></td></tr>"+	
+				"<tr><td style='padding:7px'>Extend&deg</td><td><input type='text' id='extendangleid' value='' class='form-control input-sm\'></td></tr>"+
+		"</table>");
 		return this;
 	}
 });
@@ -650,7 +730,8 @@ var BoardsInspector=Backbone.View.extend({
 		                                         new ViaPanelBuilder(this.boardComponent),
 		                                         new LabelPanelBuilder(this.boardComponent),
 		                                         new ComponentPanelBuilder(this.boardComponent),
-		                                         new CirclePanelBuilder(this.boardComponent)
+		                                         new CirclePanelBuilder(this.boardComponent),
+		                                         new ArcPanelBuilder(this.boardComponent)
 //		                                         new mywebpcb.pads.views.EllipsePanelBuilder(this.boardComponent),
 //		                                         new mywebpcb.pads.views.ArcPanelBuilder(this.boardComponent)
 		                                         ]);
@@ -771,6 +852,14 @@ var BoardsInspector=Backbone.View.extend({
 				this.panel.attributes.delegateEvents();
 				this.render();
 			}
+		}	
+		if(event.target instanceof PCBArc){
+			if(this.panel.id!='arcpanelbuilder'){
+				this.panel.attributes.remove();
+				this.panel=this.collection.get('arcpanelbuilder');
+				this.panel.attributes.delegateEvents();
+				this.render();
+			}	
 		}
 		//update panel ui values
 		this.panel.attributes.setTarget(event.target);

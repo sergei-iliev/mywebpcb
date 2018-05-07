@@ -5,6 +5,7 @@ var ResizeableShape=require('core/core').ResizeableShape;
 var glyph=require('core/text/glyph');
 var font=require('core/text/font');
 var Circle =require('pads/shapes').Circle;
+var Arc =require('pads/shapes').Arc;
 var GlyphLabel=require('pads/shapes').GlyphLabel;
 
 class BoardShapeFactory{
@@ -41,14 +42,6 @@ class BoardShapeFactory{
 //			return label;
 //		}
 	}
-}
-class PCBCircle extends Circle{
-    constructor( x, y,  r,  thickness, layermaskid) {
-        super( x, y, r, thickness, layermaskid);
-    }	
-    clone(){
-    	return new PCBCircle(this.x,this.y,this.width,this.thickness,this.copper.getLayerMaskID());
-    }    
 }
 class PCBFootprint extends Shape{
 constructor(layermaskId){
@@ -167,6 +160,29 @@ Paint(g2, viewportWindow, scale,layermask) {
 
 }
 
+class PCBCircle extends Circle{
+    constructor( x, y,  r,  thickness, layermaskid) {
+        super( x, y, r, thickness, layermaskid);
+    }	
+    clone(){
+    	return new PCBCircle(this.x,this.y,this.width,this.thickness,this.copper.getLayerMaskID());
+    }    
+}
+
+class PCBArc extends Arc{
+    constructor( x, y,  r,  thickness, layermaskid) {
+        super( x, y, r, thickness, layermaskid);
+    }	
+    clone() {
+		var copy = new PCBArc(this.x, this.y, this.width,
+						this.thickness,this.copper.getLayerMaskID());
+		copy.startAngle = this.startAngle;
+		copy.extendAngle = this.extendAngle;
+		copy.fill = this.fill;
+		return copy;
+}    
+}
+
 class PCBLabel extends GlyphLabel{
     constructor( layermaskId) {
         super("Label",core.MM_TO_COORD(0.3),layermaskId);
@@ -187,6 +203,7 @@ module.exports ={
 		PCBFootprint,
 		PCBLabel,
 		PCBCircle,
+		PCBArc,
 		PCBVia,
 		PCBTrack,
 		BoardShapeFactory
