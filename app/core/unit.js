@@ -521,6 +521,12 @@ class UnitComponent{
 	this.cursor=null;
 	
 }
+resumeLine(line,handleKey,event) {	      
+	   line.reset(event.x,event.y);
+	      //***do we need to reorder
+	   line.reverse(event.x,event.y);     
+	   this.eventMgr.setEventHandle(handleKey,line);
+} 
 getMode(){
 	return this.mode; 
 } 

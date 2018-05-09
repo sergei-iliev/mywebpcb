@@ -188,15 +188,6 @@ setMode(_mode){
 	          this.Repaint();
 	      }       
 } 
-resumeLine(line,handleKey,event) {
-      
-      line.reset(event.x,event.y);
-      //***do we need to reorder
-      line.reverse(event.x,event.y);     
-      this.getEventMgr().setEventHandle(handleKey,line);
-} 
-
-
 
 
 //  contextMenu:function(event){ 

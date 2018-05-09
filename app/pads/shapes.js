@@ -57,6 +57,9 @@ clone(){
 calculateShape(){ 
   return this.texture.getBoundingShape();
 }
+getCenter() {
+    return new core.Point(this.texture.getBoundingShape().getCenterX(),this.texture.getBoundingShape().getCenterY());
+}
 getTexture(){
   return this.texture;    
 }
@@ -118,12 +121,11 @@ class RoundRect extends ResizeableShape{
 	clone() {
 		var copy = new RoundRect(this.getX(), this
 				.getY(), this.getWidth(), this.getHeight(), this.arc,
-				this.thickness);
+				this.thickness,this.copper.getLayerMaskID());
 		copy.roundRect = new core.Rectangle(this.roundRect.x,
 				this.roundRect.y, this.roundRect.width, this.roundRect.height);
 		copy.fill = this.fill;
 		copy.arc=this.arc;
-		copy.copper=this.copper;
 		return copy;
 	}
 	calculateShape() {
@@ -208,9 +210,9 @@ class Circle extends Shape{
 		var copy =new Circle(this.x,this.y,this.width,this.thickness,this.copper.getLayerMaskID());
 		return copy;
 	}	
-	calculateShape(){
-			return new core.Rectangle(this.getX()-this.getWidth(),this.getY()-this.getWidth(),2*this.getWidth(),2*this.getWidth());
-	}
+calculateShape(){    
+	return new core.Rectangle(this.getX()-this.getWidth(),this.getY()-this.getWidth(),2*this.getWidth(),2*this.getWidth());
+}
 alignToGrid(isRequired) {
         if(isRequired){
           return super.alignToGrid(isRequired);
@@ -221,14 +223,6 @@ alignToGrid(isRequired) {
 alignResizingPointToGrid(point) {          
         this.width=this.owningUnit.getGrid().lengthOnGrid(this.width);                
 }
-getCenterX(){
-   return this.x;
-}
-    
-getCenterY(){
-   return this.y;
-}
-
 isControlRectClicked(xx,yy) {
             let rect=new core.Rectangle();
 			rect.setRect((this.x-this.width) - this.selectionRectWidth / 2, (this.y-this.width) - this.selectionRectWidth / 2,

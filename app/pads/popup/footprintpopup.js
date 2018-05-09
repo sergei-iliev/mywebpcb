@@ -32,26 +32,6 @@ registerBlockPopup(target,event){
 	    this.setContent(items,{target:target});	
 		this.open(event);		
 }
-registerLineSelectPopup(target,event){
-	  let bending=target.isBendingPointClicked(event.x,event.y);
-	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
-	    items+="<tr id='cloneid' ><td style='padding: 0.4em;'>Clone</td></tr>";
-	    if(bending!=null){
-	      if(target.isEndPoint(event.x,event.y)){	
-	        items+="<tr id='resumeid'><td style='padding: 0.4em;'>Resume</td></tr>";
-	      }
-	    }else{
-	    	items+="<tr id='addbendingpointid'><td style='padding: 0.4em;'>Add Bending point</td></tr>";	
-	    }
-	    
-	    if(bending!=null){
-	      items+="<tr id='deletebendingpointid'><td style='padding: 0.4em'>Delete Bending point</td></tr>";
-	    }
-	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
-	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-	    this.open(event);	
-}
 registerLinePopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
 	    items+="<tr id='deletelastpointid' ><td style='padding: 0.4em;'>Delete Last Point</td></tr>";
@@ -60,18 +40,6 @@ registerLinePopup(target,event){
 	    items+="</table></div>";
 	    this.setContent(items,{target:target});	
 	    this.open(event);	  	
-}
-registerShapePopup(target,event){
-	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
-	    items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
-	    items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
-	    items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
-	    items+="<tr id='topbottomid'><td style='padding: 0.4em'>Mirror Top-Bottom</td></tr>";
-	    items+="<tr id='leftrightid'><td style='padding: 0.4em'>Mirror Left-Right</td></tr>";
-	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
-	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-	    this.open(event);	
 }
 attachEventListeners(context){
 	  var placeholder=document.getElementById('menu-items');		  
@@ -87,12 +55,7 @@ attachEventListeners(context){
 	      })(rows[i]);
 	  }
 }
-actionPerformed(id,context){
-   if (id=="resumeid") {
-        this.component.getView().setButtonGroup(core.ModeEnum.LINE_MODE);
-        this.component.setMode(core.ModeEnum.LINE_MODE);         
-        this.component.resumeLine(context.target,"line", {x:this.x, y:this.y,which:3});
-    }  	
+actionPerformed(id,context){ 	
 	
    super.actionPerformed(id,context);
    

@@ -65,6 +65,12 @@ var ToggleButtonView=Backbone.View.extend({
 			 new mywebpcb.board.views.BoardLoadView({boardComponent:this.boardComponent}).render();			
 		}
 		//set mode
+		if(event.data.model.id=='rectid'){
+		    this.boardComponent.setMode(core.ModeEnum.RECT_MODE);
+		}
+		if(event.data.model.id=='lineid'){
+		    this.boardComponent.setMode(core.ModeEnum.LINE_MODE);
+		}
 		if(event.data.model.id=='trackid'){
 		  //Track mode
 		   this.boardComponent.setMode(core.ModeEnum.TRACK_MODE);

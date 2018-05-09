@@ -13,6 +13,9 @@ var PCBFootprint=require('board/shapes').PCBFootprint;
 var PCBLabel=require('board/shapes').PCBLabel;
 var PCBCircle=require('board/shapes').PCBCircle;
 var PCBArc=require('board/shapes').PCBArc;
+var PCBLine=require('board/shapes').PCBLine;
+var PCBRoundRect=require('board/shapes').PCBRoundRect;
+var LineEventHandle=require('pads/events').LineEventHandle;
 
 var shapes=require('pads/shapes');
 //**********************UnitMgr***************************************
@@ -105,20 +108,17 @@ setMode(_mode){
       this.eventMgr.resetEventHandle();
       
       switch (this.mode) {
-      case core.ModeEnum.RECT_MODE:
+      case core.ModeEnum.PAD_MODE:
 //          shape=new mywebpads.Pad(this.getModel().getUnit(),0,0,mywebpads.Grid.MM_TO_COORD(1.6),mywebpads.Grid.MM_TO_COORD(1.6));
 //          shape.drill=(new mywebpads.Drill(null,mywebpads.Grid.MM_TO_COORD(0.8),mywebpads.Grid.MM_TO_COORD(0.8)));
 //          this.setContainerCursor(shape);               
 //          this.getEventMgr().setEventHandle("cursor",shape);  
         break;
-//      case  mywebpads.ModeEnum.RECT_MODE:
-//          shape=new mywebpads.RoundRect(this.getModel().getUnit(),0,0,mywebpads.Grid.MM_TO_COORD(4),mywebpads.Grid.MM_TO_COORD(4),mywebpads.Grid.MM_TO_COORD(0.8),mywebpads.Grid.MM_TO_COORD(0.2));
-//          this.setContainerCursor(shape);               
-//          this.getEventMgr().setEventHandle("cursor",shape); 
-//        break;
-//      case  mywebpads.ModeEnum.LINE_MODE:
-//        
-//        break;
+      case  core.ModeEnum.RECT_MODE:
+          shape=new PCBRoundRect(0,0,core.MM_TO_COORD(4),core.MM_TO_COORD(4),core.MM_TO_COORD(1),core.MM_TO_COORD(0.2),core.Layer.SILKSCREEN_LAYER_FRONT);
+          this.setContainerCursor(shape);               
+          this.getEventMgr().setEventHandle("cursor",shape); 
+        break;
       case  core.ModeEnum.ELLIPSE_MODE:
           shape=new PCBCircle(0,0,core.MM_TO_COORD(4),core.MM_TO_COORD(0.2), core.Layer.SILKSCREEN_LAYER_FRONT);
           this.setContainerCursor(shape);               
@@ -129,11 +129,11 @@ setMode(_mode){
           this.setContainerCursor(shape);               
           this.getEventMgr().setEventHandle("cursor",shape); 
         break;
-//      case  mywebpads.ModeEnum.LABEL_MODE:
-//          shape=new mywebpads.Label(this.getModel().getUnit(),0,0,mywebpads.Grid.MM_TO_COORD(1));
-//          this.setContainerCursor(shape);               
-//          this.getEventMgr().setEventHandle("cursor",shape); 
-//        break;
+      case  core.ModeEnum.LABEL_MODE:
+          shape=new PCBLabel(core.Layer.SILKSCREEN_LAYER_FRONT);
+          this.setContainerCursor(shape);               
+          this.getEventMgr().setEventHandle("cursor",shape); 
+        break;
       case core.ModeEnum.ORIGIN_SHIFT_MODE:  
           this.eventMgr.setEventHandle("origin",null);   
           break;          
@@ -174,7 +174,19 @@ mouseDown(event){
     		
     	  var shape=this.getModel().getUnit().isControlRectClicked(scaledEvent.x, scaledEvent.y);
 		  if(shape!=null){
-            this.getEventMgr().setEventHandle("resize",shape);  
+              if(shape instanceof PCBArc){
+                  if(shape.isStartAnglePointClicked(scaledEvent.x , scaledEvent.y)){ 
+                      this.getEventMgr().setEventHandle("arc.start.angle",shape);                    
+                  }else if(shape.isExtendAnglePointClicked(scaledEvent.x , scaledEvent.y)){
+                      this.getEventMgr().setEventHandle("arc.extend.angle",shape);                      
+                  }else if(shape.isMidPointClicked(scaledEvent.x , scaledEvent.y)){
+                 	  this.getEventMgr().setEventHandle("arc.mid.point",shape);
+                  }else{
+                       this.getEventMgr().setEventHandle("resize",shape);    
+                  }
+                 }else{
+						this.getEventMgr().setEventHandle("resize",shape); 
+                 }
 		  }else{
 		     shape = this.getModel().getUnit().getClickedShape(scaledEvent.x, scaledEvent.y, true);
 		     
@@ -203,7 +215,20 @@ mouseDown(event){
 //                
 //            	this.getEventMgr().setEventHandle("line", shape);
             }
-	  break;
+	    break;
+    	case core.ModeEnum.LINE_MODE:
+            //***is this a new wire
+            if ((this.getEventMgr().getTargetEventHandle() == null) ||
+                !(this.getEventMgr().getTargetEventHandle() instanceof LineEventHandle)) {
+            	if(event.which!=1){
+            		return;
+            	}
+                shape = new PCBLine(core.MM_TO_COORD(0.3),core.Layer.SILKSCREEN_LAYER_FRONT);
+                this.getModel().getUnit().add(shape);
+                
+            	this.getEventMgr().setEventHandle("line", shape);
+            }
+    	  break;	    
     	case core.ModeEnum.DRAGHEAND_MODE:  
     		this.getEventMgr().setEventHandle("dragheand", null);
     	  break;	

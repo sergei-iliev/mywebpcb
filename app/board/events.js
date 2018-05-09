@@ -1,6 +1,7 @@
 var EventHandle = require('core/events').EventHandle;
 var events = require('core/events');
 var core = require('core/core');
+var pad_events=require('pads/events');
 
 class FootprintEventHandle extends EventHandle{
 constructor(component) {
@@ -64,13 +65,13 @@ class BoardEventMgr{
 		this.targetEventHandle=null;	
 		this.hash = new Map();
 //		this.hash.set("arc.mid.point",new ArcMidPointEventHandle(component));
-//		this.hash.set("arc.start.angle",new ArcStartAngleEventHandle(component));
-//		this.hash.set("arc.extend.angle",new ArcExtendAngleEventHandler(component));
+		this.hash.set("arc.start.angle",new pad_events.ArcStartAngleEventHandle(component));
+		this.hash.set("arc.extend.angle",new pad_events.ArcExtendAngleEventHandler(component));
 		this.hash.set("move",new events.MoveEventHandle(component));
 		this.hash.set("resize",new events.ResizeEventHandle(component));
 	    this.hash.set("component",new events.UnitEventHandle(component));
 		this.hash.set("block",new events.BlockEventHandle(component));
-//		this.hash.set("line",new LineEventHandle(component));
+		this.hash.set("line",new pad_events.LineEventHandle(component));
 		this.hash.set("cursor",new events.CursorEventHandle(component));
 		this.hash.set("symbol",new FootprintEventHandle(component));
 //		this.hash.set("texture",new events.TextureEventHandle(component));

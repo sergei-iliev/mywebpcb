@@ -292,6 +292,12 @@ class CursorEventHandle extends EventHandle{
 	 constructor(component) {
 		 super(component);
 	 }
+	 Attach(){
+		 super.Attach();
+		    this.mx = this.target.getCenter().x;
+		    this.my = this.target.getCenter().y;
+		    console.log(this.mx+":"+this.my);
+	 }	 
 	 mousePressed(event){
 		 if(event.which==3){
 			 this.component.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
@@ -312,18 +318,10 @@ class CursorEventHandle extends EventHandle{
 	 mouseDragged(event){
 
 	 }
-	 mouseMove(event){
-		 console.log('move');
-		    let new_mx;
-			let new_my;
-			if(this.target instanceof ResizeableShape){
-		    	//center the mouse pointer
-			   new_mx = event.x-(this.target.width/2);
-			   new_my = event.y-(this.target.height/2);		      	
-		    }else{
-		 	   new_mx = event.x;
-		       new_my = event.y;
-		    }
+	 mouseMove(event){		    
+		 	let new_mx = event.x;
+		    let   new_my = event.y;
+		    
 			
 		    this.target.Move(new_mx - this.mx, new_my - this.my);
 

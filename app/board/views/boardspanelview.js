@@ -11,6 +11,9 @@ var PCBTrack=require('board/shapes').PCBTrack;
 var PCBVia=require('board/shapes').PCBVia;
 var PCBCircle=require('board/shapes').PCBCircle;
 var PCBArc=require('board/shapes').PCBArc;
+var PCBLine=require('board/shapes').PCBLine;
+var PCBRoundRect=require('board/shapes').PCBRoundRect;
+
 
 var ComponentPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
@@ -121,6 +124,94 @@ var CirclePanelBuilder=BaseBuilder.extend({
 				"</td></tr>"+				
 				"<tr><td style='padding:7px'>Radius</td><td><input type='text' id='radiusid' value='' class='form-control input-sm\'></td></tr>"+
 				
+		"</table>");
+			
+		return this;
+	}
+});
+var RectPanelBuilder=BaseBuilder.extend({
+	initialize:function(component){
+		RectPanelBuilder.__super__.initialize(component);
+		this.id="rectpanelbuilder";
+		//app.bind('itemlinkimpl:oncklick', $.proxy(this.onitemclick,this));    
+    },	
+    events: {
+        'keypress #xid' : 'onenter',	
+        'keypress #yid' : 'onenter',
+        'keypress #thicknessid' : 'onenter',
+        'keypress #widthid' : 'onenter',
+        'keypress #heightid' : 'onenter',
+        'keypress #roundingid' : 'onenter',
+        'change #fillid': 'onchange',
+        'change #layerid': 'onchange',
+    },
+    onchange:function(event){
+        if(event.target.id=='layerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        }
+    	if(event.target.id=='fillid'){        
+        	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
+        }
+        this.component.Repaint(); 
+      },    
+    onenter:function(event){
+		 if(event.keyCode != 13){
+				return; 
+		 }
+		 if(event.target.id=='thicknessid'){
+			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
+		 } 
+		 if(event.target.id=='widthid'){
+		   this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#widthid').val())));			 
+		 } 
+		 if(event.target.id=='heightid'){
+			   this.target.setHeight(core.MM_TO_COORD(parseFloat(j$('#heightid').val())));			 
+		 } 	
+		 if(event.target.id=='xid'){			 
+	         var x=this.fromUnitX(j$('#xid').val()); 
+	         this.target.Resize(x-this.target.resizingPoint.x, 0, this.target.resizingPoint);			   
+		 } 
+	     if(event.target.id=='yid'){		
+	         var y=this.fromUnitY(j$('#yid').val()); 
+	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
+		 } 	
+		 if(event.target.id=='roundingid'){
+			 this.target.arc=core.MM_TO_COORD(parseFloat(j$('#roundingid').val()));			 
+			 }
+		 this.component.Repaint(); 		 
+    },
+	updateui:function(){
+		j$('#layerid').val(this.target.copper.getName());
+        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
+        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
+        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
+        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
+		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
+		j$("#widthid").val(core.COORD_TO_MM(this.target.getWidth()));    
+		j$("#heightid").val(core.COORD_TO_MM(this.target.getHeight()));
+		j$("#roundingid").val(core.COORD_TO_MM(this.target.arc));
+		j$("#fillid").val(this.target.fill);
+	},
+	render:function(){
+		j$(this.el).empty();
+		j$(this.el).append(
+				"<table width='100%'>"+
+				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+			    "</select>" +
+				"</td></tr>"+				
+				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Fill</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"fillid\">"+
+				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+			    "</select>" +
+				"</td></tr>"+
+				"<tr><td style='padding:7px'>Width</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='heightid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Rounding</td><td><input type='text' id='roundingid' value='' class='form-control input-sm\'></td></tr>"+						        
 		"</table>");
 			
 		return this;
@@ -439,6 +530,64 @@ var ViaPanelBuilder=BaseBuilder.extend({
 		return this;
 	}    
 });
+var LinePanelBuilder=BaseBuilder.extend({
+	initialize:function(component){
+		LinePanelBuilder.__super__.initialize(component);
+		this.id="linepanelbuilder";
+		//app.bind('itemlinkimpl:oncklick', $.proxy(this.onitemclick,this));    
+    },
+    events: {
+        'keypress #xid' : 'onenter',	
+        'keypress #yid' : 'onenter',	
+        'keypress #thicknessid' : 'onenter',
+        'change #layerid':'onchange',
+    },
+    onchange:function(event){
+        if(event.target.id=='layerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        }
+        this.component.Repaint(); 
+      }, 
+    onenter:function(event){
+		 if(event.keyCode != 13){
+				return; 
+		     }
+		 if(event.target.id=='thicknessid'){
+			 this.target.thickness=core.Grid.MM_TO_COORD(parseFloat(j$('#thicknessid').val())); 
+		 }   
+		 if(event.target.id=='xid'){	            
+			 this.target.resizingPoint.x=this.fromUnitX(j$('#xid').val()); 
+	     }	         
+		 if(event.target.id=='yid'){	            
+			 this.target.resizingPoint.y=this.fromUnitY(j$('#yid').val());  
+	     }
+		 this.component.Repaint();  
+    },
+	updateui:function(){
+		j$('#layerid').val(this.target.copper.getName());
+        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
+        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
+        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
+        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
+        j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
+	},
+	render:function(){
+		j$(this.el).empty();
+		j$(this.el).append(
+				"<table width='100%'>"+
+				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+			    "</select>" +
+				"</td></tr>"+				
+				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
+		        "</table>");
+			
+		return this;
+	}
+});
 var TrackPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
 		TrackPanelBuilder.__super__.initialize(component);
@@ -508,49 +657,57 @@ var LabelPanelBuilder=BaseBuilder.extend({
         'keypress #yid' : 'onenter',
         'keypress #textid' : 'onenter',	
         'keypress #sizeid' : 'onenter',	
-        'change #orientationid': 'onchange',
+        'keypress #thicknessid' : 'onenter',	
+		'change #orientationid': 'onchange',
         'change #alignmentid': 'onchange',
+		'change #layerid':'onchange',
     },
     onchange:function(event){
       if(event.target.id=='orientationid'){
-    	  this.target.getChipText().get(0).getAlignment().setOrientation(parseInt((j$('#orientationid :selected').val())));
+    	  this.target.texture.setOrientation(parseInt((j$('#orientationid :selected').val())));
     	  //update 
-    	  this.validateAlignmentComboText('alignmentid',this.target.getChipText().get(0));
-    	  this.component.Repaint(); 
+    	  this.validateAlignmentComboText('alignmentid',this.target.texture); 
       }
       if(event.target.id=='alignmentid'){
-    	  this.target.getChipText().get(0).getAlignment().set(parseInt((j$('#alignmentid :selected').val()))); 
-    	  this.component.Repaint(); 
+    	  this.target.texture.setAlignment(parseInt((j$('#alignmentid :selected').val()))); 
       }
-      
+	  if(event.target.id=='layerid'){
+      	  this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+      }
+      this.component.Repaint(); 
     },
     onenter:function(event){
 		 if(event.keyCode != 13){
 				return; 
 		 }
 		 if(event.target.id=='textid'){
-			 this.target.getChipText().get(0).setText(j$('#textid').val());			  
+			 this.target.texture.setText(j$('#textid').val());			  
 		 }
 		 if(event.target.id=='sizeid'){
-			 this.target.getChipText().get(0).fontSize=core.MM_TO_COORD(parseFloat(j$('#sizeid').val()));			 
+			 this.target.texture.setSize(core.MM_TO_COORD(parseFloat(j$('#sizeid').val())));			 
 		 }
+		 if(event.target.id=='thicknessid'){
+			 this.target.texture.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
+		 }		 
 		 if(event.target.id=='xid'){	            
-			 this.target.getChipText().get(0).anchorPoint.x=this.fromUnitX(j$('#xid').val()); 
+			 this.target.texture.anchorPoint.x=this.fromUnitX(j$('#xid').val()); 
 	     }	         
 		 if(event.target.id=='yid'){	            
-			 this.target.getChipText().get(0).anchorPoint.y=this.fromUnitY(j$('#yid').val());  
+			 this.target.texture.anchorPoint.y=this.fromUnitY(j$('#yid').val());  
 	     }		 
 		 this.component.Repaint();     		    	
     },
 	updateui:function(){
-	 j$('#textid').val(this.target.getChipText().get(0).text);	
-	 j$('#xid').val(this.toUnitX(this.target.getChipText().get(0).anchorPoint.x));
-	 j$('#yid').val(this.toUnitY(this.target.getChipText().get(0).anchorPoint.y));	 
-	 j$('#sizeid').val(core.COORD_TO_MM(this.target.getChipText().get(0).fontSize));
+	j$('#layerid').val(this.target.copper.getName());	
+	 j$('#textid').val(this.target.texture.text);	
+	 j$('#xid').val(this.toUnitX(this.target.texture.anchorPoint.x));
+	 j$('#yid').val(this.toUnitY(this.target.texture.anchorPoint.y));	 
+	 j$('#sizeid').val(core.COORD_TO_MM(this.target.texture.size));
+	 j$('#thicknessid').val(core.COORD_TO_MM(this.target.texture.thickness));
 	 //set orientation
-	 j$('#orientationid').val(this.target.getChipText().get(0).getAlignment().orientation());
+	 j$('#orientationid').val(this.target.texture.alignment.getOrientation());
 	 //set alignment
-	 this.validateAlignmentComboText('alignmentid',this.target.getChipText().get(0));
+	 this.validateAlignmentComboText('alignmentid',this.target.texture);
 
 
 	},
@@ -558,10 +715,16 @@ var LabelPanelBuilder=BaseBuilder.extend({
 		j$(this.el).empty();
 		j$(this.el).append(
 				"<table width='100%'>"+
+				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+			    "</select>" +
+				"</td></tr>"+
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Text</td><td><input type='text' id='textid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='sizeid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Orientation</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"orientationid\">"+
 				this.fillComboBox([{id:0,value:'HORIZONTAL',selected:true},{id:1,value:'VERTICAL'}])+
@@ -731,7 +894,9 @@ var BoardsInspector=Backbone.View.extend({
 		                                         new LabelPanelBuilder(this.boardComponent),
 		                                         new ComponentPanelBuilder(this.boardComponent),
 		                                         new CirclePanelBuilder(this.boardComponent),
-		                                         new ArcPanelBuilder(this.boardComponent)
+		                                         new ArcPanelBuilder(this.boardComponent),
+		                                         new LinePanelBuilder(this.boardComponent),
+		                                         new RectPanelBuilder(this.boardComponent)
 //		                                         new mywebpcb.pads.views.EllipsePanelBuilder(this.boardComponent),
 //		                                         new mywebpcb.pads.views.ArcPanelBuilder(this.boardComponent)
 		                                         ]);
@@ -837,6 +1002,22 @@ var BoardsInspector=Backbone.View.extend({
 				this.render();
 		    }
 		}
+		if(event.target instanceof PCBRoundRect){
+			if(this.panel.id!='rectpanelbuilder'){
+				this.panel.attributes.remove();
+				this.panel=this.collection.get('rectpanelbuilder');
+				this.panel.attributes.delegateEvents();
+				this.render();
+		    }
+		}		
+		if(event.target instanceof PCBLine){
+			if(this.panel.id!='linepanelbuilder'){
+				this.panel.attributes.remove();
+				this.panel=this.collection.get('linepanelbuilder');
+				this.panel.attributes.delegateEvents();
+				this.render();
+		    }
+		}		
 		if(event.target instanceof PCBVia){
 			if(this.panel.id!='viapanelbuilder'){
 				this.panel.attributes.remove();

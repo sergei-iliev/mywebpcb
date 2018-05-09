@@ -6,6 +6,8 @@ var glyph=require('core/text/glyph');
 var font=require('core/text/font');
 var Circle =require('pads/shapes').Circle;
 var Arc =require('pads/shapes').Arc;
+var Line =require('pads/shapes').Line;
+var RoundRect =require('pads/shapes').RoundRect;
 var GlyphLabel=require('pads/shapes').GlyphLabel;
 
 class BoardShapeFactory{
@@ -26,11 +28,11 @@ class BoardShapeFactory{
 			circle.fromXML(data);
 			return circle;
 		}
-//		if (data.tagName.toLowerCase() == 'line') {
-//			var line = new Line( 0, 0, 0, 0, 0);
-//			line.fromXML(data);
-//			return line;
-//		}
+		if (data.tagName.toLowerCase() == 'line') {
+			var line = new PCBLine( 0, 0, 0, 0, 0);
+			line.fromXML(data);
+			return line;
+		}
 //		if (data.tagName.toLowerCase() == 'arc') {
 //			var arc = new Arc(0, 0, 0, 0, 0);
 //			arc.fromXML(data);
@@ -187,9 +189,53 @@ class PCBLabel extends GlyphLabel{
     constructor( layermaskId) {
         super("Label",core.MM_TO_COORD(0.3),layermaskId);
     }
-
+clone(){
+	var copy = new PCBLabel(this.copper.getLayerMaskID());
+    copy.texture = this.texture.clone();        
+    copy.copper=this.copper;
+    return copy;
+}    
+getDrawingOrder() {
+        let order=super.getDrawingOrder();
+        if(this.owningUnit==null){            
+           return order;
+        }
+        
+        if(owningUnit.getActiveSide()==Layer.Side.resolve(this.copper.getLayerMaskID())){
+          order= 4;
+        }else{
+          order= 3; 
+        }  
+        return order;
+    }
 }
+class PCBLine extends Line{
+constructor(thickness,layermaskId){
+        super(thickness,layermaskId);
+    }
+clone() {
+		var copy = new PCBLine(this.thickness,this.copper.getLayerMaskID());
+		for (var index = 0; index < this.points.length; index++) {
+			  copy.points.push(new core.Point(this.points[index].x,this.points[index].y));
+		}
+		return copy;
 
+	}    
+}
+class PCBRoundRect extends RoundRect{
+constructor( x, y,  width,height,arc,  thickness, layermaskid) {
+        super( x, y, width,height,arc, thickness, layermaskid);
+    }
+clone(){
+	var copy = new PCBRoundRect(this.getX(), this.getY(), this.width, this.height, this.arc,
+			this.thickness,this.copper.getLayerMaskID());
+	copy.roundRect = new core.Rectangle(this.roundRect.x,
+			this.roundRect.y, this.roundRect.width, this.roundRect.height);
+	copy.fill = this.fill;
+	copy.arc=this.arc;
+	return copy;	
+}    
+}
 class PCBTrack extends Shape{
 	
 }
@@ -203,9 +249,11 @@ module.exports ={
 		PCBFootprint,
 		PCBLabel,
 		PCBCircle,
+		PCBRoundRect,
 		PCBArc,
 		PCBVia,
 		PCBTrack,
+		PCBLine,
 		BoardShapeFactory
 		
 }

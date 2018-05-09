@@ -1075,9 +1075,12 @@ class Shape{
 		this.selection = false;
 		this.displayname = "noname";
 		this.fill = Fill.EMPTY;
-		this.fillColor;
+		this.fillColor;		 
 		this.copper = Layer.Copper.resolve(layermask);
 	}
+getCenter(){
+	return new Point(this.x,this.y);
+}	
 setDisplayName(displayname) {
 		this.displayname = displayname;
 	}
@@ -1357,7 +1360,9 @@ setSelected (selection) {
 			this.resizingPoint = null;
 }
 }
-
+getCenter() {        
+   return new Point(this.getX()+(this.getWidth()/2), this.getY()+ (this.getHeight()/2));
+} 
 getY () {
 	return this.upperLeft.y;
 }

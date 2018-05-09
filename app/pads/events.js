@@ -322,5 +322,7 @@ class FootprintEventMgr{
 
 module.exports ={
 	  FootprintEventMgr,
+	  ArcExtendAngleEventHandler,
+	  ArcStartAngleEventHandle,
 	  LineEventHandle
 }
