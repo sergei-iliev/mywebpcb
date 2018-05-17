@@ -59,6 +59,59 @@ mousePressed(event){
 	 }	 
 	
 }
+class CopperAreaEventHandle extends EventHandle{
+	constructor(component) {
+		 super(component);
+	 }
+mousePressed(event){
+      this.mx=event.x;
+	  this.my=event.y;
+	  if(super.isRightMouseButton(event)){                                  
+           return;
+      }
+      this.component.getModel().getUnit().setSelected(false);
+	  this.target.setSelected(true);
+
+      let p;      
+      
+      if(this.component.getParameter("snaptogrid")){
+        p=this.component.getModel().getUnit().getGrid().positionOnGrid(event.x,event.y);       		
+      }else{
+        p=new core.Point(event.x,event.y);
+      }
+      let justcreated=this.target.polygon.points.length==2;
+      
+      this.target.add(p);
+      
+	  this.component.Repaint();	   
+	    
+	 }
+mouseReleased(event){
+		
+	 }
+	 
+mouseDragged(event){
+		
+	 }
+mouseMove(event){
+    this.target.floatingEndPoint.setLocation(event.x,event.y);   
+    this.component.Repaint();	 
+	 }	 
+dblClick(){
+      
+    this.target.setSelected(false);
+    this.component.getEventMgr().resetEventHandle();
+    this.component.Repaint();	 
+} 
+Detach() {
+    this.target.reset(); 
+    if(this.target.polygon.points.length<3){
+        this.target.owningUnit.remove(this.target.uuid);
+    }
+    super.Detach();
+}	
+}
+
 class BoardEventMgr{
 	 constructor(component) {
 	    this.component=component;
@@ -78,6 +131,7 @@ class BoardEventMgr{
 		this.hash.set("dragheand",new events.DragingEventHandle(component));
 		this.hash.set("origin",new events.OriginEventHandle(component));
 		this.hash.set("measure",new events.MeasureEventHandle(component));
+		this.hash.set("copperarea",new CopperAreaEventHandle(component));
 	 }
 	 //****private
 	 getEventHandle(eventKey,target) {
@@ -116,5 +170,6 @@ class BoardEventMgr{
 	}
 
 	module.exports ={
-		  BoardEventMgr		  
+		  BoardEventMgr,
+		  CopperAreaEventHandle
 	}

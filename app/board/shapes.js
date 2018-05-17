@@ -10,6 +10,7 @@ var Line =require('pads/shapes').Line;
 var RoundRect =require('pads/shapes').RoundRect;
 var GlyphLabel=require('pads/shapes').GlyphLabel;
 
+
 class BoardShapeFactory{
 	
 	createShape(data){
@@ -33,6 +34,11 @@ class BoardShapeFactory{
 			line.fromXML(data);
 			return line;
 		}
+		if (data.tagName.toLowerCase() == 'copperarea') {
+			var area = new PCBCopperArea( 0, 0, 0, 0, 0);
+			area.fromXML(data);
+			return area;
+		}		
 //		if (data.tagName.toLowerCase() == 'arc') {
 //			var arc = new Arc(0, 0, 0, 0, 0);
 //			arc.fromXML(data);
@@ -48,6 +54,7 @@ class BoardShapeFactory{
 class PCBFootprint extends Shape{
 constructor(layermaskId){
 		super(0,0,0,0,0,layermaskId);
+		this.displayname = "Footprint";
    	    this.shapes=[];
 		this.text = new core.ChipText();
 	    this.text.Add(new glyph.GlyphTexture("","reference", 0, 0,  core.MM_TO_COORD(1.2)));
@@ -165,6 +172,7 @@ Paint(g2, viewportWindow, scale,layermask) {
 class PCBCircle extends Circle{
     constructor( x, y,  r,  thickness, layermaskid) {
         super( x, y, r, thickness, layermaskid);
+        this.displayname = "Circle";
     }	
     clone(){
     	return new PCBCircle(this.x,this.y,this.width,this.thickness,this.copper.getLayerMaskID());
@@ -174,6 +182,7 @@ class PCBCircle extends Circle{
 class PCBArc extends Arc{
     constructor( x, y,  r,  thickness, layermaskid) {
         super( x, y, r, thickness, layermaskid);
+        this.displayname = "Arc";
     }	
     clone() {
 		var copy = new PCBArc(this.x, this.y, this.width,
@@ -212,6 +221,7 @@ getDrawingOrder() {
 class PCBLine extends Line{
 constructor(thickness,layermaskId){
         super(thickness,layermaskId);
+        this.displayname = "Line";
     }
 clone() {
 		var copy = new PCBLine(this.thickness,this.copper.getLayerMaskID());
@@ -225,6 +235,7 @@ clone() {
 class PCBRoundRect extends RoundRect{
 constructor( x, y,  width,height,arc,  thickness, layermaskid) {
         super( x, y, width,height,arc, thickness, layermaskid);
+        this.displayname = "Rect";
     }
 clone(){
 	var copy = new PCBRoundRect(this.getX(), this.getY(), this.width, this.height, this.arc,
@@ -243,9 +254,108 @@ class PCBTrack extends Shape{
 class PCBVia extends Shape{
 	
 }
+class Polygon{
+	constructor(){
+		this.points=[];
+	}
+add(point){
+  this.points.push(point);	
+}	
+getBoundingRect(){	
+	let r= new core.Rectangle(0,0,0,0);
+	
+    var x1 = Number.MAX_VALUE; 
+    var y1 = Number.MAX_VALUE;
+    var x2 = Number.MIN_VALUE;
+    var y2 = Number.MIN_VALUE;
 
+    this.points.forEach(function(p) {
+        x1 = Math.min(x1, p.x);
+        y1 = Math.min(y1, p.y);
+        x2 = Math.max(x2, p.x);
+        y2 = Math.max(y2, p.y);
+    });
+
+    r.setRect(x1, y1, x2 - x1, y2 - y1);
+    return r;	
+}
+
+}
+class PCBCopperArea extends Shape{
+	constructor( layermaskid) {
+        super( 0, 0, 0,0, 0, layermaskid);
+        this.displayname = "Copper Area";
+        this.clearance=core.MM_TO_COORD(0.2); 
+        this.points=[];
+        this.floatingStartPoint=new core.Point();
+        this.floatingEndPoint=new core.Point();                 
+        //this.padConnection=PadShape.PadConnection.DIRECT;
+        this.fill=core.Fill.FILLED;
+        this.polygon=new Polygon(); 
+    }
+calculateShape(){  	    
+        return this.polygon.getBoundingRect();
+     }	
+add(point) {
+    this.polygon.add(point);
+}
+isFloating() {
+    return (!this.floatingStartPoint.equals(this.floatingEndPoint));                
+}
+reset(){
+	this.resetToPoint(this.floatingStartPoint);	
+}
+resetToPoint(p){
+    this.floatingStartPoint.setLocation(p.x,p.y);
+    this.floatingEndPoint.setLocation(p.x,p.y); 
+}
+
+Paint(g2,viewportWindow,scale, layersmask){
+	var rect = this.getBoundingShape().getScaledRect(scale);
+	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
+		return;
+	}
+	let dst = [];
+	this.polygon.points.forEach(function(point) {
+		dst.push(point.getScaledPoint(scale));
+	});
+	g2.globalCompositeOperation = 'lighter';
+	g2.beginPath();
+	g2.lineCap = 'round';
+	g2.lineJoin = 'round';
+	g2.moveTo(dst[0].x - viewportWindow.x, dst[0].y
+							- viewportWindow.y);
+	for (var i = 1; i < dst.length; i++) {
+						g2.lineTo(dst[i].x - viewportWindow.x, dst[i].y
+								- viewportWindow.y);
+	}
+	
+	// draw floating point
+	if (this.isFloating()) {
+			let p = this.floatingEndPoint.getScaledPoint(scale);
+				g2.lineTo(p.x - viewportWindow.x, p.y
+								- viewportWindow.y);
+	}
+	g2.closePath();
+
+	if (this.selection){
+		g2.fillStyle = "gray";
+    }else{    	
+		g2.fillStyle = this.copper.getColor();
+	}
+    g2.fill();        
+    if(this.isSelected()){  
+    	g2.lineWidth=1;
+    	g2.strokeStyle = "blue";                   
+        g2.stroke();
+    }
+    
+	g2.globalCompositeOperation = 'source-over';
+}	
+}
 
 module.exports ={
+		PCBCopperArea,
 		PCBFootprint,
 		PCBLabel,
 		PCBCircle,

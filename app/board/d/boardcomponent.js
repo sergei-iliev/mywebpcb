@@ -15,7 +15,9 @@ var PCBCircle=require('board/shapes').PCBCircle;
 var PCBArc=require('board/shapes').PCBArc;
 var PCBLine=require('board/shapes').PCBLine;
 var PCBRoundRect=require('board/shapes').PCBRoundRect;
+var PCBCopperArea=require('board/shapes').PCBCopperArea;
 var LineEventHandle=require('pads/events').LineEventHandle;
+var CopperAreaEventHandle=require('board/events').CopperAreaEventHandle;
 
 var shapes=require('pads/shapes');
 //**********************UnitMgr***************************************
@@ -144,6 +146,7 @@ setMode(_mode){
 
 mouseDown(event){
     event.preventDefault();
+    
     //this.canvas.focus();
 	if (this.getModel().getUnit() == null) { 
 	   return; 
@@ -216,6 +219,19 @@ mouseDown(event){
 //            	this.getEventMgr().setEventHandle("line", shape);
             }
 	    break;
+        case  core.ModeEnum.COPPERAREA_MODE:
+            //is this a new copper area
+            if ((this.getEventMgr().targetEventHandle == null) ||
+                !(this.getEventMgr().targetEventHandle instanceof CopperAreaEventHandle)) {
+            	if(event.which!=1){
+            		return;
+            	}
+                shape =
+                    new PCBCopperArea(core.Layer.LAYER_FRONT);
+                this.getModel().getUnit().add(shape);
+                this.getEventMgr().setEventHandle("copperarea", shape);
+            }    	  
+      	  break;	    
     	case core.ModeEnum.LINE_MODE:
             //***is this a new wire
             if ((this.getEventMgr().getTargetEventHandle() == null) ||

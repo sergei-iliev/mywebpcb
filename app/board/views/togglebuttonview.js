@@ -104,7 +104,9 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='originid'){			 
 		   this.boardComponent.setMode(core.ModeEnum.ORIGIN_SHIFT_MODE);
 		}
-		
+		if(event.data.model.id=='copperareaid'){
+		    this.boardComponent.setMode(core.ModeEnum.COPPERAREA_MODE);
+		}
 		if((event.data.model.id=='rotateleftid')||(event.data.model.id=='rotaterightid')){
             shapes= this.boardComponent.getModel().getUnit().shapes;
             if(shapes.length==0){
