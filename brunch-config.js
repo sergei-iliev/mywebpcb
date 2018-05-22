@@ -22,8 +22,12 @@ exports.files = {
 	},
 	entryPoints: {      
       'app/pads/pads.js':{
-    	'pads/pads.js': /^app/  
-      }	  
+    	'pads/pads.js': /^app/        
+      },
+      'app/board/board.js':{
+      	'board/board.js': /^app/  
+      }
+      
     }
   },
   stylesheets: {

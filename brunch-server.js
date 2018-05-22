@@ -35,11 +35,25 @@ app.get('/rest/footprints/libraries/Atmel/categories/CPU', (req, res, next) => {
 '</units>'
 );
 });
+
+app.get('/rest/footprints/libraries/DIP/categories', (req, res, next) => {
+  res.send(
+'<?xml version="1.0" encoding="UTF-8"?><units>'+
+'<name fullname="mega8"  library="DIP">DIP-8</name>'+
+'</units>'
+);
+});
+
 app.get('/rest/footprints/libraries/Atmel/categories/CPU/mega8', (req, res, next) => {
     fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\library\\footprints\\Atmel\\CPU\\mega8.xml','utf8', function(err, data) {
 		res.send(data);
   });
 });
+app.get('/rest/footprints/libraries/DIP/categories/null/DIP-8', (req, res, next) => {
+     fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\library\\footprints\\DIP\\DIP-8.xml','utf8', function(err, data) {
+		res.send(data);
+  });
+});  
 app.get('/rest/footprints/libraries/Atmel/categories/CPU/Tiny2313', (req, res, next) => {
   res.send(
 '<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>'+
