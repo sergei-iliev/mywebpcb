@@ -166,6 +166,7 @@ var ModeEnum=(function(){
 		   FOOTPRINT_MODE:9,
 		   TRACK_MODE:10,
 		   MEASUMENT_MODE : 12,
+		   COPPERAREA_MODE:13,
 	}
 })();
 

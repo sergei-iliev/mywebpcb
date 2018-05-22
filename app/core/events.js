@@ -70,7 +70,7 @@ class MoveEventHandle extends EventHandle{
 	 constructor(component) {
 		 super(component);
 	 }
-	 mousePressed(event){
+	 mousePressed(event){	
 	    this.component.getModel().getUnit().setSelected(false);
 	    this.target.setSelected(true);
 		this.component.Repaint();

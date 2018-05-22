@@ -52,8 +52,8 @@ class ArcStartAngleEventHandle extends EventHandle{
     
 	
         
-    let centerX=this.target.getCenterX();
-    let centerY=this.target.getCenterY();
+    let centerX=this.target.getCenter().x;
+    let centerY=this.target.getCenter().y;
         
         
     let start = (180/Math.PI*Math.atan2(new_my-centerY,new_mx-centerX));
@@ -90,8 +90,8 @@ class ArcExtendAngleEventHandler extends EventHandle{
  	let new_mx = event.x;
     let new_my = event.y;
         
-    let centerX=this.target.getCenterX();
-    let centerY=this.target.getCenterY();
+    let centerX=this.target.getCenter().x;
+    let centerY=this.target.getCenter().y;
         
         
     let extend = (180/Math.PI*Math.atan2(new_my-centerY,new_mx-centerX));

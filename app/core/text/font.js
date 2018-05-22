@@ -37,34 +37,14 @@ calculateMetrics(alignment,fontSize,text) {
 	        this.updated = false;
 	    }else{
 	       return;	
-	    }
-	    console.log('44444');        
+	    }     
 	    
 	    var ctx=fontmetrics.getCanvasContext();	    	    
 	    	    
-	    if(this.fontSize>100){
-		   let metrics = fontmetrics.FontMetrics({
-	  	           fontFamily: 'Monospace',	        	  
-	  	           fontWeight: 'normal',
-	  	           fontSize: this.BUG_FONT_SIZE,
-	  	           origin: 'baseline'
-	  	   });
-		   let scale=fontSize/this.BUG_FONT_SIZE;	
-		   
-		   ctx.font=""+this.BUG_FONT_SIZE+"px Monospace";	
-		   let w=ctx.measureText(text).width;
-		   
-		   this.width=parseInt(Math.round(scale))*w;	
-		   
-		   this.ascent=Math.abs(metrics.ascent*this.fontSize);
-		   this.descent=Math.abs(metrics.descent*this.fontSize);
-		   this.height=this.fontSize;
-		    
-        }else{
         	let metrics = fontmetrics.FontMetrics({
    	           fontFamily: 'Monospace',	        	  
    	           fontWeight: 'normal',
-   	           fontSize: 20,
+   	           fontSize: 10,
    	           origin: 'baseline'
    	        });
         	
@@ -73,8 +53,7 @@ calculateMetrics(alignment,fontSize,text) {
            
     	    this.ascent=Math.abs(metrics.ascent*this.fontSize);
 	        this.descent=Math.abs(metrics.descent*this.fontSize);
-	        this.height=this.fontSize;	    
-        } 
+	        this.height=this.fontSize;	     
 	    
 	    this.updated=true; 
 	    	    
@@ -90,6 +69,7 @@ class FontTexture{
 	this.alignment=alignment;
 	this.fontSize=fontSize;
 	this.selection=false;
+	this.selectionRectWidth=3000;
 	this.baseTextMetrics=new TextMetrics();  
  }
  clone(){
@@ -174,7 +154,7 @@ isClicked(x,y){
     else
         return false;
  }
- getBoundingRect(){
+getBoundingRect(){
      if (this.text == null || this.text.length == 0){
          return null;
      }   
@@ -230,6 +210,7 @@ Mirror(A,B) {
 
  }
  Rotate(rotation){
+	 console.log();
 	 let p=utilities.rotate(this.anchorPoint, rotation.originx, rotation.originy, rotation.angle);
 	 this.anchorPoint.setLocation(p.x,p.y);
 	 let oldorientation=this.alignment.getOrientation();
@@ -251,7 +232,6 @@ Mirror(A,B) {
 	 if(this.isEmpty()){
 	   return;	 
 	 } 
-	 //this.baseTextMetrics.calculateMetrics(this.alignment,parseInt(this.fontSize*scale.getScale()),this.text);
 	 
 	 g2.font = ""+parseInt(this.fontSize*scale.getScale())+"px Monospace";
 	 
@@ -260,6 +240,11 @@ Mirror(A,B) {
 	 else
 	   g2.fillStyle = 'white';
 	 
+	 this.baseTextMetrics.calculateMetrics(this.alignment,this.fontSize,this.text);
+	 //let r=this.getBoundingRect().getScaledRect(scale);
+	 //g2.lineWidth=1;
+	 //g2.rect(r.x-viewportWindow.x,r.y-viewportWindow.y,r.width,r.height);
+	 //g2.stroke();
 	 
 	 var scaledPoint=this.anchorPoint.getScaledPoint(scale);
 	 scaledPoint.setLocation(scaledPoint.x-viewportWindow.x, scaledPoint.y-viewportWindow.y);
@@ -297,17 +282,8 @@ Mirror(A,B) {
 	 }
 	 	
   }
-  drawControlShape(g2,viewportWindow,scale){
-      
-      var track=new mywebpcb.core.Track();
-	  
-      track.setTrack(this.anchorPoint.x-SELECT_RECT_WIDTH,this.anchorPoint.y,this.anchorPoint.x+SELECT_RECT_WIDTH,this.anchorPoint.y); 
-      track.drawTrack(g2, viewportWindow, scale,'blue');
-      
-      track.setTrack(this.anchorPoint.x,this.anchorPoint.y-SELECT_RECT_WIDTH,this.anchorPoint.x,this.anchorPoint.y+SELECT_RECT_WIDTH); 
-      track.drawTrack(g2, viewportWindow, scale,'blue');
-    
-      
+  drawControlShape(g2, viewportWindow,scale){
+	    utilities.drawCrosshair(g2, viewportWindow, scale, null, this.selectionRectWidth, [this.anchorPoint]);
   }
  	
 }
