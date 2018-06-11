@@ -197,10 +197,12 @@ var ButtonView=Backbone.View.extend({
         "click  #loadbuttonid" : "onload",	
         "click  #closebuttonid" : "onclose",	
     },
-    onload:function(){
+    onload:function(e){
     	 if(this.unitSelectionPanel.unitSelectionGrid.model==null){
     		 return;
     	 }
+    	//attach mouse position
+    	this.unitSelectionPanel.unitSelectionGrid.model.event=e;    	    	
     	mywebpcb.trigger('libraryview:load',this.unitSelectionPanel.unitSelectionGrid.model);
 		//close dialog 
 		j$('#FootprintLoadDialog').jqxWindow('close');

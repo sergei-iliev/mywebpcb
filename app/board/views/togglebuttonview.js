@@ -135,6 +135,7 @@ var ToggleButtonView=Backbone.View.extend({
 		}			
 	},
 	onfootprintload:function(selectedModel){
+		  let scaledEvent=this.boardComponent.getScaledEvent(selectedModel.event);
 		//****load it    	
 		  this.boardComponent.setMode(core.ModeEnum.FOOTPRINT_MODE);		  
 		  var pcbfootprint=BoardMgr.getInstance().createPCBFootprint(selectedModel.getUnit());
@@ -142,9 +143,15 @@ var ToggleButtonView=Backbone.View.extend({
           //            //***set chip cursor
           pcbfootprint.Move(-1 * pcbfootprint.getBoundingShape().getCenterX(),
                          -1 * pcbfootprint.getBoundingShape().getCenterY());
-          this.boardComponent.setContainerCursor(pcbfootprint);
+          
+          //pcbfootprint.Move(scaledEvent.x,
+          //        scaledEvent.y);
+          
+		  this.boardComponent.setContainerCursor(pcbfootprint);
           this.boardComponent.getEventMgr().setEventHandle("cursor", pcbfootprint);
-
+          
+          this.boardComponent.mouseMove(selectedModel.event);
+          //this.boardComponent.Repaint();
 	},
 	onload:function(selectedModel){
 		  this.boardComponent.Clear();

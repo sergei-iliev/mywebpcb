@@ -289,18 +289,50 @@ class PCBCopperArea extends Shape{
         this.points=[];
         this.floatingStartPoint=new core.Point();
         this.floatingEndPoint=new core.Point();                 
-        //this.padConnection=PadShape.PadConnection.DIRECT;
+        this.selectionRectWidth = 3000;
         this.fill=core.Fill.FILLED;
-        this.polygon=new Polygon(); 
+        this.polygon=new Polygon();
+        this.resizingPoint;
     }
 calculateShape(){  	    
-        return this.polygon.getBoundingRect();
-     }	
+   return this.polygon.getBoundingRect();
+}	
+
+getLinePoints() {
+   return this.polygon.points;
+}
 add(point) {
     this.polygon.add(point);
 }
+setResizingPoint(point) {
+    this.resizingPoint=point;
+}
 isFloating() {
     return (!this.floatingStartPoint.equals(this.floatingEndPoint));                
+}
+isControlRectClicked(x, y) {
+	var rect = new core.Rectangle(x
+								- this.selectionRectWidth / 2, y - this.selectionRectWidth
+								/ 2, this.selectionRectWidth, this.selectionRectWidth);
+	let point = null;
+
+	this.polygon.points.some(function(wirePoint) {
+		if (rect.contains(wirePoint.x, wirePoint.y)) {
+					point = wirePoint;
+		  return true;
+		}else{
+		  return false;
+		}
+	});
+
+	return point;
+}
+isInRect(r) {
+
+    return this.polygon.points.every(function(wirePoint){
+    	return r.contains(wirePoint.x,wirePoint.y);                        
+    });
+    
 }
 reset(){
 	this.resetToPoint(this.floatingStartPoint);	
@@ -309,7 +341,10 @@ resetToPoint(p){
     this.floatingStartPoint.setLocation(p.x,p.y);
     this.floatingEndPoint.setLocation(p.x,p.y); 
 }
-
+Resize(xoffset, yoffset, clickedPoint) {
+	clickedPoint.setLocation(clickedPoint.x + xoffset,
+								clickedPoint.y + yoffset);
+}
 Paint(g2,viewportWindow,scale, layersmask){
 	var rect = this.getBoundingShape().getScaledRect(scale);
 	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
@@ -343,15 +378,41 @@ Paint(g2,viewportWindow,scale, layersmask){
     }else{    	
 		g2.fillStyle = this.copper.getColor();
 	}
-    g2.fill();        
+    g2.fill();   
+    
     if(this.isSelected()){  
     	g2.lineWidth=1;
     	g2.strokeStyle = "blue";                   
         g2.stroke();
+    
+        this.drawControlShape(g2,viewportWindow,scale);
     }
     
 	g2.globalCompositeOperation = 'source-over';
 }	
+drawControlShape(g2, viewportWindow,scalableTransformation) {
+	var line=new core.Line();
+	g2.lineWidth=1; 						
+	this.polygon.points.forEach(function(wirePoint) {
+		if (this.resizingPoint != null
+									&& this.resizingPoint.equals(wirePoint))
+			g2.strokeStyle  = 'yellow';
+		else
+			g2.strokeStyle  = 'blue';
+
+		line.setLine(wirePoint.x - this.selectionRectWidth,
+									wirePoint.y, wirePoint.x
+											+ this.selectionRectWidth, wirePoint.y);
+	    line.draw(g2, viewportWindow,
+									scalableTransformation);
+
+	    line.setLine(wirePoint.x, wirePoint.y
+									- this.selectionRectWidth, wirePoint.x,
+									wirePoint.y + this.selectionRectWidth);
+		line.draw(g2, viewportWindow,
+									scalableTransformation);
+	}.bind(this));
+}
 }
 
 module.exports ={

@@ -81,7 +81,13 @@ mousePressed(event){
       }
       let justcreated=this.target.polygon.points.length==2;
       
-      this.target.add(p);
+      if(this.target.getLinePoints().length==0){
+    	  this.target.add(p);    
+          //avoid point over point
+      }else if(!this.target.getLinePoints()[this.target.getLinePoints().length-1].equals(p)){
+    	  this.target.add(p);           
+      }
+      
       
 	  this.component.Repaint();	   
 	    
