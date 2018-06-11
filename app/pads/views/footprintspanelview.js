@@ -683,7 +683,7 @@ var LinePanelBuilder=BaseBuilder.extend({
 				return; 
 		     }
 		 if(event.target.id=='thicknessid'){
-			 this.target.thickness=core.Grid.MM_TO_COORD(parseFloat(j$('#thicknessid').val())); 
+			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val())); 
 		 }   
 		 if(event.target.id=='xid'){	            
 			 this.target.resizingPoint.x=this.fromUnitX(j$('#xid').val()); 
