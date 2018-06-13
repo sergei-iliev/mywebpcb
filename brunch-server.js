@@ -5,6 +5,28 @@ const app = express();
 
 app.use(express.static(__dirname + '/public'));
 
+//**************BOARD****************************************
+app.get('/rest/boards/projects', (req, res, next) => {
+	  res.send(
+	  '<?xml version="1.0" encoding="UTF-8"?><library>'+
+	  '<name>CardReader</name>'+	  
+	  '<name>Demo</name>'+	  
+	  '</library>'
+	);
+});
+app.get('/rest/boards/CardReader', (req, res, next) => {
+	  res.send(
+	'<?xml version="1.0" encoding="UTF-8"?><boards>'+
+	'<name fullname="CR_v1" project="CardReader">CR_v1</name>'+
+	'</boards>'
+	);
+	});
+app.get('/rest/boards/CardReader/CR_v1', (req, res, next) => {
+    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\workspace\\boards\\demo\\proba.xml','utf8', function(err, data) {
+		res.send(data);
+  });
+});
+//***************PADS****************************************
 // AJAX to /action.
 app.get('/rest/footprints/libraries', (req, res, next) => {
   res.send(
