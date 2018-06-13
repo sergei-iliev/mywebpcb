@@ -410,7 +410,6 @@ Paint(g2,viewportWindow,scale,layermaskId){
         }
         let side= core.Layer.Side.resolve(layermaskId);
 		
-		
         if (this.isSelected)
             g2.strokeStyle='gray';
         else

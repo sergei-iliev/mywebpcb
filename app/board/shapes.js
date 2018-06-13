@@ -20,6 +20,11 @@ class BoardShapeFactory{
 			footprint.fromXML(data);
 			return footprint;
 		}
+		if (data.tagName.toLowerCase() == 'via') {
+			var via = new PCBVia(0, 0, 0, 0,0,0);
+			via.fromXML(data);
+			return via;
+		}		
 //		if (data.tagName.toLowerCase() == 'rectangle') {
 //			var roundRect = new RoundRect(0, 0, 0, 0, 0,0, core.Layer.SILKSCREEN_LAYER_FRONT);
 //			roundRect.fromXML(data);
@@ -50,11 +55,11 @@ class BoardShapeFactory{
 //			arc.fromXML(data);
 //			return arc;
 //		}
-//		if (data.tagName.toLowerCase() == 'label') {
-//			var label = new GlyphLabel(0, 0, 0);
-//			label.fromXML(data);		
-//			return label;
-//		}
+		if (data.tagName.toLowerCase() == 'label') {
+			var label = new PCBLabel(0, 0, 0);
+			label.fromXML(data);		
+			return label;
+		}
 		return null;
 	}
 }
@@ -157,8 +162,12 @@ Paint(g2, viewportWindow, scale,layermask) {
 	   for(i=0;i<len;i++){
 		  this.shapes[i].Paint(g2,viewportWindow,scale);  
 	   }
-	   
-    this.text.Paint(g2,viewportWindow,scale,layermask);      
+    this.text.text.forEach(function(texture){
+           //if((texture.getLayermaskId()&layermask)!=0){            
+       texture.fillColor=(this.selection?'gray':'cyan');
+       texture.Paint(g2,viewportWindow,scale,layermask);
+           //}
+    },this);      
     
     if(this.selection){
 
@@ -262,6 +271,15 @@ getDrawingOrder() {
         }  
         return order;
     }
+fromXML(data){
+    //extract layer info        
+    if(j$(data).attr("layer")!=null){
+       this.copper =core.Layer.Copper.valueOf(j$(data).attr("layer"));
+    }else{
+       this.copper=core.Layer.Copper.FSilkS;
+    }
+    this.texture.fromXML(data);  	
+}
 }
 class PCBLine extends Line{
 constructor(thickness,layermaskId){
@@ -498,6 +516,9 @@ Paint(g2, viewportWindow, scale) {
 	g2.fillStyle = "black";	
 	g2.fill();
 }
+getOrderWeight() {
+    return 3;
+}
 fromXML(data) {
 	this.setX(parseInt(j$(data).attr("x")));
 	this.setY(parseInt(j$(data).attr("y")));
@@ -545,6 +566,13 @@ class PCBCopperArea extends Shape{
         this.polygon=new Polygon();
         this.resizingPoint;
     }
+clone(){
+    let copy=new PCBCopperArea(this.copper.getLayerMaskID());
+    this.polygon.points.forEach(function(point){
+    	copy.polygon.points.push(new core.Point(point.x,point.y));
+    });  
+    return copy;	
+}	
 calculateShape(){  	    
    return this.polygon.getBoundingRect();
 }	
@@ -642,27 +670,20 @@ Paint(g2,viewportWindow,scale, layersmask){
 	g2.globalCompositeOperation = 'source-over';
 }	
 drawControlShape(g2, viewportWindow,scalableTransformation) {
-	var line=new core.Line();
-	g2.lineWidth=1; 						
-	this.polygon.points.forEach(function(wirePoint) {
-		if (this.resizingPoint != null
-									&& this.resizingPoint.equals(wirePoint))
-			g2.strokeStyle  = 'yellow';
-		else
-			g2.strokeStyle  = 'blue';
-
-		line.setLine(wirePoint.x - this.selectionRectWidth,
-									wirePoint.y, wirePoint.x
-											+ this.selectionRectWidth, wirePoint.y);
-	    line.draw(g2, viewportWindow,
-									scalableTransformation);
-
-	    line.setLine(wirePoint.x, wirePoint.y
-									- this.selectionRectWidth, wirePoint.x,
-									wirePoint.y + this.selectionRectWidth);
-		line.draw(g2, viewportWindow,
-									scalableTransformation);
-	}.bind(this));
+	utilities.drawCrosshair(g2, viewportWindow,scalableTransformation,this.resizingPoint,this.selectionRectWidth,this.polygon.points);
+}
+fromXML(data){
+    this.copper =core.Layer.Copper.valueOf(j$(data).attr("layer"));
+	this.clearance = (parseInt(j$(data).attr("clearance")));
+	this.net=(j$(data).attr("net"));
+	
+	   var tokens = data.textContent.split(",");
+	   var len = Math.floor(tokens.length / 2) * 2;
+	   for (var index = 0; index < len; index += 2) {
+			var x = parseInt(tokens[index]);
+			var y = parseInt(tokens[index + 1]);
+			this.polygon.points.push(new core.Point(x, y));
+	   }
 }
 }
 
