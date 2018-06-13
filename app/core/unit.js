@@ -115,7 +115,7 @@ class Unit{
     	this.shapes=[];
     	this.width=width;
     	this.height=height;
-    	this.name="Uknown";
+    	this.unitName="Uknown";
     	this.grid=new core.Grid(0.8,core.Units.MM);
         this.scrollPositionXValue = 0;
         this.scrollPositionYValue = 0;
@@ -396,12 +396,12 @@ class UnitContainer{
 	      this.silent= silent || false;;	
 		  this.unitsmap=new Map();
 		  this.unit=null;
-		  this.formatedFileName="";
+		  this.fileName="";
 		  this.libraryname="";
 		  this.categoryname="";	
 	}
-    setFileName(formatedFileName) {
-        this.formatedFileName = formatedFileName;
+    setFileName(fileName) {
+        this.fileName = fileName;
     }
 	add(unit){
 	  this.unitsmap.set(unit.getUUID(), unit);

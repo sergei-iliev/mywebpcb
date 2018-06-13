@@ -167,6 +167,8 @@ var ModeEnum=(function(){
 		   TRACK_MODE:10,
 		   MEASUMENT_MODE : 12,
 		   COPPERAREA_MODE:13,
+		   VIA_MODE:14,
+		   HOLE_MODE:15,
 	}
 })();
 
@@ -1074,7 +1076,7 @@ class Shape{
 		this.height = height;
 		this.thickness = thickness;
 		this.selection = false;
-		this.displayname = "noname";
+		this.displayName = "noname";
 		this.fill = Fill.EMPTY;
 		this.fillColor;		 
 		this.copper = Layer.Copper.resolve(layermask);
@@ -1082,8 +1084,8 @@ class Shape{
 getCenter(){
 	return new Point(this.x,this.y);
 }	
-setDisplayName(displayname) {
-		this.displayname = displayname;
+setDisplayName(displayName) {
+		this.displayName = displayName;
 	}
 Clear() {
     this.owningUnit=null;
@@ -1606,7 +1608,7 @@ build:function(){
 		 var x=Math.round(r.getX()*unit.scalableTransformation.getScale());
 		 var y=Math.round(r.getY()*unit.scalableTransformation.getScale());
          var height=Math.round(r.getHeight()*unit.getScalableTransformation().getScale());             
-         var cell=UnitSelectionCell(unit.getUUID(),x,y,width,height,unit.name);
+         var cell=UnitSelectionCell(unit.getUUID(),x,y,width,height,unit.unitName);
          cell.selected=( this.model.getUnit()==unit?true:false);
          this.cells.push(cell);        
 	  }
@@ -1617,9 +1619,11 @@ build:function(){
 
 //------------------------UnitSelectionPanel-------
 var UnitSelectionPanel=Backbone.View.extend({
-	el:"#unitselectionpanel",
+	//el:"#unitselectionpanel",
 	initialize: function(opt){		
+	this.setElement('#'+opt.selectorid);
 	this.unitSelectionGrid=new UnitSelectionGrid();
+	this.canvasprefixid=opt.canvasprefixid;
     this.enabled=opt.enabled;
   },
   events: {
@@ -1653,7 +1657,7 @@ var UnitSelectionPanel=Backbone.View.extend({
   		var i=0;
 		for(let unit of this.unitSelectionGrid.model.getUnits()){  	
   	        var cell=this.unitSelectionGrid.cells[i];
-  			var canvas = j$('#c'+(i++));
+  			var canvas = j$('#'+this.canvasprefixid+(i++));
   	  	    var ctx = canvas[0].getContext("2d");
   	        ctx.fillStyle = "rgb(0,0,0)";
   	        ctx.fillRect(0, 0, cell.width, cell.height);  
@@ -1669,7 +1673,7 @@ var UnitSelectionPanel=Backbone.View.extend({
 		      for(i=0;i<this.unitSelectionGrid.cells.length;i++){
 		    	var cell=this.unitSelectionGrid.cells[i];
 		    	
-		    	panel+="<div><canvas id=\"c"+i+"\" width=\""+cell.width+"px\" height=\""+cell.height+"px\">"+
+		    	panel+="<div><canvas id=\""+this.canvasprefixid+i+"\" width=\""+cell.width+"px\" height=\""+cell.height+"px\">"+
 		        "</canvas></div>"+
 		        "<div><input type=checkbox name='cb' id='"+cell.uuid+"' style='vertical-align: -2px;margin-left:10px;margin-right:5px;' "+
 		        (cell.selected?" checked ":(this.enabled?" ":" checked "))+

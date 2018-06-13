@@ -9,16 +9,17 @@ var Arc =require('pads/shapes').Arc;
 var Line =require('pads/shapes').Line;
 var RoundRect =require('pads/shapes').RoundRect;
 var GlyphLabel=require('pads/shapes').GlyphLabel;
-
+var AbstractLine=require('core/shapes').AbstractLine;
+var FootprintShapeFactory=require('pads/shapes').FootprintShapeFactory;
 
 class BoardShapeFactory{
 	
 	createShape(data){
-//		if (data.tagName.toLowerCase() == 'footprint') {
-//			var pad = new Pad(0, 0, 0, 0);
-//			pad.fromXML(data);
-//			return pad;
-//		}
+		if (data.tagName.toLowerCase() == 'footprint') {
+			var footprint = new PCBFootprint(0, 0, 0, 0,0,0);
+			footprint.fromXML(data);
+			return footprint;
+		}
 //		if (data.tagName.toLowerCase() == 'rectangle') {
 //			var roundRect = new RoundRect(0, 0, 0, 0, 0,0, core.Layer.SILKSCREEN_LAYER_FRONT);
 //			roundRect.fromXML(data);
@@ -38,7 +39,12 @@ class BoardShapeFactory{
 			var area = new PCBCopperArea( 0, 0, 0, 0, 0);
 			area.fromXML(data);
 			return area;
-		}		
+		}
+		if (data.tagName.toLowerCase() == 'track') {
+		    var track = new PCBTrack(0, 0, 0, 0, 0);
+		    track.fromXML(data);
+		    return track;
+	    }		
 //		if (data.tagName.toLowerCase() == 'arc') {
 //			var arc = new Arc(0, 0, 0, 0, 0);
 //			arc.fromXML(data);
@@ -49,12 +55,13 @@ class BoardShapeFactory{
 //			label.fromXML(data);		
 //			return label;
 //		}
+		return null;
 	}
 }
 class PCBFootprint extends Shape{
 constructor(layermaskId){
 		super(0,0,0,0,0,layermaskId);
-		this.displayname = "Footprint";
+		this.displayName = "Footprint";
    	    this.shapes=[];
 		this.text = new core.ChipText();
 	    this.text.Add(new glyph.GlyphTexture("","reference", 0, 0,  core.MM_TO_COORD(1.2)));
@@ -68,6 +75,7 @@ clone(){
         copy.shapes=[];
         copy.units=this.units;
         copy.value=this.value;
+        copy.displayName=this.displayName;
         this.shapes.forEach(function(shape){ 
           copy.shapes.push(shape.clone());  
         });
@@ -166,13 +174,50 @@ Paint(g2, viewportWindow, scale,layermask) {
 		g2.globalCompositeOperation = 'source-over';
     }
  }    
-
+fromXML(data){
+	 this.copper=core.Layer.Copper.valueOf(j$(data).attr("layer"));
+	 this.value=parseFloat(j$(data).find("units").attr("raster"));
+     this.units=core.Units.MM;	
+     
+	 var reference=j$(data).find("reference")[0];
+ 	 var value=j$(data).find("value")[0];
+ 	 
+ 	 
+//	 if(reference!=null&&reference.text()!=''){
+//           var label = new GlyphLabel(0,0,0);
+//           label.fromXML(reference[0]);
+//           label.texture.tag="reference";
+//           this.add(label);      
+// 	 }
+// 	 if(value!=null&&value.text()!=''){
+//           var label = new GlyphLabel(0,0,0);
+//           label.fromXML(value[0]);
+//           label.texture.tag="value";
+//           this.add(label);	 		   
+// 	 }
+ 	 
+ 	 var texture=this.text.getTextureByTag("reference");
+ 	 texture.fromXML(reference);
+ 	 
+ 	 var texture=this.text.getTextureByTag("value");
+ 	 texture.fromXML(value);
+ 	 
+ 	 this.displayName=j$(data).find("name")[0].textContent;	
+ 	 
+	 var that=this;
+	 var shapeFactory=new FootprintShapeFactory();
+	 
+	 j$(data).find('shapes').children().each(function(){
+         var shape=shapeFactory.createShape(this);
+         that.add(shape);
+	 });
+}
 }
 
 class PCBCircle extends Circle{
     constructor( x, y,  r,  thickness, layermaskid) {
         super( x, y, r, thickness, layermaskid);
-        this.displayname = "Circle";
+        this.displayName = "Circle";
     }	
     clone(){
     	return new PCBCircle(this.x,this.y,this.width,this.thickness,this.copper.getLayerMaskID());
@@ -182,7 +227,7 @@ class PCBCircle extends Circle{
 class PCBArc extends Arc{
     constructor( x, y,  r,  thickness, layermaskid) {
         super( x, y, r, thickness, layermaskid);
-        this.displayname = "Arc";
+        this.displayName = "Arc";
     }	
     clone() {
 		var copy = new PCBArc(this.x, this.y, this.width,
@@ -221,7 +266,7 @@ getDrawingOrder() {
 class PCBLine extends Line{
 constructor(thickness,layermaskId){
         super(thickness,layermaskId);
-        this.displayname = "Line";
+        //this.displayname = "Line";
     }
 clone() {
 		var copy = new PCBLine(this.thickness,this.copper.getLayerMaskID());
@@ -235,7 +280,7 @@ clone() {
 class PCBRoundRect extends RoundRect{
 constructor( x, y,  width,height,arc,  thickness, layermaskid) {
         super( x, y, width,height,arc, thickness, layermaskid);
-        this.displayname = "Rect";
+        this.displayName = "Rect";
     }
 clone(){
 	var copy = new PCBRoundRect(this.getX(), this.getY(), this.width, this.height, this.arc,
@@ -247,12 +292,218 @@ clone(){
 	return copy;	
 }    
 }
-class PCBTrack extends Shape{
-	
+//************************PCBTrack********************
+class PCBTrack extends AbstractLine{
+constructor(thickness,layermaskId){
+       super(thickness,layermaskId);
+       this.displayName = "Track";
+	}
+clone() {
+	var copy = new PCBTrack(this.thickness,this.copper.getLayerMaskID());
+		for (var index = 0; index < this.points.length; index++) {
+		   copy.points.push(new core.Point(this.points[index].x,this.points[index].y));
+		}
+	return copy;
+
+	}
+
+getDrawingOrder() {
+    let order=super.getDrawingOrder();
+    if(this.owningUnit==null){            
+        return order;
+    }
+    
+//    if(this.owningUnit.getActiveSide()==Layer.Side.resolve(this.copper.getLayerMaskID())){
+//       order= 4;
+//     }else{
+//       order= 3; 
+//     }  
+    return order;     
 }
 
+getOrderWeight() {
+    return 4;
+}
+
+Paint(g2, viewportWindow, scale) {
+	var rect = this.getBoundingShape().getScaledRect(scale);
+	if (!this.isFloating()
+							&& (!rect.intersects(viewportWindow))) {
+		return;
+	}
+					// scale points
+	let dst = [];
+	this.points.forEach(function(wirePoint) {
+		dst.push(wirePoint.getScaledPoint(scale));
+	});
+
+	g2.globalCompositeOperation = 'lighter';
+	g2.beginPath();
+	g2.lineCap = 'round';
+	g2.lineJoin = 'round';
+	g2.moveTo(dst[0].x - viewportWindow.x, dst[0].y
+							- viewportWindow.y);
+	for (var i = 1; i < dst.length; i++) {
+						g2.lineTo(dst[i].x - viewportWindow.x, dst[i].y
+								- viewportWindow.y);
+	}
+
+	g2.lineWidth = this.thickness * scale.getScale();
+
+	// draw floating point
+	if (this.isFloating()) {
+			let p = this.floatingEndPoint.getScaledPoint(scale);
+				g2.lineTo(p.x - viewportWindow.x, p.y
+								- viewportWindow.y);
+	}
+
+	if (this.selection)
+		g2.strokeStyle = "gray";
+	else
+		g2.strokeStyle = this.copper.getColor();
+
+	g2.stroke();
+	g2.globalCompositeOperation = 'source-over';
+
+	if (this.selection) {
+		this.drawControlShape(g2, viewportWindow, scale);
+	}
+
+}
+fromXML(data) {
+
+       this.copper =core.Layer.Copper.valueOf(j$(data).attr("layer"));
+	   this.thickness = (parseInt(j$(data).attr("thickness")));
+	   var tokens = data.textContent.split(",");
+	   var len = Math.floor(tokens.length / 2) * 2;
+	   for (var index = 0; index < len; index += 2) {
+			var x = parseInt(tokens[index]);
+			var y = parseInt(tokens[index + 1]);
+			this.points.push(new core.Point(x, y));
+		}
+}
+}
+class PCBHole extends Shape{
+	constructor() {
+		super(0, 0, 0, 0,0,core.Layer.LAYER_ALL);		
+		this.setWidth(core.MM_TO_COORD(1.6)); 
+		this.displayName='Hole';	
+        this.fillColor='white';         
+   	}
+clone(){
+	   	var copy = new PCBHole();
+	        copy.x=this.x;
+	        copy.y=this.y;
+	   		copy.width=this.width;
+	        copy.height=this.height;	        
+	        return copy;
+	   	}	
+alignToGrid(isRequired) {
+	    if(isRequired){
+	       return super.alignToGrid(isRequired);
+	    }else{
+	        return null;
+	    }
+	}	
+getOrderWeight() {
+    return 3;
+}
+setWidth(width){
+	   super.setWidth(width);
+	   super.setHeight(width);
+	}
+calculateShape() {
+	    return new core.Rectangle(this.x - this.width/2, this.y - this.width/2, this.width,this.width);
+	}	
+Paint(g2, viewportWindow, scale) {	
+	var rect = this.getBoundingShape().getScaledRect(scale);
+	if (!rect.intersects(viewportWindow)) {
+		return;
+	}
+	g2.beginPath(); // clear the canvas context
+	g2.lineWidth=scale.getScale()*1000;
+    g2.arc( rect.getCenterX() - viewportWindow.x,
+			rect.getCenterY() - viewportWindow.y, rect.width/2, 0,2*Math.PI,false);
+	g2.closePath();
+	if (this.selection) {
+		g2.strokeStyle = "gray";
+	} else {
+		g2.strokeStyle = "white";
+	}
+
+	g2.stroke();
+	utilities.drawCrosshair(g2, viewportWindow, scale,null, this.width,[new core.Point(this.x,this.y)]);
+}
+fromXML(node) {
+	this.setX(parseInt(j$(data).attr("x")));
+	this.setY(parseInt(j$(data).attr("y")));
+	this.setWidth(parseInt(j$(data).attr("width")));	      
+} 
+
+}
 class PCBVia extends Shape{
+constructor() {
+		super(0, 0, 0, 0,core.MM_TO_COORD(0.3),core.Layer.LAYER_ALL);		
+		this.setWidth(core.MM_TO_COORD(0.5)); 
+		this.displayName='Via';	
+        this.fillColor='white';         
+   	}
+
+clone(){
+   	var copy = new PCBVia();
+        copy.x=this.x;
+        copy.y=this.y;
+   		copy.width=this.width;
+        copy.height=this.height;
+        copy.thickness=this.thickness;
+        return copy;
+   	}
+
+alignToGrid(isRequired) {
+    if(isRequired){
+       return super.alignToGrid(isRequired);
+    }else{
+        return null;
+    }
+}
+setWidth(width){
+   super.setWidth(width);
+   super.setHeight(width);
+}
+calculateShape() {
+    return new core.Rectangle(this.x - this.width/2, this.y - this.width/2, this.width,this.width);
+}
+Paint(g2, viewportWindow, scale) {
 	
+	var rect = this.getBoundingShape().getScaledRect(scale);
+	if (!rect.intersects(viewportWindow)) {
+		return;
+	}
+	g2.beginPath(); // clear the canvas context
+    g2.arc( rect.getCenterX() - viewportWindow.x,
+			rect.getCenterY() - viewportWindow.y, rect.width/2, 0,2*Math.PI,false);
+	g2.closePath();
+	if (this.selection) {
+		g2.fillStyle = "gray";
+	} else {
+		g2.fillStyle = "white";
+	}
+
+	g2.fill();
+	
+	g2.beginPath(); // clear the canvas context				
+    g2.arc( rect.getCenterX() - viewportWindow.x,
+			rect.getCenterY() - viewportWindow.y,(this.thickness/2) * scale.getScale(), 0,2*Math.PI,false);
+	g2.closePath();
+	g2.fillStyle = "black";	
+	g2.fill();
+}
+fromXML(data) {
+	this.setX(parseInt(j$(data).attr("x")));
+	this.setY(parseInt(j$(data).attr("y")));
+	this.setWidth(parseInt(j$(data).attr("width")));
+	this.thickness = (parseInt(j$(data).attr("drill")));  	
+}
 }
 class Polygon{
 	constructor(){
@@ -284,7 +535,7 @@ getBoundingRect(){
 class PCBCopperArea extends Shape{
 	constructor( layermaskid) {
         super( 0, 0, 0,0, 0, layermaskid);
-        this.displayname = "Copper Area";
+        this.displayName = "Copper Area";
         this.clearance=core.MM_TO_COORD(0.2); 
         this.points=[];
         this.floatingStartPoint=new core.Point();
@@ -423,6 +674,7 @@ module.exports ={
 		PCBRoundRect,
 		PCBArc,
 		PCBVia,
+		PCBHole,
 		PCBTrack,
 		PCBLine,
 		BoardShapeFactory

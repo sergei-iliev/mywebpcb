@@ -14,6 +14,7 @@ var PCBArc=require('board/shapes').PCBArc;
 var PCBLine=require('board/shapes').PCBLine;
 var PCBRoundRect=require('board/shapes').PCBRoundRect;
 var PCBCopperArea=require('board/shapes').PCBCopperArea;
+var PCBHole=require('board/shapes').PCBHole;
 
 var ComponentPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
@@ -399,13 +400,18 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 		 if(event.keyCode != 13){
 			return; 
 	     }
-		 
-		 var texture=core.UnitMgr.getInstance().getTextureByTag(this.target,'reference');
-		 texture.text=j$("#referenceid").val();
-		 
-		 texture=core.UnitMgr.getInstance().getTextureByTag(this.target,'value');
-		 texture.text=j$("#valueid").val();
-		 
+		 if(event.target.id=='nameid'){
+			 this.target.displayName=j$("#nameid").val(); 
+			 this.component.getModel().fireUnitEvent({target:this.target,type:events.Event.RENAME_UNIT});		   
+		 }
+		 if(event.target.id=='referenceid'){
+		   var texture=core.UnitMgr.getInstance().getTextureByTag(this.target,'reference');
+		   texture.text=j$("#referenceid").val();
+		 }
+		 if(event.target.id=='valueid'){
+		   texture=core.UnitMgr.getInstance().getTextureByTag(this.target,'value');
+		   texture.text=j$("#valueid").val();
+		 }
 		 this.component.Repaint();   
 	},   
 	onchange:function(event){
@@ -435,7 +441,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 	      }		      
 	},	
 	updateui:function(){
-		   j$("#nameid").val(this.target.displayname);
+		   j$("#nameid").val(this.target.displayName);
 		   
 		   var texture=this.target.getChipText().getTextureByTag('reference');
 		   j$("#referenceid").val(texture==null?"":texture.text);
@@ -509,7 +515,7 @@ var BoardPanelBuilder=BaseBuilder.extend({
 		    this.component.Repaint();
 		 }
 		 if(event.target.id=='nameid'){
-			 this.target.name=j$("#nameid").val(); 
+			 this.target.unitName=j$("#nameid").val(); 
 			 this.component.getModel().fireUnitEvent({target:this.target,type:events.Event.RENAME_UNIT});
 		 }
 		 if(event.target.id=='originxid'||event.target.id=='originyid'){           
@@ -527,7 +533,7 @@ var BoardPanelBuilder=BaseBuilder.extend({
 		}		
 	},
 	updateui:function(){
-	   j$("#nameid").val(this.target.name);
+	   j$("#nameid").val(this.target.unitName);
 	   j$("#widthid").val(core.COORD_TO_MM( this.target.width));    
 	   j$("#heightid").val(core.COORD_TO_MM(this.target.height));
 	   j$("#gridrasterid").val(this.target.grid.getGridValue());
@@ -563,6 +569,49 @@ var BoardPanelBuilder=BaseBuilder.extend({
 			
 		return this;
 	}
+});
+var HolePanelBuilder=BaseBuilder.extend({
+	initialize:function(component){
+		ViaPanelBuilder.__super__.initialize(component);
+		this.id="holepanelbuilder"; 
+    },
+    events: {
+        'keypress #xid' : 'onenter',	
+        'keypress #yid' : 'onenter',	
+        'keypress #drillsizeid' : 'onenter',        
+    },
+    onenter:function(event){
+		 if(event.keyCode != 13){
+				return; 
+		     }
+		 if(event.target.id=='drillsizeid'){
+			 this.target.width=core.MM_TO_COORD(parseFloat(j$('#drillsizeid').val())); 
+		 }     
+
+		 if(event.target.id=='xid'){	            
+			 this.target.x=this.fromUnitX(j$('#xid').val()); 
+	     }	         
+		 if(event.target.id=='yid'){	            
+			 this.target.y=this.fromUnitY(j$('#yid').val());  
+	     }
+		 this.component.Repaint();  
+   },
+	updateui:function(){		
+        j$('#xid').val(this.toUnitX(this.target.x));
+        j$('#yid').val(this.toUnitY(this.target.y)); 
+        j$('#drillsizeid').val(core.COORD_TO_MM(this.target.width));
+	},
+	render:function(){
+		j$(this.el).empty();
+		j$(this.el).append(
+				"<table width='100%'>"+			
+				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Drill size</td><td><input type='text' id='drillsizeid' value='' class='form-control input-sm\'></td></tr>"+
+				"</table>");
+			
+		return this;
+	}    
 });
 var ViaPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
@@ -637,7 +686,7 @@ var LinePanelBuilder=BaseBuilder.extend({
 				return; 
 		     }
 		 if(event.target.id=='thicknessid'){
-			 this.target.thickness=core.Grid.MM_TO_COORD(parseFloat(j$('#thicknessid').val())); 
+			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val())); 
 		 }   
 		 if(event.target.id=='xid'){	            
 			 this.target.resizingPoint.x=this.fromUnitX(j$('#xid').val()); 
@@ -719,13 +768,16 @@ var TrackPanelBuilder=BaseBuilder.extend({
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"layerid\">"+
-				this.fillComboBox([{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'},{id:'FSilkS',value:'FSilkS'},{id:'BSilkS',value:'BSilkS'},{id:'All',value:'All'},{id:'None',value:'None'}])+
+				this.fillComboBox([{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'}])+
 			    "</select>" +
 				"</td></tr>"+				
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
-		        "</table>");
+				"<tr><td style='width:50%;padding:7px'>Clearance</td><td><input type='text' id='clearanceid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='width:50%;padding:7px'>Net</td><td><input type='text' id='netid' value='' class='form-control input-sm\'></td></tr>"+
+
+		"</table>");
 			
 		return this;
 	}
@@ -842,7 +894,7 @@ var BoardsTree=Backbone.View.extend({
 		var treeItems = this.$tree.jqxTree('getItems');
 		var firstItem = treeItems[0];
 		var firstItemElement = firstItem.element;
-		this.$tree.jqxTree('addTo', { label: unit.name,id:unit.getUUID(),value:111}, firstItemElement);	
+		this.$tree.jqxTree('addTo', { label: unit.unitName,id:unit.getUUID(),value:111}, firstItemElement);	
 		this.$tree.jqxTree('expandItem', firstItemElement);
 	    //bypass select event
 		this.$tree.off('select',j$.proxy(this.valuechanged,this));
@@ -898,7 +950,7 @@ var BoardsTree=Backbone.View.extend({
 	      case events.Event.SELECT_CONTAINER:
 
 	         break;
-	      case mevents.Event.RENAME_CONTAINER:
+	      case events.Event.RENAME_CONTAINER:
 	    	  var element=j$('#root')[0];
 	    	  this.$tree.jqxTree('updateItem', { label: this.boardComponent.getModel().formatedFileName},element);
 	    	  this.$tree.jqxTree('render');
@@ -927,7 +979,7 @@ var BoardsTree=Backbone.View.extend({
  	   if(event.type==events.Event.RENAME_UNIT){
            var selectedItem = this.$tree.jqxTree('selectedItem');
            if (selectedItem != null) {
-        	   this.$tree.jqxTree('updateItem', { label: event.target.name }, selectedItem.element);
+        	   this.$tree.jqxTree('updateItem', { label: event.target.name}, selectedItem.element);
         	   this.$tree.jqxTree('render');
            }  
  	   }
@@ -937,7 +989,7 @@ var BoardsTree=Backbone.View.extend({
 	 	if(event.type==events.Event.ADD_SHAPE){
 	 		   //add shape to tree
 	 		var element=j$("li #"+event.target.owningUnit.getUUID())[0];	 
-	 		this.$tree.jqxTree('addTo', { label:event.target.displayname,id:event.target.getUUID(),value:222 }, element, false);
+	 		this.$tree.jqxTree('addTo', { label:event.target.displayName,id:event.target.getUUID(),value:222 }, element, false);
 	 		this.$tree.jqxTree('render');
 	 	}
 	 	if(event.type==events.Event.SELECT_SHAPE){
@@ -981,8 +1033,8 @@ var BoardsInspector=Backbone.View.extend({
 		                                         new ArcPanelBuilder(this.boardComponent),
 		                                         new LinePanelBuilder(this.boardComponent),
 		                                         new RectPanelBuilder(this.boardComponent),
+		                                         new HolePanelBuilder(this.boardComponent),
 		                                         new CopperAreaPanelBuilder(this.boardComponent)
-//		                                         new mywebpcb.pads.views.ArcPanelBuilder(this.boardComponent)
 		                                         ]);
 		this.el= '#boardsinspectorid';	
 		//select container
@@ -1110,6 +1162,14 @@ var BoardsInspector=Backbone.View.extend({
 				this.render();
 		    }
 		}
+		if(event.target instanceof PCBHole){
+			if(this.panel.id!='holepanelbuilder'){
+				this.panel.attributes.remove();
+				this.panel=this.collection.get('holepanelbuilder');
+				this.panel.attributes.delegateEvents();
+				this.render();
+		    }
+		}		
 		if((event.target instanceof PCBCircle)){
 			if(this.panel.id!='circlepanelbuilder'){
 				this.panel.attributes.remove();
@@ -1122,6 +1182,14 @@ var BoardsInspector=Backbone.View.extend({
 			if(this.panel.id!='copperareapanelbuilder'){
 				this.panel.attributes.remove();
 				this.panel=this.collection.get('copperareapanelbuilder');
+				this.panel.attributes.delegateEvents();
+				this.render();
+			}
+		}	
+		if((event.target instanceof PCBTrack)){
+			if(this.panel.id!='trackpanelbuilder'){
+				this.panel.attributes.remove();
+				this.panel=this.collection.get('trackpanelbuilder');
 				this.panel.attributes.delegateEvents();
 				this.render();
 			}

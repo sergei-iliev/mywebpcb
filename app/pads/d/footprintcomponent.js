@@ -26,7 +26,7 @@ constructor(width,height) {
 clone(){
 	  var copy=new Footprint(this.width,this.height);
 	  copy.silent=true;
-	  copy.name=this.name;
+	  copy.unitName=this.unitName;
 	  copy.grid=this.grid.clone();
       var len=this.shapes.length;
 	  for(var i=0;i<len;i++){
@@ -37,9 +37,7 @@ clone(){
 	  return copy;
 	}	
 parse(data){
-	 	   //this.width=j$(data).attr("width");
-	 	   //this.height=j$(data).attr("height");
-	 	   this.name=j$(data).find("name").text();
+	 	   this.unitName=j$(data).find("name").text();
 	 	   this.grid.setGridUnits(j$(data).find("units").attr("raster"),core.Units.MM);
 	 	   
 	 	   var reference=j$(data).find("reference");

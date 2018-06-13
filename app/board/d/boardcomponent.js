@@ -13,9 +13,13 @@ var PCBFootprint=require('board/shapes').PCBFootprint;
 var PCBLabel=require('board/shapes').PCBLabel;
 var PCBCircle=require('board/shapes').PCBCircle;
 var PCBArc=require('board/shapes').PCBArc;
+var PCBVia=require('board/shapes').PCBVia;
+var PCBHole=require('board/shapes').PCBHole;
 var PCBLine=require('board/shapes').PCBLine;
 var PCBRoundRect=require('board/shapes').PCBRoundRect;
 var PCBCopperArea=require('board/shapes').PCBCopperArea;
+var PCBTrack=require('board/shapes').PCBTrack;
+
 var LineEventHandle=require('pads/events').LineEventHandle;
 var CopperAreaEventHandle=require('board/events').CopperAreaEventHandle;
 
@@ -74,6 +78,7 @@ clone(){
 	 var copy=new Board(this.width,this.height);
 	 copy.silent=true;	 
 	 copy.grid=this.grid.clone();
+	 copy.unitName=this.unitName;
      var len=this.shapes.length;
 	 for(var i=0;i<len;i++){
          var clone=this.shapes[i].clone();
@@ -81,14 +86,43 @@ clone(){
 	 }
 	 copy.silent=false;
 	 return copy;
-	}	
+	}
+parse(data){
+	this.unitName=j$(data).find("name").first().text();
+	this.grid.setGridUnits(j$(data).find("units").first().attr("raster"),core.Units.MM);
+	var that=this;
+	
+   	j$(data).find('symbols').children().each(function(){
+   	   var shape=that.shapeFactory.createShape(this);   	   
+       if(shape!=null){    
+         that.add(shape);
+       }	  
+   	});	
+}
 }
 
 class BoardContainer extends UnitContainer{
 constructor(silent) {
       super(silent);
-  	  this.formatedFileName="Boards";
+  	  this.fileName="Boards";
   	}
+parse(xml){
+	  this.filename=(j$(xml).find("filename").text());
+	  this.libraryname=(j$(xml).find("library").text());
+	  this.categoryname=(j$(xml).find("category").text()); 	
+
+	  var that=this;
+      j$(xml).find("board").each(j$.proxy(function(){
+    	var board=new Board(j$(this).attr("width"),j$(this).attr("height"));
+    	//silent mode
+    	board.silent=that.silent;
+    	//need to have a current unit 
+        that.add(board);
+        board.parse(this);
+    }),that);	
+}
+
+
 }
 
 class BoardComponent extends UnitComponent{
@@ -110,12 +144,16 @@ setMode(_mode){
       this.eventMgr.resetEventHandle();
       
       switch (this.mode) {
-      case core.ModeEnum.PAD_MODE:
-//          shape=new mywebpads.Pad(this.getModel().getUnit(),0,0,mywebpads.Grid.MM_TO_COORD(1.6),mywebpads.Grid.MM_TO_COORD(1.6));
-//          shape.drill=(new mywebpads.Drill(null,mywebpads.Grid.MM_TO_COORD(0.8),mywebpads.Grid.MM_TO_COORD(0.8)));
-//          this.setContainerCursor(shape);               
-//          this.getEventMgr().setEventHandle("cursor",shape);  
-        break;
+      case core.ModeEnum.HOLE_MODE:          
+          shape = new PCBHole();
+          this.setContainerCursor(shape);
+          this.getEventMgr().setEventHandle("cursor", shape);
+          break;      
+      case core.ModeEnum.VIA_MODE:          
+          shape = new PCBVia();
+          this.setContainerCursor(shape);
+          this.getEventMgr().setEventHandle("cursor", shape);
+          break;
       case  core.ModeEnum.RECT_MODE:
           shape=new PCBRoundRect(0,0,core.MM_TO_COORD(4),core.MM_TO_COORD(4),core.MM_TO_COORD(1),core.MM_TO_COORD(0.2),core.Layer.SILKSCREEN_LAYER_FRONT);
           this.setContainerCursor(shape);               
@@ -211,12 +249,13 @@ mouseDown(event){
     		
             //***is this a new wire
             if ((this.getEventMgr().getTargetEventHandle() == null) ||
-                !(this.getEventMgr().getTargetEventHandle() instanceof mywebpads.LineEventHandle)) {
-//
-//                shape = new mywebpads.Line(this.getModel().getUnit(),mywebpads.Grid.MM_TO_COORD(0.2));
-//                this.getModel().getUnit().Add(shape);
-//                
-//            	this.getEventMgr().setEventHandle("line", shape);
+                !(this.getEventMgr().getTargetEventHandle() instanceof LineEventHandle)) {
+               	if(event.which!=1){
+            		return;
+            	}
+                shape = new PCBTrack(core.MM_TO_COORD(0.4),core.Layer.LAYER_FRONT);
+                this.getModel().getUnit().add(shape);                
+            	this.getEventMgr().setEventHandle("line", shape);
             }
 	    break;
         case  core.ModeEnum.COPPERAREA_MODE:
@@ -248,7 +287,20 @@ mouseDown(event){
     	case core.ModeEnum.DRAGHEAND_MODE:  
     		this.getEventMgr().setEventHandle("dragheand", null);
     	  break;	
+    	case core.ModeEnum.MEASUMENT_MODE:
+            if ((this.getEventMgr().getTargetEventHandle() != null) ||
+                (this.getEventMgr().getTargetEventHandle() instanceof events.MeasureEventHandle)) {
+                 this.getModel().getUnit().ruler.resizingPoint=null;
+                 this.getEventMgr().resetEventHandle();
+                 this.Repaint();
+            }else{
+               this.getEventMgr().setEventHandle("measure",this.getModel().getUnit().ruler);   
+			   this.getModel().getUnit().ruler.setX(scaledEvent.x);
+			   this.getModel().getUnit().ruler.setY(scaledEvent.y);                   
+            }
+	        break;	    	  
     	}
+    	
 	}
 	
 	if (this.getEventMgr().getTargetEventHandle() != null) {

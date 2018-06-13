@@ -75,7 +75,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 		    this.component.Repaint();
 		 }
 		 if(event.target.id=='nameid'){
-			 this.target.name=j$("#nameid").val(); 
+			 this.target.unitName=j$("#nameid").val(); 
 			 this.component.getModel().fireUnitEvent({target:this.target,type:events.Event.RENAME_UNIT});
 		 }
 		 if(event.target.id=='originxid'||event.target.id=='originyid'){           
@@ -117,7 +117,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 		}
 	},
 	updateui:function(){
-	   j$("#nameid").val(this.target.name);
+	   j$("#nameid").val(this.target.unitName);
 	   j$("#widthid").val(core.COORD_TO_MM( this.target.width));    
 	   j$("#heightid").val(core.COORD_TO_MM(this.target.height));
 	   j$("#gridrasterid").val(this.target.grid.getGridValue());
@@ -829,7 +829,7 @@ var FootprintsTree=Backbone.View.extend({
 		var treeItems = this.$tree.jqxTree('getItems');
 		var firstItem = treeItems[0];
 		var firstItemElement = firstItem.element;
-		this.$tree.jqxTree('addTo', { label: unit.name,id:unit.getUUID(),value:111}, firstItemElement);	
+		this.$tree.jqxTree('addTo', { label: unit.unitName,id:unit.getUUID(),value:111}, firstItemElement);	
 		this.$tree.jqxTree('expandItem', firstItemElement);
 	    //bypass select event
 		this.$tree.off('select',j$.proxy(this.valuechanged,this));
@@ -920,7 +920,7 @@ var FootprintsTree=Backbone.View.extend({
 	 	if(event.type==events.Event.ADD_SHAPE){
 	 		//add shape to tree
 	 		var element=j$("li #"+event.target.owningUnit.getUUID())[0];
-	 		this.$tree.jqxTree('addTo', { label:event.target.displayname,id:event.target.getUUID(),value:222 }, element, false);
+	 		this.$tree.jqxTree('addTo', { label:event.target.displayName,id:event.target.getUUID(),value:222 }, element, false);
 	 		this.$tree.jqxTree('render');
 	 	}
 	 	

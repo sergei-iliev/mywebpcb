@@ -74,5 +74,13 @@ var Board=require('board/d/boardcomponent').Board;
 		            height: 400,
 		            autoOpen:false
              });
+			//init board load dialog
+			 j$('#BoardLoadDialog').jqxWindow({
+				    resizable: false,
+				    position: 'center',
+		            width: 520,
+		            height: 400,
+		            autoOpen:false
+             });				
 	});
 })(jQuery);
