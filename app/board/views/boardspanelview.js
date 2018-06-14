@@ -501,7 +501,6 @@ var BoardPanelBuilder=BaseBuilder.extend({
         'keypress #widthid':'onenter',
         'keypress #heightid':'onenter',
         'change #gridrasterid': 'onchange',
-        'change #layerid': 'onchange',
         'keypress #originxid':'onenter',
         'keypress #originyid':'onenter',
     },
@@ -544,12 +543,7 @@ var BoardPanelBuilder=BaseBuilder.extend({
 		j$(this.el).empty();
 		j$(this.el).append(
 				"<table width='100%'>"+
-				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='width:50%;padding:7px'>Active</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"layerid\">"+
-				this.fillComboBox(core.BOARD_LAYERS)+
-			    "</select>" +
-				"</td></tr>"+				
+				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Width</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='heightid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Units</td><td>" +

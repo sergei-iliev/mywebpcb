@@ -87,6 +87,25 @@ clone(){
 	 copy.silent=false;
 	 return copy;
 	}
+paint(g2, viewportWindow){
+	   let len=this.shapes.length;
+ 	   for(let i=0;i<len;i++){
+ 		   this.shapes[i].Paint(g2,viewportWindow,this.scalableTransformation);  
+ 	   }
+ 	   this.shapes.forEach(function(shape){
+ 	    if (shape instanceof PCBTrack || shape instanceof PCBCopperArea) {
+           shape.drawControlShape(g2, viewportWindow,this.scalableTransformation);
+        }
+ 	   },this);
+ 	   //grid
+        this.grid.paint(g2,viewportWindow,this.scalableTransformation);
+        //coordinate system
+        this.coordinateSystem.Paint(g2, viewportWindow,this.scalableTransformation);
+		//ruler
+		this.ruler.Paint(g2, viewportWindow,this.scalableTransformation);
+        //frame
+        this.frame.paint(g2, viewportWindow,this.scalableTransformation);
+}
 parse(data){
 	this.unitName=j$(data).find("name").first().text();
 	this.grid.setGridUnits(j$(data).find("units").first().attr("raster"),core.Units.MM);

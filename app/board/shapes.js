@@ -383,10 +383,13 @@ Paint(g2, viewportWindow, scale) {
 	g2.stroke();
 	g2.globalCompositeOperation = 'source-over';
 
-	if (this.selection) {
-		this.drawControlShape(g2, viewportWindow, scale);
-	}
 
+}
+drawControlShape(g2, viewportWindow, scale){   
+    if((!this.isSelected())/*&&(!this.isSublineSelected())*/){
+      return;
+    }
+    super.drawControlShape(g2, viewportWindow, scale);
 }
 fromXML(data) {
 
@@ -532,7 +535,42 @@ class Polygon{
 	}
 add(point){
   this.points.push(point);	
-}	
+}
+insert(point, index) {
+    this.points.splice(index, 0, point);
+}
+contains(x,y){
+	  let inside = false;
+      // use some raycasting to test hits
+      // https://github.com/substack/point-in-polygon/blob/master/index.js
+      
+	  //flat out points
+	  let p = [];
+
+      for (let i = 0, il = this.points.length; i < il; i++)
+      {
+          p.push(this.points[i].x, this.points[i].y);
+      }
+
+	  
+	  let length = p.length / 2;
+
+      for (let i = 0, j = length - 1; i < length; j = i++)
+      {
+          let xi = p[i * 2];
+          let yi = p[(i * 2) + 1];
+          let xj = p[j * 2];
+          let yj = p[(j * 2) + 1];
+          let intersect = ((yi > y) !== (yj > y)) && (x < ((xj - xi) * ((y - yi) / (yj - yi))) + xi);
+
+          if (intersect)
+          {
+              inside = !inside;
+          }
+      }
+
+      return inside;
+}
 getBoundingRect(){	
 	let r= new core.Rectangle(0,0,0,0);
 	
@@ -606,6 +644,9 @@ isControlRectClicked(x, y) {
 
 	return point;
 }
+isClicked(x,y){
+  return this.polygon.contains(x,y);
+}
 isInRect(r) {
 
     return this.polygon.points.every(function(wirePoint){
@@ -619,6 +660,14 @@ reset(){
 resetToPoint(p){
     this.floatingStartPoint.setLocation(p.x,p.y);
     this.floatingEndPoint.setLocation(p.x,p.y); 
+}
+Rotate(rotation) {
+	this.polygon.points.forEach(function(point) {
+				var p = utilities.rotate(point,
+									rotation.originx, rotation.originy,
+									rotation.angle);
+				point.setLocation(p.x, p.y);
+	});
 }
 Resize(xoffset, yoffset, clickedPoint) {
 	clickedPoint.setLocation(clickedPoint.x + xoffset,
@@ -670,6 +719,9 @@ Paint(g2,viewportWindow,scale, layersmask){
 	g2.globalCompositeOperation = 'source-over';
 }	
 drawControlShape(g2, viewportWindow,scalableTransformation) {
+    if((!this.isSelected())){
+        return;
+    }  
 	utilities.drawCrosshair(g2, viewportWindow,scalableTransformation,this.resizingPoint,this.selectionRectWidth,this.polygon.points);
 }
 fromXML(data){

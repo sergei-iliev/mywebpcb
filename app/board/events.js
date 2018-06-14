@@ -133,7 +133,7 @@ class BoardEventMgr{
 		this.hash.set("line",new pad_events.LineEventHandle(component));
 		this.hash.set("cursor",new events.CursorEventHandle(component));
 		this.hash.set("symbol",new FootprintEventHandle(component));
-//		this.hash.set("texture",new events.TextureEventHandle(component));
+		this.hash.set("texture",new events.TextureEventHandle(component));
 		this.hash.set("dragheand",new events.DragingEventHandle(component));
 		this.hash.set("origin",new events.OriginEventHandle(component));
 		this.hash.set("measure",new events.MeasureEventHandle(component));
