@@ -48,7 +48,7 @@ LibraryView=Backbone.View.extend({
         'change #projectcombo':'onchange',
     },
     onchange:function(event){
-    	this.loadcategories(j$('#projectcombo').val()); 
+    	this.loadboards(j$('#projectcombo').val()); 
     },
     onvaluechange:function(event){
         //is this category or footprint selection
@@ -59,7 +59,7 @@ LibraryView=Backbone.View.extend({
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/rest/boards/'+url,
+	        url: '/rest/boards/projects/'+url,
 	        dataType: "xml",
 	        beforeSend:function(){
 		          j$('#BoardLoadDialog').block({message:'<h5>Loading...</h5>'});	
@@ -115,7 +115,7 @@ LibraryView=Backbone.View.extend({
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/rest/boards/'+project,
+	        url: '/rest/boards/projects/'+project,
 	        dataType: "xml",
 	        beforeSend:function(){
 		          j$('#BoardLoadDialog').block({message:'<h5>Loading...</h5>'});	

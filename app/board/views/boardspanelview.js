@@ -405,12 +405,12 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 			 this.component.getModel().fireUnitEvent({target:this.target,type:events.Event.RENAME_UNIT});		   
 		 }
 		 if(event.target.id=='referenceid'){
-		   var texture=core.UnitMgr.getInstance().getTextureByTag(this.target,'reference');
-		   texture.text=j$("#referenceid").val();
+		   var texture=this.target.getChipText().getTextureByTag('reference');
+		   texture.setText(j$("#referenceid").val());
 		 }
 		 if(event.target.id=='valueid'){
-		   texture=core.UnitMgr.getInstance().getTextureByTag(this.target,'value');
-		   texture.text=j$("#valueid").val();
+		   var texture=this.target.getChipText().getTextureByTag('value');
+		   texture.setText(j$("#valueid").val());
 		 }
 		 this.component.Repaint();   
 	},   
@@ -513,7 +513,7 @@ var BoardPanelBuilder=BaseBuilder.extend({
 		    this.component.componentResized();     
 		    this.component.Repaint();
 		 }
-		 if(event.target.id=='nameid'){
+		 if(event.target.id=='nameid'){			 
 			 this.target.unitName=j$("#nameid").val(); 
 			 this.component.getModel().fireUnitEvent({target:this.target,type:events.Event.RENAME_UNIT});
 		 }
@@ -523,7 +523,6 @@ var BoardPanelBuilder=BaseBuilder.extend({
 			    this.component.Repaint();
 		 }
 		 //mycanvas.focus();
-		
 	},
 	onchange:function(event){
 		if(event.target.id=='gridrasterid'){
@@ -973,7 +972,7 @@ var BoardsTree=Backbone.View.extend({
  	   if(event.type==events.Event.RENAME_UNIT){
            var selectedItem = this.$tree.jqxTree('selectedItem');
            if (selectedItem != null) {
-        	   this.$tree.jqxTree('updateItem', { label: event.target.name}, selectedItem.element);
+        	   this.$tree.jqxTree('updateItem', { label: event.target.unitName}, selectedItem.element);
         	   this.$tree.jqxTree('render');
            }  
  	   }
