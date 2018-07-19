@@ -14,15 +14,15 @@ app.get('/rest/boards/projects', (req, res, next) => {
 	  '</library>'
 	);
 });
-app.get('/rest/boards/CardReader', (req, res, next) => {
+app.get('/rest/boards/projects/CardReader', (req, res, next) => {
 	  res.send(
 	'<?xml version="1.0" encoding="UTF-8"?><boards>'+
 	'<name fullname="CR_v1" project="CardReader">CR_v1</name>'+
 	'</boards>'
 	);
 	});
-app.get('/rest/boards/CardReader/CR_v1', (req, res, next) => {
-    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\workspace\\boards\\demo\\proba.xml','utf8', function(err, data) {
+app.get('/rest/boards/projects/CardReader/CR_v1', (req, res, next) => {
+    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\workspace\\boards\\CardReader\\CardReader.xml','utf8', function(err, data) {
 		res.send(data);
   });
 });
