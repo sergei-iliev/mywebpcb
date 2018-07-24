@@ -596,7 +596,6 @@ class PCBCopperArea extends Shape{
         super( 0, 0, 0,0, 0, layermaskid);
         this.displayName = "Copper Area";
         this.clearance=core.MM_TO_COORD(0.2); 
-        this.points=[];
         this.floatingStartPoint=new core.Point();
         this.floatingEndPoint=new core.Point();                 
         this.selectionRectWidth = 3000;
