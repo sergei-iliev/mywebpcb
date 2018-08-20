@@ -9,12 +9,9 @@
     "start": "brunch watch --server",
     "build": "brunch build --production"
   },
-  "dependencies": {
-    "flatten-js": "^0.3.9"
-  },
   "devDependencies": {
-    "brunch": "^2",
+    "brunch": "^2",	
     "clean-css-brunch": "^2",
     "uglify-js-brunch": "^2"
-  }
+  }  
 }
