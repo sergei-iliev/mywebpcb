@@ -5,6 +5,8 @@ var AbstractLine=require('core/shapes').AbstractLine;
 var ResizeableShape=require('core/core').ResizeableShape;
 var glyph=require('core/text/glyph');
 var font=require('core/text/font');
+var d2=require('d2/d2');
+
 
 class FootprintShapeFactory{
 	
@@ -111,22 +113,18 @@ Paint(g2, viewportWindow, scale) {
 		this.texture.Paint(g2, viewportWindow, scale,this.copper.getLayerMaskID());
     }
 }	
-class RoundRect extends ResizeableShape{
-	constructor(x, y, width, height, arc,thickness,layermaskid) {
+class RoundRect extends Shape{
+	constructor(x, y, width, height,arc,thickness,layermaskid) {
 		super(x, y, width, height, thickness,layermaskid);
 		this.setDisplayName("Rect");
 		this.arc = arc;
 		this.selectionRectWidth=3000;
-		this.roundRect = new core.Rectangle(0, 0, 0, 0);
+		this.roundRect=new d2.RoundRectangle(new d2.Point(x,y),width,height,arc);
 	}
 	clone() {
-		var copy = new RoundRect(this.getX(), this
-				.getY(), this.getWidth(), this.getHeight(), this.arc,
-				this.thickness,this.copper.getLayerMaskID());
-		copy.roundRect = new core.Rectangle(this.roundRect.x,
-				this.roundRect.y, this.roundRect.width, this.roundRect.height);
-		copy.fill = this.fill;
-		copy.arc=this.arc;
+		var copy = new RoundRect(0,0,0,0, this.arc,this.thickness,this.copper.getLayerMaskID());
+		copy.roundRect = this.roundRect.clone();		
+		copy.fill = this.fill;		
 		return copy;
 	}
 	calculateShape() {
@@ -771,12 +769,6 @@ constructor(thickness,layermaskId) {
 																			// forming
 			this.floatingEndPoint = new core.Point(0, 0);
 }
-//getLinePoints(){
-//	return this.points;
-//}
-//Clear(){
-//	this.points=null;
-//}
 clone() {
 		var copy = new Line(this.thickness,this.copper.getLayerMaskID());
 			for (var index = 0; index < this.points.length; index++) {
@@ -794,264 +786,11 @@ alignToGrid(isRequired) {
     }
     return null;
 }
-//alignResizingPointToGrid(targetPoint) {
-//     this.owningUnit.grid.snapToGrid(targetPoint);         
-//}
-//isClicked(x, y) {
-//	  var result = false;
-//		// build testing rect
-//	  var rect = new core.Rectangle(x
-//								- (this.thickness / 2), y
-//								- (this.thickness / 2), this.thickness,
-//								this.thickness);
-//	  var r1 = new core.Point(rect.getMinX(), rect.getMinY());
-//	  var r2 = new core.Point(rect.getMaxX(), rect.getMaxY());
-//
-//	  // ***make lines and iterate one by one
-//	  var prevPoint = this.points[0];
-//
-//	  this.points.some(function(wirePoint) {
-//							// skip first point
-//							{
-//								if (utilities.intersectLineRectangle(
-//										prevPoint, wirePoint, r1, r2)) {
-//									result = true;
-//									return true;
-//								}
-//								prevPoint = wirePoint;
-//							}
-//
-//						});
-//
-// 	return result;
-//}
 
-//getResizingPoint() {
-//	return this.resizingPoint;
-//}
 getOrderWeight() {
 	return 2;
 }
-//setResizingPoint(point) {
-//  this.resizingPoint = point;
-//}
-//resetToPoint(point) {
-//	this.floatingStartPoint.setLocationPoint(point);
-//	this.floatingMidPoint.setLocationPoint(point);
-//	this.floatingEndPoint.setLocationPoint(point);
-//}
-//reset() {
-//	this.resetToPoint(this.floatingStartPoint);
-//}
-//reverse(x,y) {
-//    let p=this.isBendingPointClicked(x, y);
-//    if (this.points[0].x == p.x &&
-//        this.points[0].y == p.y) {
-//    	this.points.reverse(); 
-//    }       
-//}
-//Resize(xoffset, yoffset, clickedPoint) {
-//	clickedPoint.setLocation(clickedPoint.x + xoffset,
-//								clickedPoint.y + yoffset);
-//}
-//
-//insertPoint( x, y) {
-//    
-//    let flag = false;
-//    let point = this.owningUnit.grid.positionOnGrid(x, y);
-//
-//    var rect = new core.Rectangle(x - this.owningUnit.grid.getGridPointToPoint(),
-//                      y - this.owningUnit.grid.getGridPointToPoint() ,
-//                      2*this.owningUnit.grid.getGridPointToPoint(),
-//                      2*this.owningUnit.grid.getGridPointToPoint());
-//
-//    let line = new core.Line();
-//
-//
-//    let tmp = new core.Point(point.x, point.y);
-//    let midium = new core.Point();
-//
-//    //***add point to the end;
-//    this.points.push(point);
-//
-//    let prev = this.points[0];
-//    this.points.forEach(function(next){
-//        if(prev!=next){
-//    	 if (!flag) {
-//            //***find where the point is - 2 points between the new one
-//            line.setLine(prev.x,prev.y, next.x,next.y);
-//            if (line.intersectRect(rect))
-//                flag = true;
-//         } else {
-//            midium.setLocationPoint(tmp); //midium.setPin(tmp.getPin());
-//            tmp.setLocationPoint(prev); //tmp.setPin(prev.getPin());
-//            prev.setLocationPoint(midium); //prev.setPin(midium.getPin());
-//         }
-//        }
-//        prev = next;
-//    });
-//    if (flag)
-//        prev.setLocationPoint(tmp); //prev.setPin(tmp.getPin());
-//}
-//removePoint(x, y) {
-//    let point = this.isBendingPointClicked(x, y);
-//    if (point != null) {
-//    	
-//    	var tempArr = this.points.filter(function(item) { 
-//    	    return item !== point;
-//    	});
-//        
-//    	this.points=tempArr;
-//    }
-//}
-//deleteLastPoint() {
-//	if (this.points.length == 0)
-//		return;
-//
-//	this.points.pop();
-//
-//						// ***reset floating start point
-//	if (this.points.length > 0)
-//					this.floatingStartPoint
-//									.setLocation(this.points[this.points.length - 1]);
-//}
-//isEndPoint(x,y){
-//    if (this.points.length< 2) {
-//        return false;
-//    }
-//
-//    let point = this.isBendingPointClicked(x, y);
-//    if (point == null) {
-//        return false;
-//    }
-//    //***head point
-//    if (this.points[0].x == point.x && this.points[0].y == point.y) {
-//        return true;
-//    }
-//    //***tail point
-//    if ((this.points[this.points.length - 1].x == point.x )&& (this.points[this.points.length - 1].y == point.y)) {
-//        return true;
-//    }
-//    return false;	
-//}
-//isInRect(r) {
-//	var result = true;
-//	this.points.some(function(wirePoint) {
-//			if (!r.contains(wirePoint.x, wirePoint.y)) {
-//				result = false;
-//				return true;
-//			}else{
-//			  return false;
-//			}
-//	});
-//	return result;
-//}
-//setSelected(selection) {
-//     super.setSelected(selection);
-//     if (!selection) {
-//        this.resizingPoint = null;
-//     }
-//}
-//isBendingPointClicked( x,  y) {
-//	var rect = new core.Rectangle(x
-//			- this.selectionRectWidth / 2, y - this.selectionRectWidth
-//			/ 2, this.selectionRectWidth, this.selectionRectWidth);
-//
-//    let point = null;
-//
-//	this.points.some(function(wirePoint) {
-//		if (rect.contains(wirePoint.x, wirePoint.y)) {
-//					point = wirePoint;
-//		  return true;
-//		}else{
-//		  return false;
-//		}
-//	});
-//
-//	return point;
-//}
-//isControlRectClicked(x, y) {
-//	var rect = new core.Rectangle(x
-//								- this.selectionRectWidth / 2, y - this.selectionRectWidth
-//								/ 2, this.selectionRectWidth, this.selectionRectWidth);
-//	let point = null;
-//
-//	this.points.some(function(wirePoint) {
-//		if (rect.contains(wirePoint.x, wirePoint.y)) {
-//					point = wirePoint;
-//		  return true;
-//		}else{
-//		  return false;
-//		}
-//	});
-//
-//	return point;
-//}
-//Move(xoffset, yoffset) {
-//	this.points.forEach(function(wirePoint) {
-//		wirePoint.setLocation(wirePoint.x + xoffset,
-//									wirePoint.y + yoffset);
-//	});
-//}
-//Mirror(A,B) {
-//	this.points.forEach(function(wirePoint) {
-//		wirePoint.setLocationPoint(utilities.mirrorPoint(A,B, wirePoint));
-//	});
-//}
-//Rotate(rotation) {
-//	this.points.forEach(function(wirePoint) {
-//				var p = utilities.rotate(wirePoint,
-//									rotation.originx, rotation.originy,
-//									rotation.angle);
-//				wirePoint.setLocation(p.x, p.y);
-//	});
-//}
-//calculateShape() {
-//	var rect = new core.Rectangle();
-//	var x1 = Number.MAX_VALUE, y1 = Number.MAX_VALUE,
-//								x2 = Number.MIN_VALUE, y2 = Number.MIN_VALUE;
-//
-//	this.points.forEach(function(point) {
-//							x1 = Math.min(x1, point.x);
-//							y1 = Math.min(y1, point.y);
-//							x2 = Math.max(x2, point.x);
-//							y2 = Math.max(y2, point.y);
-//	});
-//
-//	rect.setRect(x1, y1, (x2 - x1) == 0 ? 1 : x2 - x1, y2
-//								- y1 == 0 ? 1 : y2 - y1);
-//
-//						return rect;
-//}
-//drawControlShape(g2, viewportWindow,scalableTransformation) {
-//	var line=new core.Line();
-//	g2.lineWidth=1; 
-//						
-//	this.points.forEach(function(wirePoint) {
-//		if (this.resizingPoint != null
-//									&& this.resizingPoint.equals(wirePoint))
-//			g2.strokeStyle  = 'yellow';
-//		else
-//			g2.strokeStyle  = 'blue';
-//
-//		line.setLine(wirePoint.x - this.selectionRectWidth,
-//									wirePoint.y, wirePoint.x
-//											+ this.selectionRectWidth, wirePoint.y);
-//	    line.draw(g2, viewportWindow,
-//									scalableTransformation);
-//
-//	    line.setLine(wirePoint.x, wirePoint.y
-//									- this.selectionRectWidth, wirePoint.x,
-//									wirePoint.y + this.selectionRectWidth);
-//		line.draw(g2, viewportWindow,
-//									scalableTransformation);
-//	}.bind(this));
-//}
-//isFloating() {
-//	return (!(this.floatingStartPoint
-//								.equals(this.floatingEndPoint) && this.floatingStartPoint
-//								.equals(this.floatingMidPoint)));
-//}
+
 Paint(g2, viewportWindow, scale) {
 		var rect = this.getBoundingShape().getScaledRect(scale);
 		if (!this.isFloating()

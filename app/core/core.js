@@ -1187,7 +1187,7 @@ fromXML(data) {
 
 } 
 
-
+//*********DELETE*****
 class ResizeableShape extends Shape{
 constructor (x, y, width, height, thickness,
 	layermask) {
