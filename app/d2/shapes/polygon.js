@@ -58,10 +58,18 @@ module.exports = function(d2) {
             	point.mirror(line);
             });        	
         }
+        scale(alpha){
+            this.points.forEach(point=>{
+            	point.scale(alpha);
+            });        	
+        }
         rotate(angle,center = {x:0, y:0}){
             this.points.forEach(point=>{
             	point.rotate(angle,center);
             });
+        }
+        get box(){
+          return new d2.Box(this.points);	
         }
         paint(g2){
         	g2.beginPath();

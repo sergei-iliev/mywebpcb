@@ -13,9 +13,10 @@ module.exports = function(d2) {
 		       this.y += vec.y;
 		    }
 		
-		scale(){
-				
-			}
+		scale(alpha){
+		       this.x *=alpha;
+		       this.y *=alpha;		  		
+		}
         /**
          * rotates by given angle around given center point.
          * If center point is omitted, rotates around zero point (0,0).

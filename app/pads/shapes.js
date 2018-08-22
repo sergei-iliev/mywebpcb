@@ -116,10 +116,10 @@ Paint(g2, viewportWindow, scale) {
 class RoundRect extends Shape{
 	constructor(x, y, width, height,arc,thickness,layermaskid) {
 		super(x, y, width, height, thickness,layermaskid);
-		this.setDisplayName("Rect");
-		this.arc = arc;
+		this.setDisplayName("Rect");		
 		this.selectionRectWidth=3000;
-		this.roundRect=new d2.RoundRectangle(new d2.Point(x,y),width,height,arc);
+		this.arc=arc;
+		this.roundRect=new d2.RoundRectangle(new d2.Point(x,y),width,height,arc);		
 	}
 	clone() {
 		var copy = new RoundRect(0,0,0,0, this.arc,this.thickness,this.copper.getLayerMaskID());
@@ -128,18 +128,22 @@ class RoundRect extends Shape{
 		return copy;
 	}
 	calculateShape() {
-		return new core.Rectangle(this.getX(), this.getY(), this
-				.getWidth(), this.getHeight());
-
+		let box=this.roundRect.box;
+		return new core.Rectangle(box.min.x,box.min.y,box.width,box.height);
+	}
+	getCenter() {
+		let box=this.roundRect.box;
+	    return new core.Point(box.center.x,box.center.y);
 	}
 	isClicked(x, y) {
-		this.roundRect.setRect(this.getX(), this.getY(), this.getWidth(), this
-				.getHeight());
-		if (this.roundRect.contains(x, y))
+		if (this.roundRect.contains(new d2.Point(x, y)))
 			return true;
 		else
 			return false;
 	}
+	Move(xoffset, yoffset) {
+		this.roundRect.move(xoffset,yoffset);
+	}	
 	toXML() {
 		return "<rectangle copper=\"" + this.copper.getName() + "\" x=\""
 				+ this.upperLeft.x + "\" y=\"" + this.upperLeft.y
@@ -166,12 +170,8 @@ class RoundRect extends Shape{
 			return;
 		}
 		g2.globalCompositeOperation = 'lighter';
-		g2.beginPath();
-		utilities.roundrect(g2, rect.x - viewportWindow.x, rect.y
-				- viewportWindow.y, rect.width, rect.height, this.arc
-				* scale.getScale());
-		g2.closePath();
 		g2.lineWidth = this.thickness * scale.getScale();
+
 		if (this.fill == core.Fill.EMPTY) {
 			if (this.selection) {
 				g2.strokeStyle = "gray";
@@ -179,16 +179,19 @@ class RoundRect extends Shape{
 				g2.strokeStyle = this.copper.getColor();
 			}
 
-			g2.stroke();
 		} else {
 			if (this.selection) {
 				g2.fillStyle = "gray";
 			} else {
 				g2.fillStyle = this.copper.getColor();
 			}
-			g2.fill();
 		}
-
+		
+		let r=this.roundRect.clone();
+		r.scale(scale.getScale());
+        r.move(-viewportWindow.x,- viewportWindow.y);
+		r.paint(g2);
+		
 		g2.globalCompositeOperation = 'source-over';
 
 		if (this.isSelected()) {
@@ -387,13 +390,14 @@ Resize(xoffset, yoffset,point) {
 
     }	
 }
-class Arc extends Circle{
+class Arc extends Shape{
 constructor(x,y,r,thickness,layermaskid){	
-        super(x, y, r,thickness,layermaskid);  
+        super(x, y, r,r,thickness,layermaskid);  
         this.startAngle=30;
         this.extendAngle=50;
 		this.setDisplayName("Arc");
 		this.resizingPoint=null;
+		this.arc=new d2.Arc(new d2.Point(x,y),r,this.startAngle,this.extendAngle);
 }
 clone() {
 		var copy = new Arc(this.x, this.y, this.width,
@@ -402,6 +406,10 @@ clone() {
 		copy.extendAngle = this.extendAngle;
 		copy.fill = this.fill;
 		return copy;
+}
+calculateShape() {
+	let box=this.arc.box;
+	return new core.Rectangle(box.min.x,box.min.y,box.width,box.height);
 }
 fromXML(data){
         if(j$(data).attr("copper")!=null){
@@ -653,6 +661,9 @@ Mirror(A,B) {
       this.extendAngle=(-1)*this.extendAngle;
     }
 }
+Move(xoffset,yoffset){
+  this.arc.move(xoffset,yoffset);	
+}
 Paint(g2, viewportWindow, scale) {
 		
 		var rect = this.getBoundingShape().getScaledRect(scale);
@@ -663,18 +674,11 @@ Paint(g2, viewportWindow, scale) {
 		g2.globalCompositeOperation = 'lighter';
 		g2.beginPath(); // clear the canvas context
 		g2.lineCap = 'round';
-		/*
-		convert to API angles
-		*/
-		let angles=this.convert(this.startAngle,this.extendAngle);
-		
-		g2.arc(rect.getCenterX() - viewportWindow.x, rect.getCenterY()
-						- viewportWindow.y, rect.width / 2, utilities
-						.radians(angles.x), utilities
-						.radians(angles.y), this.extendAngle>0);
+
 						
 		g2.lineWidth = this.thickness * scale.getScale();
-
+        
+		
 		if (this.fill == core.Fill.EMPTY) {
 			if (this.selection) {
 					g2.strokeStyle = "gray";
@@ -692,7 +696,12 @@ Paint(g2, viewportWindow, scale) {
 				g2.fill();
 		}
 
-				g2.globalCompositeOperation = 'source-over';
+		let a=this.arc.clone();
+		a.scale(scale.getScale());
+		a.move( - viewportWindow.x, - viewportWindow.y);		
+		a.paint(g2);
+		
+		g2.globalCompositeOperation = 'source-over';
 
 		if (this.isSelected()) {
 			this.drawControlShape(g2, viewportWindow, scale);

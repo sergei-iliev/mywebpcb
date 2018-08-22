@@ -13,6 +13,15 @@ module.exports = function(d2) {
     		this.arcs=[];    		
     		this.reset();
     	}
+    	clone(){
+    		let copy=new d2.RoundRectangle(new d2.Point(),0,0,this.rounding);
+    		copy.points=[];
+    		this.points.forEach(point=>{
+    			copy.points.push(point.clone());
+    		});
+    		copy.reset();
+    		return copy;
+    	}
         /**
          * Create specific rounding arc 90 degrees long
          * @param center of the arc
@@ -122,7 +131,10 @@ module.exports = function(d2) {
     	   super.rotate(angle,center);
     	   this.reset();    	
     	}
-    	
+    	move(offX,offY){
+    	   super.move(offX,offY);
+    	   this.reset();
+    	}
         contains(pt){
       	   if(!super.contains(pt)){
       		   return false;
@@ -137,6 +149,11 @@ module.exports = function(d2) {
       	   
       	   return pol.contains(pt);
          }
+		scale(alpha){
+			super.scale(alpha);
+			this.rounding*=alpha;
+			this.reset();
+		}
     	mirror(line){
     		super.mirror(line);
     		let p=this.points[0];
@@ -149,8 +166,10 @@ module.exports = function(d2) {
     		
     		this.reset();
     	}
+		get box(){
+			return super.box;
+		}
     	paint(g2){
-    		//super.paint(g2);
 			this.segments.forEach(segment=>{
 				segment.paint(g2);
 			});

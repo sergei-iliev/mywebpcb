@@ -165,6 +165,10 @@ module.exports = function(d2) {
 				arc.endAngle=-1*arc.endAngle;
 			});  
     	}
+    	scale(alpha){
+    	  super.scale(alpha);
+    	  this.reset();
+    	}
         paint(g2){	
 			this.segments.forEach(segment=>{
 				segment.paint(g2);

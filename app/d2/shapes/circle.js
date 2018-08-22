@@ -28,6 +28,11 @@ module.exports = function(d2) {
        mirror(line){
     	   this.pc.mirror(line);
        }
+       scale(alpha){
+    	   this.pc.scale(alpha);
+    	   this.r*=alpha;
+       }
+       
        paint(g2){
        	g2.beginPath();       	
        	g2.arc(this.pc.x,this.pc.y,this.r,0,2*Math.PI,true);

@@ -748,7 +748,7 @@ getContainerCursor() {
 }
 Repaint(){
 	  if(this.getModel().getUnit()!=null){
-      this.ctx.fillStyle = "rgb(0,0,0)";
+      this.ctx.fillStyle = "black";
       this.ctx.fillRect(0, 0, this.width, this.height); 
 		this.getModel().getUnit().paint(this.ctx,this.viewportWindow);
       if (this.cursor != null) {

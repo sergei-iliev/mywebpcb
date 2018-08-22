@@ -1048,12 +1048,12 @@ setSize(width,height) {
 paint(g2, viewportWindow, scale) {
 	  var rect=this.rectangle.getScaledRect(scale);
       if(!rect.intersects(viewportWindow)){
-    	  return;   
+      	  return;   
       }
       g2.beginPath();
       g2.lineWidth="1";
       g2.strokeStyle = "white";
-      g2.rect(rect.x-viewportWindow.x, rect.y-viewportWindow.y, rect.width, rect.height);
+      g2.rect(rect.x-viewportWindow.x, rect.y-viewportWindow.y, rect.width, rect.height);      
       g2.stroke(); 
 }
 setOffset(offset) {

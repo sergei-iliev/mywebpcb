@@ -13,7 +13,10 @@ module.exports = function(d2) {
             this.r = r;
             this.startAngle = startAngle;
             this.endAngle = endAngle;            
-        }    
+        } 
+        clone(){
+           return new d2.Arc(this.pc.clone(),this.r,this.startAngle,this.endAngle);  	
+        }
         get start() {
             let p0 = new d2.Point(this.pc.x + this.r, this.pc.y);
             p0.rotate(this.startAngle, this.pc);
@@ -35,6 +38,9 @@ module.exports = function(d2) {
         
         get sweep(){
         	return Math.abs(this.endAngle);
+        }
+        get box(){
+          return new d2.Box([this.start,this.end,this.middle]);      	
         }
         contains(pt){
         	//is outside of the circle
@@ -92,6 +98,10 @@ module.exports = function(d2) {
         	
         	console.log(this.startAngle);
         }
+        scale(alpha){
+           this.pc.scale(alpha);
+           this.r*=alpha;
+        }
         convert(start,extend){
     		
     		let s = 360 - start;
@@ -111,7 +121,7 @@ module.exports = function(d2) {
         	g2.beginPath();
         	//convert to HTML Canvas API
     		let angles=this.convert(this.startAngle,this.endAngle);
-        	g2.arc(this.pc.x,this.pc.y,this.r, d2.utils.radians(angles[0]), d2.utils.radians(angles[1]),this.endAngle>0);
+        	g2.arc(this.pc.x,this.pc.y,this.r, d2.utils.radians(angles[0]), d2.utils.radians(angles[1]),this.endAngle>0);        	
         	g2.stroke();
         	
             //let ps=this.start;

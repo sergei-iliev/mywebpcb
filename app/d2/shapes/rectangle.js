@@ -301,7 +301,12 @@ module.exports = function(d2) {
 			}
 	    	
 		}
-
+//		doscale(alpha){
+//			super.scale(alpha);
+//		}		
+		get box(){
+			return super.box;
+		}
 		paint(g2){
 	    	g2.beginPath();
 	    	g2.moveTo(this.points[0].x,this.points[0].y);

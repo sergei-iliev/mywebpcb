@@ -46,10 +46,14 @@ module.exports = function(d2) {
         	this.ps.mirror(line);
         	this.pe.mirror(line);
         }
-		paint(g2){			
+        scale(alpha){
+        	this.ps.scale(alpha);
+        	this.pe.scale(alpha);        	
+        }
+		paint(g2){	
+			g2.beginPath();
 			g2.moveTo(this.ps.x, this.ps.y);
-			g2.lineTo(this.pe.x, this.pe.y);
-			
+			g2.lineTo(this.pe.x, this.pe.y);			
 			g2.stroke();
 		}
     }
