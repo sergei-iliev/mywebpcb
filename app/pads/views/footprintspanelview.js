@@ -463,16 +463,16 @@ var RectPanelBuilder=BaseBuilder.extend({
 	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
 		 } 	
 		 if(event.target.id=='roundingid'){
-			 this.target.arc=core.MM_TO_COORD(parseFloat(j$('#roundingid').val()));			 
-			 }
+			 this.target.setRounding(core.MM_TO_COORD(parseFloat(j$('#roundingid').val())));			 
+		 }
 		 this.component.Repaint(); 		 
     },
 	updateui:function(){
 		j$('#layerid').val(this.target.copper.getName());
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
         j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
-        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
-        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
+        j$('#xid').val(utilities.roundDouble(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x)));
+        j$('#yid').val(utilities.roundDouble(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y))); 
 		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
 		j$("#widthid").val(core.COORD_TO_MM(this.target.getWidth()));    
 		j$("#heightid").val(core.COORD_TO_MM(this.target.getHeight()));

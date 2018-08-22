@@ -118,6 +118,7 @@ class RoundRect extends Shape{
 		super(x, y, width, height, thickness,layermaskid);
 		this.setDisplayName("Rect");		
 		this.selectionRectWidth=3000;
+		this.resizingPoint = null;
 		this.arc=arc;
 		this.roundRect=new d2.RoundRectangle(new d2.Point(x,y),width,height,arc);		
 	}
@@ -135,22 +136,54 @@ class RoundRect extends Shape{
 		let box=this.roundRect.box;
 	    return new core.Point(box.center.x,box.center.y);
 	}
+	setSelected (selection) {
+		super.setSelected(selection);
+			if (!selection) {
+				this.resizingPoint = null;
+	        }
+	}	
 	isClicked(x, y) {
 		if (this.roundRect.contains(new d2.Point(x, y)))
 			return true;
 		else
 			return false;
 	}
+	isControlRectClicked(x,y){
+	   	let pt=new d2.Point(x,y);
+	   	let result=null
+		this.roundRect.vertices.some(v=>{
+	   		if(d2.utils.LE(pt.distanceTo(v),this.selectionRectWidth/2)){
+	   		  	result=v;
+	   			return true;
+	   		}else{
+	   			return false;
+	   		}
+	   	});
+	   	return result;
+	}	
+	setRounding(rounding){
+	  this.arc=rounding;
+	  this.roundRect.setRounding(rounding);
+	}
+	setResizingPoint(pt){
+		this.resizingPoint=pt;
+	}
+	getResizingPoint() {
+		return this.resizingPoint;
+	}
 	Move(xoffset, yoffset) {
 		this.roundRect.move(xoffset,yoffset);
-	}	
+	}
+	Resize(xoffset, yoffset,clickedPoint){
+		this.roundRect.resize(xoffset, yoffset,clickedPoint);
+	}
 	toXML() {
 		return "<rectangle copper=\"" + this.copper.getName() + "\" x=\""
 				+ this.upperLeft.x + "\" y=\"" + this.upperLeft.y
 				+ "\" width=\"" + this.getWidth() + "\" height=\""
 				+ this.getHeight() + "\" thickness=\"" + this.thickness
 				+ "\" fill=\"" + this.fill + "\" arc=\"" + this.arc
-				+ "\"/>";
+				+ "\"></rectangle>";
 	}
 	fromXML(data) {
 		if(j$(data)[0].hasAttribute("copper")){
@@ -186,7 +219,6 @@ class RoundRect extends Shape{
 				g2.fillStyle = this.copper.getColor();
 			}
 		}
-		
 		let r=this.roundRect.clone();
 		r.scale(scale.getScale());
         r.move(-viewportWindow.x,- viewportWindow.y);
@@ -195,10 +227,13 @@ class RoundRect extends Shape{
 		g2.globalCompositeOperation = 'source-over';
 
 		if (this.isSelected()) {
-			this.drawControlShape(g2, viewportWindow, scale);
+			this.drawControlPoints(g2, viewportWindow, scale);
 		}
 	}
 
+drawControlPoints(g2, viewportWindow, scale){
+	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.roundRect.vertices); 		
+	}	
 }
 
 class Circle extends Shape{

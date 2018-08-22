@@ -71,6 +71,9 @@ module.exports = function(d2) {
         get box(){
           return new d2.Box(this.points);	
         }
+		get vertices() {
+		    return this.points;	
+		}        
         paint(g2){
         	g2.beginPath();
         	g2.moveTo(this.points[0].x,this.points[0].y);

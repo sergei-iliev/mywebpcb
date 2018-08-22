@@ -154,6 +154,10 @@ module.exports = function(d2) {
 			this.rounding*=alpha;
 			this.reset();
 		}
+		setRounding(rounding){
+		 this.rounding=rounding;
+		 this.reset();
+		}
     	mirror(line){
     		super.mirror(line);
     		let p=this.points[0];
@@ -178,6 +182,7 @@ module.exports = function(d2) {
 			this.arcs.forEach(arc=>{
 				arc.paint(g2);
 			});
+
     	}
     }
     

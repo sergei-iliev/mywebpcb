@@ -60,7 +60,9 @@ module.exports = function(d2) {
 		            return Math.sqrt(dx*dx + dy*dy);	               
 	            }
 		}
-		
+        equals(pt) {
+            return d2.utils.EQ(this.x, pt.x) && d2.utils.EQ(this.y, pt.y);
+        }
 		paint(g2){
 		  d2.utils.drawCrosshair(g2,10,[this]);
 		}

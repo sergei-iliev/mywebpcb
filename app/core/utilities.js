@@ -15,6 +15,9 @@ var QUADRANT=(function(){
         FORTH:4
 	}
 })();
+var roundDouble=function(number){
+	return Math.round(number*10000)/10000 ;
+}
 var round=function(angle){
 	return Math.round(angle*100.0)/100.0;
 }
@@ -232,6 +235,7 @@ version=(function(){
 module.exports = {
   version,
   round,
+  roundDouble,
   getQuadrantLocation,
   textHeight,
   drawCrosshair,
