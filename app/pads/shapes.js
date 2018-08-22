@@ -238,18 +238,19 @@ drawControlPoints(g2, viewportWindow, scale){
 
 class Circle extends Shape{
 	constructor(x,y,r,thickness,layermaskId) {
-		super(x, y, r, r, thickness,
+		super(0, 0, 0, 0, thickness,
 				layermaskId);
 		this.setDisplayName("Circle");
 		this.selectionRectWidth=3000;
+		this.circle=new d2.Circle(new d2.Point(x,y),r);
 	}
-	clone() {
-		var copy =new Circle(this.x,this.y,this.width,this.thickness,this.copper.getLayerMaskID());
-		return copy;
+clone() {
+	return new Circle(this.circle.center.x,this.circle.center.y,this.circle.radius,this.thickness,this.copper.getLayerMaskID());				
 	}	
 calculateShape(){    
-	return new core.Rectangle(this.getX()-this.getWidth(),this.getY()-this.getWidth(),2*this.getWidth(),2*this.getWidth());
-}
+	 let box=this.circle.box;
+	 return new core.Rectangle(box.min.x,box.min.y,box.width,box.height);
+    }
 alignToGrid(isRequired) {
         if(isRequired){
           return super.alignToGrid(isRequired);
@@ -260,31 +261,24 @@ alignToGrid(isRequired) {
 alignResizingPointToGrid(point) {          
         this.width=this.owningUnit.getGrid().lengthOnGrid(this.width);                
 }
-isControlRectClicked(xx,yy) {
-            let rect=new core.Rectangle();
-			rect.setRect((this.x-this.width) - this.selectionRectWidth / 2, (this.y-this.width) - this.selectionRectWidth / 2,
-                         this.selectionRectWidth, this.selectionRectWidth);
-            if (rect.contains(xx,yy)) {
-                return new core.Point((this.x-this.width),(this.y-this.width));
-            }
-            rect.setRect((this.x+this.width) - this.selectionRectWidth / 2, (this.y-this.width) - this.selectionRectWidth / 2,
-                         this.selectionRectWidth, this.selectionRectWidth);
-            if (rect.contains(xx,yy)){
-                return new core.Point((this.x+this.width),(this.y-this.width));
-            }
-            rect.setRect((this.x-this.width) - this.selectionRectWidth / 2, (this.y+this.width) - this.selectionRectWidth / 2,
-                         this.selectionRectWidth, this.selectionRectWidth);
-            if (rect.contains(xx,yy)){
-                return new core.Point((this.x-this.width),(this.y+this.width));
-            }
-
-            rect.setRect((this.x+this.width) - this.selectionRectWidth / 2, (this.y+this.width) - this.selectionRectWidth / 2,
-                         this.selectionRectWidth, this.selectionRectWidth);
-            if (rect.contains(xx,yy)){
-                return new core.Point((this.x+this.width),(this.y+this.width));
-            }
-
-        return null;
+isClicked(x, y) {
+	if (this.circle.contains(new d2.Point(x, y)))
+		return true;
+	else
+		return false;
+	}
+isControlRectClicked(x,y) {
+   	let pt=new d2.Point(x,y);
+   	let result=null
+	this.circle.vertices.some(v=>{
+   		if(d2.utils.LE(pt.distanceTo(v),this.selectionRectWidth/2)){
+   		  	result=v;
+   			return true;
+   		}else{
+   			return false;
+   		}
+   	});
+   	return result;
     }	
 	toXML() {
         return "<ellipse copper=\""+this.copper.getName()+"\" x=\""+(this.x-this.width)+"\" y=\""+(this.y-this.width)+"\" width=\""+(2*this.width)+"\" height=\""+(2*this.width)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
@@ -310,6 +304,9 @@ isControlRectClicked(xx,yy) {
  		 this.thickness = (parseInt(j$(data).attr("thickness")));
  		 this.fill = parseInt(j$(data).attr("fill"));
 	}
+	Move(xoffset, yoffset) {
+		this.circle.move(xoffset,yoffset);
+	}	
 	Paint(g2, viewportWindow, scale) {
 		let rect = this.getBoundingShape().getScaledRect(scale);
 		if (!rect.intersects(viewportWindow)) {
@@ -318,10 +315,6 @@ isControlRectClicked(xx,yy) {
 
 		// ****3 http://scienceprimer.com/draw-oval-html5-canvas
 		g2.globalCompositeOperation = 'lighter';
-		g2.beginPath(); // clear the canvas context
-		g2.arc(rect.getCenterX() - viewportWindow.x,rect.getCenterY() - viewportWindow.y,rect.width/2,0,2*Math.PI);
-		
-		g2.closePath();
 		g2.lineWidth = this.thickness * scale.getScale();
 
 		if (this.fill == core.Fill.EMPTY) {
@@ -330,63 +323,27 @@ isControlRectClicked(xx,yy) {
 			} else {
 				g2.strokeStyle = this.copper.getColor();
 			}
-
-			g2.stroke();
 		} else {
 			if (this.selection) {
 				g2.fillStyle = "gray";
 			} else {
 				g2.fillStyle = this.copper.getColor();
 			}
-			g2.fill();
 		}
 
+		let c=this.circle.clone();
+		c.scale(scale.getScale());
+        c.move(-viewportWindow.x,- viewportWindow.y);
+		c.paint(g2);
+		
 		g2.globalCompositeOperation = 'source-over';
 
 		if (this.isSelected()) {
-			this.drawControlShape(g2, viewportWindow, scale);
+			this.drawControlPoints(g2, viewportWindow, scale);
   } 
  }
-drawControlShape(g2, viewportWindow, scale) {
-
-        let line=new core.Line();
-
-        g2.strokeStyle='blue';
-		g2.lineWidth = 1;
-        
-        //top
-            line.setLine((this.getX()-this.getWidth()) - this.selectionRectWidth,this.getY()-this.getWidth(), (this.getX()-this.getWidth()) + this.selectionRectWidth, this.getY()-this.getWidth());
-            line.draw(g2, viewportWindow, scale);
-
-            line.setLine((this.getX()-this.getWidth()), this.getY()-this.getWidth() - this.selectionRectWidth, (this.getX()-this.getWidth()), this.getY()-this.getWidth() + this.selectionRectWidth);
-            line.draw(g2, viewportWindow, scale);
-        
-            line.setLine((this.getX()+this.getWidth()) - this.selectionRectWidth, this.getY()-this.getWidth(), (this.getX()+this.getWidth()) + this.selectionRectWidth, this.getY()-this.getWidth());
-            line.draw( g2, viewportWindow, scale);
-
-            line.setLine((this.getX()+this.getWidth()), this.getY()-this.getWidth() - this.selectionRectWidth, (this.getX()+this.getWidth()), this.getY()-this.getWidth() + this.selectionRectWidth);
-            line.draw(g2, viewportWindow, scale);
-        //bottom
-            line.setLine((this.getX()-this.getWidth()) - this.selectionRectWidth, this.getY()+this.getWidth(), (this.getX()-this.getWidth()) + this.selectionRectWidth, this.getY()+this.getWidth());
-            line.draw(g2, viewportWindow, scale);
-
-            line.setLine((this.getX()-this.getWidth()), this.getY()+this.getWidth() - this.selectionRectWidth, (this.getX()-this.getWidth()), this.getY()+this.getWidth() + this.selectionRectWidth);
-            line.draw(g2, viewportWindow, scale);
-        
-            line.setLine((this.getX()+this.getWidth()) - this.selectionRectWidth, this.getY()+this.getWidth(), (this.getX()+this.getWidth()) + this.selectionRectWidth, this.getY()+this.getWidth());
-            line.draw( g2, viewportWindow, scale);
-
-            line.setLine((this.getX()+this.getWidth()), this.getY()+this.getWidth() - this.selectionRectWidth, (this.getX()+this.getWidth()), this.getY()+this.getWidth() + this.selectionRectWidth);
-            line.draw(g2, viewportWindow, scale);
-      
-//center
-//            line.setLine((this.getX()) - this.selectionRectWidth, this.getY(), (this.getX()) + this.selectionRectWidth, this.getY());
-//            line.draw( g2, viewportWindow, scale);
-//
-//            line.setLine((this.getX()), this.getY() - this.selectionRectWidth, this.getX(), this.getY() + this.selectionRectWidth);
-//            line.draw( g2, viewportWindow, scale);
-
-       
+drawControlPoints(g2, viewportWindow, scale) {
+	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.circle.vertices);	
 }
 getOrderWeight(){
       return ((2*this.width)*(2*this.width)); 
@@ -399,30 +356,32 @@ setResizingPoint(point) {
 
 }
 Resize(xoffset, yoffset,point) {    
-        let quadrant= utilities.getQuadrantLocation(point,this.x,this.y);
+        let quadrant= utilities.getQuadrantLocation(point,this.circle.center.x,this.circle.center.y);
+        let radius=this.circle.r;
         switch(quadrant){
         case utilities.QUADRANT.FIRST:case utilities.QUADRANT.FORTH: 
             //uright
              if(xoffset<0){
                //grows             
-                this.width+=Math.abs(xoffset);
+                radius+=Math.abs(xoffset);
              }else{
                //shrinks
-                this.width-=Math.abs(xoffset);
+                radius-=Math.abs(xoffset);
              }             
             break;
         case utilities.QUADRANT.SECOND:case utilities.QUADRANT.THIRD:
             //uleft
              if(xoffset<0){
                //shrinks             
-                this.width-=Math.abs(xoffset);
+                radius-=Math.abs(xoffset);
              }else{
                //grows
-                this.width+=Math.abs(xoffset);
+                radius+=Math.abs(xoffset);
              }             
             break;        
         }
-
+         
+        this.circle.r=radius;
     }	
 }
 class Arc extends Shape{

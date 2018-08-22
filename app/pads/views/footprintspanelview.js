@@ -613,7 +613,7 @@ var CirclePanelBuilder=BaseBuilder.extend({
 			this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
 		 } 
 		 if(event.target.id=='radiusid'){
-		   this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#radiusid').val())));			 
+		   this.target.circle.r=(core.MM_TO_COORD(parseFloat(j$('#radiusid').val())));			 
 		 } 
 		 if(event.target.id=='xid'){			 
 	         var x=this.fromUnitX(j$('#xid').val()); 
@@ -633,7 +633,7 @@ var CirclePanelBuilder=BaseBuilder.extend({
         j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
         j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
 		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
-		j$("#radiusid").val(core.COORD_TO_MM(this.target.getWidth()));    
+		j$("#radiusid").val(core.COORD_TO_MM(this.target.circle.radius));    
 		j$("#fillid").val(this.target.fill);		
 	},
 	render:function(){

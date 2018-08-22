@@ -16,6 +16,20 @@ module.exports = function(d2) {
        get center() {
            return this.pc;
        }
+       get radius(){
+    	   return this.r;
+       }
+       get box() {
+           return new d2.Box(
+               this.pc.x - this.r,
+               this.pc.y - this.r,
+               this.pc.x + this.r,
+               this.pc.y + this.r
+           );
+       }
+	   get vertices() {
+		    return this.box.vertices;	
+	   }
        contains(pt){
     	   return d2.utils.LE(pt.distanceTo(this), this.r);    	   
        }
