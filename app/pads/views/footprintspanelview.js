@@ -426,8 +426,7 @@ var RectPanelBuilder=BaseBuilder.extend({
         'keypress #xid' : 'onenter',	
         'keypress #yid' : 'onenter',
         'keypress #thicknessid' : 'onenter',
-        'keypress #widthid' : 'onenter',
-        'keypress #heightid' : 'onenter',
+        'keypress #rotateid' : 'onenter',        
         'keypress #roundingid' : 'onenter',
         'change #fillid': 'onchange',
         'change #layerid': 'onchange',
@@ -447,12 +446,9 @@ var RectPanelBuilder=BaseBuilder.extend({
 		 }
 		 if(event.target.id=='thicknessid'){
 			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
-		 } 
-		 if(event.target.id=='widthid'){
-		   this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#widthid').val())));			 
-		 } 
-		 if(event.target.id=='heightid'){
-			   this.target.setHeight(core.MM_TO_COORD(parseFloat(j$('#heightid').val())));			 
+		 } 	 
+		 if(event.target.id=='rotateid'){
+			   this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val())));			 
 		 } 	
 		 if(event.target.id=='xid'){			 
 	         var x=this.fromUnitX(j$('#xid').val()); 
@@ -474,8 +470,7 @@ var RectPanelBuilder=BaseBuilder.extend({
         j$('#xid').val(utilities.roundDouble(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x)));
         j$('#yid').val(utilities.roundDouble(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y))); 
 		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
-		j$("#widthid").val(core.COORD_TO_MM(this.target.getWidth()));    
-		j$("#heightid").val(core.COORD_TO_MM(this.target.getHeight()));
+		j$("#rotateid").val(this.target.rotate);    
 		j$("#roundingid").val(core.COORD_TO_MM(this.target.arc));
 		j$("#fillid").val(this.target.fill);
 	},
@@ -496,8 +491,7 @@ var RectPanelBuilder=BaseBuilder.extend({
 				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
 			    "</select>" +
 				"</td></tr>"+
-				"<tr><td style='padding:7px'>Width</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='heightid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Rounding</td><td><input type='text' id='roundingid' value='' class='form-control input-sm\'></td></tr>"+						        
 		"</table>");
 			

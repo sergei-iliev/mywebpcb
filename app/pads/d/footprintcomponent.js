@@ -157,8 +157,7 @@ setMode(_mode){
 	            this.getEventMgr().setEventHandle("cursor",shape);  
 	          break;
 	        case  core.ModeEnum.RECT_MODE:
-	            shape=new RoundRect(0,0,core.MM_TO_COORD(7),core.MM_TO_COORD(7),core.MM_TO_COORD(0.8),core.MM_TO_COORD(0.2),core.Layer.SILKSCREEN_LAYER_FRONT);
-	            shape.roundRect.rotate(50,shape.getCenter());
+	            shape=new RoundRect(0,0,core.MM_TO_COORD(7),core.MM_TO_COORD(7),core.MM_TO_COORD(0.8),core.MM_TO_COORD(0.2),core.Layer.SILKSCREEN_LAYER_FRONT);	            
 	            this.setContainerCursor(shape);               
 	            this.getEventMgr().setEventHandle("cursor",shape); 
 	          break;

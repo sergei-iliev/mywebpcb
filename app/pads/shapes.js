@@ -120,11 +120,13 @@ class RoundRect extends Shape{
 		this.selectionRectWidth=3000;
 		this.resizingPoint = null;
 		this.arc=arc;
+		this.rotate=0;
 		this.roundRect=new d2.RoundRectangle(new d2.Point(x,y),width,height,arc);		
 	}
 	clone() {
 		var copy = new RoundRect(0,0,0,0, this.arc,this.thickness,this.copper.getLayerMaskID());
-		copy.roundRect = this.roundRect.clone();		
+		copy.roundRect = this.roundRect.clone();
+		copy.rotate=this.rotate;
 		copy.fill = this.fill;		
 		return copy;
 	}
@@ -161,6 +163,12 @@ class RoundRect extends Shape{
 	   	});
 	   	return result;
 	}	
+	setRotation(rotate){
+		let alpha=rotate-this.rotate;
+		let box=this.roundRect.box;
+		this.roundRect.rotate(alpha,box.center);
+		this.rotate=rotate;
+	}
 	setRounding(rounding){
 	  this.arc=rounding;
 	  this.roundRect.setRounding(rounding);
@@ -222,7 +230,7 @@ class RoundRect extends Shape{
 				g2.fillStyle = this.copper.getColor();
 			}
 		}
-		let r=this.roundRect.clone();
+		let r=this.roundRect.clone();	
 		r.scale(scale.getScale());
         r.move(-viewportWindow.x,- viewportWindow.y);
 		r.paint(g2);
@@ -396,6 +404,7 @@ constructor(x,y,r,thickness,layermaskid){
         this.startAngle=30;
         this.extendAngle=50;
 		this.setDisplayName("Arc");
+		this.rotate=0;
 		this.selectionRectWidth=3000;
 		this.resizingPoint=null;
 		this.arc=new d2.Arc(new d2.Point(x,y),r,this.startAngle,this.extendAngle);
@@ -560,7 +569,7 @@ Paint(g2, viewportWindow, scale) {
 
 						
 		g2.lineWidth = this.thickness * scale.getScale();
-        
+        		
 		
 		if (this.fill == core.Fill.EMPTY) {
 			if (this.selection) {
@@ -568,19 +577,22 @@ Paint(g2, viewportWindow, scale) {
 			} else {
 					g2.strokeStyle = this.copper.getColor();
 			}
+			g2._fill=false;
 		} else {
 			if (this.selection) {
 				g2.fillStyle = "gray";
 			} else {
 				g2.fillStyle = this.copper.getColor();
 			}
-				g2.fill();
+			g2._fill=true;
 		}
 
 		let a=this.arc.clone();
 		a.scale(scale.getScale());
 		a.move( - viewportWindow.x, - viewportWindow.y);		
 		a.paint(g2);
+
+		g2._fill=undefined;
 		
 		g2.globalCompositeOperation = 'source-over';
 
@@ -619,51 +631,6 @@ drawMousePoint(g2,viewportWindow,scale){
 	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[point]);
     
 }
-//find the point between start and end point
-//getMidPoint(){
-//    let r=this.getWidth();  
-//    let x = r * Math.cos(-Math.PI/180*(this.startAngle+(this.extendAngle/2))) + this.getX();
-//    let y = r * Math.sin(-Math.PI/180*(this.startAngle+(this.extendAngle/2))) + this.getY();
-//    return new core.Point(x,y);
-//}
-
-//getStartPoint() {
-//        let r=this.getWidth();                
-//        let x = r * Math.cos(-Math.PI/180*(this.startAngle)) + this.getX();
-//        let y = r * Math.sin(-Math.PI/180*(this.startAngle)) + this.getY();
-//        return new core.Point(x,y);
-//}
-//getEndPoint() {
-//        let r=this.getWidth();  
-//        let x = r * Math.cos(-Math.PI/180*(this.startAngle+this.extendAngle)) + this.getX();
-//        let y = r * Math.sin(-Math.PI/180*(this.startAngle+this.extendAngle)) + this.getY();
-//        return new core.Point(x,y);
-//}
-//drawArcPoints(g2, viewportWindow, scale){
-//        let start=this.getStartPoint();
-//        let end=this.getEndPoint();
-//		let mid=this.getMidPoint();
-//		
-//        let line=new core.Line();
-//        line.setLine(start.x - this.selectionRectWidth, start.y, start.x + this.selectionRectWidth, start.y);
-//        line.draw(g2, viewportWindow, scale);		
-//		
-//        line.setLine(start.x, start.y- this.selectionRectWidth, start.x , start.y+ this.selectionRectWidth);
-//        line.draw(g2, viewportWindow, scale);		
-//		
-//        line.setLine(end.x - this.selectionRectWidth, end.y, end.x + this.selectionRectWidth, end.y);
-//        line.draw(g2, viewportWindow, scale);		
-//		
-//        line.setLine(end.x, end.y- this.selectionRectWidth, end.x , end.y+ this.selectionRectWidth);
-//        line.draw(g2, viewportWindow, scale);    
-//        
-//        line.setLine(mid.x - this.selectionRectWidth, mid.y, mid.x + this.selectionRectWidth, mid.y);
-//        line.draw(g2, viewportWindow, scale);		
-//		
-//        line.setLine(mid.x, mid.y- this.selectionRectWidth, mid.x , mid.y+ this.selectionRectWidth);
-//        line.draw(g2, viewportWindow, scale);    
-//
-//    }
 
 }
 
