@@ -1,43 +1,53 @@
 var EventHandle = require('core/events').EventHandle;
 var events = require('core/events');
 var core = require('core/core');
-
+var d2 = require('d2/d2');
 
 class ArcMidPointEventHandle extends EventHandle{
 constructor(component) {
 		 super(component);
 	 }
-Attach(){	  	    
-   super.Attach();
-   this.target.resizingPoint=new core.Point();
-   this.isClockwise=this.target.extendAngle<0
-} 
  
 mousePressed(event){
-	 }
-mouseDragged(event){
-	 	let new_mx = event.x;
-	    let new_my = event.y;	    		
-	        
-	    this.target.resizingPoint.x=event.x;
-	    this.target.resizingPoint.y=event.y;
-	    
-	    this.target.recalculateArc(this.isClockwise);
-		this.component.Repaint();
+	if(super.isRightMouseButton(event)){
+            if (this.target["getLinePoints"]!=undefined){
+            	this.component.popup.registerLineSelectPopup(this.target,event);            
+            }            
     }
-mouseReleased(event){
-	this.target.resizingPoint=null; 
+     
+    this.component.getModel().getUnit().setSelected(false);
+    this.target.setSelected(true);
+	this.mx=event.x;
+	this.my=event.y;
+        
+    this.targetPoint=this.target.isControlRectClicked(event.x,event.y);
+    this.target.setResizingPoint(this.targetPoint);
+    
+    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
+    
 	this.component.Repaint();
-} 
-mouseMove(event){
-	 
-	}
-Detach(){
-   if(this.target!=null){
-	   this.target.resizingPoint=null;  
-   }	     
-   super.Detach();
-} 
+ }
+ mouseReleased(event){
+	    if(this.component.getParameter("snaptogrid")){
+         this.target.alignResizingPointToGrid(this.targetPoint);
+	     this.component.Repaint();	 
+		}
+	    this.target.resizingPoint=null;
+ }
+ mouseDragged(event){
+ 	let new_mx = event.x;
+    let new_my = event.y;
+    
+    this.target.Resize(0,0,event);
+    
+    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
+    this.mx = new_mx;
+    this.my = new_my;
+	this.component.Repaint();
+ }
+ mouseMove(event){
+ 
+ }
 }
 
 class ArcStartAngleEventHandle extends EventHandle{
@@ -52,10 +62,9 @@ class ArcStartAngleEventHandle extends EventHandle{
     
 	
         
-    let centerX=this.target.getCenter().x;
-    let centerY=this.target.getCenter().y;
-        
-        
+    let centerX=this.target.arc.center.x;
+    let centerY=this.target.arc.center.y;
+           
     let start = (180/Math.PI*Math.atan2(new_my-centerY,new_mx-centerX));
 
     if(start<0){
@@ -90,8 +99,8 @@ class ArcExtendAngleEventHandler extends EventHandle{
  	let new_mx = event.x;
     let new_my = event.y;
         
-    let centerX=this.target.getCenter().x;
-    let centerY=this.target.getCenter().y;
+    let centerX=this.target.arc.center.x;
+    let centerY=this.target.arc.center.y;
         
         
     let extend = (180/Math.PI*Math.atan2(new_my-centerY,new_mx-centerX));
@@ -103,18 +112,18 @@ class ArcExtendAngleEventHandler extends EventHandle{
     }
         
         //-360<extend<360 
-    let extendAngle=this.target.extendAngle;
+    let extendAngle=this.target.arc.endAngle;
     if(extendAngle<0){        
-          if(extend-this.target.startAngle>0) {                
-              this.target.setExtendAngle(((extend-this.target.startAngle))-360);
+          if(extend-this.target.arc.startAngle>0) {                
+              this.target.setExtendAngle(((extend-this.target.arc.startAngle))-360);
           }else{
-              this.target.setExtendAngle(extend-this.target.startAngle);
+              this.target.setExtendAngle(extend-this.target.arc.startAngle);
             }
         }else{           
-            if(extend-this.target.startAngle>0) {
-              this.target.setExtendAngle(extend-this.target.startAngle);
+            if(extend-this.target.arc.startAngle>0) {
+              this.target.setExtendAngle(extend-this.target.arc.startAngle);
             }else{
-              this.target.setExtendAngle((360-this.target.startAngle)+extend);
+              this.target.setExtendAngle((360-this.target.arc.startAngle)+extend);
             }
         }
         

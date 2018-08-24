@@ -177,6 +177,9 @@ class RoundRect extends Shape{
 	Resize(xoffset, yoffset,clickedPoint){
 		this.roundRect.resize(xoffset, yoffset,clickedPoint);
 	}
+	getOrderWeight(){
+		 return this.roundRect.box.width*this.roundRect.box.height; 
+	}	
 	toXML() {
 		return "<rectangle copper=\"" + this.copper.getName() + "\" x=\""
 				+ this.upperLeft.x + "\" y=\"" + this.upperLeft.y
@@ -375,7 +378,7 @@ drawControlPoints(g2, viewportWindow, scale) {
 	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.circle.vertices);	
 }
 getOrderWeight(){
-      return ((2*this.width)*(2*this.width)); 
+	 return this.circle.r*this.circle.r; 
 }
 getResizingPoint() {
         return null;
@@ -408,6 +411,9 @@ calculateShape() {
 	let box=this.arc.box;
 	return new core.Rectangle(box.min.x,box.min.y,box.width,box.height);
 }
+getOrderWeight(){
+    return this.arc.r*this.arc.r; 
+}
 fromXML(data){
         if(j$(data).attr("copper")!=null){
            this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
@@ -436,49 +442,62 @@ toXML() {
     return '<arc copper="'+this.copper.getName()+'"  x="'+(this.x-this.width)+'" y="'+(this.y-this.width)+'" width="'+(2*this.width)+'"  thickness="'+this.thickness+'" start="'+this.startAngle+'" extend="'+this.extendAngle+'" />';
 }
 setExtendAngle(extendAngle){
-    this.extendAngle=utilities.round(extendAngle);
+    this.arc.endAngle=utilities.round(extendAngle);
 }
 setStartAngle(startAngle){        
-    this.startAngle=utilities.round(startAngle);
+    this.arc.startAngle=utilities.round(startAngle);
 }
-isControlRectClicked(x,y) {
-  return false;
-}
-isMidPointClicked(x,y){
-	let rect=new core.Rectangle();
 
-    let p=this.getMidPoint();
-    rect.setRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
+isControlRectClicked(x,y) {
+	 if(this.isStartAnglePointClicked(x,y)){
+		    return this.arc.start;
+		 }
+	 if(this.isExtendAnglePointClicked(x,y)){
+		    return this.arc.end;
+		 }
+	 if(this.isMidPointClicked(x,y)){
+		    return this.arc.middle;	 
+		 }
+	     return null;
+	}
+//isClicked(x, y) {
+//	if (this.arc.contains(new d2.Point(x, y)))
+//		return true;
+//	else
+//		return false;
+//	}
+isMidPointClicked(x,y){
+	let box=new d2.Box();
+    let p=this.arc.middle;
+    box.setRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
                  this.selectionRectWidth, this.selectionRectWidth);
-    if (rect.contains(x,y)) {
+    if (box.contains({x,y})) {
         return true;
     }else{                   
         return false;
 	}	
 }
 isStartAnglePointClicked(x,y){
-			let rect=new core.Rectangle();
-
-            let p=this.getStartPoint();
-            rect.setRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
-                         this.selectionRectWidth, this.selectionRectWidth);
-            if (rect.contains(x,y)) {
-                return true;
-            }else{                   
-                return false;
-			}
+	let box=new d2.Box();
+    let p=this.arc.start;
+    box.setRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
+                 this.selectionRectWidth, this.selectionRectWidth);
+    if (box.contains({x,y})) {
+        return true;
+    }else{                   
+        return false;
+	}
 }
 isExtendAnglePointClicked(x,y){
-			let rect=new core.Rectangle();
-            
-            let  p=this.getEndPoint();
-            rect.setRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
-                         this.selectionRectWidth, this.selectionRectWidth);
-            if (rect.contains(x,y)) {
-                return true;
-            }else{                   
-                return false;
-			}
+	let box=new d2.Box();
+    let p=this.arc.end;
+    box.setRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
+                 this.selectionRectWidth, this.selectionRectWidth);
+    if (box.contains({x,y})) {
+        return true;
+    }else{                   
+        return false;
+	}
 }	
 Rotate(rotation){
    super.Rotate(rotation);
@@ -513,6 +532,17 @@ Mirror(A,B) {
       this.startAngle=360-this.startAngle;
       this.extendAngle=(-1)*this.extendAngle;
     }
+}
+/*
+ * Resize through mouse position point
+ */
+Resize(xoffset, yoffset,point) {    
+    let pt=this.calculateResizingMidPoint(point.x,point.y);
+    
+    let p=new d2.Point(pt.x,pt.y);
+    let r=this.arc.center.distanceTo(p);
+
+    this.arc.r=r;
 }
 Move(xoffset,yoffset){
   this.arc.move(xoffset,yoffset);	
@@ -556,63 +586,84 @@ Paint(g2, viewportWindow, scale) {
 
 		if (this.isSelected()) {
 			this.drawControlPoints(g2, viewportWindow, scale);
-			//this.drawArcPoints(g2, viewportWindow, scale);
 		}
 		
-
-        if(this.resizingPoint!=null){
-		   //this.drawMousePoint(g2,viewportWindow,scale);
-        }
 }
 drawControlPoints(g2, viewportWindow, scale) {
-	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.arc.box.vertices);	
+	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.arc.start,this.arc.end,this.arc.middle]);	
 }
+setResizingPoint(pt){
+	this.resizingPoint=pt;
+}
+getResizingPoint() {
+	return this.resizingPoint;
+}
+calculateResizingMidPoint(x,y){
+	let a=this.arc.middle;
+	let b=new core.Point(this.arc.center.x,this.arc.center.y);
+	//let p=this.resizingPoint;
+	let p={x,y};
+	
+	let atob = { x: b.x - a.x, y: b.y - a.y };
+    let atop = { x: p.x - a.x, y: p.y - a.y };
+    let len = atob.x * atob.x + atob.y * atob.y;
+    let dot = atop.x * atob.x + atop.y * atob.y;
+    let t = dot / len ;
+  
+    return new core.Point(a.x + atob.x * t,a.y + atob.y * t);	
+}
+drawMousePoint(g2,viewportWindow,scale){
 
+	let point=this.calculateResizingMidPoint(this.resizingPoint.x,this.resizingPoint.y);
+    
+	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[point]);
+    
+}
 //find the point between start and end point
-getMidPoint(){
-    let r=this.getWidth();  
-    let x = r * Math.cos(-Math.PI/180*(this.startAngle+(this.extendAngle/2))) + this.getX();
-    let y = r * Math.sin(-Math.PI/180*(this.startAngle+(this.extendAngle/2))) + this.getY();
-    return new core.Point(x,y);
-}
+//getMidPoint(){
+//    let r=this.getWidth();  
+//    let x = r * Math.cos(-Math.PI/180*(this.startAngle+(this.extendAngle/2))) + this.getX();
+//    let y = r * Math.sin(-Math.PI/180*(this.startAngle+(this.extendAngle/2))) + this.getY();
+//    return new core.Point(x,y);
+//}
 
-getStartPoint() {
-        let r=this.getWidth();                
-        let x = r * Math.cos(-Math.PI/180*(this.startAngle)) + this.getX();
-        let y = r * Math.sin(-Math.PI/180*(this.startAngle)) + this.getY();
-        return new core.Point(x,y);
-}
-getEndPoint() {
-        let r=this.getWidth();  
-        let x = r * Math.cos(-Math.PI/180*(this.startAngle+this.extendAngle)) + this.getX();
-        let y = r * Math.sin(-Math.PI/180*(this.startAngle+this.extendAngle)) + this.getY();
-        return new core.Point(x,y);
-}
-drawArcPoints(g2, viewportWindow, scale){
-        let start=this.getStartPoint();
-        let end=this.getEndPoint();
-		let mid=this.getMidPoint();
-		
-        let line=new core.Line();
-        line.setLine(start.x - this.selectionRectWidth, start.y, start.x + this.selectionRectWidth, start.y);
-        line.draw(g2, viewportWindow, scale);		
-		
-        line.setLine(start.x, start.y- this.selectionRectWidth, start.x , start.y+ this.selectionRectWidth);
-        line.draw(g2, viewportWindow, scale);		
-		
-        line.setLine(end.x - this.selectionRectWidth, end.y, end.x + this.selectionRectWidth, end.y);
-        line.draw(g2, viewportWindow, scale);		
-		
-        line.setLine(end.x, end.y- this.selectionRectWidth, end.x , end.y+ this.selectionRectWidth);
-        line.draw(g2, viewportWindow, scale);    
-        
-        line.setLine(mid.x - this.selectionRectWidth, mid.y, mid.x + this.selectionRectWidth, mid.y);
-        line.draw(g2, viewportWindow, scale);		
-		
-        line.setLine(mid.x, mid.y- this.selectionRectWidth, mid.x , mid.y+ this.selectionRectWidth);
-        line.draw(g2, viewportWindow, scale);    
-
-    }
+//getStartPoint() {
+//        let r=this.getWidth();                
+//        let x = r * Math.cos(-Math.PI/180*(this.startAngle)) + this.getX();
+//        let y = r * Math.sin(-Math.PI/180*(this.startAngle)) + this.getY();
+//        return new core.Point(x,y);
+//}
+//getEndPoint() {
+//        let r=this.getWidth();  
+//        let x = r * Math.cos(-Math.PI/180*(this.startAngle+this.extendAngle)) + this.getX();
+//        let y = r * Math.sin(-Math.PI/180*(this.startAngle+this.extendAngle)) + this.getY();
+//        return new core.Point(x,y);
+//}
+//drawArcPoints(g2, viewportWindow, scale){
+//        let start=this.getStartPoint();
+//        let end=this.getEndPoint();
+//		let mid=this.getMidPoint();
+//		
+//        let line=new core.Line();
+//        line.setLine(start.x - this.selectionRectWidth, start.y, start.x + this.selectionRectWidth, start.y);
+//        line.draw(g2, viewportWindow, scale);		
+//		
+//        line.setLine(start.x, start.y- this.selectionRectWidth, start.x , start.y+ this.selectionRectWidth);
+//        line.draw(g2, viewportWindow, scale);		
+//		
+//        line.setLine(end.x - this.selectionRectWidth, end.y, end.x + this.selectionRectWidth, end.y);
+//        line.draw(g2, viewportWindow, scale);		
+//		
+//        line.setLine(end.x, end.y- this.selectionRectWidth, end.x , end.y+ this.selectionRectWidth);
+//        line.draw(g2, viewportWindow, scale);    
+//        
+//        line.setLine(mid.x - this.selectionRectWidth, mid.y, mid.x + this.selectionRectWidth, mid.y);
+//        line.draw(g2, viewportWindow, scale);		
+//		
+//        line.setLine(mid.x, mid.y- this.selectionRectWidth, mid.x , mid.y+ this.selectionRectWidth);
+//        line.draw(g2, viewportWindow, scale);    
+//
+//    }
 
 }
 

@@ -548,14 +548,14 @@ var ArcPanelBuilder=BaseBuilder.extend({
     },
 	updateui:function(){
 		j$('#layerid').val(this.target.copper.getName());
-		j$("#startangleid").val(this.target.startAngle);    
-		j$("#extendangleid").val(this.target.extendAngle);		
+		j$("#startangleid").val(this.target.arc.startAngle);    
+		j$("#extendangleid").val(this.target.arc.endAngle);		
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
         j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
         j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:(this.target.resizingPoint.x)));
         j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:(this.target.resizingPoint.y))); 
 		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
-		j$("#widthid").val(core.COORD_TO_MM(this.target.getWidth()));
+		j$("#widthid").val(core.COORD_TO_MM(this.target.arc.r));
 		j$("#fillid").val(this.target.fill);
 	},
 	render:function(){
