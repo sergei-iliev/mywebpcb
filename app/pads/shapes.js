@@ -242,6 +242,7 @@ class Circle extends Shape{
 				layermaskId);
 		this.setDisplayName("Circle");
 		this.selectionRectWidth=3000;
+		this.resizingPoint=null;
 		this.circle=new d2.Circle(new d2.Point(x,y),r);
 	}
 clone() {
@@ -307,6 +308,34 @@ isControlRectClicked(x,y) {
 	Move(xoffset, yoffset) {
 		this.circle.move(xoffset,yoffset);
 	}	
+	Resize(xoffset, yoffset,point) {    
+        let quadrant= utilities.getQuadrantLocation(point,this.circle.center.x,this.circle.center.y);
+        let radius=this.circle.r;
+        switch(quadrant){
+        case utilities.QUADRANT.FIRST:case utilities.QUADRANT.FORTH: 
+            //uright
+             if(xoffset<0){
+               //grows             
+                radius+=Math.abs(xoffset);
+             }else{
+               //shrinks
+                radius-=Math.abs(xoffset);
+             }             
+            break;
+        case utilities.QUADRANT.SECOND:case utilities.QUADRANT.THIRD:
+            //uleft
+             if(xoffset<0){
+               //shrinks             
+                radius-=Math.abs(xoffset);
+             }else{
+               //grows
+                radius+=Math.abs(xoffset);
+             }             
+            break;        
+        }
+         
+        this.circle.r=radius;
+    }	
 	Paint(g2, viewportWindow, scale) {
 		let rect = this.getBoundingShape().getScaledRect(scale);
 		if (!rect.intersects(viewportWindow)) {
@@ -355,47 +384,21 @@ getResizingPoint() {
 setResizingPoint(point) {
 
 }
-Resize(xoffset, yoffset,point) {    
-        let quadrant= utilities.getQuadrantLocation(point,this.circle.center.x,this.circle.center.y);
-        let radius=this.circle.r;
-        switch(quadrant){
-        case utilities.QUADRANT.FIRST:case utilities.QUADRANT.FORTH: 
-            //uright
-             if(xoffset<0){
-               //grows             
-                radius+=Math.abs(xoffset);
-             }else{
-               //shrinks
-                radius-=Math.abs(xoffset);
-             }             
-            break;
-        case utilities.QUADRANT.SECOND:case utilities.QUADRANT.THIRD:
-            //uleft
-             if(xoffset<0){
-               //shrinks             
-                radius-=Math.abs(xoffset);
-             }else{
-               //grows
-                radius+=Math.abs(xoffset);
-             }             
-            break;        
-        }
-         
-        this.circle.r=radius;
-    }	
+
 }
+
 class Arc extends Shape{
 constructor(x,y,r,thickness,layermaskid){	
-        super(x, y, r,r,thickness,layermaskid);  
+        super(0, 0, 0,0,thickness,layermaskid);  
         this.startAngle=30;
         this.extendAngle=50;
 		this.setDisplayName("Arc");
+		this.selectionRectWidth=3000;
 		this.resizingPoint=null;
 		this.arc=new d2.Arc(new d2.Point(x,y),r,this.startAngle,this.extendAngle);
 }
 clone() {
-		var copy = new Arc(this.x, this.y, this.width,
-						this.thickness,this.copper.getLayerMaskID());
+		var copy = new Arc(this.arc.center.x,this.arc.center.y, this.arc.r,this.thickness,this.copper.getLayerMaskID());
 		copy.startAngle = this.startAngle;
 		copy.extendAngle = this.extendAngle;
 		copy.fill = this.fill;
@@ -439,22 +442,7 @@ setStartAngle(startAngle){
     this.startAngle=utilities.round(startAngle);
 }
 isControlRectClicked(x,y) {
-   let result= super.isControlRectClicked(x, y);
-   if(result==null){
-	 if(this.isStartAnglePointClicked(x,y)){
-	    return this.getStartPoint();
-	 }
-	 if(this.isExtendAnglePointClicked(x,y)){
-	    return this.getEndPoint();
-	 }
-	 if(this.isMidPointClicked(x,y)){
-	    return this.getMidPoint();	 
-	 }
-     return null;	 
-   }else{
-     return result;
-   }
-   
+  return false;
 }
 isMidPointClicked(x,y){
 	let rect=new core.Rectangle();
@@ -492,135 +480,6 @@ isExtendAnglePointClicked(x,y){
                 return false;
 			}
 }	
-convert(start,extend){
-		
-		let s = 360 - start;
-		let e=0;
-		if(extend>0){
-		 e = 360 - (start+extend); 
-		}else{
-		 if(start>Math.abs(extend)){  	
-		   e = s+Math.abs(extend); 
-		 }else{
-           e = Math.abs(extend+start);   		 
-		 }		 
-		}
-		return new core.Point(s,e);
-}
-recalculateArc(isClockwise){
-	let resizingMidPoint=this.calculateResizingMidPoint();
-	this.drawRadius();
-
-}
-calculateResizingMidPoint(){
-	let a=this.getMidPoint();
-	let b=new core.Point(this.x,this.y);
-	let p=this.resizingPoint;
-	
-	let atob = { x: b.x - a.x, y: b.y - a.y };
-    let atop = { x: p.x - a.x, y: p.y - a.y };
-    let len = atob.x * atob.x + atob.y * atob.y;
-    let dot = atop.x * atob.x + atop.y * atob.y;
-    let t = dot / len ;
-  
-    return new core.Point(a.x + atob.x * t,a.y + atob.y * t);	
-}
-
-drawMousePoint(g2,viewportWindow,scale){
-
-	let point=this.calculateResizingMidPoint();
-    
-	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[point]);
-    
-    //this.drawRadius(g2,viewportWindow,scale);
-}
-
-distance(p1,p2){
-	   let dx=(p1.x-p2.x);
-	   let dy=(p1.y-p2.y);
-	   return Math.sqrt(dx*dx + dy*dy);	
-}
-/*
- * draw current radius static
- */
-drawRadius(){
-   let a=this.getStartPoint();
-   let b=this.getEndPoint();
-  
-   let P=new core.Point((a.x+b.x)/2,(a.y+b.y)/2);
-   
-   
-   //distance
-   let m=this.distance(a,P);
-   let q=this.distance(a,b);
-  
-   let midP=this.getMidPoint();
-   let A=this.distance(midP,P);
-
-   //radius
-   let R=((m*m)+(A*A))/(2*A);
-   
-   
-   //calculate centeX and centerY
-   let basex = Math.sqrt(Math.pow(R,2)-Math.pow(m,2))*((a.y-b.y)/q); //calculate once
-   let basey = Math.sqrt(Math.pow(R,2)-Math.pow(m,2))*((b.x-a.x)/q); //calculate once   
-   
-   let cX=basex+P.x;
-   let cY=basey+P.y;
-   let C1=new core.Point(cX,cY);
-   
-   
-    cX=P.x-basex;
-    cY=P.y-basey;
-    let C2=new core.Point(cX,cY);
-    
-     
-    
-  
-    //which of the 2 points is correct
-    let dist1=Math.round(this.distance(midP,C1));
-    let dist2=Math.round(this.distance(midP,C2));
-    
-
-    if(Math.round(R)==dist1){
-    	//utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[C1]);
-    	let startAngle = (180/Math.PI*Math.atan2(a.y-C1.y, a.x-C1.x));    	    	
-    	
-    	if(-180<startAngle&&startAngle<0){
-    		startAngle=Math.abs(startAngle);
-    	}else if(0<startAngle&&startAngle<=180){
-    		startAngle=360-startAngle;
-    	}
-    	
-    	let endAngle =  (180/Math.PI*Math.atan2(b.y-C1.y, b.x-C1.x));
-    	
-    	console.log(startAngle+' -------------- '+endAngle);
-    	
-    }else{
-    	//utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[C2]);
-    	let startAngle = (180/Math.PI*Math.atan2(a.y-C2.y, a.x-C2.x));
-    	if(-180<startAngle&&startAngle<0){
-    		startAngle=Math.abs(startAngle);
-    	}else{
-    		startAngle=360-startAngle;
-    	}
-    	let endAngle =  (180/Math.PI*Math.atan2(b.y-C2.y, b.x-C2.x));
-    	console.log(endAngle);
-    	if(-180<endAngle&&endAngle<0){
-    		endAngle=Math.abs(endAngle);
-    	}else{
-    		endAngle=(360-endAngle);
-    	}
-    	
-    	
-    	
-    	console.log(startAngle+' ++++++ '+endAngle);
-    	
-
-    }
-    
-    
-}
 Rotate(rotation){
    super.Rotate(rotation);
    if(rotation.angle>0) {        //right                               
@@ -679,8 +538,6 @@ Paint(g2, viewportWindow, scale) {
 			} else {
 					g2.strokeStyle = this.copper.getColor();
 			}
-
-				g2.stroke();
 		} else {
 			if (this.selection) {
 				g2.fillStyle = "gray";
@@ -698,14 +555,17 @@ Paint(g2, viewportWindow, scale) {
 		g2.globalCompositeOperation = 'source-over';
 
 		if (this.isSelected()) {
-			this.drawControlShape(g2, viewportWindow, scale);
-			this.drawArcPoints(g2, viewportWindow, scale);
+			this.drawControlPoints(g2, viewportWindow, scale);
+			//this.drawArcPoints(g2, viewportWindow, scale);
 		}
 		
 
         if(this.resizingPoint!=null){
-		   this.drawMousePoint(g2,viewportWindow,scale);
+		   //this.drawMousePoint(g2,viewportWindow,scale);
         }
+}
+drawControlPoints(g2, viewportWindow, scale) {
+	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.arc.box.vertices);	
 }
 
 //find the point between start and end point

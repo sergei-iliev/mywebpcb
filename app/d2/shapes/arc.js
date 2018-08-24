@@ -17,6 +17,9 @@ module.exports = function(d2) {
         clone(){
            return new d2.Arc(this.pc.clone(),this.r,this.startAngle,this.endAngle);  	
         }
+        get center(){
+        	return this.pc;
+        }
         get start() {
             let p0 = new d2.Point(this.pc.x + this.r, this.pc.y);
             p0.rotate(this.startAngle, this.pc);
