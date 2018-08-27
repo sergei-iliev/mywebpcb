@@ -50,7 +50,11 @@ module.exports = function(d2) {
        paint(g2){
        	g2.beginPath();       	
        	g2.arc(this.pc.x,this.pc.y,this.r,0,2*Math.PI,true);
-       	g2.stroke();
+    	  if(g2._fill!=undefined&&g2._fill){
+        	  g2.fill();	
+          }else{
+        	  g2.stroke();
+          }
        }       
        
     }

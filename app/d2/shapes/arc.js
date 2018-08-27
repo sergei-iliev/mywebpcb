@@ -50,34 +50,17 @@ module.exports = function(d2) {
         	if (d2.utils.GE(this.pc.distanceTo(pt), this.r)){
                 return false;
         	}    
-        	//check polygon between 3 points
-        	let polygon=new d2.Polygon();
-        	polygon.add(this.pc);
-        	polygon.add(this.start);
-        	polygon.add(this.end);
-        	if(polygon.contains(pt)){
-        		return false;
-        	}
+        	let l=new d2.Line(this.pc,this.middle);
+        	let projectionPoint=l.projectionPoint(pt);
         	
-        	let angle =360- (new d2.Vector(this.pc, pt).slope);        	
-        	let sweep=this.sweep
+        	let middle=this.middle;
+        	let mid=new d2.Point((this.start.x+this.end.x)/2,(this.start.y+this.end.y)/2);  
+        	
+        	let dist1=this.middle.distanceTo(mid);
+        	let dist2=this.middle.distanceTo(projectionPoint);
+        	
+        	return d2.utils.GE(dist1,dist2);
 
-        	if(this.endAngle>0){
-        		if((this.startAngle+sweep)>360){
-        			sweep=(this.startAngle+sweep)-360;                	  	
-        			return (d2.utils.GE(angle,this.startAngle)||d2.utils.GE(sweep,angle));
-        		}else{
-        			return (d2.utils.GE(angle,this.startAngle)&&d2.utils.GE(this.startAngle+sweep,angle));
-        		}
-        	}else{
-        		if((this.startAngle-this.sweep)>0){
-        		   return (d2.utils.GE(this.startAngle,angle)&&d2.utils.GE(angle,this.startAngle-this.sweep));
-        		}else{
-        		   sweep=360-(this.sweep-this.startAngle);                	  		        		   
-        		   return (d2.utils.GE(this.startAngle,angle)||d2.utils.GE(angle,sweep));
-        		}
-        	}
-        	
         }
         move(offsetX,offsetY){
           this.pc.move(offsetX,offsetY);	
@@ -99,7 +82,6 @@ module.exports = function(d2) {
         		this.startAngle=360-this.startAngle; 
         	}	
         	
-        	console.log(this.startAngle);
         }
         scale(alpha){
            this.pc.scale(alpha);
@@ -126,12 +108,11 @@ module.exports = function(d2) {
     		let angles=this.convert(this.startAngle,this.endAngle);
         	g2.arc(this.pc.x,this.pc.y,this.r, d2.utils.radians(angles[0]), d2.utils.radians(angles[1]),this.endAngle>0);        	
         	
-        	if(g2._fill!="undefined"&&g2._fill){
+        	if(g2._fill!=undefined&&g2._fill){
           	  g2.fill();	
           	}else{
           	  g2.stroke();
           	}
-        	
             //let ps=this.start;
             //let pe=this.end;
             //let pm=this.middle;

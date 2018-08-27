@@ -151,7 +151,7 @@ setMode(_mode){
 	        
 	 switch (this.mode) {
 	        case core.ModeEnum.PAD_MODE:
-	            shape=new Pad(0,0,core.MM_TO_COORD(1.52),core.MM_TO_COORD(1.52));
+	            shape=new Pad(0,0,core.MM_TO_COORD(1.52),core.MM_TO_COORD(2.52));	            
 	            shape.drill=new Drill(core.MM_TO_COORD(0.8),core.MM_TO_COORD(0.8));			                        
 	            this.setContainerCursor(shape);               
 	            this.getEventMgr().setEventHandle("cursor",shape);  

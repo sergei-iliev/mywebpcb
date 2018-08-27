@@ -11,6 +11,14 @@ module.exports = function(d2) {
 			this.points.push(new d2.Point(p1.x+width,p1.y+height));
 			this.points.push(new d2.Point(p1.x,p1.y+height));
 		}
+		clone(){
+    	    let copy=new d2.Rectangle(new d2.Point(0,0),0,0);
+    	    copy.points=[];
+    	    this.points.forEach(function(point){
+    	    	copy.points.push(point.clone());
+    	    });  
+    	    return copy;
+		}
         createArc(center, start, end) {
             let startAngle =360 -(new d2.Vector(center,start)).slope;
             let endAngle = (new d2.Vector(center, end)).slope;
@@ -317,7 +325,11 @@ module.exports = function(d2) {
 	    						g2.lineTo(this.points[i].x, this.points[i].y);
 	    	}
 	    	g2.closePath();                    
-	        g2.stroke();
+	    	if(g2._fill!=undefined&&g2._fill){
+	        	  g2.fill();	
+	        }else{
+	        	  g2.stroke();
+	        }
 		}
 	}
 

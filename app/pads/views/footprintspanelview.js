@@ -194,6 +194,7 @@ var PadPanelBuilder=BaseBuilder.extend({
         'keypress #padyid' : 'onenter',
         'keypress #padwidthid' : 'onenter',
         'keypress #padheightid' : 'onenter',
+        'keypress #rotateid' : 'onenter',
         'keypress #numberid' : 'onenter',	
         'keypress #numbersizeid' : 'onenter',
         'keypress #numberxid' : 'onenter',	
@@ -255,6 +256,9 @@ var PadPanelBuilder=BaseBuilder.extend({
 	     if(event.target.id=='padheightid'){
 	    	this.target.setHeight(core.MM_TO_COORD(parseFloat(j$('#padheightid').val()))); 
 	     }
+	     if(event.target.id=='rotateid'){
+		        this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val()))); 
+		     }	     
 		 if(event.target.id=='numberid'){ 
 			 this.target.getChipText().getTextureByTag("number").setText(j$('#numberid').val());			   
 		 }
@@ -292,9 +296,11 @@ var PadPanelBuilder=BaseBuilder.extend({
 		 this.component.Repaint(); 
     },
 	updateui:function(){
+		 j$("#rotateid").val(this.target.rotate); 
 		 j$('#layerid').val(this.target.copper.getName());
 		 j$('#padxid').val(this.toUnitX(this.target.x));
 		 j$('#padyid').val(this.toUnitY(this.target.y));
+		 j$("#rotateid").val(this.target.rotate);  
 		 j$('#padwidthid').val(core.COORD_TO_MM(this.target.width));
 	        if(this.target.getShape()==PadShape.CIRCULAR){
 	        	j$('#padheightid').prop('disabled',true);
@@ -367,7 +373,8 @@ var PadPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>X</td><td><input type='text' id='padxid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='padyid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Width</td><td><input type='text' id='padwidthid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='padheightid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='padheightid' value='' class='form-control input-sm\'></td></tr>"+							
+				"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='width:50%;padding:7px'>Pad Type</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"typeid\">"+
 				this.fillComboBox([{id:0,value:'THROUGH_HOLE',selected:true},{id:1,value:'SMD'},{id:2,value:'CONNECTOR'}])+

@@ -469,12 +469,12 @@ isControlRectClicked(x,y) {
 		 }
 	     return null;
 	}
-//isClicked(x, y) {
-//	if (this.arc.contains(new d2.Point(x, y)))
-//		return true;
-//	else
-//		return false;
-//	}
+isClicked(x, y) {
+	if (this.arc.contains(new d2.Point(x, y)))
+		return true;
+	else
+		return false;
+	}
 isMidPointClicked(x,y){
 	let box=new d2.Box();
     let p=this.arc.middle;
@@ -867,11 +867,11 @@ class Pad extends core.Shape{
 	   super(x, y, width, height, -1, core.Layer.LAYER_BACK);
 	   this.arc=width;
 	   this.drill=null;
-	   this.setType(PadType.THROUGH_HOLE);
-	   this.setShape(PadShape.CIRCULAR);
 	   this.offset=new core.Point(0,0);
+	   this.setType(PadType.THROUGH_HOLE);
+	   this.setShape(PadShape.OVAL);
 	   this.setDisplayName("Pad");
-	   
+	   this.rotate=0;
 	   this.text=new core.ChipText();
 	   this.text.Add(new font.FontTexture("number","",x,y,new core.Alignment(core.AlignEnum.LEFT),4000));
 	   this.text.Add(new font.FontTexture("netvalue","",x,y,new core.Alignment(core.AlignEnum.LEFT),4000));   
@@ -883,7 +883,8 @@ clone(){
 		 copy.setY(this.getY());
 	     copy.setWidth(this.getWidth());
 	     copy.setHeight(this.getHeight());
-	     copy.arc=this.arc;     
+	     copy.arc=this.arc;
+	     copy.rotate=this.rotate;
 	     copy.setShape(this.getShape());
 	     copy.copper=this.copper;
 	     copy.text=this.text.clone();
@@ -893,6 +894,11 @@ clone(){
 	     }
 	     return copy;
 	}
+setRotation(rotate){
+	let alpha=rotate-this.rotate;	
+	this.shape.rotate(alpha);
+	this.rotate=rotate;
+}
 getChipText() {
 	    return this.text;
 }
@@ -958,8 +964,7 @@ getOrderWeight(){
 	     return 2; 
 	}
 isClicked(x,y){
-	    let rect=super.getBoundingShape();
-	    if(rect.contains(x,y))
+	    if(this.shape.contains(new d2.Point(x,y)))
 	     return true;
 	    else
 	     return false;  
@@ -974,6 +979,8 @@ isInRect(r) {
 Move(xoffset, yoffset){
 	   this.x+=xoffset;
 	   this.y+=yoffset;
+	   this.shape.move(xoffset, yoffset);
+	   
 	   if(this.drill!=null){
 	     this.drill.Move(xoffset, yoffset);
 	   }
@@ -1077,6 +1084,7 @@ Paint(g2,viewportWindow,scale){
 	//----------CircularShape-------------------
 class CircularShape{
 	constructor(pad){
+		this.circle=new d2.Circle(new d2.Point(pad.getX(),pad.getY()),pad.getWidth()/2);
 		this.pad=pad;
 		this.setWidth(this.pad.getWidth());
 	}
@@ -1086,19 +1094,25 @@ class CircularShape{
 	    if(!rect.intersects(viewportWindow)){
 	    	return false;
 	    }
-		
-	    g2.beginPath(); //clear the canvas context
-		g2.arc((rect.x+(rect.width/2))-viewportWindow.x, (rect.y+(rect.width/2))-viewportWindow.y, rect.width/2, 0, 2 * Math.PI, false);
-		g2.closePath();
 		if(this.pad.isSelected())
 	        g2.fillStyle = "gray";  
 	    else{
 	        g2.fillStyle = this.pad.copper.getColor();
 	    }
-	    g2.fill();
-
-	    return true;
+	    g2._fill=true;
+		
+	    let c=this.circle.clone();
+		c.scale(scale.getScale());
+        c.move(-viewportWindow.x,- viewportWindow.y);
+		c.paint(g2);
+		
+		g2._fill=false;
+		
+		return true;
 	}
+	move(xoffset, yoffset) {
+		this.circle.move(xoffset,yoffset);
+	}	
     setWidth(width) {
 	   this.pad.width=width;
 	   this.setHeight(width);
@@ -1111,6 +1125,7 @@ class CircularShape{
 class OvalShape{
 	constructor(pad){
 	   this.pad=pad;
+	   this.obround=new d2.Obround(new d2.Point(pad.getX(),pad.getY()),pad.getWidth(),pad.getHeight());
 	}
 Paint(g2,viewportWindow,scale){
 		  var rect=this.pad.getBoundingShape().getScaledRect(scale);
@@ -1118,38 +1133,43 @@ Paint(g2,viewportWindow,scale){
 	      if(!rect.intersects(viewportWindow)){
 	        return false;
 	      }
-		  g2.beginPath(); //clear the canvas context
-		  utilities.roundrect(g2,rect.x-viewportWindow.x, rect.y-viewportWindow.y, rect.width, rect.height,this.pad.arc*scale.getScale());
-	      g2.closePath();
+	      g2.lineWidth = this.obround.width * scale.getScale();
 	      if(this.pad.isSelected())
-	        g2.fillStyle = "gray";  
+	        g2.strokeStyle = "gray";  
 	      else{
-	        g2.fillStyle = this.pad.copper.getColor();
+	        g2.strokeStyle = this.pad.copper.getColor();
 	      }
-	      g2.fill();
+	      
+		   let o=this.obround.clone();
+		   o.scale(scale.getScale());
+	       o.move(-viewportWindow.x,- viewportWindow.y);
+		   o.paint(g2);
 
 	      return true;
 }
+rotate(alpha){
+	this.obround.rotate(alpha);
+}
+contains(pt){
+	return this.obround.contains(pt);
+}
+move(xoffset, yoffset) {
+	this.obround.move(xoffset,yoffset);
+}
 setWidth(width) {
 	    this.pad.width=width;
-	    if(width<this.pad.height){
-	      this.pad.arc=width;
-	    }else{
-	      this.pad.arc=this.pad.height;  
-	    }
+	    this.obround.setWidth(width);
 }
 setHeight(height) {
 	    this.pad.height=height;
-	    if(height<this.pad.width){
-	      this.pad.arc=height;
-	    }else{
-	      this.pad.arc=this.pad.width;  
-	    }
+	    this.obround.setHeight(height);
+	    this.obround.rotate(this.pad.rotate);
 }
 }
 //------------RectangularShape----------------
 class RectangularShape{
 	constructor(pad){
+		this.rect=new d2.Rectangle(new d2.Point((pad.getX()-pad.getWidth()/2)-pad.offset.x,(pad.getY()-pad.getHeight()/2)-pad.offset.y),pad.getWidth(),pad.getHeight());	
 		this.pad=pad;
 }
 Paint(g2,viewportWindow,scale){
@@ -1158,17 +1178,22 @@ Paint(g2,viewportWindow,scale){
 	    if(!rect.intersects(viewportWindow)){
 	        return false;
 	    }
-	    g2.beginPath();
-	    utilities.roundrect(g2,rect.x-viewportWindow.x, rect.y-viewportWindow.y, rect.width, rect.height,0);
-	    g2.closePath();
 	    if(this.pad.isSelected())
 	      g2.fillStyle = "gray";  
 	    else{
 	      g2.fillStyle = this.pad.copper.getColor();
 	    }
-	    g2.fill();
-
+	    g2._fill=true;
+        let r=this.rect.clone();
+		r.scale(scale.getScale());
+        r.move(-viewportWindow.x,- viewportWindow.y);
+		r.paint(g2);
+	    
+		g2._fill=false;
 	    return true;
+}
+move(xoffset, yoffset) {
+	this.rect.move(xoffset,yoffset);
 }
 setWidth(width) {
 		   this.pad.width=width;

@@ -130,7 +130,7 @@ var intersectLineRectangle = function(a1, a2, r1, r2) {
     
     return inter1||inter2||inter3||inter4;
 };
-
+//*******DELETE*************
 var roundrect=function (g2,x, y, w, h, r) {
 	if (w < 2 * r) r = w / 2;
 	if (h < 2 * r) r = h / 2;
