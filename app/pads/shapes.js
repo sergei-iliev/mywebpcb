@@ -865,11 +865,10 @@ PadType={
 class Pad extends core.Shape{
 	constructor(x,y,width,height) {
 	   super(x, y, width, height, -1, core.Layer.LAYER_BACK);
-	   this.arc=width;
 	   this.drill=null;
 	   this.offset=new core.Point(0,0);
 	   this.setType(PadType.THROUGH_HOLE);
-	   this.setShape(PadShape.OVAL);
+	   this.setShape(PadShape.POLYGON);
 	   this.setDisplayName("Pad");
 	   this.rotate=0;
 	   this.text=new core.ChipText();
@@ -881,11 +880,10 @@ clone(){
 	     copy.setType(this.type);
 		 copy.setX(this.getX());
 		 copy.setY(this.getY());
-	     copy.setWidth(this.getWidth());
-	     copy.setHeight(this.getHeight());
-	     copy.arc=this.arc;
+	     copy.width=this.width;
+	     copy.height=this.height;
 	     copy.rotate=this.rotate;
-	     copy.setShape(this.getShape());
+	     copy.shape=this.shape.copy(copy);
 	     copy.copper=this.copper;
 	     copy.text=this.text.clone();
 	     if(this.drill!=null){
@@ -1084,8 +1082,8 @@ Paint(g2,viewportWindow,scale){
 	//----------CircularShape-------------------
 class CircularShape{
 	constructor(pad){
-		this.circle=new d2.Circle(new d2.Point(pad.getX(),pad.getY()),pad.getWidth()/2);
 		this.pad=pad;
+		this.circle=new d2.Circle(new d2.Point(pad.getX(),pad.getY()),pad.getWidth()/2);		
 		this.setWidth(this.pad.getWidth());
 	}
     Paint(g2,viewportWindow,scale){
@@ -1110,6 +1108,11 @@ class CircularShape{
 		
 		return true;
 	}
+    copy(pad){
+  	  let _copy=new CircularShape(pad);
+  	  _copy.obround=this.circle.clone();	  
+  	  return _copy;  
+  	}    
 	move(xoffset, yoffset) {
 		this.circle.move(xoffset,yoffset);
 	}	
@@ -1147,6 +1150,11 @@ Paint(g2,viewportWindow,scale){
 
 	      return true;
 }
+copy(pad){
+	  let _copy=new OvalShape(pad);
+	  _copy.obround=this.obround.clone();	  
+	  return _copy;  
+	}
 rotate(alpha){
 	this.obround.rotate(alpha);
 }
@@ -1169,8 +1177,8 @@ setHeight(height) {
 //------------RectangularShape----------------
 class RectangularShape{
 	constructor(pad){
-		this.rect=new d2.Rectangle(new d2.Point((pad.getX()-pad.getWidth()/2)-pad.offset.x,(pad.getY()-pad.getHeight()/2)-pad.offset.y),pad.getWidth(),pad.getHeight());	
 		this.pad=pad;
+		this.rect=new d2.Rectangle(new d2.Point((pad.getX()-pad.getWidth()/2)-pad.offset.x,(pad.getY()-pad.getHeight()/2)-pad.offset.y),pad.getWidth(),pad.getHeight());			
 }
 Paint(g2,viewportWindow,scale){
 		var rect=this.pad.getBoundingShape().getScaledRect(scale);
@@ -1192,76 +1200,81 @@ Paint(g2,viewportWindow,scale){
 		g2._fill=false;
 	    return true;
 }
+copy(pad){
+  let _copy=new RectangularShape(pad);
+  _copy.rect=this.rect.clone();	  
+  return _copy;  
+}
+contains(pt){
+	return this.rect.contains(pt);
+}
+rotate(alpha){
+	this.rect.rotate(alpha);
+}
 move(xoffset, yoffset) {
 	this.rect.move(xoffset,yoffset);
 }
 setWidth(width) {
 		   this.pad.width=width;
+		   this.rect.setSize(this.pad.width,this.pad.height);
+		   this.rect.rotate(this.pad.rotate);
 }
 setHeight(height) {
-		    this.pad.height=height;           
+		   this.pad.height=height;
+		   this.rect.setSize(this.pad.width,this.pad.height);
+		   this.rect.rotate(this.pad.rotate);
 }
 }
 //--------------PolygonShape-------------------------
 class PolygonShape{
 constructor(pad){
 		this.pad=pad;
-		this.polygon=[];		
-		this.initPoints(this.pad.width / 2);
+		this.hexagon=new d2.Hexagon(new d2.Point(pad.getX(),pad.getY()),this.pad.width);		
 }	
-initPoints(r) {
-           
-            let da = (2 * Math.PI) / 6;
-            let lim = (2 * Math.PI) - (da / 2);
 
-            
-            var point=new core.Point(r * Math.cos(0), r * Math.sin(0));            
-            this.polygon.push(point);
-			for (let a = da; a < lim; a += da) {
-                point=new core.Point(r * Math.cos(a),r * Math.sin(a));
-                this.polygon.push(point);
-			}                       
-}
 Paint(g2, viewportWindow, scale) {
 		   var rect=this.pad.getBoundingShape().getScaledRect(scale);
 	       //check if outside of visible window
 	       if(!rect.intersects(viewportWindow)){
 	         return false;
 	       }
-
-		   						// scale points
-		   let dst = [];
-		   let tmp =new core.Point();
-		   this.polygon.forEach(function(point) {
-			  tmp.setLocation(point.x+this.pad.x,point.y+this.pad.y);
-			  dst.push(tmp.getScaledPoint(scale));
-		   }.bind(this));
-           
-	       g2.beginPath();
-		   g2.moveTo((dst[0].x) - viewportWindow.x, (dst[0].y)
-								- viewportWindow.y);
-		   for (var i = 1; i < dst.length; i++) {
-							g2.lineTo(dst[i].x - viewportWindow.x, dst[i].y
-									- viewportWindow.y);
-		   }
-	       
-		   g2.closePath();
 	       if(this.pad.isSelected()){
 	         g2.fillStyle = "gray";  
 		   }else{
 	         g2.fillStyle = this.pad.copper.getColor();
 	       }
-	       g2.fill();
+	        
+		   g2._fill=true;		   
+	       let p=this.hexagon.clone();
+		   p.scale(scale.getScale());
+	       p.move(-viewportWindow.x,- viewportWindow.y);
+		   p.paint(g2);
+		    
+		   g2._fill=false;
             
            return true;
 }
+copy(pad){
+	  let _copy=new PolygonShape(pad);
+	  _copy.hexagon=this.hexagon.clone();	  
+	  return _copy;  
+	}
+contains(pt){
+		return this.hexagon.contains(pt);
+	}
+rotate(alpha){
+		this.hexagon.rotate(alpha);
+	}
+move(xoffset, yoffset) {
+		this.hexagon.move(xoffset,yoffset);
+	}
 setWidth(width) {
             this.pad.width=width;
             this.pad.height=width;
-            this.initPoints(this.pad.width / 2);
+            this.hexagon.setWidth(width);
 }
 setHeight(height) {
-            //this.pad.height=height;
+            
 }	
 }
 module.exports ={

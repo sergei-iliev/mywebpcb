@@ -75,13 +75,17 @@ module.exports = function(d2) {
 		    return this.points;	
 		}        
         paint(g2){
-        	g2.beginPath();
-        	g2.moveTo(this.points[0].x,this.points[0].y);
-        	for (var i = 1; i < this.points.length; i++) {
-        						g2.lineTo(this.points[i].x, this.points[i].y);
-        	}
-        	g2.closePath();                  
-            g2.stroke();
+	    	g2.beginPath();
+	    	g2.moveTo(this.points[0].x,this.points[0].y);
+	    	for (var i = 1; i < this.points.length; i++) {
+	    						g2.lineTo(this.points[i].x, this.points[i].y);
+	    	}
+	    	g2.closePath();                    
+	    	if(g2._fill!=undefined&&g2._fill){
+	        	  g2.fill();	
+	        }else{
+	        	  g2.stroke();
+	        }
         }
     }
 }

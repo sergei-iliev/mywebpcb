@@ -5,7 +5,6 @@ module.exports = function(d2) {
 	d2.Rectangle = class Rectangle extends d2.Polygon{
 		constructor(p1,width,height) {
 			super();
-		    this.rounding=10;
 			this.points.push(p1.clone());     //topleft point
 			this.points.push(new d2.Point(p1.x+width,p1.y));
 			this.points.push(new d2.Point(p1.x+width,p1.y+height));
@@ -19,7 +18,18 @@ module.exports = function(d2) {
     	    });  
     	    return copy;
 		}
-        createArc(center, start, end) {
+		reset(width,height){
+			let pc=this.box.center;			
+			this.points=[];
+			this.points.push(new d2.Point(pc.x-(width/2),pc.y-(height/2)));     //topleft point
+			this.points.push(new d2.Point(pc.x+(width/2),pc.y-(height/2)));
+			this.points.push(new d2.Point(pc.x+(width/2),pc.y+(height/2)));
+			this.points.push(new d2.Point(pc.x-(width/2),pc.y+(height/2)));						
+		}
+		setSize(width,height){
+		  this.reset(width,height);			    
+		}
+		createArc(center, start, end) {
             let startAngle =360 -(new d2.Vector(center,start)).slope;
             let endAngle = (new d2.Vector(center, end)).slope;
             
@@ -309,9 +319,9 @@ module.exports = function(d2) {
 			}
 	    	
 		}
-//		doscale(alpha){
-//			super.scale(alpha);
-//		}		
+		rotate(angle,center = {x:this.box.center.x, y:this.box.center.y}){
+			super.rotate(angle,center);
+		}
 		get box(){
 			return super.box;
 		}

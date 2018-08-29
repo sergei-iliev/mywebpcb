@@ -24,7 +24,7 @@ module.exports = function(d2) {
 			return copy;
 		}
 		setWidth(width){
-			this.width=width;		    
+			this.width=width;			
 		}
 		setHeight(height){
 		    this.height=height;
@@ -66,6 +66,7 @@ module.exports = function(d2) {
 			this.pe=new d2.Point(this.pc.x+(this.height/2),this.pc.y);								   	
 		}
     	rotate(angle,center = {x:this.pc.x, y:this.pc.y}){
+    	   this.pc.rotate(angle,center);
       	   this.ps.rotate(angle,center);
       	   this.pe.rotate(angle,center);      	   
       	}
