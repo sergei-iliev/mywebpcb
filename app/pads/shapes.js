@@ -4,7 +4,7 @@ var Shape=require('core/core').Shape;
 var AbstractLine=require('core/shapes').AbstractLine;
 var ResizeableShape=require('core/core').ResizeableShape;
 var glyph=require('core/text/glyph');
-var font=require('core/text/font');
+var font=require('core/text/d2font');
 var d2=require('d2/d2');
 
 
@@ -872,7 +872,7 @@ class Pad extends core.Shape{
 	   this.setDisplayName("Pad");
 	   this.rotate=0;
 	   this.text=new core.ChipText();
-	   this.text.Add(new font.FontTexture("number","",x,y,new core.Alignment(core.AlignEnum.LEFT),4000));
+	   this.text.Add(new font.FontTexture("number","1",x,y,new core.Alignment(core.AlignEnum.LEFT),4000));
 	   this.text.Add(new font.FontTexture("netvalue","",x,y,new core.Alignment(core.AlignEnum.LEFT),4000));   
 	}
 clone(){

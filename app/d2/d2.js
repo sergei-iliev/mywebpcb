@@ -1,7 +1,11 @@
+		
+var d2 ={
+		
+};
 
+require("./text/fontmetrics");
 
-var d2 ={};
-
+require("./shapes/fonttext")(d2);
 require("./shapes/point")(d2);
 require("./shapes/box")(d2);
 require("./shapes/line")(d2);

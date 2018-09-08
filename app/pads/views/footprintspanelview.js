@@ -312,39 +312,39 @@ var PadPanelBuilder=BaseBuilder.extend({
 	        j$('#typeid').val(this.target.type);  
 	        j$('#shapeid').val(this.target.getShape());  
 	        //-------number---------
-	        j$('#numberid').val(this.target.getChipText().getTextureByTag("number").text); 
-	        j$('#numbersizeid').val(core.COORD_TO_MM(this.target.getChipText().getTextureByTag("number").fontSize)); 
+	        j$('#numberid').val(this.target.getChipText().getTextureByTag("number").shape.text); 
+	        j$('#numbersizeid').val(core.COORD_TO_MM(this.target.getChipText().getTextureByTag("number").shape.fontSize)); 
 	        
 	        if(this.target.getChipText().getTextureByTag("number").isEmpty()){
 	            j$('#numberxid').val('');
 				j$('#numberyid').val('');
 	        }else{ 
-	         j$('#numberxid').val(this.toUnitX(this.target.getChipText().getTextureByTag("number").anchorPoint.x));
-			 j$('#numberyid').val(this.toUnitY(this.target.getChipText().getTextureByTag("number").anchorPoint.y));
+	         j$('#numberxid').val(this.toUnitX(this.target.getChipText().getTextureByTag("number").shape.anchorPoint.x));
+			 j$('#numberyid').val(this.toUnitY(this.target.getChipText().getTextureByTag("number").shape.anchorPoint.y));
 	        }	       
 	        
 	   	    //set orientation
-	   	    j$('#numberorientationid').val(this.target.getChipText().get(0).getAlignment().getOrientation());
+	   	    //j$('#numberorientationid').val(this.target.getChipText().get(0).getAlignment().getOrientation());
 	   	    //set alignment
-	   	    this.validateAlignmentComboText('numberalignmentid',this.target.getChipText().get(0));
+	   	    //this.validateAlignmentComboText('numberalignmentid',this.target.getChipText().get(0));
 
 	        //-------netvalue--------
-	        j$('#netvalueid').val(this.target.getChipText().getTextureByTag("netvalue").text); 
-	        j$('#netvaluesizeid').val(core.COORD_TO_MM(this.target.getChipText().getTextureByTag("netvalue").fontSize)); 
+	        j$('#netvalueid').val(this.target.getChipText().getTextureByTag("netvalue").shape.text); 
+	        j$('#netvaluesizeid').val(core.COORD_TO_MM(this.target.getChipText().getTextureByTag("netvalue").shape.fontSize)); 
 	        
 	        if(this.target.getChipText().getTextureByTag("netvalue").isEmpty()){
 	            j$('#netvaluexid').val('');
 				j$('#netvalueyid').val('');
 	        }else{ 
-	         j$('#netvaluexid').val(this.toUnitX(this.target.getChipText().getTextureByTag("netvalue").anchorPoint.x));
-			 j$('#netvalueyid').val(this.toUnitY(this.target.getChipText().getTextureByTag("netvalue").anchorPoint.y));
+	         j$('#netvaluexid').val(this.toUnitX(this.target.getChipText().getTextureByTag("netvalue").shape.anchorPoint.x));
+			 j$('#netvalueyid').val(this.toUnitY(this.target.getChipText().getTextureByTag("netvalue").shape.anchorPoint.y));
 	        }
 	        
 	       
 	   	    //set orientation
-	   	    j$('#netvalueorientationid').val(this.target.getChipText().get(1).getAlignment().getOrientation());
+	   	    //j$('#netvalueorientationid').val(this.target.getChipText().get(1).getAlignment().getOrientation());
 	   	    //set alignment
-	   	    this.validateAlignmentComboText('netvaluealignmentid',this.target.getChipText().get(1));
+	   	    //this.validateAlignmentComboText('netvaluealignmentid',this.target.getChipText().get(1));
 	        
 	        //-----drill and offset------
 	        j$('#drillwidthid').val(core.COORD_TO_MM(this.target.drill==null?0:this.target.drill.getWidth()));
