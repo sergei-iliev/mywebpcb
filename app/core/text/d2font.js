@@ -16,7 +16,19 @@ clone(){
  } 
 isEmpty() {
      return this.shape.text==null||this.shape.text.length==0;
- } 
+ }
+isClicked(x,y){
+    var r=this.getBoundingRect();
+    if ((r != null) && (r.contains(x, y)))
+        return true;
+    else
+        return false;
+}
+getBoundingRect(){
+    if (this.shape.text == null || this.shape.text.length == 0){
+        return null;
+    } 
+}
 Move(xoffset, yoffset){
    this.shape.move(xoffset, yoffset);  
 }
