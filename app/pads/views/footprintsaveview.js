@@ -93,7 +93,6 @@ var FootprintSaveView=Backbone.View.extend({
   	  this.unbind();
     },		  
     onsave:function(){
-    	console.log(j$('#savelibrarycombo').val());
     	let library=j$('#savelibrarycombo').val()!=''?j$('#savelibrarycombo').val():'null';
     	let category=j$('#savecategorycombo').val()!=''?j$('#savecategorycombo').val():'null'
 	    let name=j$('#name').val()!=''?j$('#name').val():'null'

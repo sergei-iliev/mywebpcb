@@ -4,7 +4,6 @@ class FontTexture{
  constructor(tag,text,x,y,alignment,fontSize) {
     this.tag=tag;
 	this.shape=new d2.FontText(new d2.Point(x,y),text,fontSize);    
-	this.shape.rotate(45);
 	this.alignment=alignment;
 	this.selection=false;
 	this.selectionRectWidth=3000;
@@ -18,20 +17,29 @@ isEmpty() {
      return this.shape.text==null||this.shape.text.length==0;
  }
 isClicked(x,y){
-    var r=this.getBoundingRect();
-    if ((r != null) && (r.contains(x, y)))
-        return true;
-    else
+    if (this.shape.text == null || this.shape.text.length == 0){
         return false;
+    } 
+    return this.shape.contains(new d2.Point(x,y));
+    
 }
 getBoundingRect(){
     if (this.shape.text == null || this.shape.text.length == 0){
         return null;
     } 
+    
+}
+
+setText(text){
+	this.shape.setText(text);
+}
+setRotation(rotate,pt){	
+  this.shape.rotate(rotate,pt);
 }
 Move(xoffset, yoffset){
    this.shape.move(xoffset, yoffset);  
 }
+
 Paint(g2,viewportWindow,scale){
 	 if(this.isEmpty()){
 	   return;	 
@@ -46,8 +54,9 @@ Paint(g2,viewportWindow,scale){
 	 let t=this.shape.clone();
      t.scale(scale.getScale());
      t.move(-viewportWindow.x,- viewportWindow.y);
-	 t.paint(g2);
 	 
+     t.paint(g2);
+
 	
 }
 

@@ -88,9 +88,9 @@ module.exports = function(d2) {
 		move(offsetX,offsetY){
 			this.anchorPoint.move(offsetX,offsetY);
 		}
-		rotate(angle, center = {x:this.anchorPoint.x, y:this.anchorPoint.y}) {
+		rotate(angle, center = {x:this.anchorPoint.x, y:this.anchorPoint.y}) {        	
+        	this.anchorPoint.rotate((angle-this.rotation),center);
         	this.rotation=angle;
-        	this.anchorPoint.rotate(angle,center);
         }
 		mirror(line){
 		   	

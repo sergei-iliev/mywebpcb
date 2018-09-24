@@ -210,7 +210,6 @@ Mirror(A,B) {
 
  }
  Rotate(rotation){
-	 console.log();
 	 let p=utilities.rotate(this.anchorPoint, rotation.originx, rotation.originy, rotation.angle);
 	 this.anchorPoint.setLocation(p.x,p.y);
 	 let oldorientation=this.alignment.getOrientation();

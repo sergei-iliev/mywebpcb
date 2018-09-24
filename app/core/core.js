@@ -936,6 +936,11 @@ Mirror( A, B) {
 		 texture.Mirror(A,B); 
 	  });         
 }
+setRotation(alpha,pt){
+	  this.text.forEach(function(texture){
+			 texture.setRotation(alpha,pt); 
+		  }); 	
+}
 Rotate(rotation) {
 		  this.text.forEach(function(texture){
 		     texture.Rotate(rotation); 

@@ -296,8 +296,6 @@ class CursorEventHandle extends EventHandle{
 		 super.Attach();
 		    this.mx = this.target.getCenter().x;
 		    this.my = this.target.getCenter().y;
-		    console.log("attach");
-		    console.log(this.mx+":"+this.my);
 	 }	 
 	 mousePressed(event){
 		 if(event.which==3){

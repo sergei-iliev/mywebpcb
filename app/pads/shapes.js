@@ -895,6 +895,7 @@ clone(){
 setRotation(rotate){
 	let alpha=rotate-this.rotate;	
 	this.shape.rotate(alpha);
+	this.text.setRotation(rotate,{x:this.x,y:this.y});
 	this.rotate=rotate;
 }
 getChipText() {
@@ -1007,7 +1008,7 @@ Rotate(rotation){
 	    if(this.drill!=null){
 	       this.drill.Rotate(rotation);
 	    }
-	    this.text.Rotate(rotation);		
+	    //this.text.Rotate(rotation);		
 	}
 setType(type) {
 	        this.type = type;
