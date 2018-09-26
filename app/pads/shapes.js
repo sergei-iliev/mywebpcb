@@ -182,6 +182,9 @@ class RoundRect extends Shape{
 	Move(xoffset, yoffset) {
 		this.roundRect.move(xoffset,yoffset);
 	}
+	Rotate(rotation){		
+		this.roundRect.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	}
 	Resize(xoffset, yoffset,clickedPoint){
 		this.roundRect.resize(xoffset, yoffset,clickedPoint);
 	}
@@ -319,6 +322,9 @@ isControlRectClicked(x,y) {
 	Move(xoffset, yoffset) {
 		this.circle.move(xoffset,yoffset);
 	}	
+	Rotate(rotation){
+		this.circle.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	}
 	Resize(xoffset, yoffset,point) {    
         let quadrant= utilities.getQuadrantLocation(point,this.circle.center.x,this.circle.center.y);
         let radius=this.circle.r;
@@ -509,20 +515,7 @@ isExtendAnglePointClicked(x,y){
 	}
 }	
 Rotate(rotation){
-   super.Rotate(rotation);
-   if(rotation.angle>0) {        //right                               
-       if((this.startAngle-90)<0){
-          this.startAngle=360-(90-this.startAngle); 
-       }else{
-          this.startAngle+=-90;   
-       }                                 
-   }else{                          //left                                
-       if((this.startAngle+90)>360){
-         this.startAngle=90-(360-this.startAngle);
-       }else{
-         this.startAngle+=90; 
-       }             
-   } 
+  this.arc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy)); 
 }
 Mirror(A,B) {
     super.Mirror(A,B);
@@ -744,46 +737,48 @@ fromXML(data) {
 }
 
 
-class Drill extends Shape{
-	 constructor(width,height) {
-		super(0,0,width,height,-1);
+class Drill{
+	 constructor(width) {
+	    this.shape=new d2.Circle(new d2.Point(0,0),width/2);
+	 }
+	 clone(){
+		 let copy= new Drill(0);
+		 copy.shape.pc.x=this.shape.pc.x;
+		 copy.shape.pc.y=this.shape.pc.y;
+		 copy.shape.r=this.shape.r;
+		 return copy;
 	 }
 	 setLocation(x,y){
-	   this.x=x;
-	   this.y=y;
+        this.shape.pc.x=x;
+        this.shape.pc.y=y;
 	 }
-	Move( xoffset, yoffset) {
-	      this.x+=xoffset;
-	      this.y+=yoffset;
-	    }
-	Rotate(rotation) {
-	    	var a=new core.Point(this.x,this.y);
-	    	var p=utilities.rotate(a, rotation.originx, rotation.originy, rotation.angle);
-	        this.setX(p.x);
-	        this.setY(p.y);
-	        var w=this.getWidth();
-	        this.setWidth(this.getHeight());
-	        this.setHeight(w);        
+	 Move( xoffset, yoffset) {
+		this.shape.move(xoffset,yoffset);
+	 }
+	 getWidth(){
+		 return 2*this.shape.r;
+	 }
+	 setWidth(width){
+		 this.shape.r=width/2;
+	 }
+	 Rotate(rotation) {	    		    
+	    	this.shape.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	 } 
-    Mirror(A,B) {
-        let source=new core.Point(this.x,this.y);
-        utilities.mirrorPoint(A,B, source); 
-        this.setX(source.x);
-        this.setY(source.y);
-    }	
-	calculateShape() {
-		 return new core.Rectangle((this.getX()-this.getWidth()/2),(this.getY()-this.getWidth()/2),this.getWidth(),this.getWidth());
-	}
+	 getBoundingBox() {
+        return this.shape.box; 		 
+	 }
 	Paint(g2,viewportWindow,scale){
-		var rect=this.getBoundingShape().getScaledRect(scale);
-	    g2.beginPath(); //clear the canvas context
-		g2.arc((rect.x+(rect.width/2))-viewportWindow.x, (rect.y+(rect.width/2))-viewportWindow.y, rect.width/2, 0, 2 * Math.PI, false);
-	    g2.closePath();
+	    g2._fill=true;
 	    g2.fillStyle = 'black';
-	    g2.fill();
+	    let c=this.shape.clone();
+		c.scale(scale.getScale());
+        c.move(-viewportWindow.x,- viewportWindow.y);
+		c.paint(g2);
+		
+		g2._fill=false;
 	}
 	toXML(){
-	    return "<drill type=\"CIRCULAR\" x=\""+this.getX()+"\" y=\""+this.getY()+"\" width=\""+this.getWidth()+"\" height=\""+this.getHeight()+"\" />";	
+	    return "<drill type=\"CIRCULAR\" x=\""+this.shape.pc.x+"\" y=\""+this.shape.pc.y+"\" width=\""+this.shape.radius+"\" height=\""+this.shape.radius+"\" />";	
 	}
 	fromXML(data){ 
 	   this.setX(parseInt(j$(data).attr("x")));
@@ -887,14 +882,13 @@ clone(){
 	     copy.copper=this.copper;
 	     copy.text=this.text.clone();
 	     if(this.drill!=null){
-	    	 copy.drill=new Drill(this.drill.width,this.drill.height);
-	    	 copy.drill.setLocation(this.drill.x,this.drill.y);
+	    	 copy.drill=this.drill.clone();
 	     }
 	     return copy;
 	}
 setRotation(rotate){
 	let alpha=rotate-this.rotate;	
-	this.shape.rotate(alpha);
+	this.shape.rotate(alpha,null);
 	this.text.setRotation(rotate,{x:this.x,y:this.y});
 	this.rotate=rotate;
 }
@@ -998,17 +992,20 @@ Mirror(A,B) {
     this.text.Mirror(A, B);
 }
 Rotate(rotation){
-		var a=new core.Point(this.getX(),this.getY());
-		var p=utilities.rotate(a, rotation.originx, rotation.originy, rotation.angle);
-	    this.setX(p.x);
-	    this.setY(p.y);
-	    let w=this.getWidth();
-	    this.setWidth(this.getHeight());
-	    this.setHeight(w);
-	    if(this.drill!=null){
-	       this.drill.Rotate(rotation);
-	    }
-	    //this.text.Rotate(rotation);		
+	let alpha=this.rotate+rotation.angle;
+	if(alpha>=360){
+		alpha-=360
+	}
+	 if(alpha<0){
+		 alpha+=360; 
+	 }
+	this.shape.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	
+    if(this.drill!=null){
+     this.drill.Rotate(rotation);
+    }	
+	this.text.setRotation(alpha,new d2.Point(rotation.originx,rotation.originy));
+	this.rotate=alpha;
+	
 	}
 setType(type) {
 	        this.type = type;
@@ -1156,8 +1153,12 @@ copy(pad){
 	  _copy.obround=this.obround.clone();	  
 	  return _copy;  
 	}
-rotate(alpha){
-	this.obround.rotate(alpha);
+rotate(alpha,origin){
+	if(origin==null){
+	  this.obround.rotate(alpha);
+	}else{
+	  this.obround.rotate(alpha,origin);	
+	}
 }
 contains(pt){
 	return this.obround.contains(pt);
@@ -1263,9 +1264,13 @@ copy(pad){
 contains(pt){
 		return this.hexagon.contains(pt);
 	}
-rotate(alpha){
-		this.hexagon.rotate(alpha);
+rotate(alpha,origin){
+	if(origin==null){
+	  this.hexagon.rotate(alpha);
+	}else{
+	  this.hexagon.rotate(alpha,origin);	
 	}
+}
 move(xoffset, yoffset) {
 		this.hexagon.move(xoffset,yoffset);
 	}
