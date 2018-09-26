@@ -23,6 +23,14 @@ module.exports = function(d2) {
 			copy.pe.y=this.pe.y;
 			return copy;
 		}
+		get box(){
+			 return new d2.Box(
+		                Math.min(this.ps.x, this.pe.x),
+		                Math.min(this.ps.y, this.pe.y),
+		                Math.max(this.ps.x, this.pe.x),
+		                Math.max(this.ps.y, this.pe.y)
+		            );			
+		}
 		setWidth(width){
 			this.width=width;			
 		}

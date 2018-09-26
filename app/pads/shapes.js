@@ -739,38 +739,35 @@ fromXML(data) {
 
 class Drill{
 	 constructor(width) {
-	    this.shape=new d2.Circle(new d2.Point(0,0),width/2);
+	    this.circle=new d2.Circle(new d2.Point(0,0),width/2);
 	 }
 	 clone(){
 		 let copy= new Drill(0);
-		 copy.shape.pc.x=this.shape.pc.x;
-		 copy.shape.pc.y=this.shape.pc.y;
-		 copy.shape.r=this.shape.r;
+		 copy.circle.pc.x=this.circle.pc.x;
+		 copy.circle.pc.y=this.circle.pc.y;
+		 copy.circle.r=this.circle.r;
 		 return copy;
 	 }
 	 setLocation(x,y){
-        this.shape.pc.x=x;
-        this.shape.pc.y=y;
+        this.circle.pc.x=x;
+        this.circle.pc.y=y;
 	 }
 	 Move( xoffset, yoffset) {
-		this.shape.move(xoffset,yoffset);
+		this.circle.move(xoffset,yoffset);
 	 }
 	 getWidth(){
-		 return 2*this.shape.r;
+		 return 2*this.circle.r;
 	 }
 	 setWidth(width){
-		 this.shape.r=width/2;
+		 this.circle.r=width/2;
 	 }
 	 Rotate(rotation) {	    		    
-	    	this.shape.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	    	this.circle.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	 } 
-	 getBoundingBox() {
-        return this.shape.box; 		 
-	 }
 	Paint(g2,viewportWindow,scale){
 	    g2._fill=true;
 	    g2.fillStyle = 'black';
-	    let c=this.shape.clone();
+	    let c=this.circle.clone();
 		c.scale(scale.getScale());
         c.move(-viewportWindow.x,- viewportWindow.y);
 		c.paint(g2);
@@ -778,7 +775,7 @@ class Drill{
 		g2._fill=false;
 	}
 	toXML(){
-	    return "<drill type=\"CIRCULAR\" x=\""+this.shape.pc.x+"\" y=\""+this.shape.pc.y+"\" width=\""+this.shape.radius+"\" height=\""+this.shape.radius+"\" />";	
+	    return "<drill type=\"CIRCULAR\" x=\""+this.circle.pc.x+"\" y=\""+this.circle.pc.y+"\" width=\""+this.circle.radius+"\" height=\""+this.circle.radius+"\" />";	
 	}
 	fromXML(data){ 
 	   this.setX(parseInt(j$(data).attr("x")));
@@ -863,7 +860,7 @@ class Pad extends core.Shape{
 	   this.drill=null;
 	   this.offset=new core.Point(0,0);
 	   this.setType(PadType.THROUGH_HOLE);
-	   this.setShape(PadShape.POLYGON);
+	   this.setShape(PadShape.CIRCULAR);
 	   this.setDisplayName("Pad");
 	   this.rotate=0;
 	   this.text=new core.ChipText();
@@ -1085,11 +1082,16 @@ class CircularShape{
 		this.setWidth(this.pad.getWidth());
 	}
     Paint(g2,viewportWindow,scale){
-		var rect=this.pad.getBoundingShape().getScaledRect(scale);
-	    //check if outside of visible window
-	    if(!rect.intersects(viewportWindow)){
-	    	return false;
-	    }
+	     var box=this.circle.box;
+	     box.scale(scale.scale);     
+       //check if outside of visible window
+	     var window=new d2.Box(0,0,0,0);
+	     window.setRect(viewportWindow.x,viewportWindow.y,viewportWindow.width,viewportWindow.height);
+         if(!box.intersects(window)){
+           return false;
+         }
+	    
+	    
 		if(this.pad.isSelected())
 	        g2.fillStyle = "gray";  
 	    else{
@@ -1110,7 +1112,10 @@ class CircularShape{
   	  let _copy=new CircularShape(pad);
   	  _copy.obround=this.circle.clone();	  
   	  return _copy;  
-  	}    
+  	} 
+    contains(pt){
+    	return this.circle.contains(pt);
+    }
 	move(xoffset, yoffset) {
 		this.circle.move(xoffset,yoffset);
 	}	
@@ -1129,17 +1134,21 @@ class OvalShape{
 	   this.obround=new d2.Obround(new d2.Point(pad.getX(),pad.getY()),pad.getWidth(),pad.getHeight());
 	}
 Paint(g2,viewportWindow,scale){
-		  var rect=this.pad.getBoundingShape().getScaledRect(scale);
-	      //check if outside of visible window
-	      if(!rect.intersects(viewportWindow)){
-	        return false;
-	      }
-	      g2.lineWidth = this.obround.width * scale.getScale();
-	      if(this.pad.isSelected())
+	     var box=this.obround.box;
+	     box.scale(scale.scale);     
+       //check if outside of visible window
+	     var window=new d2.Box(0,0,0,0);
+	     window.setRect(viewportWindow.x,viewportWindow.y,viewportWindow.width,viewportWindow.height);
+         if(!box.intersects(window)){
+           return false;
+         }
+         
+	     g2.lineWidth = this.obround.width * scale.getScale();
+	     if(this.pad.isSelected())
 	        g2.strokeStyle = "gray";  
-	      else{
+	     else{
 	        g2.strokeStyle = this.pad.copper.getColor();
-	      }
+	     }
 	      
 		   let o=this.obround.clone();
 		   o.scale(scale.getScale());
@@ -1183,11 +1192,15 @@ class RectangularShape{
 		this.rect=new d2.Rectangle(new d2.Point((pad.getX()-pad.getWidth()/2)-pad.offset.x,(pad.getY()-pad.getHeight()/2)-pad.offset.y),pad.getWidth(),pad.getHeight());			
 }
 Paint(g2,viewportWindow,scale){
-		var rect=this.pad.getBoundingShape().getScaledRect(scale);
-	    //check if outside of visible window
-	    if(!rect.intersects(viewportWindow)){
-	        return false;
-	    }
+	   var box=this.rect.box;
+	   box.scale(scale.scale);     
+       //check if outside of visible window
+	   var window=new d2.Box(0,0,0,0);
+	   window.setRect(viewportWindow.x,viewportWindow.y,viewportWindow.width,viewportWindow.height);
+       if(!box.intersects(window)){
+         return false;
+       }
+       
 	    if(this.pad.isSelected())
 	      g2.fillStyle = "gray";  
 	    else{
@@ -1235,9 +1248,12 @@ constructor(pad){
 }	
 
 Paint(g2, viewportWindow, scale) {
-		   var rect=this.pad.getBoundingShape().getScaledRect(scale);
+		   var box=this.hexagon.box;
+		   box.scale(scale.scale);     
 	       //check if outside of visible window
-	       if(!rect.intersects(viewportWindow)){
+		   var window=new d2.Box(0,0,0,0);
+		   window.setRect(viewportWindow.x,viewportWindow.y,viewportWindow.width,viewportWindow.height);
+	       if(!box.intersects(window)){
 	         return false;
 	       }
 	       if(this.pad.isSelected()){

@@ -56,6 +56,10 @@ module.exports = function(d2) {
       get height(){
     	  return this.max.y-this.min.y;
       }
+      scale(alpha){
+    	this.min.scale(alpha);
+    	this.max.scale(alpha);
+      }
       contains(pt){
     	  if(this.min.x<=pt.x&&pt.x<=this.max.x){
     	    if(this.min.y<=pt.y&&pt.y<=this.max.y)
@@ -63,6 +67,19 @@ module.exports = function(d2) {
     	  }
     	  return false;
       }
+      not_intersects(other) {
+          return (
+              this.max.x < other.min.x ||
+              this.min.x > other.max.x ||
+              this.max.y < other.min.y ||
+              this.min.y > other.max.y
+          );
+      }
+
+      intersects(other) {
+          return !this.not_intersects(other);
+      }
+      
 	  get vertices() {
 		 return [this.min,new d2.Point(this.max.x,this.min.y),this.max,new d2.Point(this.min.x,this.max.y)];	
 	  }
