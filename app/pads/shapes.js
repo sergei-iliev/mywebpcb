@@ -61,7 +61,7 @@ calculateShape(){
   return this.texture.getBoundingShape();
 }
 getCenter() {
-    return new core.Point(this.texture.getBoundingShape().getCenterX(),this.texture.getBoundingShape().getCenterY());
+    return new d2.Point(this.texture.getBoundingShape().getCenterX(),this.texture.getBoundingShape().getCenterY());
 }
 getTexture(){
   return this.texture;    
@@ -131,12 +131,11 @@ class RoundRect extends Shape{
 		return copy;
 	}
 	calculateShape() {
-		let box=this.roundRect.box;
-		return new core.Rectangle(box.min.x,box.min.y,box.width,box.height);
+		return this.roundRect.box;		
 	}
 	getCenter() {
 		let box=this.roundRect.box;
-	    return new core.Point(box.center.x,box.center.y);
+	    return new d2.Point(box.center.x,box.center.y);
 	}
 	setSelected (selection) {
 		super.setSelected(selection);
@@ -212,7 +211,8 @@ class RoundRect extends Shape{
 		this.fill = parseInt(j$(data).attr("fill"));
 	}
 	Paint(g2, viewportWindow, scale) {
-		var rect = this.getBoundingShape().getScaledRect(scale);
+		var rect = this.roundRect.box;
+		rect.scale(scale.getScale());
 		if (!rect.intersects(viewportWindow)) {
 			return;
 		}
@@ -263,8 +263,7 @@ clone() {
 	return new Circle(this.circle.center.x,this.circle.center.y,this.circle.radius,this.thickness,this.copper.getLayerMaskID());				
 	}	
 calculateShape(){    
-	 let box=this.circle.box;
-	 return new core.Rectangle(box.min.x,box.min.y,box.width,box.height);
+	 return this.circle.box;	 
     }
 alignToGrid(isRequired) {
         if(isRequired){
@@ -354,7 +353,8 @@ isControlRectClicked(x,y) {
         this.circle.r=radius;
     }	
 	Paint(g2, viewportWindow, scale) {
-		let rect = this.getBoundingShape().getScaledRect(scale);
+		var rect = this.circle.box;
+		rect.scale(scale.getScale());
 		if (!rect.intersects(viewportWindow)) {
 			return;
 		}
@@ -423,8 +423,7 @@ clone() {
 		return copy;
 }
 calculateShape() {
-	let box=this.arc.box;
-	return new core.Rectangle(box.min.x,box.min.y,box.width,box.height);
+	return this.arc.box;	
 }
 getOrderWeight(){
     return this.arc.r*this.arc.r; 
@@ -551,11 +550,12 @@ Move(xoffset,yoffset){
 }
 Paint(g2, viewportWindow, scale) {
 		
-		var rect = this.getBoundingShape().getScaledRect(scale);
+		var rect = this.arc.box;
+		rect.scale(scale.getScale());
 		if (!rect.intersects(viewportWindow)) {
 			return;
 		}
-		// ****3 http://scienceprimer.com/draw-oval-html5-canvas
+
 		g2.globalCompositeOperation = 'lighter';
 		g2.beginPath(); // clear the canvas context
 		g2.lineCap = 'round';
@@ -605,7 +605,7 @@ getResizingPoint() {
 }
 calculateResizingMidPoint(x,y){
 	let a=this.arc.middle;
-	let b=new core.Point(this.arc.center.x,this.arc.center.y);
+	let b=new d2.Point(this.arc.center.x,this.arc.center.y);
 	//let p=this.resizingPoint;
 	let p={x,y};
 	
@@ -615,7 +615,7 @@ calculateResizingMidPoint(x,y){
     let dot = atop.x * atob.x + atop.y * atob.y;
     let t = dot / len ;
   
-    return new core.Point(a.x + atob.x * t,a.y + atob.y * t);	
+    return new d2.Point(a.x + atob.x * t,a.y + atob.y * t);	
 }
 drawMousePoint(g2,viewportWindow,scale){
 
@@ -633,15 +633,15 @@ constructor(thickness,layermaskId) {
 			this.selectionRectWidth = 3000;
 			this.setDisplayName("Line");			
 			this.points = [];
-			this.floatingStartPoint = new core.Point(0, 0); // ***the
+			this.floatingStartPoint = new d2.Point(0, 0); // ***the
 																				// last
 																				// wire
 																				// point
-			this.floatingMidPoint = new core.Point(0, 0); // ***mid
+			this.floatingMidPoint = new d2.Point(0, 0); // ***mid
 																			// 90
 																			// degree
 																			// forming
-			this.floatingEndPoint = new core.Point(0, 0);
+			this.floatingEndPoint = new d2.Point(0, 0);
 }
 clone() {
 		var copy = new Line(this.thickness,this.copper.getLayerMaskID());
@@ -858,7 +858,7 @@ class Pad extends core.Shape{
 	constructor(x,y,width,height) {
 	   super(x, y, width, height, -1, core.Layer.LAYER_BACK);
 	   this.drill=null;
-	   this.offset=new core.Point(0,0);
+	   this.offset=new d2.Point(0,0);
 	   this.setType(PadType.THROUGH_HOLE);
 	   this.setShape(PadShape.CIRCULAR);
 	   this.setDisplayName("Pad");
@@ -979,7 +979,7 @@ Move(xoffset, yoffset){
 	}
 
 Mirror(A,B) {
-    let source = new core.Point(this.x,this.y);
+    let source = new d2.Point(this.x,this.y);
     utilities.mirrorPoint(A, B, source);
     this.setX(source.x);
     this.setY(source.y);
@@ -1051,8 +1051,9 @@ setHeight(height){
 	        this.shape.setHeight(height);
 	    }
 calculateShape() {
-	        return new core.Rectangle((this.getX()-this.getWidth()/2)-this.offset.x,(this.getY()-this.getHeight()/2)-this.offset.y,this.getWidth(),this.getHeight());
-	    } 
+	        //return new core.Rectangle((this.getX()-this.getWidth()/2)-this.offset.x,(this.getY()-this.getHeight()/2)-this.offset.y,this.getWidth(),this.getHeight());
+	return this.shape.box;
+} 
 setLocation( x,  y) {
 		 throw new IllegalStateException("Doubt that setLocation will be invoked");
 	}    

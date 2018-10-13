@@ -1,4 +1,4 @@
-var fontmetrics=require('core/text/fontmetrics');
+//var fontmetrics=require('core/text/fontmetrics');
 
 
 //var getCanvas=function(){
@@ -292,5 +292,5 @@ var utilities=require('core/utilities');
 
 
 module.exports ={
-   FontTexture
+   //FontTexture
 }

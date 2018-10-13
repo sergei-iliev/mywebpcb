@@ -3,12 +3,28 @@ module.exports = function(d2) {
 	 * rectangle is represented by 4 points
 	 */
 	d2.Rectangle = class Rectangle extends d2.Polygon{
-		constructor(p1,width,height) {
+		constructor(...args) {
 			super();
-			this.points.push(p1.clone());     //topleft point
-			this.points.push(new d2.Point(p1.x+width,p1.y));
-			this.points.push(new d2.Point(p1.x+width,p1.y+height));
-			this.points.push(new d2.Point(p1.x,p1.y+height));
+			if(args.length==3){     //***topleft point,width,height
+			  let p1=args[0];
+			  let width=args[1];
+			  let height=args[2];
+			  
+			  this.points.push(p1.clone());     
+			  this.points.push(new d2.Point(p1.x+width,p1.y));
+			  this.points.push(new d2.Point(p1.x+width,p1.y+height));
+			  this.points.push(new d2.Point(p1.x,p1.y+height));
+			}
+			if(args.length==4){	  //***x,y,width,height
+				  let p1=new d2.Point(args[0],args[1]);
+				  let width=args[2];
+				  let height=args[3];
+				  
+				  this.points.push(p1);     
+				  this.points.push(new d2.Point(p1.x+width,p1.y));
+				  this.points.push(new d2.Point(p1.x+width,p1.y+height));
+				  this.points.push(new d2.Point(p1.x,p1.y+height));				
+			}
 		}
 		clone(){
     	    let copy=new d2.Rectangle(new d2.Point(0,0),0,0);
@@ -28,6 +44,12 @@ module.exports = function(d2) {
 		}
 		setSize(width,height){
 		  this.reset(width,height);			    
+		}
+		setRect(x,y,width,height){						  
+			  this.points[0].set(x,y);			  
+			  this.points[1].set(x+width,y);
+			  this.points[2].set(x+width,y+height);
+			  this.points[3].set(x,y+height);									
 		}
 		createArc(center, start, end) {
             let startAngle =360 -(new d2.Vector(center,start)).slope;

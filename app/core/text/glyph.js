@@ -1,4 +1,4 @@
-
+var d2=require('d2/d2');
 
 class Glyph{
 
@@ -18,7 +18,7 @@ clone(){
         var copy=new Glyph();
         copy.points=[];
         for(let i=0;i<this.points.length;i++){
-           copy.points.push(new core.Point(this.points[i].x,this.points[i].y));           
+           copy.points.push(new d2.Point(this.points[i].x,this.points[i].y));           
         }
 		copy.character=this.character;
         copy.delta=this.delta;
@@ -111,8 +111,8 @@ fromXML(node){
 	   let line=this.textContent;
 	   let array=line.split(',');
 	   
-	   that.points.push(new core.Point(array[0],array[1]));
-	   that.points.push(new core.Point(array[2],array[3]));
+	   that.points.push(new d2.Point(array[0],array[1]));
+	   that.points.push(new d2.Point(array[2],array[3]));
 	   
 	});
 	
@@ -125,7 +125,7 @@ constructor(text,tag, x,y,size){
 	this.tag=tag;
     this.id=1;
 	
-	this.anchorPoint = new core.Point(x, y);
+	this.anchorPoint = new d2.Point(x, y);
     this.glyphs = [];
     this.thickness = core.MM_TO_COORD(0.2);
     this.alignment = new core.Alignment(core.AlignEnum.LEFT);

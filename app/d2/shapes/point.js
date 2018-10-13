@@ -8,6 +8,10 @@ module.exports = function(d2) {
         clone() {
             return new d2.Point(this.x, this.y);
         }
+        set(x,y){
+           this.x=x;
+           this.y=y;
+        }
 		translate(vec) {       
 		       this.x += vec.x;
 		       this.y += vec.y;

@@ -24,31 +24,28 @@ module.exports = function(d2) {
         	  this.max=new d2.Point(x,y);
         	  return;
           }
-//          if (args[0] instanceof d2.Point) {
-//        	  let x=Number.MAX_VALUE,y=Number.MAX_VALUE;
-//        	  for(var i = 0; i < arguments.length; ++ i){
-//        	     x=Math.min(x,arguments[i].x);
-//        	     y=Math.min(y,arguments[i].y);
-//        	  }  
-//        	  this.min=new d2.Point(x,y);
-//
-//        	  x=Number.MIN_VALUE,y=Number.MIN_VALUE;
-//        	  for(var i = 0; i < arguments.length; ++ i){
-//         	     x=Math.max(x,arguments[i].x);
-//         	     y=Math.max(y,arguments[i].y);
-//         	  }  
-//        	  this.max=new d2.Point(x,y);
-//        	  
-//          }
+	  }
+	  static fromRect(x,y,width,height){
+			var box=new d2.Box(0,0,0,0);
+			box.setRect(x,y,width,height);
+			return box;
+	  }
+	  clone(){
+		  return new d2.Box([this.min,this.max]);
 	  }
 	  setRect(x,y,width,height){
-		  this.min=new d2.Point(x,y);
-		  this.max=new d2.Point(x+width,y+height);
+		  this.min.set(x,y);
+		  this.max.set(x+width,y+height);
 	  }
       get center() {
           return new d2.Point( (this.min.x + this.max.x)/2, (this.min.y + this.max.y)/2 );
       }
-      
+      get x(){
+    	 return this.min.x; 
+      }
+      get y(){
+    	  return this.min.y; 
+      }
       get width(){
     	  return this.max.x-this.min.x;
       }
@@ -77,7 +74,14 @@ module.exports = function(d2) {
       }
 
       intersects(other) {
-          return !this.not_intersects(other);
+    	  if (other instanceof d2.Box) {
+    		  return !this.not_intersects(other);  
+    	  }else{
+    		  //window rect
+    		  let o=new d2.Box(other.x,other.y,other.x+other.width,other.y+other.height);
+    		  return !this.not_intersects(o);
+    	  }
+          
       }
       
 	  get vertices() {

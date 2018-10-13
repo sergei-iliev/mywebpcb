@@ -1,7 +1,7 @@
 var core = require('core/core');
 var ResizeableShape = require('core/core').ResizeableShape;
 var Rectangle = require('core/core').Rectangle;
-
+var d2=require('d2/d2');
 
 Event={
 	    SELECT_SHAPE:1,
@@ -195,7 +195,7 @@ mouseMove(event){
 class UnitEventHandle extends EventHandle{
 	 constructor(component) {
 		 super(component);
-		 this.selectionRect=new Rectangle(0,0,0,0);
+		 this.selectionRect=new d2.Rectangle(0,0,0,0);
 	 }
 	 Attach(){
 		 super.Attach();
@@ -217,7 +217,7 @@ class UnitEventHandle extends EventHandle{
 		 if(super.isRightMouseButton(event)){
 			 return;
 		 }
-	     let r=new Rectangle(this.component.viewportWindow.x+this.selectionRect.x,this.component.viewportWindow.y+this.selectionRect.y,this.selectionRect.width,this.selectionRect.height);
+	     let r=new d2.Rectangle(this.component.viewportWindow.x+this.selectionRect.x,this.component.viewportWindow.y+this.selectionRect.y,this.selectionRect.width,this.selectionRect.height);
 		 this.component.getModel().getUnit().setSelectedInRect(this.component.getModel().getUnit().getScalableTransformation().getInverseRect(r));
 	     this.component.Repaint();
 	 }
