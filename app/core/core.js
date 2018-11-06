@@ -1148,7 +1148,7 @@ calculateShape() {
 	}
 isInRect(r){
 	let rect=this.getBoundingShape();
-        if(r.contains(rect.getCenterX(),rect.getCenterY()))
+        if(r.contains(rect.center))
             return true;
            else
             return false; 		

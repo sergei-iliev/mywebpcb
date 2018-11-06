@@ -3,7 +3,7 @@ var core = require('core/core');
 var events=require('core/events');
 var GlyphManager=require('core/text/glyph').GlyphManager;
 var ViewportWindow=require('core/core').ViewportWindow;
-
+var d2=require('d2/d2');
 //**********************UnitMgr***************************************
 var UnitMgr=(function(){
 	var instance=null;
@@ -24,7 +24,7 @@ var UnitMgr=(function(){
            });
         
         if(isPinnable)
-            return new core.Rectangle(x1,y1,x2-x1,y2-y1);            
+            return  d2.Box.fromRect(x1,y1,x2-x1,y2-y1);            
         else
             return null;  
         };
@@ -189,7 +189,7 @@ getBoundingRect() {
         return this.getShapesRect(this.shapes);
     }
 getShapesRect(shapes) {
-        var r = new core.Rectangle(0,0,0,0);
+        var r = new d2.Box(0,0,0,0);
         var x1 = Number.MAX_VALUE; 
         var y1 = Number.MAX_VALUE;
         var x2 = Number.MIN_VALUE;

@@ -72,7 +72,10 @@ module.exports = function(d2) {
               this.min.y > other.max.y
           );
       }
-
+      move(offsetX,offsetY){
+    	  this.min.move(offsetX,offsetY);
+    	  this.max.move(offsetX,offsetY);
+      }
       intersects(other) {
     	  if (other instanceof d2.Box) {
     		  return !this.not_intersects(other);  

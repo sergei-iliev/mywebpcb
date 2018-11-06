@@ -1,29 +1,30 @@
 var core=require('core/core');
 var utilities =require('core/utilities');
 var Shape=require('core/core').Shape;
+var d2=require('d2/d2');
 
 class AbstractLine extends Shape{
 	constructor(thickness,layermaskId) {
 		super(0, 0, 0, 0, thickness,layermaskId);
 		this.selectionRectWidth = 3000;
 		this.setDisplayName("Line");			
-		this.points = [];
-		this.floatingStartPoint = new core.Point(0, 0); // ***the
+		this.polyline=new d2.Polyline();
+		this.floatingStartPoint = new d2.Point(); // ***the
 																			// last
 																			// wire
 																			// point
-		this.floatingMidPoint = new core.Point(0, 0); // ***mid
+		this.floatingMidPoint = new d2.Point(); // ***mid
 																		// 90
 																		// degree
 																		// forming
-		this.floatingEndPoint = new core.Point(0, 0);
+		this.floatingEndPoint = new d2.Point();
 		
 }
 getLinePoints(){
-		return this.points;
+		return this.polyline.points;
 	}
 Clear(){
-		this.points=null;
+		this.polyline.points=null;		
 	}
 alignResizingPointToGrid(targetPoint) {
     this.owningUnit.grid.snapToGrid(targetPoint);         
@@ -31,17 +32,17 @@ alignResizingPointToGrid(targetPoint) {
 isClicked(x, y) {
 	  var result = false;
 		// build testing rect
-	  var rect = new core.Rectangle(x
+	  var rect = d2.Box.fromRect(x
 								- (this.thickness / 2), y
 								- (this.thickness / 2), this.thickness,
 								this.thickness);
-	  var r1 = new core.Point(rect.getMinX(), rect.getMinY());
-	  var r2 = new core.Point(rect.getMaxX(), rect.getMaxY());
+	  var r1 = rect.min;
+	  var r2 = rect.max;
 
 	  // ***make lines and iterate one by one
-	  var prevPoint = this.points[0];
+	  var prevPoint = this.polyline.points[0];
 
-	  this.points.some(function(wirePoint) {
+	  this.polyline.points.some(function(wirePoint) {
 							// skip first point
 							{
 								if (utilities.intersectLineRectangle(
@@ -57,9 +58,9 @@ isClicked(x, y) {
 	return result;
 }
 resetToPoint(point) {
-	this.floatingStartPoint.setLocationPoint(point);
-	this.floatingMidPoint.setLocationPoint(point);
-	this.floatingEndPoint.setLocationPoint(point);
+	this.floatingStartPoint.set(point);
+	this.floatingMidPoint.set(point);
+	this.floatingEndPoint.set(point);
 }
 reset() {
 	this.resetToPoint(this.floatingStartPoint);
@@ -72,7 +73,7 @@ reverse(x,y) {
     }       
 }
 Resize(xoffset, yoffset, clickedPoint) {
-	clickedPoint.setLocation(clickedPoint.x + xoffset,
+	clickedPoint.set(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);
 }
 
@@ -157,7 +158,7 @@ isEndPoint(x,y){
 }
 isInRect(r) {
 	var result = true;
-	this.points.some(function(wirePoint) {
+	this.polyline.points.some(function(wirePoint) {
 			if (!r.contains(wirePoint.x, wirePoint.y)) {
 				result = false;
 				return true;
@@ -210,10 +211,7 @@ isControlRectClicked(x, y) {
 }
 
 Move(xoffset, yoffset) {
-	this.points.forEach(function(wirePoint) {
-		wirePoint.setLocation(wirePoint.x + xoffset,
-									wirePoint.y + yoffset);
-	});
+	this.polyline.move(xoffset,yoffset);
 }
 Mirror(A,B) {
 	this.points.forEach(function(wirePoint) {
@@ -229,21 +227,7 @@ Rotate(rotation) {
 	});
 }
 calculateShape() {
-	var rect = new core.Rectangle();
-	var x1 = Number.MAX_VALUE, y1 = Number.MAX_VALUE,
-								x2 = Number.MIN_VALUE, y2 = Number.MIN_VALUE;
-
-	this.points.forEach(function(point) {
-							x1 = Math.min(x1, point.x);
-							y1 = Math.min(y1, point.y);
-							x2 = Math.max(x2, point.x);
-							y2 = Math.max(y2, point.y);
-	});
-
-	rect.setRect(x1, y1, (x2 - x1) == 0 ? 1 : x2 - x1, y2
-								- y1 == 0 ? 1 : y2 - y1);
-
-						return rect;
+	return this.polyline.box;
 }
 
 drawControlShape(g2, viewportWindow,scalableTransformation) {

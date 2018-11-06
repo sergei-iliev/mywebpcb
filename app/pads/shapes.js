@@ -481,9 +481,8 @@ isClicked(x, y) {
 		return false;
 	}
 isMidPointClicked(x,y){
-	let box=new d2.Box();
     let p=this.arc.middle;
-    box.setRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
+    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
                  this.selectionRectWidth, this.selectionRectWidth);
     if (box.contains({x,y})) {
         return true;
@@ -491,10 +490,9 @@ isMidPointClicked(x,y){
         return false;
 	}	
 }
-isStartAnglePointClicked(x,y){
-	let box=new d2.Box();
+isStartAnglePointClicked(x,y){	
     let p=this.arc.start;
-    box.setRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
+    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
                  this.selectionRectWidth, this.selectionRectWidth);
     if (box.contains({x,y})) {
         return true;
@@ -503,9 +501,8 @@ isStartAnglePointClicked(x,y){
 	}
 }
 isExtendAnglePointClicked(x,y){
-	let box=new d2.Box();
     let p=this.arc.end;
-    box.setRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
+    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
                  this.selectionRectWidth, this.selectionRectWidth);
     if (box.contains({x,y})) {
         return true;
@@ -629,27 +626,12 @@ drawMousePoint(g2,viewportWindow,scale){
 
 class Line extends AbstractLine{
 constructor(thickness,layermaskId) {
-			super(thickness,layermaskId);
-			this.selectionRectWidth = 3000;
-			this.setDisplayName("Line");			
-			this.points = [];
-			this.floatingStartPoint = new d2.Point(0, 0); // ***the
-																				// last
-																				// wire
-																				// point
-			this.floatingMidPoint = new d2.Point(0, 0); // ***mid
-																			// 90
-																			// degree
-																			// forming
-			this.floatingEndPoint = new d2.Point(0, 0);
+			super(thickness,layermaskId);	
 }
 clone() {
-		var copy = new Line(this.thickness,this.copper.getLayerMaskID());
-			for (var index = 0; index < this.points.length; index++) {
-						copy.points.push(new core.Point(this.points[index].x,this.points[index].y));
-			}
-		return copy;
-
+		  var copy = new Line(this.thickness,this.copper.getLayerMaskID());
+		  copy.polyline=this.polyline.clone();
+		  return copy;
 		}
 alignToGrid(isRequired) {
     if (isRequired) {
@@ -665,49 +647,46 @@ getOrderWeight() {
 	return 2;
 }
 
-Paint(g2, viewportWindow, scale) {
-		var rect = this.getBoundingShape().getScaledRect(scale);
-		if (!this.isFloating()
-								&& (!rect.intersects(viewportWindow))) {
+Paint(g2, viewportWindow, scale) {		
+		var rect = this.polyline.box;
+		rect.scale(scale.getScale());		
+		if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
 			return;
 		}
-						// scale points
-		let dst = [];
-		this.points.forEach(function(wirePoint) {
-			dst.push(wirePoint.getScaledPoint(scale));
-		});
-
+				
 		g2.globalCompositeOperation = 'lighter';
-		g2.beginPath();
+		
 		g2.lineCap = 'round';
 		g2.lineJoin = 'round';
-		g2.moveTo(dst[0].x - viewportWindow.x, dst[0].y
-								- viewportWindow.y);
-		for (var i = 1; i < dst.length; i++) {
-							g2.lineTo(dst[i].x - viewportWindow.x, dst[i].y
-									- viewportWindow.y);
-		}
+		
 
 		g2.lineWidth = this.thickness * scale.getScale();
 
-		// draw floating point
-		if (this.isFloating()) {
-				let p = this.floatingEndPoint.getScaledPoint(scale);
-					g2.lineTo(p.x - viewportWindow.x, p.y
-									- viewportWindow.y);
-		}
 
 		if (this.selection)
 			g2.strokeStyle = "gray";
 		else
 			g2.strokeStyle = this.copper.getColor();
 
-		g2.stroke();
+		let a=this.polyline.clone();
+		a.scale(scale.getScale());
+		a.move( - viewportWindow.x, - viewportWindow.y);		
+		a.paint(g2);
+		
+		// draw floating point
+		if (this.isFloating()) {
+				let p = this.floatingEndPoint.clone();
+				p.scale(scale.getScale());
+				p.move( - viewportWindow.x, - viewportWindow.y);
+					g2.lineTo(p.x, p.y);									
+					g2.stroke();					
+		}
+		
 		g2.globalCompositeOperation = 'source-over';
 
-		if (this.selection) {
-			this.drawControlShape(g2, viewportWindow, scale);
-		}
+//		if (this.selection) {
+//			this.drawControlShape(g2, viewportWindow, scale);
+//		}
 
 }
 toXML() {
@@ -856,11 +835,12 @@ PadType={
 
 class Pad extends core.Shape{
 	constructor(x,y,width,height) {
-	   super(x, y, width, height, -1, core.Layer.LAYER_BACK);
+	   super(0, 0, width, height, -1, core.Layer.LAYER_BACK);
 	   this.drill=null;
 	   this.offset=new d2.Point(0,0);
 	   this.setType(PadType.THROUGH_HOLE);
 	   this.setShape(PadShape.CIRCULAR);
+	   this.shape.move(x,y);
 	   this.setDisplayName("Pad");
 	   this.rotate=0;
 	   this.text=new core.ChipText();
@@ -868,7 +848,7 @@ class Pad extends core.Shape{
 	   this.text.Add(new font.FontTexture("netvalue","",x,y,new core.Alignment(core.AlignEnum.LEFT),4000));   
 	}
 clone(){
-	     var copy=new Pad(this.x,this.y,this.width,this.height);
+	     var copy=new Pad(0,0,this.width,this.height);
 	     copy.setType(this.type);
 		 copy.setX(this.getX());
 		 copy.setY(this.getY());
@@ -885,8 +865,8 @@ clone(){
 	}
 setRotation(rotate){
 	let alpha=rotate-this.rotate;	
-	this.shape.rotate(alpha,null);
-	this.text.setRotation(rotate,{x:this.x,y:this.y});
+	this.shape.rotate(alpha);
+	this.text.setRotation(rotate,this.shape.center);
 	this.rotate=rotate;
 }
 getChipText() {
@@ -943,11 +923,12 @@ fromXML(data){
 		     
 	}
 getPinsRect() {
-	     return new core.Rectangle(this.x, this.y, 0,0);
+	     return d2.Box.fromRect(this.shape.center.x, this.shape.center.y, 0,0);
 	}
 alignToGrid(isRequired){
-	     var point=this.owningUnit.getGrid().positionOnGrid(this.x,this.y);
-	     this.Move(point.x - this.x,point.y - this.y);
+	     var center=this.shape.center;
+	     var point=this.owningUnit.getGrid().positionOnGrid(center.x,center.y);
+	     this.Move(point.x - center.x,point.y - center.y);
 	     return null;     
 	}	
 getOrderWeight(){
@@ -961,7 +942,7 @@ isClicked(x,y){
 	 }
 isInRect(r) {
 		 let rect=super.getBoundingShape();
-	     if(r.contains(rect.getCenterX(),rect.getCenterY()))
+	     if(r.contains(rect.center))
 	         return true;
 	        else
 	         return false; 
@@ -1051,7 +1032,6 @@ setHeight(height){
 	        this.shape.setHeight(height);
 	    }
 calculateShape() {
-	        //return new core.Rectangle((this.getX()-this.getWidth()/2)-this.offset.x,(this.getY()-this.getHeight()/2)-this.offset.y,this.getWidth(),this.getHeight());
 	return this.shape.box;
 } 
 setLocation( x,  y) {
@@ -1114,12 +1094,25 @@ class CircularShape{
   	  _copy.obround=this.circle.clone();	  
   	  return _copy;  
   	} 
+    rotate(alpha,origin){
+    	if(origin==null){
+    	  this.circle.rotate(alpha);
+    	}else{
+    	  this.circle.rotate(alpha,origin);	
+    	}
+    }    
     contains(pt){
     	return this.circle.contains(pt);
     }
 	move(xoffset, yoffset) {
 		this.circle.move(xoffset,yoffset);
 	}	
+	get box(){
+		return this.circle.box;
+	}
+	get center(){
+		return this.circle.center;	
+	}
     setWidth(width) {
 	   this.pad.width=width;
 	   this.setHeight(width);
@@ -1176,6 +1169,12 @@ contains(pt){
 move(xoffset, yoffset) {
 	this.obround.move(xoffset,yoffset);
 }
+get box(){
+	return this.obround.box;
+}
+get center(){
+	return this.obround.center;	
+}
 setWidth(width) {
 	    this.pad.width=width;
 	    this.obround.setWidth(width);
@@ -1224,11 +1223,22 @@ copy(pad){
 contains(pt){
 	return this.rect.contains(pt);
 }
-rotate(alpha){
-	this.rect.rotate(alpha);
+rotate(alpha,origin){
+	if(origin==null){
+		  this.rect.rotate(alpha);
+	}else{
+		  this.rect.rotate(alpha,origin);	
+	}
+	
 }
 move(xoffset, yoffset) {
 	this.rect.move(xoffset,yoffset);
+}
+get box(){
+	return this.rect.box;
+}
+get center(){
+	return this.rect.box.center;	
 }
 setWidth(width) {
 		   this.pad.width=width;
@@ -1287,6 +1297,12 @@ rotate(alpha,origin){
 	}else{
 	  this.hexagon.rotate(alpha,origin);	
 	}
+}
+get box(){
+	return this.hexagon.box;
+}
+get center(){
+	return this.hexagon.center;	
 }
 move(xoffset, yoffset) {
 		this.hexagon.move(xoffset,yoffset);

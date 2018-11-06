@@ -151,8 +151,8 @@ constructor(component) {
 			     * Wiring rule-> discard point if overlaps with last line point
 			     */
 			    function isOverlappedPoint( line, pointToAdd){
-			        if(line.points.length>0){
-			          let lastPoint=line.points[line.points.length-1]; 
+			        if(line.polyline.points.length>0){
+			          let lastPoint=line.polyline.points[line.polyline.points.length-1]; 
 			            //***is this the same point as last one?   
 			          if(pointToAdd.equals(lastPoint))
 			            return true;    
@@ -164,9 +164,9 @@ constructor(component) {
 			     *                 without adding the point
 			     */
 			   function isPointOnLine(line,pointToAdd){
-			         if(line.points.length>=2){
-			             let lastPoint=line.points[line.points.length-1];  
-			             let lastlastPoint=line.points[line.points.length-2]; 
+			         if(line.polyline.points.length>=2){
+			             let lastPoint=line.polyline.points[line.polyline.points.length-1];  
+			             let lastlastPoint=line.polyline.points[line.polyline.points.length-2]; 
 			            
 			            //***check if point to add overlaps last last point
 			            if(lastlastPoint.equals(pointToAdd)){
@@ -190,7 +190,7 @@ constructor(component) {
 				        let result=false;
 				        if(!isOverlappedPoint(line,p)){
 				            if(!isPointOnLine(line,p)){
-				                line.points.push(p);   
+				                line.polyline.add(p);   
 				                result=true;
 				            }               
 				        }         
@@ -199,7 +199,7 @@ constructor(component) {
 			   },
 			   Release:function(){
 			          line.reset(); 
-			          if(line.points.length<2){
+			          if(line.polyline.points.length<2){
 			                line.owningUnit.remove(line.getUUID());                
 			          }
 			 
@@ -229,14 +229,14 @@ mousePressed(event){
 	this.lineBendingProcessor.Initialize(this.target);
 	this.target.setSelected(true);
 	
-    this.target.setResizingPoint(new core.Point(event.x,event.y));
+    this.target.setResizingPoint(new d2.Point(event.x,event.y));
     this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:events.Event.PROPERTY_CHANGE});
 	
     if(this.component.getParameter("snaptogrid")){
     	let p=this.component.getModel().getUnit().getGrid().positionOnGrid(event.x,event.y); 
     	this.lineBendingProcessor.addLinePoint(p);	
     }else{
-       this.lineBendingProcessor.addLinePoint(new core.Point(event.x,event.y));
+       this.lineBendingProcessor.addLinePoint(new d2.Point(event.x,event.y));
     }
 	this.component.Repaint();	 
    }
@@ -246,8 +246,8 @@ mousePressed(event){
  mouseDragged(event){
    }
  mouseMove(event){
-	 this.target.floatingEndPoint.setLocation(event.x,event.y); 
-	 this.target.floatingMidPoint.setLocation(event.x,event.y);
+	 this.target.floatingEndPoint.set(event.x,event.y); 
+	 this.target.floatingMidPoint.set(event.x,event.y);
 	 this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:events.Event.PROPERTY_CHANGE});
 	 this.component.Repaint(); 
    }

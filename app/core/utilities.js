@@ -1,4 +1,5 @@
 var core=require('core/core');
+var d2=require('d2/d2');
 
     /*
      * Find out in which quadrant is a point B, in regard to a point origine A
@@ -118,10 +119,10 @@ var intersectLineLine = function(a1, a2, b1, b2) {
 *
 *****/
 var intersectLineRectangle = function(a1, a2, r1, r2) {
-    var min        = r1.min(r2);
-    var max        = r1.max(r2);
-    var topRight   = new core.Point( max.x, min.y );
-    var bottomLeft = new core.Point( min.x, max.y );
+    var min        = Min(r1,r2);
+    var max        = Max(r1,r2);
+    var topRight   = new d2.Point( max.x, min.y );
+    var bottomLeft = new d2.Point( min.x, max.y );
     
     var inter1 = intersectLineLine(min, topRight, a1, a2);
     var inter2 = intersectLineLine(topRight, max, a1, a2);
@@ -130,6 +131,12 @@ var intersectLineRectangle = function(a1, a2, r1, r2) {
     
     return inter1||inter2||inter3||inter4;
 };
+var Min=function(p1,p2){
+	return new d2.Point(Math.min(p1.x,p2.x),Math.min(p1.y,p2.y));	
+}
+var Max=function(p1,p2){
+    return new d2.Point(Math.max(p1.x,p2.x),Math.max(p1.y,p2.y));	
+}
 //*******DELETE*************
 var roundrect=function (g2,x, y, w, h, r) {
 	if (w < 2 * r) r = w / 2;

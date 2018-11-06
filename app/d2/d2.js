@@ -17,6 +17,7 @@ require("./shapes/circle")(d2);
 require("./shapes/roundrectangle")(d2);
 require("./shapes/oval")(d2);
 require("./shapes/obround")(d2);
+require("./shapes/polyline")(d2);
 require("./shapes/utils")(d2);
 
 module.exports = d2;

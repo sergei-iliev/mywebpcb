@@ -1,6 +1,5 @@
 var core = require('core/core');
 var ResizeableShape = require('core/core').ResizeableShape;
-var Rectangle = require('core/core').Rectangle;
 var d2=require('d2/d2');
 
 Event={
@@ -195,11 +194,11 @@ mouseMove(event){
 class UnitEventHandle extends EventHandle{
 	 constructor(component) {
 		 super(component);
-		 this.selectionRect=new d2.Rectangle(0,0,0,0);
+		 this.selectionBox=new d2.Box(0,0,0,0);
 	 }
 	 Attach(){
 		 super.Attach();
-	     this.selectionRect.setRect(0,0,0,0);
+	     this.selectionBox.setRect(0,0,0,0);
 	 }
 	 mousePressed(event){
 		this.component.getModel().getUnit().setSelected(false);
@@ -217,8 +216,8 @@ class UnitEventHandle extends EventHandle{
 		 if(super.isRightMouseButton(event)){
 			 return;
 		 }
-	     let r=new d2.Rectangle(this.component.viewportWindow.x+this.selectionRect.x,this.component.viewportWindow.y+this.selectionRect.y,this.selectionRect.width,this.selectionRect.height);
-		 this.component.getModel().getUnit().setSelectedInRect(this.component.getModel().getUnit().getScalableTransformation().getInverseRect(r));
+		 this.selectionBox.move(this.component.viewportWindow.x,this.component.viewportWindow.y);
+		 this.component.getModel().getUnit().setSelectedInRect(this.component.getModel().getUnit().getScalableTransformation().getInverseRect(this.selectionBox));
 	     this.component.Repaint();
 	 }
 	 mouseDragged(event){
@@ -231,12 +230,12 @@ class UnitEventHandle extends EventHandle{
 		  let x=this.mx - (w < 0 ? Math.abs(w) : 0);
 		  let y=this.my - (h < 0 ? Math.abs(h) : 0);
 		
-	      this.selectionRect.setRect(x,y,Math.abs(w),Math.abs(h));	
+	      this.selectionBox.setRect(x,y,Math.abs(w),Math.abs(h));	
 	      this.component.Repaint();
 		  
 		  this.component.ctx.globalCompositeOperation='lighter';
 	      this.component.ctx.beginPath();
-	      this.component.ctx.rect(this.selectionRect.x,this.selectionRect.y,this.selectionRect.width,this.selectionRect.height);
+	      this.component.ctx.rect(this.selectionBox.x,this.selectionBox.y,this.selectionBox.width,this.selectionBox.height);
 	      this.component.ctx.fillStyle = 'gray';
 	      this.component.ctx.fill();
 	      this.component.ctx.lineWidth = 1;

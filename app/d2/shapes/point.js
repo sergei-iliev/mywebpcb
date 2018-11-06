@@ -8,9 +8,14 @@ module.exports = function(d2) {
         clone() {
             return new d2.Point(this.x, this.y);
         }
-        set(x,y){
-           this.x=x;
-           this.y=y;
+        set(...args){
+           if(args.length==1){//point
+             this.x=args[0].x;
+             this.y=args[0].y;
+           }else{	   //coordinates
+            this.x=args[0];
+            this.y=args[1];
+           }
         }
 		translate(vec) {       
 		       this.x += vec.x;
