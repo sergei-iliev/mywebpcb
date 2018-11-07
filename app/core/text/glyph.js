@@ -150,7 +150,7 @@ copy( _copy){
 }
 clone(){
        var copy = new GlyphTexture(this.text,this.tag,this.x,this.y,this.size);
-       copy.anchorPoint = new core.Point(this.anchorPoint.x,this.anchorPoint.y);       
+       copy.anchorPoint = new d2.Point(this.anchorPoint.x,this.anchorPoint.y);       
 	   copy.glyphs = [];
        copy.width=this.width;
 	   copy.height=this.height;    
@@ -372,7 +372,7 @@ getBoundingShape() {
             return null;
       }
         
-      let r = new core.Rectangle();
+      let r = new d2.Box(0,0,0,0);
       switch (this.alignment.get()) {
       case core.AlignEnum.LEFT:
             //left bottom
@@ -392,7 +392,7 @@ getBoundingShape() {
         return r;
 }
 Move(xoffset,yoffset) {
-    this.anchorPoint.setLocation(this.anchorPoint.x + xoffset, this.anchorPoint.y + yoffset);
+    this.anchorPoint.set(this.anchorPoint.x + xoffset, this.anchorPoint.y + yoffset);
 }	
 
 Mirror(A,B) {

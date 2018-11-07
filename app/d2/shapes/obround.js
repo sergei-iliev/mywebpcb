@@ -69,6 +69,9 @@ module.exports = function(d2) {
         	return false;
 		    
 		}
+		get center(){
+			return new d2.Point((this.ps.x+this.pe.x)/2,(this.ps.y+this.pe.y)/2);
+		}		
 		reset(){
 			this.ps=new d2.Point(this.pc.x-(this.height/2),this.pc.y);
 			this.pe=new d2.Point(this.pc.x+(this.height/2),this.pc.y);								   	

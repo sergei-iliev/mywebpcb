@@ -61,7 +61,7 @@ calculateShape(){
   return this.texture.getBoundingShape();
 }
 getCenter() {
-    return new d2.Point(this.texture.getBoundingShape().getCenterX(),this.texture.getBoundingShape().getCenterY());
+    return this.texture.getBoundingShape().center;
 }
 getTexture(){
   return this.texture;    
@@ -684,11 +684,12 @@ Paint(g2, viewportWindow, scale) {
 		
 		g2.globalCompositeOperation = 'source-over';
 
-//		if (this.selection) {
-//			this.drawControlShape(g2, viewportWindow, scale);
-//		}
+		if (this.selection) {
+			this.drawControlPoints(g2, viewportWindow, scale);
+		}
 
 }
+
 toXML() {
 	var result = "<line copper=\"" + this.copper.getName()
 								+ "\" thickness=\"" + this.thickness + "\">";

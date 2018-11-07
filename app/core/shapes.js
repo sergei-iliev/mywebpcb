@@ -159,7 +159,7 @@ isEndPoint(x,y){
 isInRect(r) {
 	var result = true;
 	this.polyline.points.some(function(wirePoint) {
-			if (!r.contains(wirePoint.x, wirePoint.y)) {
+			if (!r.contains(wirePoint)) {
 				result = false;
 				return true;
 			}else{
@@ -193,13 +193,11 @@ isBendingPointClicked( x,  y) {
 	return point;
 }
 isControlRectClicked(x, y) {
-	var rect = new core.Rectangle(x
-								- this.selectionRectWidth / 2, y - this.selectionRectWidth
-								/ 2, this.selectionRectWidth, this.selectionRectWidth);
+	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
 	let point = null;
 
-	this.points.some(function(wirePoint) {
-		if (rect.contains(wirePoint.x, wirePoint.y)) {
+	this.polyline.points.some(function(wirePoint) {
+		if (rect.contains(wirePoint)) {
 					point = wirePoint;
 		  return true;
 		}else{
@@ -219,21 +217,16 @@ Mirror(A,B) {
 	});
 }
 Rotate(rotation) {
-	this.points.forEach(function(wirePoint) {
-				var p = utilities.rotate(wirePoint,
-									rotation.originx, rotation.originy,
-									rotation.angle);
-				wirePoint.setLocation(p.x, p.y);
-	});
+	this.polyline.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
 }
 calculateShape() {
 	return this.polyline.box;
 }
 
-drawControlShape(g2, viewportWindow,scalableTransformation) {
-	utilities.drawCrosshair(g2, viewportWindow,scalableTransformation,this.resizingPoint,this.selectionRectWidth,this.points);
-}
 
+drawControlPoints(g2, viewportWindow, scale) {
+	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.polyline.points);	
+}
 isFloating() {
 	return (!(this.floatingStartPoint
 								.equals(this.floatingEndPoint) && this.floatingStartPoint
