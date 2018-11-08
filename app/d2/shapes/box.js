@@ -57,12 +57,20 @@ module.exports = function(d2) {
     	this.min.scale(alpha);
     	this.max.scale(alpha);
       }
-      contains(pt){
-    	  if(this.min.x<=pt.x&&pt.x<=this.max.x){
-    	    if(this.min.y<=pt.y&&pt.y<=this.max.y)
+      contains(...args){
+    	if(args.length==1){  //point  
+    	  if(this.min.x<=args[0].x&&args[0].x<=this.max.x){
+    	    if(this.min.y<=args[0].y&&args[0].y<=this.max.y)
     		  return true;
     	  }
     	  return false;
+    	}else{       //coordinates
+      	  if(this.min.x<=args[0]&&args[0]<=this.max.x){
+      	    if(this.min.y<=args[1]&&args[1]<=this.max.y)
+      		  return true;
+      	  }
+      	  return false;    		
+    	}  
       }
       not_intersects(other) {
           return (

@@ -97,7 +97,7 @@ Rotate(rotation) {
 			  var p = utilities.rotate(this.points[i],
 									rotation.originx, rotation.originy,
 									rotation.angle);
-			this.points[i].setLocation(p.x,p.y);						
+			this.points[i].set(p.x,p.y);						
         }
         this.resize();
 }	
@@ -124,7 +124,6 @@ constructor(text,tag, x,y,size){
     
 	this.tag=tag;
     this.id=1;
-	
 	this.anchorPoint = new d2.Point(x, y);
     this.glyphs = [];
     this.thickness = core.MM_TO_COORD(0.2);
@@ -266,9 +265,10 @@ isClicked(x, y) {
         return false;
 
 }
+
 Rotate(rotation){
 	 let p=utilities.rotate(this.anchorPoint, rotation.originx, rotation.originy, rotation.angle);
-	 this.anchorPoint.setLocation(p.x,p.y);
+	 this.anchorPoint.set(p.x,p.y);
         
 	 if(rotation.angle>0){  //clockwise
 	    this.alignment.Rotate(true);	    
@@ -426,7 +426,7 @@ Paint(g2,viewportWindow,scale,layermaskId){
 		//		- viewportWindow.y, rect.width, rect.height);		 
        //g2.stroke();	
 
-	   let line=new core.Line();
+	   let segment=new d2.Segment(0,0,0,0);
 	   g2.lineWidth = this.thickness * scale.getScale();
 	   g2.lineCap = 'round';
 	   g2.lineJoin = 'round';
@@ -439,26 +439,30 @@ Paint(g2,viewportWindow,scale,layermaskId){
                     xoffset += glyph.delta;
                     return;
                 }
-                let A=new core.Point(r.x,r.y);
-                let B=new core.Point(r.x,r.y+r.height);
+                let A=new d2.Point(r.x,r.y);
+                let B=new d2.Point(r.x,r.y+r.height);
                 let j = 0;
                 for (let i = 0; i < glyph.getLinesNumber(); i++, j = (j + 2)) {
                     
 					
 					if(side==core.Layer.Side.BOTTOM){
-                     let start=new core.Point(glyph.points[j].x + this.anchorPoint.x + xoffset,
+                     let start=new d2.Point(glyph.points[j].x + this.anchorPoint.x + xoffset,
                                     glyph.points[j].y + this.anchorPoint.y - r.height);                                       
                      utilities.mirrorPoint(A, B, start);                     
                     
-                     let end=new core.Point(glyph.points[j + 1].x + this.anchorPoint.x + xoffset,
+                     let end=new d2.Point(glyph.points[j + 1].x + this.anchorPoint.x + xoffset,
                                     glyph.points[j + 1].y + this.anchorPoint.y - r.height);                                        
                      utilities.mirrorPoint(A, B, end);
 					 
-					 line.setLine(start.x+r.width, start.y,end.x+r.width,end.y);
-                     line.draw(g2,viewportWindow,scale); 
+					 segment.set(start.x+r.width, start.y,end.x+r.width,end.y);
+					 segment.scale(scale.getScale());
+					 segment.move(-viewportWindow.x,- viewportWindow.y);
+                     segment.paint(g2); 
 					}else{
- 					 line.setLine(glyph.points[j].x + this.anchorPoint.x + xoffset,glyph.points[j].y + this.anchorPoint.y - r.height,glyph.points[j + 1].x + this.anchorPoint.x + xoffset,glyph.points[j + 1].y + this.anchorPoint.y - r.height);
-					 line.draw(g2,viewportWindow,scale);
+ 					 segment.set(glyph.points[j].x + this.anchorPoint.x + xoffset,glyph.points[j].y + this.anchorPoint.y - r.height,glyph.points[j + 1].x + this.anchorPoint.x + xoffset,glyph.points[j + 1].y + this.anchorPoint.y - r.height);
+					 segment.scale(scale.getScale());
+					 segment.move(-viewportWindow.x,- viewportWindow.y);
+                     segment.paint(g2); 
 				   }
                 }
                 xoffset += glyph.getGlyphWidth() + glyph.delta;
@@ -471,27 +475,32 @@ Paint(g2,viewportWindow,scale,layermaskId){
                     xoffset += glyph.delta;
                     return;
                 }
-                let A=new core.Point(r.x+r.width,r.y);
-                let B=new core.Point(r.x+r.width,r.y+r.height);
+                let A=new d2.Point(r.x+r.width,r.y);
+                let B=new d2.Point(r.x+r.width,r.y+r.height);
                 let j = 0;
                 for (let i = 0; i < glyph.getLinesNumber(); i++, j = (j + 2)) {
                     if(side==core.Layer.Side.BOTTOM){
-                     let start=new core.Point(glyph.points[j].x + this.anchorPoint.x + xoffset - r.width,
+                     let start=new d2.Point(glyph.points[j].x + this.anchorPoint.x + xoffset - r.width,
                                     glyph.points[j].y + this.anchorPoint.y - r.height);
                     
                     
                      utilities.mirrorPoint(A, B, start);                     
                     
-                     let end=new core.Point(glyph.points[j + 1].x + this.anchorPoint.x + xoffset -r.width,
+                     let end=new d2.Point(glyph.points[j + 1].x + this.anchorPoint.x + xoffset -r.width,
                                     glyph.points[j + 1].y + this.anchorPoint.y - r.height);
                     
                     
                      utilities.mirrorPoint(A, B, end);
-					 line.setLine(start.x-r.width, start.y,end.x-r.width, end.y);
-					 line.draw(g2,viewportWindow,scale);
+					 segment.set(start.x-r.width, start.y,end.x-r.width, end.y);
+					 segment.scale(scale.getScale());
+					 segment.move(-viewportWindow.x,- viewportWindow.y);
+                     segment.paint(g2);                     
+                     					 
                     }else{
-					 line.setLine(glyph.points[j].x + this.anchorPoint.x + xoffset - r.width,glyph.points[j].y + this.anchorPoint.y - r.height,glyph.points[j + 1].x + this.anchorPoint.x + xoffset -r.width,glyph.points[j + 1].y + this.anchorPoint.y - r.height);
-                     line.draw(g2,viewportWindow,scale);
+   					 segment.set(glyph.points[j].x + this.anchorPoint.x + xoffset - r.width,glyph.points[j].y + this.anchorPoint.y - r.height,glyph.points[j + 1].x + this.anchorPoint.x + xoffset -r.width,glyph.points[j + 1].y + this.anchorPoint.y - r.height);
+   					 segment.scale(scale.getScale());
+   					 segment.move(-viewportWindow.x,- viewportWindow.y);
+                     segment.paint(g2);                     	
 					}
                 }
                 xoffset += glyph.getGlyphWidth() + glyph.delta;
@@ -503,28 +512,33 @@ Paint(g2,viewportWindow,scale,layermaskId){
                     xoffset += glyph.delta;
                     return;
                 }
-                let A=new core.Point(r.x,r.y+r.height);
-                let B=new core.Point(r.x+r.width,r.y+r.height);
+                let A=new d2.Point(r.x,r.y+r.height);
+                let B=new d2.Point(r.x+r.width,r.y+r.height);
                 let j = 0;
                 for (let i = 0; i < glyph.getLinesNumber(); i++, j = (j + 2)) {
                     if(side==core.Layer.Side.BOTTOM){
-                     let start=new core.Point(glyph.points[j].x + this.anchorPoint.x  - r.width,
+                     let start=new d2.Point(glyph.points[j].x + this.anchorPoint.x  - r.width,
                                     glyph.points[j].y + this.anchorPoint.y-yoffset);
                     
                     
                      utilities.mirrorPoint(A, B, start);
                     
-                     let end =new core.Point(glyph.points[j + 1].x + this.anchorPoint.x  -r.width,
+                     let end =new d2.Point(glyph.points[j + 1].x + this.anchorPoint.x  -r.width,
                                     glyph.points[j + 1].y + this.anchorPoint.y-yoffset);
                     
                     
                      utilities.mirrorPoint(A, B, end);
-                     line.setLine(start.x, start.y-r.height,end.x, end.y-r.height);
-                     line.draw(g2,viewportWindow,scale);
+					 segment.set(start.x, start.y-r.height,end.x, end.y-r.height);
+					 segment.scale(scale.getScale());
+					 segment.move(-viewportWindow.x,- viewportWindow.y);
+                     segment.paint(g2); 
+                     
 					}else{
-                     line.setLine(glyph.points[j].x + this.anchorPoint.x  - r.width,
-                                    glyph.points[j].y + this.anchorPoint.y-yoffset,glyph.points[j + 1].x + this.anchorPoint.x  - r.width,glyph.points[j + 1].y + this.anchorPoint.y-yoffset);
-					 line.draw(g2,viewportWindow,scale);
+	   			     segment.set(glyph.points[j].x + this.anchorPoint.x  - r.width,
+                                 glyph.points[j].y + this.anchorPoint.y-yoffset,glyph.points[j + 1].x + this.anchorPoint.x  - r.width,glyph.points[j + 1].y + this.anchorPoint.y-yoffset);
+	   				 segment.scale(scale.getScale());
+	   				 segment.move(-viewportWindow.x,- viewportWindow.y);
+	                 segment.paint(g2); 						                     
                     }
                 }
                 yoffset += glyph.getGlyphHeight() + glyph.delta;
@@ -536,27 +550,30 @@ Paint(g2,viewportWindow,scale,layermaskId){
                     xoffset += glyph.delta;
                     return;
                 }
-                let A=new core.Point(r.x,r.y);
-                let B=new core.Point(r.x+r.width,r.y);
+                let A=new d2.Point(r.x,r.y);
+                let B=new d2.Point(r.x+r.width,r.y);
                 let j = 0;
                 for (let i = 0; i < glyph.getLinesNumber(); i++, j = (j + 2)) {
                    if(side==core.Layer.Side.BOTTOM){
-                    let start=new core.Point(glyph.points[j].x + this.anchorPoint.x  - r.width,
+                    let start=new d2.Point(glyph.points[j].x + this.anchorPoint.x  - r.width,
                                     glyph.points[j].y + this.anchorPoint.y-yoffset+r.height);
                     
                     
                     utilities.mirrorPoint(A, B, start);                                        
-                    let end=new core.Point(glyph.points[j + 1].x + this.anchorPoint.x  - r.width,
+                    let end=new d2.Point(glyph.points[j + 1].x + this.anchorPoint.x  - r.width,
                                     glyph.points[j + 1].y + this.anchorPoint.y-yoffset+r.height);
                     
                     
                     utilities.mirrorPoint(A, B, end);        
-                    
-					line.setLine(start.x, start.y+r.height,end.x, end.y+r.height); 
-                    line.draw(g2,viewportWindow,scale);					
+					segment.set(start.x, start.y+r.height,end.x, end.y+r.height);
+					segment.scale(scale.getScale());
+					segment.move(-viewportWindow.x,- viewportWindow.y);
+                    segment.paint(g2); 					
                    }else{ 
-                    line.setLine(glyph.points[j].x + this.anchorPoint.x  - r.width,glyph.points[j].y + this.anchorPoint.y-yoffset+r.height,glyph.points[j + 1].x + this.anchorPoint.x  - r.width,glyph.points[j + 1].y + this.anchorPoint.y-yoffset+r.height);
-                    line.draw(g2,viewportWindow,scale);					
+  	   			    segment.set(glyph.points[j].x + this.anchorPoint.x  - r.width,glyph.points[j].y + this.anchorPoint.y-yoffset+r.height,glyph.points[j + 1].x + this.anchorPoint.x  - r.width,glyph.points[j + 1].y + this.anchorPoint.y-yoffset+r.height);
+   				    segment.scale(scale.getScale());
+   				    segment.move(-viewportWindow.x,- viewportWindow.y);
+                    segment.paint(g2); 				
 				   }
                 }
                 yoffset += glyph.getGlyphHeight() + glyph.delta;

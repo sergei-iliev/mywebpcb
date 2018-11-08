@@ -50,6 +50,7 @@ constructor(text,thickness,layermaskId) {
 		this.setDisplayName("Label");
 		this.texture=new glyph.GlyphTexture(text,"",0,0,thickness);
         this.texture.setSize(core.MM_TO_COORD(2));
+        this.rotate=0;
 	}
 clone(){
     var copy = new GlyphLabel(this.text,this.thickness,this.layermaskId);    
@@ -57,6 +58,11 @@ clone(){
         copy.copper=this.copper;
 		return copy;
     }
+setRotation(rotate){
+	let alpha=rotate-this.rotate;
+	this.texture.Rotate({originx:this.texture.anchorPoint.x,originy:this.texture.anchorPoint.y,angle:alpha});
+	this.rotate=rotate;
+}
 calculateShape(){ 
   return this.texture.getBoundingShape();
 }
@@ -100,10 +106,11 @@ Paint(g2, viewportWindow, scale) {
         //if((this.getCopper().getLayerMaskID()&layermask)==0){
         //    return;
         //}
-        let scaledRect = this.texture.getBoundingShape().getScaledRect(scale);
-        if(!scaledRect.intersects(viewportWindow)){
-          return;   
-        }
+		var rect = this.texture.getBoundingShape();
+			rect.scale(scale.getScale());
+			if (!rect.intersects(viewportWindow)) {
+				return;
+			}
 
 		if (this.selection) {
 			this.texture.fillColor = "gray";

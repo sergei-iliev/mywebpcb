@@ -17,6 +17,10 @@ module.exports = function(d2) {
         clone() {
             return new Segment(this.ps, this.pe);
         }
+        set(x1,y1,x2,y2){
+        	this.ps.set(x1,y1);
+        	this.pe.set(x2,y2);
+        }
         get length() {
             return this.ps.distanceTo(this.pe);
         } 
@@ -41,6 +45,10 @@ module.exports = function(d2) {
         rotate(angle, center = {x:0, y:0}) {
           this.ps.rotate(angle,center);
           this.pe.rotate(angle,center);
+        }
+        move(offsetX,offsetY){
+            this.ps.move(offsetX,offsetY);
+            this.pe.move(offsetX,offsetY);           	
         }
         mirror(line){
         	this.ps.mirror(line);
