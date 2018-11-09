@@ -419,12 +419,10 @@ Paint(g2,viewportWindow,scale,layermaskId){
 
         let r = this.getBoundingShape();
 	   
-	   
-       //let rect = r.getScaledRect(scale);	  
-       //g2.beginPath();
-       //g2.rect(rect.x - viewportWindow.x, rect.y
-		//		- viewportWindow.y, rect.width, rect.height);		 
-       //g2.stroke();	
+	    let r2=r.clone();
+	    r2.scale(scale.getScale());
+	    r2.move(- viewportWindow.x,- viewportWindow.y);
+        r2.paint(g2);		 
 
 	   let segment=new d2.Segment(0,0,0,0);
 	   g2.lineWidth = this.thickness * scale.getScale();
@@ -634,8 +632,8 @@ var instance=null;
 
 class manager{
 constructor(){
+   this.glyphs=new Map();	
    this.initialize();
-   this.glyphs=new Map();
 }
 
 initialize(){

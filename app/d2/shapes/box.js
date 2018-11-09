@@ -99,6 +99,7 @@ module.exports = function(d2) {
 		 return [this.min,new d2.Point(this.max.x,this.min.y),this.max,new d2.Point(this.min.x,this.max.y)];	
 	  }
       paint(g2){
+    	    g2.beginPath();
     	    g2.rect(this.min.x,this.min.y,this.width,this.height);                   
 	        g2.stroke();
       }
