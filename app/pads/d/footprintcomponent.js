@@ -16,7 +16,7 @@ var GlyphLabel=require('pads/shapes').GlyphLabel;
 var Line=require('pads/shapes').Line;
 var LineEventHandle=require('pads/events').LineEventHandle;
 var FootprintContextMenu=require('pads/popup/footprintpopup').FootprintContextMenu;
-var GlyphManager=require('core/text/glyph').GlyphManager;
+var GlyphManager=require('core/text/d2glyph').GlyphManager;
 
 class Footprint extends Unit{
 constructor(width,height) {

@@ -3,7 +3,7 @@ var utilities =require('core/utilities');
 var Shape=require('core/core').Shape;
 var AbstractLine=require('core/shapes').AbstractLine;
 var ResizeableShape=require('core/core').ResizeableShape;
-var glyph=require('core/text/glyph');
+var glyph=require('core/text/d2glyph');
 var font=require('core/text/d2font');
 var d2=require('d2/d2');
 
@@ -845,12 +845,12 @@ class Pad extends core.Shape{
 	constructor(x,y,width,height) {
 	   super(0, 0, width, height, -1, core.Layer.LAYER_BACK);
 	   this.drill=null;
+	   this.rotate=0;
 	   this.offset=new d2.Point(0,0);
 	   this.setType(PadType.THROUGH_HOLE);
 	   this.setShape(PadShape.CIRCULAR);
 	   this.shape.move(x,y);
 	   this.setDisplayName("Pad");
-	   this.rotate=0;
 	   this.text=new core.ChipText();
 	   this.text.Add(new font.FontTexture("number","1",x,y,new core.Alignment(core.AlignEnum.LEFT),4000));
 	   this.text.Add(new font.FontTexture("netvalue","",x,y,new core.Alignment(core.AlignEnum.LEFT),4000));   
@@ -1021,7 +1021,11 @@ setShape(shape){
 	    case PadShape.POLYGON:
 		    this.shape = new PolygonShape(this);
 	        break;
-	    }    	
+	    } 
+	    //restore rotation
+	    if(this.rotate!=0){
+		  this.shape.rotate(this.rotate);
+	    }
 }
 getShape(){
 		if(this.shape instanceof CircularShape)

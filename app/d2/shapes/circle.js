@@ -33,7 +33,7 @@ module.exports = function(d2) {
        contains(pt){
     	   return d2.utils.LE(pt.distanceTo(this), this.r);    	   
        }
-       rotate(angle,center = {x:0, y:0}){
+       rotate(angle,center = {x:this.pc.x, y:this.pc.y}){
     	  this.pc.rotate(angle,center);    	  
        }
        move(offX,offY){

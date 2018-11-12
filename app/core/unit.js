@@ -1,7 +1,7 @@
 var mywebpcb=require('core/core').mywebpcb;
 var core = require('core/core');
 var events=require('core/events');
-var GlyphManager=require('core/text/glyph').GlyphManager;
+var GlyphManager=require('core/text/d2glyph').GlyphManager;
 var ViewportWindow=require('core/core').ViewportWindow;
 var d2=require('d2/d2');
 //**********************UnitMgr***************************************

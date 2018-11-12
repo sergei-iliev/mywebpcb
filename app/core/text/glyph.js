@@ -683,6 +683,5 @@ var utilities=require('core/utilities');
 
 module.exports ={
    Glyph,
-   GlyphTexture,
-   GlyphManager
+   GlyphTexture
 }
