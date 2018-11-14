@@ -1,16 +1,15 @@
 var d2=require('d2/d2');
 
 class FontTexture{
- constructor(tag,text,x,y,alignment,fontSize) {
+ constructor(tag,text,x,y,fontSize) {
     this.tag=tag;
 	this.shape=new d2.FontText(new d2.Point(x,y),text,fontSize);    
-	this.alignment=alignment;
 	this.selection=false;
 	this.selectionRectWidth=3000;
 	
  }
 clone(){
-     var copy=new FontTexture(this.tag,this.shape.text,this.shape.anchorPoint.x,this.shape.anchorPoint.y,null,this.shape.fontSize);     
+     var copy=new FontTexture(this.tag,this.shape.text,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.fontSize);     
      return copy;	 
  } 
 isEmpty() {

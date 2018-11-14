@@ -54,7 +54,7 @@ var getQuadrantLocation=function(origin,x,y) {
 }
 	
 var drawCrosshair=function(g2,viewportWindow,scale,resizingPoint,length,points){
-        let line = new core.Line();
+        let line = new d2.Segment(0,0,0,0);
         
 		g2.lineWidth = 1;
 
@@ -64,11 +64,15 @@ var drawCrosshair=function(g2,viewportWindow,scale,resizingPoint,length,points){
             else
                 g2.strokeStyle='blue';
 			
-            line.setLine(point.x - length, point.y, point.x + length, point.y);
-            line.draw(g2, viewportWindow, scale);
+            line.set(point.x - length, point.y, point.x + length, point.y);
+            line.scale(scale.getScale());
+            line.move(-viewportWindow.x,-viewportWindow.y);
+            line.paint(g2);
 
-            line.setLine(point.x, point.y - length, point.x, point.y + length);            
-			line.draw(g2,viewportWindow,scale);
+            line.set(point.x, point.y - length, point.x, point.y + length);            
+            line.scale(scale.getScale());
+            line.move(-viewportWindow.x,-viewportWindow.y);
+            line.paint(g2);
         });	
 
 }
@@ -164,70 +168,6 @@ var ellipse=function(g2,xC, yC, width, height, rotation) {
 								//indistinguishable from a curve in an on-screen pixel array
 		}
 };
-
-//var textHeight=function(text, font) {
-//
-//    var fontDraw = document.createElement("canvas");
-//
-//    var height = 100;
-//    var width = 100;
-//
-//    // here we expect that font size will be less canvas geometry
-//    fontDraw.setAttribute("height", height);
-//    fontDraw.setAttribute("width", width);
-//
-//    var ctx = fontDraw.getContext('2d');
-//    // black is default
-//    ctx.fillRect(0, 0, width, height);
-//    ctx.textBaseline = 'top';
-//    ctx.fillStyle = 'white';
-//    ctx.font = font;
-//    ctx.fillText(text/*'Eg'*/, 0, 0);
-//
-//    var pixels = ctx.getImageData(0, 0, width, height).data;
-//
-//    // row numbers where we first find letter end where it ends 
-//    var start = -1;
-//    var end = -1;
-//
-//    for (var row = 0; row < height; row++) {
-//        for (var column = 0; column < width; column++) {
-//
-//            var index = (row * width + column) * 4;
-//
-//            // if pixel is not white (background color)
-//            if (pixels[index] == 0) {
-//                // we havent met white (font color) pixel
-//                // on the row and the letters was detected
-//                if (column == width - 1 && start != -1) {
-//                    end = row;
-//                    row = height;
-//                    break;
-//                }
-//                continue;
-//            }
-//            else {
-//                // we find top of letter
-//                if (start == -1) {
-//                    start = row;
-//                }
-//                // ..letters body
-//                break;
-//            }
-//
-//        }
-//
-//    }
-//   /*
-//    document.body.appendChild(fontDraw);
-//    fontDraw.style.pixelLeft = 400;
-//    fontDraw.style.pixelTop = 400;
-//    fontDraw.style.position = "absolute";
-//   */
-//
-//    return end - start;
-//
-//};
 
 version=(function(){
 	return {

@@ -3,123 +3,7 @@ var d2=require('d2/d2');
 var mywebpcb = mywebpcb || {};
 
 var SELECT_RECT_WIDTH = 3000; 
-
-AlignEnum={
-  LEFT:0,
-  RIGHT:1,
-  TOP:2,
-  BOTTOM:3,
-  parse:function(align){
-	  switch(align){
-	  case 'LEFT':
-		     return this.LEFT;
-	  case 'RIGHT':
-			 return this.RIGHT; 
-	  case 'TOP':
-			 return this.TOP;
-	  case 'BOTTOM':
-			 return this.BOTTOM;			 
-	  default:
-		  throw new TypeError('Unrecognized align type:'+align+' to parse');  
-	  } 	  
-  },
-  format:function(align){
-	 switch(align){
-	 case 0:return 'LEFT';
-	 case 1:return 'RIGHT';
-	 case 2:return 'TOP';
-	 case 3:return 'BOTTOM';
-	 } 
-  }
-}
-
-OrientEnum={
-  HORIZONTAL:0,
-  VERTICAL:1
-};
  
-var Alignment=function(_alignment){
-  var alignment=_alignment;
-  
-  return {
-      getOrientation:function(){
-	     if(alignment==AlignEnum.LEFT||alignment==AlignEnum.RIGHT){
-		    return OrientEnum.HORIZONTAL;
-		 }else{
-		    return OrientEnum.VERTICAL;
-		 }
-	  },
-	  setOrientation:function(orientation){
-		  if(this.getOrientation()==orientation){
-			  return;
-		  }
-		  switch(orientation){
-		  case OrientEnum.HORIZONTAL:
-	            if (alignment == AlignEnum.BOTTOM)
-	                alignment = AlignEnum.LEFT;
-	            else
-	                alignment = AlignEnum.RIGHT;
-	            break;			  
-			  break;
-		  case OrientEnum.VERTICAL:
-	            if (alignment == AlignEnum.RIGHT)
-	                alignment = AlignEnum.TOP;
-	            else
-	                alignment = AlignEnum.BOTTOM;
-	            break;
-			  break;
-		  }
-	  },
-	  get:function(){
-	    return alignment;
-	  },
-	  set:function(_alignment){
-		alignment=_alignment;  
-	  },
-	  Mirror:function(isHorizontal){
-          if(isHorizontal){
-              if(alignment==AlignEnum.LEFT)
-                alignment= AlignEnum.RIGHT;
-              else if(alignment==AlignEnum.RIGHT)
-            	  alignment= AlignEnum.LEFT;                          	  
-           }else{
-              if(alignment==AlignEnum.BOTTOM)
-            	  alignment= AlignEnum.TOP;
-              else if(alignment==AlignEnum.TOP)
-            	  alignment= AlignEnum.BOTTOM;              
-           } 		  
-	  },
-	  Rotate:function(isClockwise){
-           if(alignment==AlignEnum.LEFT){
-              if(isClockwise){
-			    alignment= AlignEnum.TOP;
-              }else{
-			    alignment=AlignEnum.BOTTOM;
-              }           
-              }else if(alignment==AlignEnum.RIGHT){
-                if(isClockwise){
-				alignment=AlignEnum.BOTTOM;
-                }else{
-				alignment=AlignEnum.TOP;         
-                }
-               
-              }else if(alignment==AlignEnum.TOP){
-                if(isClockwise){ 
-				  alignment=AlignEnum.RIGHT;
-                }else{
-				alignment=AlignEnum.LEFT;          
-                }               
-               }else if(alignment==AlignEnum.BOTTOM){
-                if(isClockwise){
-				  alignment=AlignEnum.LEFT;
-                }else{
-				alignment=AlignEnum.RIGHT;
-				   }
-               }else
-                  throw  "Wrong alignment"; 	  
-	  }
-  };
-}; 
 var  UUID=(function(){
 	 var count=0;
 	 return function(){
@@ -571,75 +455,75 @@ isLayerVisible(mask) {
 // }
 //}
 
-class Line{
-constructor(x1,y1,x2,y2) {
-    this.setLine(x1,y1,x2,y2); 
-}
-setLine(x1,y1,x2,y2){
-  this.x1=x1;
-  this.y1=y1;
-  this.x2=x2;
-  this.y2=y2; 
-}
-/*
- * Line segment given as 2 points
- */
-intersectLine(b1, b2) {    
-    
-    var ua_t = (b2.x - b1.x) * (this.y1 - b1.y) - (b2.y - b1.y) * (this.x1 - b1.x);
-    var ub_t = (this.x2 -this.x1) * (this.y1 - b1.y) - (this.y2 - this.y1) * (this.x1 - b1.x);
-    var u_b  = (b2.y - b1.y) * (this.x2 - this.x1) - (b2.x - b1.x) * (this.y2 - this.y1);
-
-    if ( u_b != 0 ) {
-        var ua = ua_t / u_b;
-        var ub = ub_t / u_b;
-
-        if ( 0 <= ua && ua <= 1 && 0 <= ub && ub <= 1 ) {
-             return true;
-        } else {
-             return false;
-        }
-    } else {
-        if ( ua_t == 0 || ub_t == 0 ) {
-            return true;   //"Coincident"
-        } else {
-            return false;
-        }
-    }
-}
-intersectRect(r) {
-    var min        = r.getP1();
-    var max        = r.getP2();
-    var topRight   = new Point(max.x, min.y );
-    var bottomLeft = new Point(min.x, max.y );
-	
-    var inter1 = this.intersectLine(min, topRight);
-    var inter2 = this.intersectLine(topRight, max);
-    var inter3 = this.intersectLine(max, bottomLeft);
-    var inter4 = this.intersectLine(bottomLeft, min);
-    return inter1||inter2||inter3||inter4;
-}
-getP1(){
-  return new Point(this.x1,this.y1);
-}
-
-getP2(){
-  return new Point(this.x2,this.y2);	
-}
-
-getScaledTrack(scalableTransformation){
-  return new Line(this.x1*scalableTransformation.getScale(),this.y1*scalableTransformation.getScale(),this.x2*scalableTransformation.getScale(),this.y2*scalableTransformation.getScale());
-}
-
-draw(g2, viewportWindow, scale){
-    let line=this.getScaledTrack(scale);
-    line.setLine(line.x1-viewportWindow.x, line.y1-viewportWindow.y, line.x2-viewportWindow.x, line.y2-viewportWindow.y);  
-    g2.beginPath();
-    g2.moveTo(line.x1, line.y1);
-    g2.lineTo(line.x2, line.y2);
-    g2.stroke();   
-}	
-}
+//class Line{
+//constructor(x1,y1,x2,y2) {
+//    this.setLine(x1,y1,x2,y2); 
+//}
+//setLine(x1,y1,x2,y2){
+//  this.x1=x1;
+//  this.y1=y1;
+//  this.x2=x2;
+//  this.y2=y2; 
+//}
+///*
+// * Line segment given as 2 points
+// */
+//intersectLine(b1, b2) {    
+//    
+//    var ua_t = (b2.x - b1.x) * (this.y1 - b1.y) - (b2.y - b1.y) * (this.x1 - b1.x);
+//    var ub_t = (this.x2 -this.x1) * (this.y1 - b1.y) - (this.y2 - this.y1) * (this.x1 - b1.x);
+//    var u_b  = (b2.y - b1.y) * (this.x2 - this.x1) - (b2.x - b1.x) * (this.y2 - this.y1);
+//
+//    if ( u_b != 0 ) {
+//        var ua = ua_t / u_b;
+//        var ub = ub_t / u_b;
+//
+//        if ( 0 <= ua && ua <= 1 && 0 <= ub && ub <= 1 ) {
+//             return true;
+//        } else {
+//             return false;
+//        }
+//    } else {
+//        if ( ua_t == 0 || ub_t == 0 ) {
+//            return true;   //"Coincident"
+//        } else {
+//            return false;
+//        }
+//    }
+//}
+//intersectRect(r) {
+//    var min        = r.getP1();
+//    var max        = r.getP2();
+//    var topRight   = new Point(max.x, min.y );
+//    var bottomLeft = new Point(min.x, max.y );
+//	
+//    var inter1 = this.intersectLine(min, topRight);
+//    var inter2 = this.intersectLine(topRight, max);
+//    var inter3 = this.intersectLine(max, bottomLeft);
+//    var inter4 = this.intersectLine(bottomLeft, min);
+//    return inter1||inter2||inter3||inter4;
+//}
+//getP1(){
+//  return new Point(this.x1,this.y1);
+//}
+//
+//getP2(){
+//  return new Point(this.x2,this.y2);	
+//}
+//
+//getScaledTrack(scalableTransformation){
+//  return new Line(this.x1*scalableTransformation.getScale(),this.y1*scalableTransformation.getScale(),this.x2*scalableTransformation.getScale(),this.y2*scalableTransformation.getScale());
+//}
+//
+//draw(g2, viewportWindow, scale){
+//    let line=this.getScaledTrack(scale);
+//    line.setLine(line.x1-viewportWindow.x, line.y1-viewportWindow.y, line.x2-viewportWindow.x, line.y2-viewportWindow.y);  
+//    g2.beginPath();
+//    g2.moveTo(line.x1, line.y1);
+//    g2.lineTo(line.x2, line.y2);
+//    g2.stroke();   
+//}	
+//}
 
 var AffineTransform=(function(){
 	var x,y,a;
@@ -1418,31 +1302,29 @@ getHeight() {
 class Ruler extends Shape{
 constructor () {
 	super(0, 0, 0, 0, 0, 0);
-    this.text=new font.FontTexture('label','',0,0,new Alignment(AlignEnum.LEFT),MM_TO_COORD(1.2));       
+    this.text=new font.FontTexture('label','',0,0,MM_TO_COORD(1.2));       
     this.text.fillColor='white';        
 	this.resizingPoint=null;
 }
 Resize( xOffset, yOffset) {
-    this.resizingPoint.setLocation(this.resizingPoint.x+xOffset,this.resizingPoint.y+yOffset);
-    this.text.setLocation(this.resizingPoint.x, this.resizingPoint.y);
+    this.resizingPoint.set(this.resizingPoint.x+xOffset,this.resizingPoint.y+yOffset);
+    this.text.shape.anchorPoint.set(this.resizingPoint.x, this.resizingPoint.y);
 }	
 Paint( g2,  viewportWindow,  scale) {        
 		if(this.resizingPoint==null){
             return;
         }
-        this.text.setText(parseFloat(COORD_TO_MM(this.resizingPoint.distance(this.x,this.y))).toFixed(4)+' MM');
+        this.text.setText(parseFloat(COORD_TO_MM(this.resizingPoint.distanceTo(new d2.Point(this.x,this.y)))).toFixed(4)+' MM');
         this.text.Paint(g2, viewportWindow, scale);
 
-        let line=new Line();
- 		
-        let a=new Point(this.x,this.y);
-		
-		line.setLine(a.x,a.y,this.resizingPoint.x,this.resizingPoint.y);
+        let line=new d2.Segment(this.x,this.y,this.resizingPoint.x,this.resizingPoint.y);
 
         g2.strokeStyle  = 'white';
 		g2.lineWidth=1; 
         
-		line.draw(g2,viewportWindow,scale);
+        line.scale(scale.getScale());
+        line.move(-viewportWindow.x,-viewportWindow.y);
+        line.paint(g2);
 		
     }	
 }
@@ -1631,10 +1513,7 @@ var UnitSelectionPanel=Backbone.View.extend({
 
 
 module.exports ={
-	mywebpcb,
-	AlignEnum,
-	OrientEnum,
-	Alignment,
+	mywebpcb,	
 	UUID,
 	gridraster,
 	Fill,
@@ -1644,8 +1523,7 @@ module.exports ={
 	Layer,
 	ScalableTransformation,
 	ViewportWindow,
-	Grid,
-	Line,
+	Grid,	
 	ChipText,
 	UnitFrame,
 	Shape,
@@ -1661,5 +1539,4 @@ module.exports ={
 
 var events=require('core/events');
 var utilities=require('core/utilities');
-var glyph = require('core/text/glyph');
 var font = require('core/text/d2font');

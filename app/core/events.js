@@ -437,7 +437,7 @@ mouseReleased(e){
 mouseDragged(e){
 }
 mousePressed(e) {        
-        this.component.getModel().getUnit().ruler.resizingPoint=new core.Point(e.x,e.y);
+        this.component.getModel().getUnit().ruler.resizingPoint=new d2.Point(e.x,e.y);
         this.mx = e.x;
         this.my = e.y;
 }

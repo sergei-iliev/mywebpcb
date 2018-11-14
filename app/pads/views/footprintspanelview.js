@@ -209,10 +209,6 @@ var PadPanelBuilder=BaseBuilder.extend({
         'change #layerid': 'onchange',
         'change #typeid': 'onchange', 
         'change #shapeid': 'onchange', 
-        'change #numberorientationid': 'onchange',
-        'change #numberalignmentid': 'onchange',
-        'change #netvalueorientationid': 'onchange',
-        'change #netvaluealignmentid': 'onchange',
     },
     onchange:function(event){
         if(event.target.id=='layerid'){
@@ -227,23 +223,6 @@ var PadPanelBuilder=BaseBuilder.extend({
         	this.updateui();
         }
         
-        if(event.target.id=='numberorientationid'){
-      	  this.target.getChipText().get(0).setOrientation(parseInt((j$('#numberorientationid :selected').val())));
-      	  //update 
-      	  this.validateAlignmentComboText('numberalignmentid',this.target.getChipText().get(0));
-        }
-        if(event.target.id=='numberalignmentid'){
-      	  this.target.getChipText().get(0).setAlignment(parseInt((j$('#numberalignmentid :selected').val()))); 
-        }
-        
-        if(event.target.id=='netvalueorientationid'){
-        	  this.target.getChipText().get(1).setOrientation(parseInt((j$('#netvalueorientationid :selected').val())));
-        	  //update 
-        	  this.validateAlignmentComboText('netvaluealignmentid',this.target.getChipText().get(1));
-        }
-        if(event.target.id=='netvaluealignmentid'){
-        	  this.target.getChipText().get(1).setAlignment(parseInt((j$('#netvaluealignmentid :selected').val()))); 
-        }
        this.component.Repaint(); 
       },
     onenter:function(event){
@@ -321,12 +300,7 @@ var PadPanelBuilder=BaseBuilder.extend({
 	        }else{ 
 	         j$('#numberxid').val(this.toUnitX(this.target.getChipText().getTextureByTag("number").shape.anchorPoint.x));
 			 j$('#numberyid').val(this.toUnitY(this.target.getChipText().getTextureByTag("number").shape.anchorPoint.y));
-	        }	       
-	        
-	   	    //set orientation
-	   	    //j$('#numberorientationid').val(this.target.getChipText().get(0).getAlignment().getOrientation());
-	   	    //set alignment
-	   	    //this.validateAlignmentComboText('numberalignmentid',this.target.getChipText().get(0));
+	        }	       	        
 
 	        //-------netvalue--------
 	        j$('#netvalueid').val(this.target.getChipText().getTextureByTag("netvalue").shape.text); 
@@ -339,12 +313,6 @@ var PadPanelBuilder=BaseBuilder.extend({
 	         j$('#netvaluexid').val(this.toUnitX(this.target.getChipText().getTextureByTag("netvalue").shape.anchorPoint.x));
 			 j$('#netvalueyid').val(this.toUnitY(this.target.getChipText().getTextureByTag("netvalue").shape.anchorPoint.y));
 	        }
-	        
-	       
-	   	    //set orientation
-	   	    //j$('#netvalueorientationid').val(this.target.getChipText().get(1).getAlignment().getOrientation());
-	   	    //set alignment
-	   	    //this.validateAlignmentComboText('netvaluealignmentid',this.target.getChipText().get(1));
 	        
 	        //-----drill and offset------
 	        j$('#drillwidthid').val(core.COORD_TO_MM(this.target.drill==null?0:this.target.drill.getWidth()));
@@ -393,30 +361,12 @@ var PadPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='numbersizeid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>X</td><td><input type='text' id='numberxid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='numberyid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Orientation</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"numberorientationid\">"+
-				this.fillComboBox([{id:0,value:'HORIZONTAL',selected:true},{id:1,value:'VERTICAL'}])+
-			    "</select>" +
-				"</td></tr>"+
-				"<tr><td style='padding:7px'>Alignment</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"numberalignmentid\">"+
-				this.fillComboBox([{id:0,value:'LEFT',selected:true},{id:1,value:'RIGHT'}])+
-			    "</select>" +
-				"</td></tr>"+					        
+				        
 				"<tr><td style='padding:7px'>Net name</td><td><input type='text' id='netvalueid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='netvaluesizeid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>X</td><td><input type='text' id='netvaluexid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='netvalueyid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Orientation</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"netvalueorientationid\">"+
-				this.fillComboBox([{id:0,value:'HORIZONTAL',selected:true},{id:1,value:'VERTICAL'}])+
-			    "</select>" +
-				"</td></tr>"+	
-				"<tr><td style='padding:7px'>Alignment</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"netvaluealignmentid\">"+
-				this.fillComboBox([{id:0,value:'LEFT',selected:true},{id:1,value:'RIGHT'}])+
-			    "</select>" +
-				"</td></tr>"+					        
+				        
 		
 		"</table>");
 			
