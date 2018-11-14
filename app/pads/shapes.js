@@ -50,7 +50,6 @@ constructor(text,thickness,layermaskId) {
 		this.setDisplayName("Label");
 		this.texture=new glyph.GlyphTexture(text,"",0,0,thickness);
         this.texture.setSize(core.MM_TO_COORD(2));
-        this.rotate=0;
 	}
 clone(){
     var copy = new GlyphLabel(this.text,this.thickness,this.layermaskId);    
@@ -59,15 +58,13 @@ clone(){
 		return copy;
     }
 setRotation(rotate){
-	let alpha=rotate-this.rotate;
-	this.texture.Rotate({originx:this.texture.anchorPoint.x,originy:this.texture.anchorPoint.y,angle:alpha});
-	this.rotate=rotate;
+   this.texture.setRotation(rotate);
 }
 calculateShape(){ 
   return this.texture.getBoundingShape();
 }
-getCenter() {
-    return this.texture.getBoundingShape().center;
+isClicked(x,y){
+    return this.texture.isClicked(x,y);
 }
 getTexture(){
   return this.texture;    
@@ -78,8 +75,8 @@ setSelected(selected) {
 isSelected() {
    return this.texture.isSelected;
 }
-Rotate(rotation) {
-  this.texture.Rotate(rotation);
+Rotate(rotation) {	
+	this.texture.Rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	
 }
 Mirror(A,B) {
   this.texture.Mirror(A,B);

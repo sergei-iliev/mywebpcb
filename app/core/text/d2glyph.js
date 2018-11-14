@@ -98,9 +98,9 @@ class Glyph{
 	        }
 	        this.scale(size);
 	}
-	rotate(rotation) {
+	rotate(angle,pt) {
 	        for(let i=0;i<this.segments.length;i++){
-	        	this.segments[i].rotate(rotation.angle,{x:rotation.originx, y:rotation.originy});						
+	        	this.segments[i].rotate(angle,pt);						
 	        }
 	        this.resize();
 	}	
@@ -128,14 +128,32 @@ class GlyphTexture{
 	    this.thickness = core.MM_TO_COORD(0.2);	    
 		
 	    this.selectionRectWidth=3000;        
-	    this.text = this.resetGlyphText(text);
-	    this.width=0;
+	    this.text = text;
 		this.height=0;
+		this.width=0;
 	    this.setSize(size);
 		this.fillColor='gray';
 	    this.layermaskId=core.Layer.SILKSCREEN_LAYER_FRONT;	
 	    this.isSelected=false;	
-	}
+	    //this.boundingBox=d2.Box(0,0,0,0);
+	    this.rotate=0;
+}
+clone(){
+	       var copy = new GlyphTexture(this.text,this.tag,this.x,this.y,this.size);
+	       copy.anchorPoint = new d2.Point(this.anchorPoint.x,this.anchorPoint.y);       
+		   copy.glyphs = [];
+	       copy.width=this.width;
+		   copy.height=this.height;    
+		   this.glyphs.forEach(function(glyph) {
+	            copy.glyphs.push(glyph.clone());
+	       });
+			
+	       copy.thickness = this.thickness;
+		   copy.fillColor=this.fillColor;
+	       copy.layermaskId=this.layermaskId;		
+			
+	       return copy;
+}	
 clear() {
     this.glyphs=[];
     this.width=0;
@@ -170,33 +188,27 @@ resetGlyphsLine(){
     this.glyphs.forEach(function(glyph) {
         if(glyph.character==' '){
             xoffset += glyph.delta;
+            this.width += glyph.delta;
             return;
         }
         //calculate its width
         glyph.resize();
-        for (let i = 0; i < glyph.segments.length ; i++) {            			
-        	glyph.segments[i].move(this.anchorPoint.x + xoffset,this.anchorPoint.y + yoffset); 			  		  
-        }
+        yoffset=glyph.height;
+        for (let i = 0; i < glyph.segments.length ; i++) {        	
+        	glyph.segments[i].move(this.anchorPoint.x + xoffset,this.anchorPoint.y); 			  		  
+        }        
         xoffset += glyph.width + glyph.delta;
-    }.bind(this));	
+        this.height = Math.max(glyph.height+ glyph.miny, this.height);
+        this.width += glyph.width + glyph.delta;
+    }.bind(this));
+    
+    this.glyphs.forEach(function(glyph) {
+        for (let i = 0; i < glyph.segments.length ; i++) {        	
+        	glyph.segments[i].move(0,-this.height); 			  		  
+        }        
+    }.bind(this));
+    
 }
-
-//resetGlyphBox(){
-//	   switch(this.alignment.getOrientation()){
-//	        case core.OrientEnum.HORIZONTAL:
-//	            this.glyphs.forEach(function(glyph){
-//	                this.width += glyph.getGlyphWidth() + glyph.delta;
-//	                this.height = Math.max(glyph.getGlyphHeight() + glyph.miny, this.height);
-//	            }.bind(this));        
-//	            break;
-//	        case core.OrientEnum.VERTICAL:
-//	            this.glyphs.forEach(function(glyph){
-//	                this.height += glyph.getGlyphHeight() + glyph.delta;
-//	                this.width = Math.max(glyph.getGlyphWidth()+glyph.minx, this.width);
-//	            }.bind(this));            
-//	            break;
-//	        }
-//	}
 setSize(size) {
     if (this.text == null) {
         return;
@@ -209,28 +221,107 @@ setSize(size) {
         glyph.setSize(core.COORD_TO_MM(this.size));
     }.bind(this));        
     
-    //reset box
-    //this.resetGlyphBox();
+    //arrange it according to anchor point
+    this.resetGlyphsLine();
+    //rotate
+	this.glyphs.forEach(function(glyph){		  
+		glyph.rotate(this.rotate,this.anchorPoint);		     
+    }.bind(this));
+}
+setText(text) {
+	console.log(this.rotate);
+    //read original text
+    this.text = this.resetGlyphText(text);
+    
+    this.setSize(this.size);
+    
 }
 getBoundingShape() {
     if (this.text == null || this.text.length == 0) {
           return null;
     }
-      
-    return this.glyphs[0].box;
+    let rect= new d2.Rectangle(this.anchorPoint.x,this.anchorPoint.y-this.height,this.width,this.height);
+    rect.rotate(this.rotate,this.anchorPoint);
+    return rect.box;
+   
 }
-
+isClicked(x,y){
+    if (this.text == null || this.text.length == 0){
+        return false;
+    } 
+    let rect= new d2.Rectangle(this.anchorPoint.x,this.anchorPoint.y-this.height,this.width,this.height);
+    rect.rotate(this.rotate,this.anchorPoint);
+    return rect.contains(x,y);    
+}
 Move(xoffset,yoffset) {
     this.anchorPoint.move(xoffset,yoffset);
     this.glyphs.forEach(function(glyph){
         glyph.move(xoffset,yoffset);
     }.bind(this));      
 }
+setRotation(rotate,pt){
+	let alpha=rotate-this.rotate;		   
+	this.glyphs.forEach(function(glyph){
+	   if(pt==null)
+		glyph.rotate(alpha,this.anchorPoint);
+	   else
+		glyph.rotate(alpha,pt);   
+	}.bind(this));	
+	this.rotate=rotate;   
+}
+Rotate(rotate,pt){
+	//fix angle
+	let alpha=this.rotate+rotate;
+	if(alpha>=360){
+		alpha-=360
+	}
+	if(alpha<0){
+	 alpha+=360; 
+	}	
+	this.rotate=alpha;
+	//rotate anchor point
+	this.anchorPoint.rotate(rotate,pt);
+	//rotate glyphs
+	this.glyphs.forEach(function(glyph){
+	   glyph.rotate(rotate,pt);   
+	}.bind(this));	
+		
+}
 Paint(g2,viewportWindow,scale,layermaskId){
    if (this.isEmpty()) {
         return;
    }
-	
+   if (this.isSelected)
+       g2.strokeStyle='gray';
+   else
+       g2.strokeStyle=this.fillColor;
+
+   g2.lineWidth = this.thickness * scale.getScale();
+   g2.lineCap = 'round';
+   g2.lineJoin = 'round';
+   
+   this.glyphs.forEach(function(glyph){
+	   for(let i=0;i<glyph.segments.length;i++){	
+		   if(glyph.character==' '){
+			   continue;
+		   }
+		   let copy=glyph.segments[i].clone();
+		     copy.scale(scale.getScale());
+			 copy.move(-viewportWindow.x,- viewportWindow.y);
+	         copy.paint(g2); 
+	   }
+   });
+   
+   //let box=this.getBoundingShape();
+   //box.scale(scale.getScale());
+   //box.move(-viewportWindow.x,- viewportWindow.y);
+   //box.paint(g2);
+   if (this.isSelected){
+       this.drawControlShape(g2,viewportWindow,scale);
+   }   
+}
+drawControlShape(g2, viewportWindow,scale){
+    utilities.drawCrosshair(g2, viewportWindow, scale, null, this.selectionRectWidth, [this.anchorPoint]);
 }
 }
 var GlyphManager = (function () {

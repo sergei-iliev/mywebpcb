@@ -341,11 +341,40 @@ module.exports = function(d2) {
 			}
 	    	
 		}
+		intersects(r) {
+			let box=this.box;	
+	    // calculate the left common area coordinate:
+			let left = Math.max( box.min.x, r.x );
+	    // calculate the right common area coordinate:
+			let right  = Math.min( box.min.x +box.width, r.x + r.width );
+	    // calculate the upper common area coordinate:
+			let top    = Math.max( box.min.y,r.y );
+	    // calculate the lower common area coordinate:
+			let bottom = Math.min( box.min.y +box.height, r.y + r.height );
+	
+	    // if a common area exists, it must have a positive (null accepted) size
+			if( left <= right && top <= bottom )
+				return true;
+			else
+				return false;			  	    
+		
+		}
+		
+	    contains(...args){
+	      	if(args.length==1){  //point  
+	      	  return super.contains(args[0]);
+	      	}else{       //coordinates
+	      	  return super.contains({x:args[0],y:args[1]});    		
+	      	}  
+	    }
 		rotate(angle,center = {x:this.box.center.x, y:this.box.center.y}){
 			super.rotate(angle,center);
 		}
 		get box(){
 			return super.box;
+		}
+		get center(){
+			return super.box.center;
 		}
 		get vertices() {
 		    return this.points;	

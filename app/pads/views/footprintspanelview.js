@@ -764,7 +764,7 @@ var LabelPanelBuilder=BaseBuilder.extend({
 		 this.component.Repaint();     		    	
     },
 	updateui:function(){
-	 j$("#rotateid").val(this.target.rotate); 	
+	 j$("#rotateid").val(this.target.texture.rotate); 	
 	 j$('#layerid').val(this.target.copper.getName());	
 	 j$('#textid').val(this.target.texture.text);	
 	 j$('#xid').val(this.toUnitX(this.target.texture.anchorPoint.x));
