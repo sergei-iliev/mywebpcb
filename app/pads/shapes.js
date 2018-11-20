@@ -57,6 +57,15 @@ clone(){
         copy.copper=this.copper;
 		return copy;
     }
+setCopper(copper){
+	this.copper= copper;
+	//mirror horizontally
+	let line=new d2.Line(this.texture.anchorPoint,new d2.Point(this.texture.anchorPoint.x,this.texture.anchorPoint.y+100));
+	
+	let side=core.Layer.Side.resolve(this.copper.getLayerMaskID());
+	
+	this.texture.Mirror(side==core.Layer.Side.BOTTOM,line);
+}
 setRotation(rotate){
    this.texture.setRotation(rotate);
 }
@@ -123,12 +132,11 @@ class RoundRect extends Shape{
 		this.setDisplayName("Rect");		
 		this.selectionRectWidth=3000;
 		this.resizingPoint = null;
-		this.arc=arc;
 		this.rotate=0;
 		this.roundRect=new d2.RoundRectangle(new d2.Point(x,y),width,height,arc);		
 	}
 	clone() {
-		var copy = new RoundRect(0,0,0,0, this.arc,this.thickness,this.copper.getLayerMaskID());
+		var copy = new RoundRect(0,0,0,0,0,this.thickness,this.copper.getLayerMaskID());
 		copy.roundRect = this.roundRect.clone();
 		copy.rotate=this.rotate;
 		copy.fill = this.fill;		
@@ -172,8 +180,7 @@ class RoundRect extends Shape{
 		this.roundRect.rotate(alpha,box.center);
 		this.rotate=rotate;
 	}
-	setRounding(rounding){
-	  this.arc=rounding;
+	setRounding(rounding){	  
 	  this.roundRect.setRounding(rounding);
 	}
 	setResizingPoint(pt){
@@ -206,11 +213,9 @@ class RoundRect extends Shape{
 		if(j$(data)[0].hasAttribute("copper")){
 		  this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
 		}
-		this.setX(parseInt(j$(data).attr("x")));
-		this.setY(parseInt(j$(data).attr("y")));
-		this.setWidth(parseInt(j$(data).attr("width")));
-		this.setHeight(parseInt(j$(data).attr("height")));
-		this.arc = (parseInt(j$(data).attr("arc")));
+		this.roundRect.setRect(parseInt(j$(data).attr("x")),parseInt(j$(data).attr("y")),parseInt(j$(data).attr("width")),parseInt(j$(data).attr("height")),parseInt(j$(data).attr("arc")));
+		
+		
 		this.thickness = (parseInt(j$(data).attr("thickness")));
 		this.fill = parseInt(j$(data).attr("fill"));
 	}
@@ -312,13 +317,16 @@ isControlRectClicked(x,y) {
  		
  		let diameter=parseInt(parseInt(j$(data).attr("width")));
          //center x
-         this.setX(xx+(parseInt(diameter/2)));
+         //this.setX(xx+(parseInt(diameter/2)));
          //center y
-         this.setY(yy+(parseInt(diameter/2)));
+         //this.setY(yy+(parseInt(diameter/2)));
          //radius
-         this.setWidth(parseInt(diameter/2));
-         this.setHeight(parseInt(diameter/2));
+         //this.setWidth(parseInt(diameter/2));
+         //this.setHeight(parseInt(diameter/2));
 
+         this.circle.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
+         this.circle.r=parseInt(diameter/2);
+         
  		 this.thickness = (parseInt(j$(data).attr("thickness")));
  		 this.fill = parseInt(j$(data).attr("fill"));
 	}
@@ -411,18 +419,16 @@ setResizingPoint(point) {
 class Arc extends Shape{
 constructor(x,y,r,thickness,layermaskid){	
         super(0, 0, 0,0,thickness,layermaskid);  
-        this.startAngle=30;
-        this.extendAngle=50;
 		this.setDisplayName("Arc");
-		this.rotate=0;
 		this.selectionRectWidth=3000;
 		this.resizingPoint=null;
-		this.arc=new d2.Arc(new d2.Point(x,y),r,this.startAngle,this.extendAngle);
+		this.arc=new d2.Arc(new d2.Point(x,y),r,50,70);
 }
 clone() {
-		var copy = new Arc(this.arc.center.x,this.arc.center.y, this.arc.r,this.thickness,this.copper.getLayerMaskID());
-		copy.startAngle = this.startAngle;
-		copy.extendAngle = this.extendAngle;
+		var copy = new Arc(this.arc.center.x,this.arc.center.y, this.arc.r,this.thickness,this.copper.getLayerMaskID());		
+        copy.arc.startAngle = this.arc.startAngle;
+        copy.arc.endAngle = this.arc.endAngle; 
+        
 		copy.fill = this.fill;
 		return copy;
 }
@@ -441,19 +447,13 @@ fromXML(data){
 		let xx=parseInt(j$(data).attr("x"));
 		let yy=parseInt(j$(data).attr("y"));
 		
-		let diameter=parseInt(parseInt(j$(data).attr("width")));
-        //center x
-        this.setX(xx+(parseInt(diameter/2)));
-        //center y
-        this.setY(yy+(parseInt(diameter/2)));
-        //radius
-        this.setWidth(parseInt(diameter/2));
-        this.setHeight(parseInt(diameter/2));  
+		let diameter=parseInt(parseInt(j$(data).attr("width"))); 
 		
-		
-		this.startAngle = parseInt(j$(data).attr("start"));
-		this.extendAngle = parseInt(j$(data).attr("extend"));
-		
+        this.arc.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
+        this.arc.r = parseInt(diameter/2);
+        this.arc.startAngle = parseInt(j$(data).attr("start"));
+        this.arc.endAngle = parseInt(j$(data).attr("extend"));
+        
 		this.thickness = (parseInt(j$(data).attr("thickness")));				
 }
 toXML() {
@@ -715,7 +715,7 @@ fromXML(data) {
 	   for (var index = 0; index < len; index += 2) {
 			var x = parseInt(tokens[index]);
 			var y = parseInt(tokens[index + 1]);
-			this.points.push(new core.Point(x, y));
+			this.polyline.points.push(new d2.Point(x, y));
 		}
 }
 }
@@ -762,10 +762,8 @@ class Drill{
 	    return "<drill type=\"CIRCULAR\" x=\""+this.circle.pc.x+"\" y=\""+this.circle.pc.y+"\" width=\""+this.circle.radius+"\" height=\""+this.circle.radius+"\" />";	
 	}
 	fromXML(data){ 
-	   this.setX(parseInt(j$(data).attr("x")));
-	   this.setY(parseInt(j$(data).attr("y")));
+	   this.setLocation(parseInt(j$(data).attr("x")),parseInt(j$(data).attr("y")));
 	   this.setWidth(parseInt(j$(data).attr("width")));
-	   this.setHeight(parseInt(j$(data).attr("height")));
 	}
 }
 

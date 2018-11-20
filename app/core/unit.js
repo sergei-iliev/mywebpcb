@@ -201,7 +201,7 @@ getShapesRect(shapes) {
         }
         var len=shapes.length;
   	    for(var i=0;i<len;i++){
-            var tmp = shapes[i].getBoundingShape();
+  	    	var tmp = shapes[i].getBoundingShape();
             if (tmp != null) {
                 x1 = Math.min(x1, tmp.x);
                 y1 = Math.min(y1, tmp.y);
@@ -379,13 +379,15 @@ paint(g2, viewportWindow){
  		   this.shapes[i].Paint(g2,viewportWindow,this.scalableTransformation);  
  	   }
  	   //grid
-        this.grid.paint(g2,viewportWindow,this.scalableTransformation);
+       this.grid.paint(g2,viewportWindow,this.scalableTransformation);
         //coordinate system
-        this.coordinateSystem.Paint(g2, viewportWindow,this.scalableTransformation);
+       this.coordinateSystem.paint(g2, viewportWindow,this.scalableTransformation);
 		//ruler
-		this.ruler.Paint(g2, viewportWindow,this.scalableTransformation);
+	   this.ruler.paint(g2, viewportWindow,this.scalableTransformation);
         //frame
-        this.frame.paint(g2, viewportWindow,this.scalableTransformation);
+       if(this.frame!=null){
+	     this.frame.paint(g2, viewportWindow,this.scalableTransformation);
+       }
      }    
        
 }

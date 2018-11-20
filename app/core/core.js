@@ -1310,7 +1310,7 @@ Resize( xOffset, yOffset) {
     this.resizingPoint.set(this.resizingPoint.x+xOffset,this.resizingPoint.y+yOffset);
     this.text.shape.anchorPoint.set(this.resizingPoint.x, this.resizingPoint.y);
 }	
-Paint( g2,  viewportWindow,  scale) {        
+paint( g2,  viewportWindow,  scale) {        
 		if(this.resizingPoint==null){
             return;
         }
@@ -1360,23 +1360,28 @@ Reset(x, y) {
 		this.y=y;
 }
 
-Paint(g2, viewportWindow, scale) {
-		if (this.x == 0 && this.y == 0) {
-			return;
-		}
+paint(g2, viewportWindow, scale) {
+		//if (this.x == 0 && this.y == 0) {
+		//	return;
+		//}
 
-		var line = new Line();		
+		var line = new d2.Segment(0,0,0,0);		
 
 		g2.strokeStyle  = 'blue';
 		g2.lineWidth=1; 
 		
-		line.setLine(0, this.y, this.owningUnit.getWidth(),
+		line.set(0, this.y, this.owningUnit.getWidth(),
 				this.y);
-	    line.draw(g2, viewportWindow,scale);
+		line.scale(scale.getScale());
+		line.move(-viewportWindow.x,- viewportWindow.y);
+	    line.paint(g2);
+	    
 		
-		line.setLine(this.x, 0, this.x, this.owningUnit
+		line.set(this.x, 0, this.x, this.owningUnit
 				.getHeight());
-		line.draw(g2, viewportWindow,scale);
+		line.scale(scale.getScale());
+		line.move(-viewportWindow.x,- viewportWindow.y);		
+		line.paint(g2);
 	}
 }
 
@@ -1418,17 +1423,19 @@ build:function(){
 	 for(let unit of this.model.getUnits()){
 	     //hide grid
 		 unit.getGrid().paintable=false;
+		 //hide frame
+		 unit.frame=null;
 		 //make it smaller
 		 unit.scalableTransformation=new ScalableTransformation(10,4,13);
-	     var w=Math.round(unit.getBoundingRect().getWidth()*unit.scalableTransformation.getScale());
+	     var w=Math.round(unit.getBoundingRect().width*unit.scalableTransformation.getScale());
 		 width=Math.max(width,w);
        
 	  }
 	 for(let unit of this.model.getUnits()){     
 		 var r=unit.getBoundingRect();
-		 var x=Math.round(r.getX()*unit.scalableTransformation.getScale());
-		 var y=Math.round(r.getY()*unit.scalableTransformation.getScale());
-         var height=Math.round(r.getHeight()*unit.getScalableTransformation().getScale());             
+		 var x=Math.round(r.x*unit.scalableTransformation.getScale());
+		 var y=Math.round(r.y*unit.scalableTransformation.getScale());
+         var height=Math.round(r.height*unit.getScalableTransformation().getScale());             
          var cell=UnitSelectionCell(unit.getUUID(),x,y,width,height,unit.unitName);
          cell.selected=( this.model.getUnit()==unit?true:false);
          this.cells.push(cell);        
@@ -1483,7 +1490,7 @@ var UnitSelectionPanel=Backbone.View.extend({
   	        ctx.fillStyle = "rgb(0,0,0)";
   	        ctx.fillRect(0, 0, cell.width, cell.height);  
 
-  	        unit.paint(ctx,new Rectangle(cell.x,cell.y,cell.width,cell.height));                    	         
+  	        unit.paint(ctx,d2.Box.fromRect(cell.x,cell.y,cell.width,cell.height));                    	         
   		  };
   	}
   },

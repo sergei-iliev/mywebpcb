@@ -196,7 +196,7 @@ var ToggleButtonView=Backbone.View.extend({
 		  this.footprintComponent.componentResized();
         //position on center
           let rect=this.footprintComponent.getModel().getUnit().getBoundingRect();
-          this.footprintComponent.setScrollPosition(rect.getCenterX(),rect.getCenterY());
+          this.footprintComponent.setScrollPosition(rect.center.x,rect.center.y);
           this.footprintComponent.fireContainerEvent({target:null,type: events.Event.RENAME_CONTAINER});
           this.footprintComponent.getModel().fireUnitEvent({target:this.footprintComponent.getModel().getUnit(),type: events.Event.SELECT_UNIT});
 		  this.footprintComponent.Repaint();
@@ -206,8 +206,8 @@ var ToggleButtonView=Backbone.View.extend({
 	        //position all to symbol center
 		  for(let unit of this.footprintComponent.getModel().getUnits()){			   
 	            let r=unit.getBoundingRect();
-	            var x=unit.getScalableTransformation().getScale()*r.getX()-(this.footprintComponent.viewportWindow.width-unit.getScalableTransformation().getScale()*r.getWidth())/2;
-	            var y=unit.getScalableTransformation().getScale()*r.getY()-(this.footprintComponent.viewportWindow.height-unit.getScalableTransformation().getScale()*r.getHeight())/2;;
+	            var x=unit.getScalableTransformation().getScale()*r.x-(this.footprintComponent.viewportWindow.width-unit.getScalableTransformation().getScale()*r.width)/2;
+	            var y=unit.getScalableTransformation().getScale()*r.y-(this.footprintComponent.viewportWindow.height-unit.getScalableTransformation().getScale()*r.height)/2;;
 	            unit.setScrollPositionValue(x,y);            			  
 		  }		
 

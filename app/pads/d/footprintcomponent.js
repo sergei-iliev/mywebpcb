@@ -56,7 +56,7 @@ parse(data){
 	 	   }
 	 	   var that=this;
 	 	   j$(data).find('shapes').children().each(function(){
-               var shape=that.shapeFactory.createShape(this);			   
+               var shape=that.shapeFactory.createShape(this);
                that.add(shape);
 	 	   });
 

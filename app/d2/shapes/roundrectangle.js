@@ -22,6 +22,14 @@ module.exports = function(d2) {
     		copy.reset();
     		return copy;
     	}
+    	setRect(x,y,width,height,rounding){
+    		super.setRect(x,y,width,height);
+    		this.rounding=rounding;
+    		this.p1.set(x,y);
+    		this.width=width;
+    		this.height=height;
+    		this.reset();
+    	}
         /**
          * Create specific rounding arc 90 degrees long
          * @param center of the arc

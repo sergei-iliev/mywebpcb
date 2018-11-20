@@ -28,7 +28,9 @@ getBoundingRect(){
     } 
     
 }
-
+setLocation(x,y){
+	this.shape.anchorPoint.set(x,y);
+}
 setText(text){
 	this.shape.setText(text);
 }
@@ -59,7 +61,18 @@ Paint(g2,viewportWindow,scale){
 	
 }
 
-
+fromXML(node){
+    if (node == null || node.length==0) {
+        this.text = "";
+        return;
+    }
+    var tokens=node.split(',');
+    this.shape.anchorPoint.set(parseInt(tokens[1]),
+            parseInt(tokens[2]));     
+    
+    this.shape.setText(tokens[0]);
+    this.shape.setSize(parseInt(tokens[5]));
+}
 }
 
 var core=require('core/core');

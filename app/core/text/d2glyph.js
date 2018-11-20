@@ -103,7 +103,13 @@ class Glyph{
 	        	this.segments[i].rotate(angle,pt);						
 	        }
 	        this.resize();
-	}	
+	}
+	mirror(line){
+        for(let i=0;i<this.segments.length;i++){
+        	this.segments[i].mirror(line);						
+        }
+        this.resize();
+	}
 	fromXML(node){
 		this.character=j$(node).attr("char");
 		this.delta=parseInt(j$(node).attr("delta"));		
@@ -135,8 +141,8 @@ class GlyphTexture{
 		this.fillColor='gray';
 	    this.layermaskId=core.Layer.SILKSCREEN_LAYER_FRONT;	
 	    this.isSelected=false;	
-	    //this.boundingBox=d2.Box(0,0,0,0);
 	    this.rotate=0;
+	    this.mirrored=false;
 }
 clone(){
 	       var copy = new GlyphTexture(this.text,this.tag,this.x,this.y,this.size);
@@ -147,7 +153,8 @@ clone(){
 		   this.glyphs.forEach(function(glyph) {
 	            copy.glyphs.push(glyph.clone());
 	       });
-			
+		   copy.mirrored=this.mirrored;
+		   copy.rotate=this.rotate;
 	       copy.thickness = this.thickness;
 		   copy.fillColor=this.fillColor;
 	       copy.layermaskId=this.layermaskId;		
@@ -240,18 +247,40 @@ getBoundingShape() {
     if (this.text == null || this.text.length == 0) {
           return null;
     }
-    let rect= new d2.Rectangle(this.anchorPoint.x,this.anchorPoint.y-this.height,this.width,this.height);
-    rect.rotate(this.rotate,this.anchorPoint);
-    return rect.box;
-   
+     return this.getBoundingRect().box;
+}
+//@private
+getBoundingRect(){
+    if(this.mirrored){
+        let rect= new d2.Rectangle(this.anchorPoint.x-this.width,this.anchorPoint.y-this.height,this.width,this.height);
+        rect.rotate(this.rotate-180,this.anchorPoint);
+        return rect;
+     }else{    	
+        let rect= new d2.Rectangle(this.anchorPoint.x,this.anchorPoint.y-this.height,this.width,this.height);
+        rect.rotate(this.rotate,this.anchorPoint);
+        return rect;
+     }	
 }
 isClicked(x,y){
     if (this.text == null || this.text.length == 0){
         return false;
     } 
-    let rect= new d2.Rectangle(this.anchorPoint.x,this.anchorPoint.y-this.height,this.width,this.height);
-    rect.rotate(this.rotate,this.anchorPoint);
-    return rect.contains(x,y);    
+    return this.getBoundingRect().contains(x,y);   
+}
+Mirror(mirrored,line){
+	this.mirrored=mirrored;
+	
+    this.anchorPoint.mirror(line);
+    this.glyphs.forEach(function(glyph){
+        glyph.mirror(line);
+    }.bind(this));
+    
+  	if(this.rotate<=180){
+ 	 this.rotate=180-this.rotate; 
+ 	}else{
+ 	 this.rotate=180+(360-this.rotate);
+ 	}    
+    
 }
 Move(xoffset,yoffset) {
     this.anchorPoint.move(xoffset,yoffset);
@@ -291,6 +320,7 @@ Paint(g2,viewportWindow,scale,layermaskId){
    if (this.isEmpty()) {
         return;
    }
+   console.log(this.fillColor);
    if (this.isSelected)
        g2.strokeStyle='gray';
    else
@@ -312,16 +342,51 @@ Paint(g2,viewportWindow,scale,layermaskId){
 	   }
    });
    
-   //let box=this.getBoundingShape();
-   //box.scale(scale.getScale());
-   //box.move(-viewportWindow.x,- viewportWindow.y);
-   //box.paint(g2);
+//   let box=this.getBoundingRect();
+//   box.scale(scale.getScale());
+//   box.move(-viewportWindow.x,- viewportWindow.y);
+//   box.paint(g2);
    if (this.isSelected){
        this.drawControlShape(g2,viewportWindow,scale);
    }   
 }
 drawControlShape(g2, viewportWindow,scale){
     utilities.drawCrosshair(g2, viewportWindow, scale, null, this.selectionRectWidth, [this.anchorPoint]);
+}
+fromXML(node){	
+	
+	if (node == null || j$(node).text().length==0) {
+         this.text = "";
+         return;
+     }
+	 //layer?
+     if(j$(node).attr("layer")!=null){
+        this.layermaskId=core.Layer.Copper.valueOf(j$(node).attr("layer")).getLayerMaskID();
+       }else{
+    	this.layermaskId=core.Layer.SILKSCREEN_LAYER_FRONT;	
+     }
+     
+	 var tokens=j$(node).text().split(',');
+     this.text=tokens[0];
+	 
+     this.anchorPoint.set(parseInt(tokens[1]),
+             parseInt(tokens[2]));  
+
+	 this.thickness=parseInt(tokens[4]); 
+	 if(isNaN(this.thickness)){
+		 this.thickness=2000;
+	 } 
+     let size=parseInt(tokens[5]);
+     if(isNaN(size)){
+    	 size=20000;
+     }
+     //invalidate
+     this.setSize(size);
+	 //mirror?
+     let side=core.Layer.Side.resolve(this.layermaskId);
+	 if(side==core.Layer.Side.BOTTOM){
+		 this.Mirror(true,new d2.Line(this.anchorPoint,new d2.Point(this.anchorPoint.x,this.anchorPoint.y+100)));
+	 }
 }
 }
 var GlyphManager = (function () {

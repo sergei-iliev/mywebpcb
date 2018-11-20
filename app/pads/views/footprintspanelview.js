@@ -685,7 +685,8 @@ var LabelPanelBuilder=BaseBuilder.extend({
     },
     onchange:function(event){      
 	  if(event.target.id=='layerid'){
-      	  this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+		  this.target.setCopper(core.Layer.Copper.valueOf(j$('#layerid').val()));
+      	  //this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
       }
       this.component.Repaint(); 
     },
