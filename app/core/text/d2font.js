@@ -60,7 +60,11 @@ Paint(g2,viewportWindow,scale){
 
 	
 }
-
+toXML(){
+    return (this.text=="" ? "" :
+        this.shape.text + "," + this.shape.anchorPoint.x + "," + this.shape.anchorPoint.y +
+        "," +this.shape.rotation+","+this.shape.fontSize);	 
+}
 fromXML(node){
     if (node == null || node.length==0) {
         this.text = "";

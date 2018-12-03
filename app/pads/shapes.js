@@ -2,7 +2,6 @@ var core=require('core/core');
 var utilities =require('core/utilities');
 var Shape=require('core/core').Shape;
 var AbstractLine=require('core/shapes').AbstractLine;
-var ResizeableShape=require('core/core').ResizeableShape;
 var glyph=require('core/text/d2glyph');
 var font=require('core/text/d2font');
 var d2=require('d2/d2');
@@ -74,6 +73,9 @@ calculateShape(){
 }
 isClicked(x,y){
     return this.texture.isClicked(x,y);
+}
+getCenter(){
+   return this.texture.getBoundingShape().center;
 }
 getTexture(){
   return this.texture;    
@@ -192,6 +194,18 @@ class RoundRect extends Shape{
 	Move(xoffset, yoffset) {
 		this.roundRect.move(xoffset,yoffset);
 	}
+	Mirror(line){
+		this.roundRect.mirror(line);
+//	  	if(line.isVertical){
+//		 if(this.rotate<=180){
+//	  	   this.rotate=180-this.rotate; 
+//	  	 }else{
+//	  	   this.rotate=180+(360-this.rotate);
+//	  	 } 
+//	  	}else{
+//	  	   this.rotate=360-this.rotate;		  		
+//	  	}
+	}
 	Rotate(rotation){		
 		this.roundRect.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	}
@@ -202,12 +216,11 @@ class RoundRect extends Shape{
 		 return this.roundRect.box.width*this.roundRect.box.height; 
 	}	
 	toXML() {
-		return "<rectangle copper=\"" + this.copper.getName() + "\" x=\""
-				+ this.upperLeft.x + "\" y=\"" + this.upperLeft.y
-				+ "\" width=\"" + this.getWidth() + "\" height=\""
-				+ this.getHeight() + "\" thickness=\"" + this.thickness
-				+ "\" fill=\"" + this.fill + "\" arc=\"" + this.arc
-				+ "\"></rectangle>";
+		return "<rectangle copper=\"" + this.copper.getName()
+		        +"\" thickness=\"" + this.thickness
+				+ "\" fill=\"" + this.fill + "\" arc=\"" + this.roundRect.rounding
+				+"\" points=\"" + this.roundRect.points
+				+ "\" rt=\""+this.rotate+"\"></rectangle>";
 	}
 	fromXML(data) {
 		if(j$(data)[0].hasAttribute("copper")){
@@ -225,29 +238,33 @@ class RoundRect extends Shape{
 		if (!rect.intersects(viewportWindow)) {
 			return;
 		}
-		g2.globalCompositeOperation = 'lighter';
+		
 		g2.lineWidth = this.thickness * scale.getScale();
 
 		if (this.fill == core.Fill.EMPTY) {
+			g2.globalCompositeOperation = 'lighter';
 			if (this.selection) {
 				g2.strokeStyle = "gray";
 			} else {
 				g2.strokeStyle = this.copper.getColor();
 			}
-
+			g2.globalCompositeOperation = 'source-over';
 		} else {
+			g2._fill=true;
 			if (this.selection) {
 				g2.fillStyle = "gray";
 			} else {
 				g2.fillStyle = this.copper.getColor();
-			}
+			}			
 		}
 		let r=this.roundRect.clone();	
 		r.scale(scale.getScale());
         r.move(-viewportWindow.x,- viewportWindow.y);
 		r.paint(g2);
 		
-		g2.globalCompositeOperation = 'source-over';
+		g2._fill=false;
+		
+		
 
 		if (this.isSelected()) {
 			this.drawControlPoints(g2, viewportWindow, scale);
@@ -304,7 +321,7 @@ isControlRectClicked(x,y) {
    	return result;
     }	
 	toXML() {
-        return "<ellipse copper=\""+this.copper.getName()+"\" x=\""+(this.x-this.width)+"\" y=\""+(this.y-this.width)+"\" width=\""+(2*this.width)+"\" height=\""+(2*this.width)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
+        return "<circle copper=\""+this.copper.getName()+"\" x=\""+(this.circle.pc.x)+"\" y=\""+(this.circle.pc.y)+"\" radius=\""+(this.circle.r)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
 	}
 	fromXML(data) {	
         if(j$(data).attr("copper")!=null){
@@ -382,20 +399,22 @@ isControlRectClicked(x,y) {
 				g2.strokeStyle = this.copper.getColor();
 			}
 		} else {
+			g2._fill=true;
 			if (this.selection) {
 				g2.fillStyle = "gray";
 			} else {
 				g2.fillStyle = this.copper.getColor();
-			}
+			}			
 		}
 
 		let c=this.circle.clone();
 		c.scale(scale.getScale());
         c.move(-viewportWindow.x,- viewportWindow.y);
 		c.paint(g2);
-		
-		g2.globalCompositeOperation = 'source-over';
+		g2._fill=false;
 
+		g2.globalCompositeOperation = 'source-over';
+		
 		if (this.isSelected()) {
 			this.drawControlPoints(g2, viewportWindow, scale);
   } 
@@ -457,7 +476,7 @@ fromXML(data){
 		this.thickness = (parseInt(j$(data).attr("thickness")));				
 }
 toXML() {
-    return '<arc copper="'+this.copper.getName()+'"  x="'+(this.x-this.width)+'" y="'+(this.y-this.width)+'" width="'+(2*this.width)+'"  thickness="'+this.thickness+'" start="'+this.startAngle+'" extend="'+this.extendAngle+'" />';
+    return '<arc copper="'+this.copper.getName()+'"  x="'+(this.arc.pc.x)+'" y="'+(this.arc.pc.y)+'" radius="'+(this.arc.r)+'"  thickness="'+this.thickness+'" start="'+this.arc.startAngle+'" extend="'+this.arc.endAngle+'" />';
 }
 setExtendAngle(extendAngle){
     this.arc.endAngle=utilities.round(extendAngle);
@@ -659,7 +678,6 @@ Paint(g2, viewportWindow, scale) {
 		}
 				
 		g2.globalCompositeOperation = 'lighter';
-		
 		g2.lineCap = 'round';
 		g2.lineJoin = 'round';
 		
@@ -687,7 +705,6 @@ Paint(g2, viewportWindow, scale) {
 		}
 		
 		g2.globalCompositeOperation = 'source-over';
-
 		if (this.selection) {
 			this.drawControlPoints(g2, viewportWindow, scale);
 		}
@@ -697,7 +714,7 @@ Paint(g2, viewportWindow, scale) {
 toXML() {
 	var result = "<line copper=\"" + this.copper.getName()
 								+ "\" thickness=\"" + this.thickness + "\">";
-	this.points.forEach(function(point) {
+	this.polyline.points.forEach(function(point) {
 		result += point.x + "," + point.y + ",";
 	});
 	result += "</line>";
@@ -722,8 +739,8 @@ fromXML(data) {
 
 
 class Drill{
-	 constructor(width) {
-	    this.circle=new d2.Circle(new d2.Point(0,0),width/2);
+	 constructor(x,y,width) {
+	    this.circle=new d2.Circle(new d2.Point(x,y),width/2);
 	 }
 	 clone(){
 		 let copy= new Drill(0);
@@ -759,7 +776,7 @@ class Drill{
 		g2._fill=false;
 	}
 	toXML(){
-	    return "<drill type=\"CIRCULAR\" x=\""+this.circle.pc.x+"\" y=\""+this.circle.pc.y+"\" width=\""+this.circle.radius+"\" height=\""+this.circle.radius+"\" />";	
+	    return "<drill type=\"CIRCULAR\" x=\""+this.circle.pc.x+"\" y=\""+this.circle.pc.y+"\" width=\""+this.circle.radius+"\" />";	
 	}
 	fromXML(data){ 
 	   this.setLocation(parseInt(j$(data).attr("x")),parseInt(j$(data).attr("y")));
@@ -842,9 +859,8 @@ class Pad extends core.Shape{
 	   this.drill=null;
 	   this.rotate=0;
 	   this.offset=new d2.Point(0,0);
-	   this.setType(PadType.THROUGH_HOLE);
-	   this.setShape(PadShape.CIRCULAR);
-	   this.shape.move(x,y);
+	   this.shape=new CircularShape(0,0,width,this);
+	   this.setType(PadType.THROUGH_HOLE);	   
 	   this.setDisplayName("Pad");
 	   this.text=new core.ChipText();
 	   this.text.Add(new font.FontTexture("number","1",x,y,4000));
@@ -853,8 +869,6 @@ class Pad extends core.Shape{
 clone(){
 	     var copy=new Pad(0,0,this.width,this.height);
 	     copy.setType(this.type);
-		 copy.setX(this.getX());
-		 copy.setY(this.getY());
 	     copy.width=this.width;
 	     copy.height=this.height;
 	     copy.rotate=this.rotate;
@@ -875,8 +889,12 @@ setRotation(rotate){
 getChipText() {
 	    return this.text;
 }
+getCenter(){
+	return this.shape.center;
+}
 toXML(){
-	    var xml="<pad copper=\""+this.copper.getName()+"\" type=\"" +PadType.format(this.type) + "\" shape=\""+PadShape.format(this.getShape())+"\" x=\""+this.getX()+"\" y=\""+this.getY()+"\" width=\""+this.getWidth()+"\" height=\""+this.getHeight()+"\" arc=\""+this.arc+"\">\r\n";
+	    var xml="<pad copper=\""+this.copper.getName()+"\" type=\"" +PadType.format(this.type) + "\" shape=\""+PadShape.format(this.getShape())+"\" x=\""+this.getX()+"\" y=\""+this.getY()+"\" width=\""+this.getWidth()+"\" height=\""+this.getHeight()+"\" rt=\""+this.rotate+"\">\r\n";
+	        //xml+=this.shape.toXML()+"\r\n";
 	        xml+="<offset x=\""+this.offset.x+"\" y=\""+this.offset.y+"\" />\r\n";
 	    
 	        if (!this.text.getTextureByTag("number").isEmpty())
@@ -896,12 +914,16 @@ toXML(){
 fromXML(data){   
 		      this.copper=core.Layer.Copper.valueOf(j$(data).attr("copper"));
 		      this.setType(PadType.parse(j$(data).attr("type")));
-			  this.setX(parseInt(j$(data).attr("x")));
-			  this.setY(parseInt(j$(data).attr("y")));
-		      this.setWidth(parseInt(j$(data).attr("width")));
-		      this.setHeight(parseInt(j$(data).attr("height")));
-		      this.arc=(parseInt(j$(data).attr("arc")));
-		      this.setShape(PadShape.parse(j$(data).attr("shape")));
+		      
+			  let x=(parseInt(j$(data).attr("x")));
+			  let y=(parseInt(j$(data).attr("y")));
+		      this.width=(parseInt(j$(data).attr("width")));
+		      this.height=(parseInt(j$(data).attr("height")));
+		      
+		      if(j$(data).attr("rt")!=undefined)
+		        this.rotate=(parseInt(j$(data).attr("rt")));
+		      
+		      this.setShape(x,y,PadShape.parse(j$(data).attr("shape")));
 			  
 		      var offset=(j$(data).find("offset"));
 		      this.offset.x=(parseInt(j$(offset).attr("x")));
@@ -910,7 +932,7 @@ fromXML(data){
 		      if(this.drill!=null){
 		          this.drill.fromXML(j$(data).find("drill"));
 		      }   
-		      
+
 		      var number=(j$(data).find("number").text()); 
 			  var netvalue=(j$(data).find("netvalue").text());
 			  if(number==''){
@@ -951,8 +973,6 @@ isInRect(r) {
 	         return false; 
 	}	
 Move(xoffset, yoffset){
-	   this.x+=xoffset;
-	   this.y+=yoffset;
 	   this.shape.move(xoffset, yoffset);
 	   
 	   if(this.drill!=null){
@@ -962,15 +982,15 @@ Move(xoffset, yoffset){
 	   
 	}
 
-Mirror(A,B) {
-    let source = new d2.Point(this.x,this.y);
-    utilities.mirrorPoint(A, B, source);
-    this.setX(source.x);
-    this.setY(source.y);
-    if (this.drill != null) {
-        this.drill.Mirror(A, B);
-    }
-    this.text.Mirror(A, B);
+Mirror(line) {
+//    let source = new d2.Point(this.x,this.y);
+//    utilities.mirrorPoint(A, B, source);
+//    this.setX(source.x);
+//    this.setY(source.y);
+//    if (this.drill != null) {
+//        this.drill.Mirror(A, B);
+//    }
+//    this.text.Mirror(A, B);
 }
 Rotate(rotation){
 	let alpha=this.rotate+rotation.angle;
@@ -993,8 +1013,7 @@ setType(type) {
 	        switch(type){
 	        case PadType.THROUGH_HOLE:
 	            if(this.drill==null){
-	                this.drill=new Drill(this.owningUnit,20,20);
-	                this.drill.setLocation(this.x,this.y);
+	            	this.drill=new Drill(this.shape.center.x,this.shape.center.y,core.MM_TO_COORD(0.8));		               	                
 	            }
 	            break;
 	        case PadType.SMD:
@@ -1002,19 +1021,29 @@ setType(type) {
 	            break;
 			}
 }
-setShape(shape){
+setShape(...args){
+	    let shape,x,y; 
+	    if(args.length==1){
+	      x=this.shape.center.x;
+	      y=this.shape.center.y;
+	      shape=args[0];
+	    }else{
+		  x=args[0];
+		  y=args[1];
+		  shape=args[2];	      	
+	    }
 	    switch(shape){
 	    case PadShape.CIRCULAR:
-	        this.shape=new CircularShape(this);
+	        this.shape=new CircularShape(x,y,this.width,this);
 	    break;
 	     case PadShape.OVAL: 
-	        this.shape=new OvalShape(this);
+	        this.shape=new OvalShape(x,y,this.width,this.height,this);
 	        break;
 	    case PadShape.RECTANGULAR:
-	        this.shape=new RectangularShape(this);
+	        this.shape=new RectangularShape(x,y,this.width,this.height,this);
 	        break;
 	    case PadShape.POLYGON:
-		    this.shape = new PolygonShape(this);
+		    this.shape = new PolygonShape(x,y,this.width,this);
 	        break;
 	    } 
 	    //restore rotation
@@ -1033,17 +1062,16 @@ getShape(){
 	        return PadShape.POLYGON;		
 }    
 setWidth(width){
+	        this.width=width;
 	        this.shape.setWidth(width);    
 	    }
 setHeight(height){
+	        this.height=height;
 	        this.shape.setHeight(height);
 	    }
 calculateShape() {
 	return this.shape.box;
 } 
-setLocation( x,  y) {
-		 throw new IllegalStateException("Doubt that setLocation will be invoked");
-	}    
 Paint(g2,viewportWindow,scale){
 	    switch(this.type){
 	    case PadType.THROUGH_HOLE:
@@ -1064,10 +1092,9 @@ Paint(g2,viewportWindow,scale){
 }
 	//----------CircularShape-------------------
 class CircularShape{
-	constructor(pad){
+	constructor(x,y,width,pad){
 		this.pad=pad;
-		this.circle=new d2.Circle(new d2.Point(pad.getX(),pad.getY()),pad.getWidth()/2);		
-		this.setWidth(this.pad.getWidth());
+		this.circle=new d2.Circle(new d2.Point(x,y),width/2);		
 	}
     Paint(g2,viewportWindow,scale){
 	     var box=this.circle.box;
@@ -1097,8 +1124,8 @@ class CircularShape{
 		return true;
 	}
     copy(pad){
-  	  let _copy=new CircularShape(pad);
-  	  _copy.obround=this.circle.clone();	  
+  	  let _copy=new CircularShape(0,0,0,pad);
+  	  _copy.circle=this.circle.clone();	  
   	  return _copy;  
   	} 
     rotate(alpha,origin){
@@ -1121,82 +1148,18 @@ class CircularShape{
 		return this.circle.center;	
 	}
     setWidth(width) {
-	   this.pad.width=width;
-	   this.setHeight(width);
+	   this.circle.r=width/2;
 	}
-    setHeight(height) {
-	    this.pad.height=height;           
-	}
-}	
-//------------OvalShape-----------------------
-class OvalShape{
-	constructor(pad){
-	   this.pad=pad;
-	   this.obround=new d2.Obround(new d2.Point(pad.getX(),pad.getY()),pad.getWidth(),pad.getHeight());
-	}
-Paint(g2,viewportWindow,scale){
-	     var box=this.obround.box;
-	     box.scale(scale.scale);     
-       //check if outside of visible window
-	     var window=new d2.Box(0,0,0,0);
-	     window.setRect(viewportWindow.x,viewportWindow.y,viewportWindow.width,viewportWindow.height);
-         if(!box.intersects(window)){
-           return false;
-         }
-         
-	     g2.lineWidth = this.obround.width * scale.getScale();
-	     if(this.pad.isSelected())
-	        g2.strokeStyle = "gray";  
-	     else{
-	        g2.strokeStyle = this.pad.copper.getColor();
-	     }
-	      
-		   let o=this.obround.clone();
-		   o.scale(scale.getScale());
-	       o.move(-viewportWindow.x,- viewportWindow.y);
-		   o.paint(g2);
+    setHeight(height){
+	
+    }
 
-	      return true;
-}
-copy(pad){
-	  let _copy=new OvalShape(pad);
-	  _copy.obround=this.obround.clone();	  
-	  return _copy;  
-	}
-rotate(alpha,origin){
-	if(origin==null){
-	  this.obround.rotate(alpha);
-	}else{
-	  this.obround.rotate(alpha,origin);	
-	}
-}
-contains(pt){
-	return this.obround.contains(pt);
-}
-move(xoffset, yoffset) {
-	this.obround.move(xoffset,yoffset);
-}
-get box(){
-	return this.obround.box;
-}
-get center(){
-	return this.obround.center;	
-}
-setWidth(width) {
-	    this.pad.width=width;
-	    this.obround.setWidth(width);
-}
-setHeight(height) {
-	    this.pad.height=height;
-	    this.obround.setHeight(height);
-	    this.obround.rotate(this.pad.rotate);
-}
 }
 //------------RectangularShape----------------
 class RectangularShape{
-	constructor(pad){
+	constructor(x,y,width,height,pad){
 		this.pad=pad;
-		this.rect=new d2.Rectangle(new d2.Point((pad.getX()-pad.getWidth()/2)-pad.offset.x,(pad.getY()-pad.getHeight()/2)-pad.offset.y),pad.getWidth(),pad.getHeight());			
+		this.rect=new d2.Rectangle(new d2.Point(x-width/2,y-height/2),width,height);			
 }
 Paint(g2,viewportWindow,scale){
 	   var box=this.rect.box;
@@ -1223,7 +1186,7 @@ Paint(g2,viewportWindow,scale){
 	    return true;
 }
 copy(pad){
-  let _copy=new RectangularShape(pad);
+  let _copy=new RectangularShape(0,0,0,0,pad);
   _copy.rect=this.rect.clone();	  
   return _copy;  
 }
@@ -1248,21 +1211,82 @@ get center(){
 	return this.rect.box.center;	
 }
 setWidth(width) {
-		   this.pad.width=width;
 		   this.rect.setSize(this.pad.width,this.pad.height);
 		   this.rect.rotate(this.pad.rotate);
 }
 setHeight(height) {
-		   this.pad.height=height;
 		   this.rect.setSize(this.pad.width,this.pad.height);
 		   this.rect.rotate(this.pad.rotate);
 }
 }
+//------------OvalShape-----------------------
+class OvalShape{
+	constructor(x,y,width,height,pad){
+	   this.pad=pad;
+	   this.obround=new d2.Obround(new d2.Point(x,y),width,height);
+	}
+Paint(g2,viewportWindow,scale){
+	     var box=this.obround.box;
+	     box.scale(scale.scale);     
+       //check if outside of visible window
+	     var window=new d2.Box(0,0,0,0);
+	     window.setRect(viewportWindow.x,viewportWindow.y,viewportWindow.width,viewportWindow.height);
+         if(!box.intersects(window)){
+           return false;
+         }
+         
+	     g2.lineWidth = this.obround.width * scale.getScale();
+	     if(this.pad.isSelected())
+	        g2.strokeStyle = "gray";  
+	     else{
+	        g2.strokeStyle = this.pad.copper.getColor();
+	     }
+	      
+		   let o=this.obround.clone();
+		   o.scale(scale.getScale());
+	       o.move(-viewportWindow.x,- viewportWindow.y);
+		   o.paint(g2);
+
+	      return true;
+}
+copy(pad){
+	  let _copy=new OvalShape(0,0,0,0,pad);
+	  _copy.obround=this.obround.clone();	  
+	  return _copy;  
+	}
+rotate(alpha,origin){
+	if(origin==null){
+	  this.obround.rotate(alpha);
+	}else{
+	  this.obround.rotate(alpha,origin);	
+	}
+}
+contains(pt){
+	return this.obround.contains(pt);
+}
+move(xoffset, yoffset) {
+	this.obround.move(xoffset,yoffset);
+}
+get box(){
+	return this.obround.box;
+}
+get center(){
+	return this.obround.center;	
+}
+setWidth(width) {	    
+	    this.obround.setWidth(width);
+}
+setHeight(height) {	    
+	    this.obround.setHeight(height);
+	    this.obround.rotate(this.pad.rotate);
+}
+}
+
 //--------------PolygonShape-------------------------
 class PolygonShape{
-constructor(pad){
+constructor(x,y,width,pad){
 		this.pad=pad;
-		this.hexagon=new d2.Hexagon(new d2.Point(pad.getX(),pad.getY()),this.pad.width);		
+		this.hexagon=new d2.Hexagon(new d2.Point(x,y),width);		
 }	
 
 Paint(g2, viewportWindow, scale) {
@@ -1291,7 +1315,7 @@ Paint(g2, viewportWindow, scale) {
            return true;
 }
 copy(pad){
-	  let _copy=new PolygonShape(pad);
+	  let _copy=new PolygonShape(0,0,0,pad);
 	  _copy.hexagon=this.hexagon.clone();	  
 	  return _copy;  
 	}
@@ -1315,9 +1339,7 @@ move(xoffset, yoffset) {
 		this.hexagon.move(xoffset,yoffset);
 	}
 setWidth(width) {
-            this.pad.width=width;
-            this.pad.height=width;
-            this.hexagon.setWidth(width);
+        this.hexagon.setWidth(width);
 }
 setHeight(height) {
             

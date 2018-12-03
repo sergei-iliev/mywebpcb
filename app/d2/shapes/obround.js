@@ -3,8 +3,10 @@ module.exports = function(d2) {
 	d2.Obround = class Obround{
 		/**
 		 * @input pt - center 
-		 * @input width - relative,  means arc
+		 * @input width - relative,  line width + 2  arcs at both ends
+		 * this.width=ps to pe + 2 rcs radius
 		 * @input height - relative but still height
+		 * @warning obround may change its width and height - it should recalculate its size
 		 */
 		constructor(pt,width,height) {
 			this.pc=pt.clone();
@@ -32,7 +34,8 @@ module.exports = function(d2) {
 		            );			
 		}
 		setWidth(width){
-			this.width=width;			
+			this.width=width;	
+			this.reset();
 		}
 		setHeight(height){
 		    this.height=height;
@@ -52,29 +55,44 @@ module.exports = function(d2) {
 		    let b=(projectionPoint.y-this.ps.y)/((this.pe.y-this.ps.y)==0?1:this.pe.y-this.ps.y);
 		    
 		    let dist=projectionPoint.distanceTo(pt);
+		    //arc diameter
+		    let r=(this.width>this.height?this.height:this.width);
 		    
 		    if(0<=a&&a<=1&&0<=b&&b<=1){  //is projection between start and end point
-		        if(dist<=(this.width/2)){
+		        if(dist<=(r/2)){
 		        	return true;
 		        }    
 		    	
 		    }
-        	//check the 2 circles
-        	if (d2.utils.LE(this.ps.distanceTo(pt), this.width/2)){
+        	
+		    //check the 2 circles
+        	if (d2.utils.LE(this.ps.distanceTo(pt), r/2)){
                 return true;
         	}
-        	if (d2.utils.LE(this.pe.distanceTo(pt), this.width/2)){
+        	if (d2.utils.LE(this.pe.distanceTo(pt), r/2)){
                 return true;
         	}
         	return false;
 		    
 		}
 		get center(){
-			return new d2.Point((this.ps.x+this.pe.x)/2,(this.ps.y+this.pe.y)/2);
+			return this.pc;
 		}		
 		reset(){
-			this.ps=new d2.Point(this.pc.x-(this.height/2),this.pc.y);
-			this.pe=new d2.Point(this.pc.x+(this.height/2),this.pc.y);								   	
+			let w=0,h=0;
+			if(this.width>this.height){  //horizontal
+			  w=this.width;
+			  h=this.height;
+   			  let d=(w-h);//always positive
+			  this.ps=new d2.Point(this.pc.x-(d/2),this.pc.y);
+			  this.pe=new d2.Point(this.pc.x+(d/2),this.pc.y);								   	
+			}else{						 //vertical
+			  w=this.height;
+			  h=this.width;
+  			  let d=(w-h);//always positive
+			  this.ps=new d2.Point(this.pc.x,this.pc.y-(d/2));
+			  this.pe=new d2.Point(this.pc.x,this.pc.y+(d/2));								   				  
+			}
 		}
     	rotate(angle,center = {x:this.pc.x, y:this.pc.y}){
     	   this.pc.rotate(angle,center);
@@ -96,12 +114,18 @@ module.exports = function(d2) {
         }    	
 		paint(g2){
 			g2.beginPath();
+			let l=g2.lineWidth;
+			if(this.width>=this.height)
+			  g2.lineWidth =this.height;
+			else
+			  g2.lineWidth =this.width;
+			
 			g2.lineCap="round";
 			g2.moveTo(this.ps.x, this.ps.y);
 			g2.lineTo(this.pe.x, this.pe.y);
 			
 			g2.stroke();		    
-			
+			g2.lineWidth =l;
 		}
 			
 	}

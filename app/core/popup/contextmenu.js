@@ -1,5 +1,6 @@
 var core=require('core/core');
 var UnitMgr = require('core/unit').UnitMgr;
+var d2=require('d2/d2');
 
 class ContextMenu{
 constructor(component,placeholderid){
@@ -130,11 +131,11 @@ actionPerformed(id,context){
          
          let r=this.component.getModel().getUnit().getShapesRect(shapes);       
          let unitMgr = UnitMgr.getInstance();
-         let p=this.component.getModel().getUnit().grid.positionOnGrid(r.getCenterX(),r.getCenterY()); 
+         let p=this.component.getModel().getUnit().grid.positionOnGrid(r.center.x,r.center.y); 
          if(id=='topbottomid'){
-             unitMgr.mirrorBlock(shapes,new core.Point(p.x-10,p.y),new core.Point(p.x+10,p.y));
+             unitMgr.mirrorBlock(shapes,new d2.Line(new d2.Point(p.x-10,p.y),new d2.Point(p.x+10,p.y)));
          }else{
-             unitMgr.mirrorBlock(shapes,new core.Point(p.x,p.y-10),new core.Point(p.x,p.y+10));
+             unitMgr.mirrorBlock(shapes,new d2.Line(new d2.Point(p.x,p.y-10),new d2.Point(p.x,p.y+10)));
          }         
          unitMgr.alignBlock(this.component.getModel().getUnit().grid,shapes);
          this.component.Repaint();		 
@@ -148,7 +149,7 @@ actionPerformed(id,context){
          let r=this.component.getModel().getUnit().getShapesRect(shapes);       
          let unitMgr = UnitMgr.getInstance();
          
-         unitMgr.rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.getCenterX(),r.getCenterY(),(id==("rotateleftid")?-1:1)*(90.0)));
+         unitMgr.rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(id==("rotateleftid")?-1:1)*(90.0)));
          unitMgr.alignBlock(this.component.getModel().getUnit().grid,shapes);
          this.component.Repaint();		 
 	 }

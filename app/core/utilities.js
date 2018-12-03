@@ -152,29 +152,29 @@ var roundrect=function (g2,x, y, w, h, r) {
 		g2.arcTo(x,   y,   x+w, y,   r);
 };
 
-var ellipse=function(g2,xC, yC, width, height, rotation) {
-	var x, y, rW, rH, inc;
-	inc = 0.01 //value by which we increment the angle in each step
-	rW = width / 2; //horizontal radius
-	rH = height / 2; //vertical radius
-	x = xC + rW * Math.cos(rotation); // ...we will treat this as angle = 0
-	y = yC + rW * Math.sin(rotation);
-
-	g2.moveTo(x, y); //set the starting position
-		for (var angle = inc; angle<2*Math.PI; angle+=inc) { //increment the angle from just past zero to full circle (2 Pi radians)
-			x = xC + rW * Math.cos(angle) * Math.cos(rotation) - rH * Math.sin(angle) * Math.sin(rotation);
-			y = yC + rW * Math.cos(angle) * Math.sin(rotation) + rH * Math.sin(angle) * Math.cos(rotation);
-			g2.lineTo(x, y); //draw a straight line segment. if the increment is small enough, this will be
-								//indistinguishable from a curve in an on-screen pixel array
-		}
-};
+//var ellipse=function(g2,xC, yC, width, height, rotation) {
+//	var x, y, rW, rH, inc;
+//	inc = 0.01 //value by which we increment the angle in each step
+//	rW = width / 2; //horizontal radius
+//	rH = height / 2; //vertical radius
+//	x = xC + rW * Math.cos(rotation); // ...we will treat this as angle = 0
+//	y = yC + rW * Math.sin(rotation);
+//
+//	g2.moveTo(x, y); //set the starting position
+//		for (var angle = inc; angle<2*Math.PI; angle+=inc) { //increment the angle from just past zero to full circle (2 Pi radians)
+//			x = xC + rW * Math.cos(angle) * Math.cos(rotation) - rH * Math.sin(angle) * Math.sin(rotation);
+//			y = yC + rW * Math.cos(angle) * Math.sin(rotation) + rH * Math.sin(angle) * Math.cos(rotation);
+//			g2.lineTo(x, y); //draw a straight line segment. if the increment is small enough, this will be
+//								//indistinguishable from a curve in an on-screen pixel array
+//		}
+//};
 
 version=(function(){
 	return {
-		MYWEBPCB_VERSION:"2.1",
-	    SYMBOL_VERSION:"2.0",
+		MYWEBPCB_VERSION:"3.0",
+	    SYMBOL_VERSION:"1.0",
         CIRCUIT_VERSION:"1.2",     
-        FOOTPRINT_VERSION:"1.0", 
+        FOOTPRINT_VERSION:"3.0", 
         BOARD_VERSION:"2.0" 
 	};
 })();

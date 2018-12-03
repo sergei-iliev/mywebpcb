@@ -29,7 +29,7 @@ module.exports = function(d2) {
     		this.width=width;
     		this.height=height;
     		this.reset();
-    	}
+    	}    	
         /**
          * Create specific rounding arc 90 degrees long
          * @param center of the arc
@@ -181,16 +181,50 @@ module.exports = function(d2) {
 		get box(){
 			return super.box;
 		}
-    	paint(g2){
-			this.segments.forEach(segment=>{
-				segment.paint(g2);
+		get polygon() {
+			let vertices=[];
+			let p=this.segments[0].ps;
+			
+    		this.segments.forEach(segment=>{
+    		   let a=p.distanceTo(segment.ps);
+    		   let b=p.distanceTo(segment.pe);
+    		   if(a<b){
+    		     vertices.push(segment.ps);
+			     vertices.push(segment.pe);
+    		   }else{
+        		 vertices.push(segment.pe);
+    			 vertices.push(segment.ps);    			   
+    		   }
+			   p=vertices[vertices.length-1];  //keep the last one
 			});
+          return vertices;		   	
+		}
+    	paint(g2){
+    		if(g2._fill!=undefined&&g2._fill){
+    			let vertices=this.polygon;
+        		
+    	    	g2.beginPath();	    		    		    	
+    	    	g2.moveTo(vertices[0].x,vertices[0].y);
+    	    	for (var i = 1; i < vertices.length; i++) {
+    	    						g2.lineTo(vertices[i].x, vertices[i].y);
+    	    	}
+    	    	g2.closePath(); 
+    	    	g2.fill();    	    	       		
+
+    	    	this.arcs.forEach(arc=>{
+    				var circle=new d2.Circle(arc.pc,arc.r);
+    	    		circle.paint(g2);
+    			});
+    		}else{
+			 this.segments.forEach(segment=>{
+				segment.paint(g2);
+			 });
 			
     		
-			this.arcs.forEach(arc=>{
+			 this.arcs.forEach(arc=>{
 				arc.paint(g2);
-			});
-
+			 });
+    		}
     	}
     }
     

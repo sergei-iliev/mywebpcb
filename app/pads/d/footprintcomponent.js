@@ -144,15 +144,14 @@ setMode(_mode){
 	this.mode=_mode;
 	let shape=null;
 	 if (this.cursor != null) {
-	     this.cursor.Clear();
+	     this.cursor.clear();
 	     this.cursor = null;
 	 }
 	 this.eventMgr.resetEventHandle();
 	        
 	 switch (this.mode) {
 	        case core.ModeEnum.PAD_MODE:
-	            shape=new Pad(0,0,core.MM_TO_COORD(1.52),core.MM_TO_COORD(2.52));	            
-	            shape.drill=new Drill(core.MM_TO_COORD(0.8),core.MM_TO_COORD(0.8));			                        
+	            shape=new Pad(0,0,core.MM_TO_COORD(1.52),core.MM_TO_COORD(2.52));	            	            		                        
 	            this.setContainerCursor(shape);               
 	            this.getEventMgr().setEventHandle("cursor",shape);  
 	          break;
@@ -226,10 +225,12 @@ mouseDown(event){
     }else{
     	switch (this.getMode()){
     	case  core.ModeEnum.COMPONENT_MODE:
-          if(this.getModel().getUnit().getCoordinateSystem().isClicked(scaledEvent.x, scaledEvent.y)){
+         if(this.getModel().getUnit().getCoordinateSystem()!=null){ 
+    	  if(this.getModel().getUnit().getCoordinateSystem().isClicked(scaledEvent.x, scaledEvent.y)){
               this.getEventMgr().setEventHandle("origin",null); 
         	  break;
-          }  
+          } 
+         }
     		
     	  var shape=this.getModel().getUnit().isControlRectClicked(scaledEvent.x, scaledEvent.y);
 		  if(shape!=null){

@@ -320,7 +320,6 @@ Paint(g2,viewportWindow,scale,layermaskId){
    if (this.isEmpty()) {
         return;
    }
-   console.log(this.fillColor);
    if (this.isSelected)
        g2.strokeStyle='gray';
    else

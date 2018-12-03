@@ -75,6 +75,7 @@ var ToggleButtonView=Backbone.View.extend({
 //		        	j$('#mywebpadsid').unblock();
 //		        }
 //		    });
+			console.log(this.footprintComponent.getModel().format());
 			new FootprintSaveView({footprintComponent:this.footprintComponent}).render();			
 		}
 
@@ -117,7 +118,18 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='anchorid'){
 			event.data.model.setActive(!event.data.model.isActive());  
 			this.footprintComponent.setParameter("snaptogrid",event.data.model.isActive());
-		}		
+		}
+		if(event.data.model.id=='originid'){	
+			event.data.model.setActive(!event.data.model.isActive());
+			if(event.data.model.isActive()){
+			  this.footprintComponent.getModel().getUnit().coordinateSystem=new core.CoordinateSystem(this.footprintComponent.getModel().getUnit());
+			  this.footprintComponent.setMode(core.ModeEnum.ORIGIN_SHIFT_MODE);
+			}else{
+			  this.footprintComponent.getModel().getUnit().coordinateSystem=null;
+			  this.footprintComponent.setMode(core.ModeEnum.COMPONENT_MODE);
+			}
+						
+		}
 		if(event.data.model.id=='measureid'){ 
 			this.footprintComponent.setMode(core.ModeEnum.MEASUMENT_MODE);
 		}
@@ -139,9 +151,6 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='selectionid'){
 		  //Footprint mode
 		   this.footprintComponent.setMode(core.ModeEnum.COMPONENT_MODE);
-		}
-		if(event.data.model.id=='originid'){			 
-		   this.footprintComponent.setMode(core.ModeEnum.ORIGIN_SHIFT_MODE);
 		}		
 		if((event.data.model.id=='rotateleftid')||(event.data.model.id=='rotaterightid')){
             shapes= this.footprintComponent.getModel().getUnit().shapes;

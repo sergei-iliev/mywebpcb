@@ -339,192 +339,6 @@ isLayerVisible(mask) {
 	  
 }
 
-//class Point{
-// constructor(x,y) {
-//    this.x=x;
-//	this.y=y;
-// }
-// setLocationPoint(p){
-//   this.x=p.x;
-//   this.y=p.y;	 
-// }
-// setLocation(x,y){
-//   this.x=parseInt(x);
-//   this.y=parseInt(y);
-// }
-// min(point){
-//   return new Point(Math.min(this.x,point.x),Math.min(this.y,point.y));
-// }
-// max(point){
-//   return new Point(Math.max(this.x,point.x),Math.max(this.y,point.y));
-// }
-// equals(point){
-//   return (this.x==point.x&&this.y==point.y);
-// }
-// distance(x1,y1){
-//	 let a = x1 - this.x;
-//     let b = y1 - this.y
-//  return Math.sqrt( a*a + b*b );
-// }
-// getScaledPoint(scalableTransformation){
-//	let x=this.x*scalableTransformation.getScale(); 
-//	let y=this.y*scalableTransformation.getScale(); 
-//	return new Point(x,y);
-//}
-//}
-
-//class Rectangle{
-// constructor(x,y,width,height) {
-//     this.setRect(x,y,width,height);
-// }
-//getCenterX(){
-//  return parseInt(this.x+this.width/2);
-//}
-//getCenterY(){
-//  return parseInt(this.y+this.height/2);
-//} 
-//getX(){
-//  return this.x;
-//}
-//getY(){
-//  return this.y;
-//}
-//getWidth(){
-//  return this.width;
-//}
-//getHeight(){
-//  return this.height; 
-//}
-//getP1(){
-//  return new Point(this.x,this.y);  	
-//}
-//getP2(){
-//  return new Point(this.x+this.width,this.y+this.height);  	
-//}
-//getMinX(){
-//  return this.x;
-//}
-//getMinY(){
-//  return this.y;
-//}
-//getMaxX(){
-//  return this.x+this.width;
-//}
-//getMaxY(){
-//  return this.y+this.height;
-//}
-//setRect(x,y,width,height){
-//    this.x=x;
-//	this.y=y;
-//	this.width=width;
-//	this.height=height;
-//}
-//contains(x,y){
-//  if(this.getMinX()<=x&&x<=this.getMaxX()){
-//    if(this.getMinY()<=y&&y<=this.getMaxY())
-//	  return true;
-//  }
-//  return false;
-//}
-//intersects(r){
-//    // calculate the left common area coordinate:
-//    let left = Math.max( this.x, r.x );
-//    // calculate the right common area coordinate:
-//    let right  = Math.min( this.x +this.width, r.x + r.width );
-//    // calculate the upper common area coordinate:
-//    let top    = Math.max( this.y,r.y );
-//    // calculate the lower common area coordinate:
-//    let bottom = Math.min( this.y +this.height, r.y + r.height );
-//
-//    // if a common area exists, it must have a positive (null accepted) size
-//    if( left <= right && top <= bottom )
-//        return true;
-//    else
-//        return false;	
-//}
-//
-//getScaledRect(scalableTransformation){
-// let x=this.getMinX()*scalableTransformation.getScale(); 
-// let y=this.getMinY()*scalableTransformation.getScale(); 
-// let xx=this.getMaxX()*scalableTransformation.getScale(); 
-// let yy=this.getMaxY()*scalableTransformation.getScale(); 
-// return new Rectangle(x,y,xx-x,yy-y);
-//}
-// toString(){
-//   return "{"+this.x+","+this.y+","+this.width+","+this.height+"}";
-// }
-//}
-
-//class Line{
-//constructor(x1,y1,x2,y2) {
-//    this.setLine(x1,y1,x2,y2); 
-//}
-//setLine(x1,y1,x2,y2){
-//  this.x1=x1;
-//  this.y1=y1;
-//  this.x2=x2;
-//  this.y2=y2; 
-//}
-///*
-// * Line segment given as 2 points
-// */
-//intersectLine(b1, b2) {    
-//    
-//    var ua_t = (b2.x - b1.x) * (this.y1 - b1.y) - (b2.y - b1.y) * (this.x1 - b1.x);
-//    var ub_t = (this.x2 -this.x1) * (this.y1 - b1.y) - (this.y2 - this.y1) * (this.x1 - b1.x);
-//    var u_b  = (b2.y - b1.y) * (this.x2 - this.x1) - (b2.x - b1.x) * (this.y2 - this.y1);
-//
-//    if ( u_b != 0 ) {
-//        var ua = ua_t / u_b;
-//        var ub = ub_t / u_b;
-//
-//        if ( 0 <= ua && ua <= 1 && 0 <= ub && ub <= 1 ) {
-//             return true;
-//        } else {
-//             return false;
-//        }
-//    } else {
-//        if ( ua_t == 0 || ub_t == 0 ) {
-//            return true;   //"Coincident"
-//        } else {
-//            return false;
-//        }
-//    }
-//}
-//intersectRect(r) {
-//    var min        = r.getP1();
-//    var max        = r.getP2();
-//    var topRight   = new Point(max.x, min.y );
-//    var bottomLeft = new Point(min.x, max.y );
-//	
-//    var inter1 = this.intersectLine(min, topRight);
-//    var inter2 = this.intersectLine(topRight, max);
-//    var inter3 = this.intersectLine(max, bottomLeft);
-//    var inter4 = this.intersectLine(bottomLeft, min);
-//    return inter1||inter2||inter3||inter4;
-//}
-//getP1(){
-//  return new Point(this.x1,this.y1);
-//}
-//
-//getP2(){
-//  return new Point(this.x2,this.y2);	
-//}
-//
-//getScaledTrack(scalableTransformation){
-//  return new Line(this.x1*scalableTransformation.getScale(),this.y1*scalableTransformation.getScale(),this.x2*scalableTransformation.getScale(),this.y2*scalableTransformation.getScale());
-//}
-//
-//draw(g2, viewportWindow, scale){
-//    let line=this.getScaledTrack(scale);
-//    line.setLine(line.x1-viewportWindow.x, line.y1-viewportWindow.y, line.x2-viewportWindow.x, line.y2-viewportWindow.y);  
-//    g2.beginPath();
-//    g2.moveTo(line.x1, line.y1);
-//    g2.lineTo(line.x2, line.y2);
-//    g2.stroke();   
-//}	
-//}
-
 var AffineTransform=(function(){
 	var x,y,a;
 	return{
@@ -975,12 +789,12 @@ class Shape{
 		this.copper = Layer.Copper.resolve(layermask);
 	}
 getCenter(){
-	return new Point(this.x,this.y);
+	return new d2.Point(this.x,this.y);
 }	
 setDisplayName(displayName) {
 		this.displayName = displayName;
 	}
-Clear() {
+clear() {
     this.owningUnit=null;
 	}
 clone() {
@@ -993,9 +807,6 @@ alignToGrid(isRequired) {
         this.setX(point.x);
         this.setY(point.y);      
         return null;
-}
-getCenter(){
-	return new d2.Point(this.x,this.y);
 }
 setX(x) {
 		this.x = x;
@@ -1059,11 +870,11 @@ Move(xoffset,yoffset) {
       this.setY(this.getY() + yoffset);    
 }
 
-Mirror(A,B) {
-        let point = new Point(this.x,this.y);
-        utilities.mirrorPoint(A,B, point);
-        this.setX(point.x);
-        this.setY(point.y);
+Mirror(line) {
+        //let point = new d2.Point(this.x,this.y);
+        //utilities.mirrorPoint(A,B, point);
+        //this.setX(point.x);
+        //this.setY(point.y);
 }
     
 
@@ -1079,224 +890,6 @@ fromXML(data) {
 	}
 
 } 
-
-//*********DELETE*****
-class ResizeableShape extends Shape{
-constructor (x, y, width, height, thickness,
-	layermask) {
-	super(x, y, width, height, thickness, layermask);
-	this.upperLeft = new Point();
-	this.upperRight = new Point();
-	this.bottomLeft = new Point();
-	this.bottomRight = new Point();
-	this.resizingPoint = null;
-	this.init(x, y, width, height);
-}
-
-init(x, y, width, height) {
-	this.upperLeft.setLocation(x, y);
-	this.upperRight.setLocation(x + width, y);
-	this.bottomLeft.setLocation(x, y + height);
-	this.bottomRight.setLocation(x + width, y + height);
-}
-alignToGrid(isRequired) {
-    if(isRequired){
-          return super.alignToGrid(isRequired);
-    }else{
-         return null;
-    }
-}
-getResizingPoint() {
-	return this.resizingPoint;
-}
-setResizingPoint(point) {
-	this.resizingPoint = point;
-}
-isControlRectClicked(x, y) {
-	var rect = new Rectangle(0, 0, 0, 0);
-	rect.setRect(this.upperLeft.x - SELECT_RECT_WIDTH / 2, this.upperLeft.y
-		- SELECT_RECT_WIDTH / 2, SELECT_RECT_WIDTH, SELECT_RECT_WIDTH);
-	if (rect.contains(x, y)) {
-		return this.upperLeft;
-	}
-	rect.setRect(this.upperRight.x - SELECT_RECT_WIDTH / 2,
-		this.upperRight.y - SELECT_RECT_WIDTH / 2, SELECT_RECT_WIDTH,
-		SELECT_RECT_WIDTH);
-	if (rect.contains(x, y))
-		return this.upperRight;
-
-	rect.setRect(this.bottomLeft.x - SELECT_RECT_WIDTH / 2,
-		this.bottomLeft.y - SELECT_RECT_WIDTH / 2, SELECT_RECT_WIDTH,
-		SELECT_RECT_WIDTH);
-	if (rect.contains(x, y))
-		return this.bottomLeft;
-
-	rect.setRect(this.bottomRight.x - SELECT_RECT_WIDTH / 2,
-		this.bottomRight.y - SELECT_RECT_WIDTH / 2, SELECT_RECT_WIDTH,
-		SELECT_RECT_WIDTH);
-	if (rect.contains(x, y))
-		return this.bottomRight;
-
-return null;
-}
-Move(xoffset, yoffset) {
-	this.setX(this.getX() + xoffset);
-	this.setY(this.getY() + yoffset);
-}
-Rotate(rotation) {
-	let a = new Point();
-	let b = new Point();
-	if (rotation.angle > 0) {
-		a.setLocation(this.upperLeft.x, this.upperLeft.y);
-		let p = utilities.rotate(this.bottomLeft, rotation.originx,
-			rotation.originy, rotation.angle);
-		this.upperLeft.setLocation(p.x, p.y);
-
-	   b.setLocation(this.upperRight.x, this.upperRight.y);
-	   p = utilities.rotate(a, rotation.originx,
-			rotation.originy, rotation.angle);
-	   this.upperRight.setLocation(p.x, p.y);
-
-	   a.setLocation(this.bottomRight.x, this.bottomRight.y);
-	   p = utilities.rotate(b, rotation.originx,
-			rotation.originy, rotation.angle);
-	   this.bottomRight.setLocation(p.x, p.y);
-
-	   p = utilities.rotate(a, rotation.originx,
-			rotation.originy, rotation.angle);
-	   this.bottomLeft.setLocation(p.x, p.y);
-} else {
-	   a.setLocation(this.upperLeft.x, this.upperLeft.y);
-	   let p = utilities.rotate(this.upperRight, rotation.originx,
-			rotation.originy, rotation.angle);
-	   this.upperLeft.setLocation(p.x, p.y);
-
-	   b.setLocation(this.bottomLeft.x, this.bottomLeft.y);
-	   p = utilities.rotate(a, rotation.originx,
-			rotation.originy, rotation.angle);
-	   this.bottomLeft.setLocation(p.x, p.y);
-
-	   a.setLocation(this.bottomRight.x, this.bottomRight.y);
-	   p = utilities.rotate(b, rotation.originx,
-			rotation.originy, rotation.angle);
-	   this.bottomRight.setLocation(p.x, p.y);
-
-	   p = utilities.rotate(a, rotation.originx,
-			rotation.originy, rotation.angle);
-	   this.upperRight.setLocation(p.x, p.y);
-}
-}
-Mirror(A,B){
-    let p = new Point();
-    //***is this right-left mirroring
-    if (A.x == B.x) {
-        //***which place in regard to x origine
-        p.setLocationPoint(this.upperRight);
-        this.upperRight.setLocationPoint(utilities.mirrorPoint(A,B, this.upperLeft));
-        this.upperLeft.setLocationPoint(utilities.mirrorPoint(A,B, p));
-        p.setLocationPoint(this.bottomRight);
-        this.bottomRight.setLocationPoint(utilities.mirrorPoint(A,B, this.bottomLeft));
-        this.bottomLeft.setLocationPoint(utilities.mirrorPoint(A,B, p));
-    } else { //***top-botom mirroring
-        //***which place in regard to y origine
-        p.setLocationPoint(this.bottomLeft);
-        this.bottomLeft.setLocationPoint(utilities.mirrorPoint(A,B, this.upperLeft));
-        this.upperLeft.setLocationPoint(utilities.mirrorPoint(A,B, p));
-        p.setLocationPoint(this.bottomRight);
-        this.bottomRight.setLocationPoint(utilities.mirrorPoint(A,B, this.upperRight));
-        this.upperRight.setLocationPoint(utilities.mirrorPoint(A,B, p));
-    }	
-}
-Resize(xOffset, yOffset, clickedPoint) {
-if (clickedPoint.equals(this.upperLeft)) {
-	this.upperLeft.setLocation(this.upperLeft.x + xOffset,
-			this.upperLeft.y + yOffset);
-	this.bottomLeft.setLocation(this.bottomLeft.x + xOffset,
-			this.bottomLeft.y);
-	this.upperRight.setLocation(this.upperRight.x, this.upperRight.y
-			+ yOffset);
-} else if (clickedPoint.equals(this.upperRight)) {
-	this.upperRight.setLocation(this.upperRight.x + xOffset,
-			this.upperRight.y + yOffset);
-	this.bottomRight.setLocation(this.bottomRight.x + xOffset,
-			this.bottomRight.y);
-	this.upperLeft.setLocation(this.upperLeft.x, this.upperLeft.y
-			+ yOffset);
-} else if (clickedPoint.equals(this.bottomLeft)) {
-	this.bottomLeft.setLocation(this.bottomLeft.x + xOffset,
-			this.bottomLeft.y + yOffset);
-	this.upperLeft.setLocation(this.upperLeft.x + xOffset,
-			this.upperLeft.y);
-	this.bottomRight.setLocation(this.bottomRight.x, this.bottomRight.y
-			+ yOffset);
-} else if (clickedPoint.equals(this.bottomRight)) {
-	this.bottomRight.setLocation(this.bottomRight.x + xOffset,
-			this.bottomRight.y + yOffset);
-	this.upperRight.setLocation(this.upperRight.x + xOffset,
-			this.upperRight.y);
-	this.bottomLeft.setLocation(this.bottomLeft.x, this.bottomLeft.y
-			+ yOffset);
-}
-
-}
-isInRect(r) {
-	if (r.contains(this.getBoundingShape().getCenterX(), this
-		.getBoundingShape().getCenterY()))
-		return true;
-	else
-		return false;
-}
-drawControlShape(g2, viewportWindow, scale) {
-    utilities.drawCrosshair(g2, viewportWindow, scale, this.resizingPoint, this.selectionRectWidth, [this.upperLeft,this.upperRight,this.bottomLeft,this.bottomRight]);
-}
-
-setSelected (selection) {
-	this.selection = selection;
-		if (!selection) {
-			this.resizingPoint = null;
-}
-}
-getCenter() {        
-   return new Point(this.getX()+(this.getWidth()/2), this.getY()+ (this.getHeight()/2));
-} 
-getY () {
-	return this.upperLeft.y;
-}
-
-getX() {
-	return this.upperLeft.x;
-}
-setY(y) {
-	this.init(this.upperLeft.x, y, this.getWidth(), this.getHeight());
-}
-setX (x) {
-	this.init(x, this.upperLeft.y, this.getWidth(), this.getHeight());
-}
-setWidth (width) {
-	this.upperRight
-		.setLocation(this.upperLeft.x + width, this.upperRight.y);
-	this.bottomRight.setLocation(this.bottomLeft.x + width,
-		this.bottomRight.y);
-	this.init(this.upperLeft.x, this.upperLeft.y, this.getWidth(), this
-		.getHeight());
-}
-setHeight (height) {
-	this.bottomLeft.setLocation(this.bottomLeft.x, this.upperLeft.y
-		+ height);
-	this.bottomRight.setLocation(this.bottomRight.x, this.upperRight.y
-		+ height);
-	this.init(this.upperLeft.x, this.upperLeft.y, this.getWidth(), this
-		.getHeight());
-}
-
-getWidth() {
-	return this.upperRight.x - this.upperLeft.x;
-}
-getHeight() {
-	return this.bottomLeft.y - this.upperLeft.y;
-}
-
-}
 
 /**********************Ruler**********************************/
 class Ruler extends Shape{
@@ -1332,7 +925,7 @@ paint( g2,  viewportWindow,  scale) {
 class CoordinateSystem extends Shape {
 	constructor (owningUnit) {
 		super(0, 0, 0, 0, 0, 0);
-        this.owningUnit=owningUnit;	
+		this.owningUnit=owningUnit;
         this.selectionRectWidth=3000;		
 	}
 alignToGrid(isRequired) {
@@ -1345,7 +938,7 @@ alignToGrid(isRequired) {
 calculateShape() {
     return d2.Box.fromRect(this.x-this.selectionRectWidth/2,this.y-this.selectionRectWidth/2,this.selectionRectWidth,this.selectionRectWidth);
 }
-Reset(x, y) {
+reset(x, y) {
 		if (x < 0) {
 			x = 0;
 		} else if (x > this.owningUnit.getWidth()) {
@@ -1361,24 +954,20 @@ Reset(x, y) {
 }
 
 paint(g2, viewportWindow, scale) {
-		//if (this.x == 0 && this.y == 0) {
-		//	return;
-		//}
-
 		var line = new d2.Segment(0,0,0,0);		
 
 		g2.strokeStyle  = 'blue';
 		g2.lineWidth=1; 
-		
+	
+
 		line.set(0, this.y, this.owningUnit.getWidth(),
 				this.y);
 		line.scale(scale.getScale());
 		line.move(-viewportWindow.x,- viewportWindow.y);
 	    line.paint(g2);
 	    
-		
-		line.set(this.x, 0, this.x, this.owningUnit
-				.getHeight());
+	
+		line.set(this.x, 0, this.x, this.owningUnit.getHeight());
 		line.scale(scale.getScale());
 		line.move(-viewportWindow.x,- viewportWindow.y);		
 		line.paint(g2);
@@ -1534,7 +1123,6 @@ module.exports ={
 	ChipText,
 	UnitFrame,
 	Shape,
-	ResizeableShape,
 	AffineTransform,
     MM_TO_COORD,
     COORD_TO_MM,

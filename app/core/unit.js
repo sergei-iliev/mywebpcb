@@ -120,7 +120,7 @@ class Unit{
         this.scrollPositionXValue = 0;
         this.scrollPositionYValue = 0;
         this.frame=new core.UnitFrame(this.width,this.height);
-        this.coordinateSystem=new core.CoordinateSystem(this);
+        this.coordinateSystem;//=new core.CoordinateSystem(this);
 		this.ruler=new core.Ruler();
 		this.shapeFactory=null;
         
@@ -172,7 +172,7 @@ clear(){
         //***go through all lists and delete them
  	   this.shapes.forEach(function(shape) {
  		  shape.owningUnit=null;
- 		  shape.Clear();
+ 		  shape.clear();
  		  shape=null;
        },this);
         this.shapes=[];	
@@ -217,7 +217,7 @@ remove(uuid) {
  	   this.shapes = this.shapes.filter(function(item) { 
                if(item.getUUID()==uuid){
 			      this.fireShapeEvent({target:item,type:events.Event.DELETE_SHAPE});
-         	      item.Clear();
+         	      item.clear();
          	      item=null;
 				  return false;
 			   }
@@ -381,8 +381,10 @@ paint(g2, viewportWindow){
  	   //grid
        this.grid.paint(g2,viewportWindow,this.scalableTransformation);
         //coordinate system
-       this.coordinateSystem.paint(g2, viewportWindow,this.scalableTransformation);
-		//ruler
+       if(this.coordinateSystem!=null){
+         this.coordinateSystem.paint(g2, viewportWindow,this.scalableTransformation);
+       }	
+         //ruler
 	   this.ruler.paint(g2, viewportWindow,this.scalableTransformation);
         //frame
        if(this.frame!=null){

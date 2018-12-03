@@ -43,19 +43,31 @@ var BaseBuilder=Backbone.View.extend({
 	  
 	  toUnitX:function(value){        
 	      var coordinateSystem=this.component.getModel().getUnit().getCoordinateSystem();
-	      return this.component.getModel().getUnit().getGrid().COORD_TO_UNIT(value-coordinateSystem.x);      
+	      if(coordinateSystem!=null)
+	    	  return this.component.getModel().getUnit().getGrid().COORD_TO_UNIT(value-coordinateSystem.x);  
+	      else
+	          return this.component.getModel().getUnit().getGrid().COORD_TO_UNIT(value);      
 	  },
 	  toUnitY:function(value){
 	      var coordinateSystem =this.component.getModel().getUnit().getCoordinateSystem();
-	      return this.component.getModel().getUnit().getGrid().COORD_TO_UNIT(value-coordinateSystem.y);
+	      if(coordinateSystem!=null)
+	        return this.component.getModel().getUnit().getGrid().COORD_TO_UNIT(value-coordinateSystem.y);
+	      else
+	    	return this.component.getModel().getUnit().getGrid().COORD_TO_UNIT(value);	  
 	  },  
 	  fromUnitX:function(value){
 	      var coordinateSystem =this.component.getModel().getUnit().getCoordinateSystem();
-	      return this.component.getModel().getUnit().getGrid().UNIT_TO_COORD(parseFloat(value))+coordinateSystem.x;  
+	      if(coordinateSystem!=null)
+	        return this.component.getModel().getUnit().getGrid().UNIT_TO_COORD(parseFloat(value))+coordinateSystem.x;
+	      else
+	    	return this.component.getModel().getUnit().getGrid().UNIT_TO_COORD(parseFloat(value));	  
 	  },
 	  fromUnitY:function(value){
 	      var coordinateSystem =this.component.getModel().getUnit().getCoordinateSystem();
-	      return this.component.getModel().getUnit().getGrid().UNIT_TO_COORD(parseFloat(value))+coordinateSystem.y;         
+	      if(coordinateSystem!=null)
+	        return this.component.getModel().getUnit().getGrid().UNIT_TO_COORD(parseFloat(value))+coordinateSystem.y;
+	      else
+	    	return this.component.getModel().getUnit().getGrid().UNIT_TO_COORD(parseFloat(value));  
 	  }
 	  
 });

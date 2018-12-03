@@ -1,5 +1,4 @@
 var core = require('core/core');
-var ResizeableShape = require('core/core').ResizeableShape;
 var d2=require('d2/d2');
 
 Event={
@@ -58,7 +57,7 @@ class EventHandle{
 		 
 	 }
 	 Detach(){
-	          this.Clear();
+	   this.Clear();
 	 }
 isRightMouseButton(e){	 
 	  return e.which!=1
@@ -254,27 +253,28 @@ constructor(component) {
 	}
 Attach(){
 		 super.Attach();
-		 this.component.getModel().getUnit().getCoordinateSystem().Reset(0,0);  
+		 this.component.getModel().getUnit().coordinateSystem.reset(0,0);  
 	 }
 mousePressed(event){
-		 if (event.which == 3) {
-		   this.component.getModel().getUnit().getCoordinateSystem().Reset(0,0);   
-		 }else{
-		   this.component.getModel().getUnit().getCoordinateSystem().Reset(event.x,event.y); 
-		 }
+	     this.component.getModel().getUnit().getCoordinateSystem().reset(event.x,event.y); 
 	     this.mx = event.x;
 	     this.my = event.y; 
 	     this.component.getModel().getUnit().setSelected(false);	     
-		 this.component.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);	
+		 this.component.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
+		 
 	 }
 mouseReleased(event){
-		 this.component.getModel().getUnit().getCoordinateSystem().alignToGrid(false || this.component.getParameter("snaptogrid")); 
-         this.component.setMode(core.ModeEnum.COMPONENT_MODE);	 
+	if (event.which == 3) {
+      //this.component.getModel().getUnit().coordinateSystem=null;   		 			   	
+	}else{
+	   this.component.getModel().getUnit().getCoordinateSystem().alignToGrid(false || this.component.getParameter("snaptogrid")); 
+	}
+	this.component.setMode(core.ModeEnum.COMPONENT_MODE);	 
 }
-	mouseDragged(event){
+mouseDragged(event){
 		 this.mouseMove(event);
 		 }
-	 mouseMove(event){
+mouseMove(event){
 	        let new_mx = event.x;
 	        let new_my = event.y;
 	       
@@ -285,6 +285,7 @@ mouseReleased(event){
 	        this.my = new_my;     
 	        this.component.Repaint();   		 
 		 }
+
 }
 
 class CursorEventHandle extends EventHandle{
