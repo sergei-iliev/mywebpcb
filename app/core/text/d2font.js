@@ -34,6 +34,9 @@ setLocation(x,y){
 setText(text){
 	this.shape.setText(text);
 }
+setSize(size){
+	this.shape.setSize(size);
+}
 setRotation(rotate,pt){	
   this.shape.rotate(rotate,pt);
 }
@@ -57,7 +60,6 @@ Paint(g2,viewportWindow,scale){
      t.move(-viewportWindow.x,- viewportWindow.y);
 	 
      t.paint(g2);
-
 	
 }
 toXML(){

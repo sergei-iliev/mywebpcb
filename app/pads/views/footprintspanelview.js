@@ -247,7 +247,7 @@ var PadPanelBuilder=BaseBuilder.extend({
 			 this.target.getChipText().getTextureByTag("number").setText(j$('#numberid').val());			   
 		 }
 		 if(event.target.id=='numbersizeid'){ 
-			 this.target.getChipText().getTextureByTag("number").fontSize=core.MM_TO_COORD(parseFloat(j$('#numbersizeid').val()));  
+			 this.target.getChipText().getTextureByTag("number").setSize(core.MM_TO_COORD(parseFloat(j$('#numbersizeid').val())));  
 		 }
 		 if(event.target.id=='numberxid'){ 
 			 this.target.getChipText().getTextureByTag("number").anchorPoint.x=this.fromUnitX(parseFloat(j$('#numberxid').val()));
@@ -260,7 +260,7 @@ var PadPanelBuilder=BaseBuilder.extend({
 			 this.target.getChipText().getTextureByTag("netvalue").setText(j$('#netvalueid').val()); 
 		 }
 		 if(event.target.id=='netvaluesizeid'){ 
-			 this.target.getChipText().getTextureByTag("netvalue").fontSize=core.MM_TO_COORD(parseFloat(j$('#netvaluesizeid').val())); 
+			 this.target.getChipText().getTextureByTag("netvalue").setSize(core.MM_TO_COORD(parseFloat(j$('#netvaluesizeid').val()))); 
 		 }
 		 if(event.target.id=='netvaluexid'){ 
 			 this.target.getChipText().getTextureByTag("netvalue").anchorPoint.x=this.fromUnitX(parseFloat(j$('#netvaluexid').val())); 

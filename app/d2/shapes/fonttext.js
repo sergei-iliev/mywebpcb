@@ -14,46 +14,28 @@ var fontmetrics=require('d2/text/fontmetrics');
 */
 class TextMetrics{
 	 constructor() {
-		    this.BUG_FONT_SIZE=100;
-		    this.updated = false;
-	        this.fontSize=-1;
 	        this.width=this.height=0;
 	        this.descent=0;
 	        this.ascent=0;
 	        this.xHeight=0;
 		 }	
 	
-updateMetrics() {
-       this.updated=false;
-       this.fontSize=-1;
-}
-calculateMetrics(fontSize,text) {
-	    if(this.fontSize!=fontSize){
-	        this.fontSize=fontSize;
-	        this.updated = false;
-	    }else{
-	       return;	
-	    }     
-	    
-	    var ctx=fontmetrics.getCanvasContext();	    	    
-	    	    
-        	let metrics = fontmetrics.FontMetrics({
-		    	  fontFamily: 'Monospace',
-		    	  fontWeight: 'normal',
-		    	  fontSize: 10,
-		    	  origin: 'baseline'
-   	        });
-        	
-        	ctx.font=""+this.fontSize+"px Monospace";		
-            this.width=ctx.measureText(text).width;
-            this.xHeight=metrics.xHeight;
-    	    this.ascent=Math.abs(metrics.ascent*this.fontSize);
-	        this.descent=Math.abs(metrics.descent*this.fontSize);
-	        this.height=this.fontSize;	     
-	    
-	        this.updated=true; 
-	    	    
-	       	 
+recalculateMetrics(fontSize,text) {
+    var ctx=fontmetrics.getCanvasContext();	    	    
+    	    
+    	let metrics = fontmetrics.FontMetrics({
+	    	  fontFamily: 'Monospace',
+	    	  fontWeight: 'normal',
+	    	  fontSize: 10,
+	    	  origin: 'baseline'
+	        });
+    	
+    	ctx.font=""+fontSize+"px Monospace";		
+        this.width=ctx.measureText(text).width;
+        this.xHeight=metrics.xHeight;
+	    this.ascent=Math.abs(metrics.ascent*fontSize);
+        this.descent=Math.abs(metrics.descent*fontSize);
+        this.height=fontSize;	     	
 }
 }
 
@@ -65,6 +47,7 @@ module.exports = function(d2) {
 			this.fontSize=fontSize;
 		    this.rotation=0;	
 		    this.metrics=new TextMetrics();  
+		    this.metrics.recalculateMetrics(this.fontSize,this.text);
 		}
 		clone(){
 			let copy=new FontText(this.anchorPoint.clone(),this.text,this.size);
@@ -73,16 +56,16 @@ module.exports = function(d2) {
 		}
 		setText(text){
 			this.text=text;
-			this.metrics.updateMetrics();
+			this.metrics.recalculateMetrics(this.fontSize,this.text);
 		}
 		setSize(size){
 			this.fontSize=size;
-			this.metrics.updateMetrics();
+			this.metrics.recalculateMetrics(this.fontSize,this.text);
 		}
 		scale(alpha){
 	      	this.anchorPoint.scale(alpha);
 			this.fontSize*=alpha;
-			this.metrics.updateMetrics();
+			this.metrics.recalculateMetrics(this.fontSize,this.text);
 			
 		}
 		move(offsetX,offsetY){
@@ -91,6 +74,7 @@ module.exports = function(d2) {
 		rotate(angle, center = {x:this.anchorPoint.x, y:this.anchorPoint.y}) {        	
         	this.anchorPoint.rotate((angle-this.rotation),center);
         	this.rotation=angle;
+        	this.metrics.recalculateMetrics(this.fontSize,this.text);
         }
 		mirror(line){
 		   	
@@ -101,15 +85,10 @@ module.exports = function(d2) {
 		If alpha > 1.0, then C is exterior to point 2.
 		Finally if alpha = [0,1.0], then C is interior to 1 & 2.
 		*/
-		contains(pt){	
-		    //recalculate or buffer
-		    this.metrics.calculateMetrics(this.fontSize, this.text);
-			
-			let ps=this.anchorPoint;
+		contains(pt){				
+			let ps=new d2.Point(this.anchorPoint.x-(this.metrics.width/2),this.anchorPoint.y);
 			let pe=new d2.Point(ps.x,ps.y);
 			pe.move(this.metrics.width,0);
-			
-			pe.rotate(this.rotation,this.anchorPoint);
 			
 			let l=new d2.Line(ps,pe);
         	let projectionPoint=l.projectionPoint(pt);
@@ -127,18 +106,11 @@ module.exports = function(d2) {
 		    }
         	
 		}
-		paint(g2){		
+		paint(g2){					
 			g2.font = ""+parseInt(this.fontSize)+"px Monospace";
-			g2.save();
-			g2.translate(this.anchorPoint.x,this.anchorPoint.y);
-			g2.rotate(d2.utils.radians(360-this.rotation));
-			
-
-			g2.fillText(this.text,0,0);
-				
-			g2.restore();			
-			
-			
+			g2.textBaseline='middle';
+			g2.textAlign='center';
+			g2.fillText(this.text,this.anchorPoint.x,this.anchorPoint.y);
 		}
 	}
 
