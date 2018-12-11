@@ -14,13 +14,49 @@ var fontmetrics=require('d2/text/fontmetrics');
 */
 class TextMetrics{
 	 constructor() {
+		    this.BUG_FONT_SIZE=100;
+		    this.updated = false;
+	        this.fontSize=-1;
 	        this.width=this.height=0;
 	        this.descent=0;
 	        this.ascent=0;
 	        this.xHeight=0;
 		 }	
 	
+updateMetrics() {
+       this.updated=false;
+       this.fontSize=-1;
+}
+calculateMetrics(fontSize,text) {
+	    if(this.fontSize!=fontSize){
+	        this.fontSize=fontSize;
+	        this.updated = false;
+	    }else{
+	       return;	
+	    }     
+	    
+	    var ctx=fontmetrics.getCanvasContext();	    	    
+	    	    
+        	let metrics = fontmetrics.FontMetrics({
+		    	  fontFamily: 'Monospace',
+		    	  fontWeight: 'normal',
+		    	  fontSize: 10,
+		    	  origin: 'baseline'
+   	        });
+        	
+        	ctx.font=""+this.fontSize+"px Monospace";		
+            this.width=ctx.measureText(text).width;
+            this.xHeight=metrics.xHeight;
+    	    this.ascent=Math.abs(metrics.ascent*this.fontSize);
+	        this.descent=Math.abs(metrics.descent*this.fontSize);
+	        this.height=this.fontSize;	     
+	    
+	        this.updated=true; 
+	    	    
+	       	 
+}
 recalculateMetrics(fontSize,text) {
+    this.fontSize=fontSize;    
     var ctx=fontmetrics.getCanvasContext();	    	    
     	    
     	let metrics = fontmetrics.FontMetrics({
@@ -30,12 +66,14 @@ recalculateMetrics(fontSize,text) {
 	    	  origin: 'baseline'
 	        });
     	
-    	ctx.font=""+fontSize+"px Monospace";		
+    	ctx.font=""+this.fontSize+"px Monospace";		
         this.width=ctx.measureText(text).width;
         this.xHeight=metrics.xHeight;
-	    this.ascent=Math.abs(metrics.ascent*fontSize);
-        this.descent=Math.abs(metrics.descent*fontSize);
-        this.height=fontSize;	     	
+	    this.ascent=Math.abs(metrics.ascent*this.fontSize);
+        this.descent=Math.abs(metrics.descent*this.fontSize);
+        this.height=this.fontSize;	     
+    
+        this.updated=true; 	
 }
 }
 
@@ -70,6 +108,7 @@ module.exports = function(d2) {
 		}
 		move(offsetX,offsetY){
 			this.anchorPoint.move(offsetX,offsetY);
+		    this.metrics.recalculateMetrics(this.fontSize, this.text);
 		}
 		rotate(angle, center = {x:this.anchorPoint.x, y:this.anchorPoint.y}) {        	
         	this.anchorPoint.rotate((angle-this.rotation),center);
@@ -79,18 +118,35 @@ module.exports = function(d2) {
 		mirror(line){
 		   	
 		}
+		//anchor point is text center
+		get box(){
+			let ps=this.anchorPoint.clone();
+			ps.move(-(this.metrics.width/2),-(this.metrics.height/2));
+			
+			let pe=this.anchorPoint.clone();
+			pe.move(this.metrics.width/2,this.metrics.height/2);			
+			return new d2.Box([ps,pe]);	
+		}
 		/**
 		if (x-x1)/(x2-x1) = (y-y1)/(y2-y1) = alpha (a constant), then the point C(x,y) will lie on the line between pts 1 & 2.
 		If alpha < 0.0, then C is exterior to point 1.
 		If alpha > 1.0, then C is exterior to point 2.
 		Finally if alpha = [0,1.0], then C is interior to 1 & 2.
 		*/
-		contains(pt){				
-			let ps=new d2.Point(this.anchorPoint.x-(this.metrics.width/2),this.anchorPoint.y);
-			let pe=new d2.Point(ps.x,ps.y);
-			pe.move(this.metrics.width,0);
+		contains(pt){			   
+			
+			/*
+			 * Based on the assumption that anchorPoint is middle normal aligned
+			 */
+			
+			let ps=this.anchorPoint.clone();
+			ps.move(-(this.metrics.width/2),0);
+			
+			let pe=this.anchorPoint.clone();
+			pe.move(this.metrics.width/2,0);
 			
 			let l=new d2.Line(ps,pe);
+			l.rotate(this.rotation,this.anchorPoint);
         	let projectionPoint=l.projectionPoint(pt);
         	
 		    let a=(projectionPoint.x-ps.x)/((pe.x-ps.x)==0?1:pe.x-ps.x);
@@ -104,13 +160,52 @@ module.exports = function(d2) {
 		        }    
 		    	
 		    }
+			return false;
+			/*	
+			 * Based on the assumption that anchorPoint is left normal aligned
+				let ps=this.anchorPoint;
+				let pe=new d2.Point(ps.x,ps.y);
+				pe.move(this.metrics.width,0);
+				
+				pe.rotate(this.rotation,this.anchorPoint);
+				
+				let l=new d2.Line(ps,pe);
+	        	let projectionPoint=l.projectionPoint(pt);
+	        	
+			    let a=(projectionPoint.x-ps.x)/((pe.x-ps.x)==0?1:pe.x-ps.x);
+			    let b=(projectionPoint.y-ps.y)/((pe.y-ps.y)==0?1:pe.y-ps.y);
+
+			    let dist=projectionPoint.distanceTo(pt);
+			    
+			    if(0<=a&&a<=1&&0<=b&&b<=1){  //is projection between start and end point
+			        if(dist<=(Math.abs(this.metrics.xHeight * (this.fontSize)))){
+			        	return true;
+			        }    
+			    	
+			    }
+	        	*/
         	
 		}
 		paint(g2){					
 			g2.font = ""+parseInt(this.fontSize)+"px Monospace";
 			g2.textBaseline='middle';
 			g2.textAlign='center';
-			g2.fillText(this.text,this.anchorPoint.x,this.anchorPoint.y);
+			g2.save();
+			g2.translate(this.anchorPoint.x,this.anchorPoint.y);
+			if(0<=this.rotation&&this.rotation<90){
+			  g2.rotate(d2.utils.radians(360-this.rotation));
+			}else if(90<=this.rotation&&this.rotation<=180){
+			  g2.rotate(d2.utils.radians(180-this.rotation));	
+			}else{
+			  g2.rotate(d2.utils.radians(360-(this.rotation-180)));	
+			}
+            let box=this.box;
+            box.move(-this.anchorPoint.x,-this.anchorPoint.y);
+            box.paint(g2);
+            
+			g2.fillText(this.text,0,0);				
+			g2.restore();
+
 		}
 	}
 

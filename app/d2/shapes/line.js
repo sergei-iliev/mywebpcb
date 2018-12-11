@@ -30,6 +30,11 @@ module.exports = function(d2) {
 			//are they colinear?
 			return d2.utils.EQ(v.cross(oy),0);
 		}
+        rotate(angle,center){            
+            this.p1.rotate(angle,center);
+            this.p2.rotate(angle,center);            
+        }
+        
 		paint(g2){			
 			g2.moveTo(this.p1.x, this.p1.y);
 			g2.lineTo(this.p2.x, this.p2.y);
