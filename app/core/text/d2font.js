@@ -10,6 +10,8 @@ class FontTexture{
  }
 clone(){
      var copy=new FontTexture(this.tag,this.shape.text,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.fontSize);     
+     copy.shape.rotation=this.shape.rotation;
+     copy.shape.metrics.recalculateMetrics(this.shape.fontSize,this.shape.text);
      return copy;	 
  } 
 isEmpty() {
