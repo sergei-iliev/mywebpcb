@@ -106,6 +106,10 @@ module.exports = function(d2) {
 			this.metrics.recalculateMetrics(this.fontSize,this.text);
 			
 		}
+		setLocation(x,y){
+			this.anchorPoint.set(x,y);
+		    this.metrics.recalculateMetrics(this.fontSize, this.text);			
+		}		
 		move(offsetX,offsetY){
 			this.anchorPoint.move(offsetX,offsetY);
 		    this.metrics.recalculateMetrics(this.fontSize, this.text);
