@@ -718,7 +718,7 @@ getBoundingRect() {
 }
 setSelected(isSelected) {
 	 this.text.forEach(function(texture){
-		 texture.setSelected(isSelected); 	 
+		 texture.selection=isSelected; 	 
 	 });
 }
 isSelected() {

@@ -22,6 +22,11 @@ module.exports = function(d2) {
     		copy.reset();
     		return copy;
     	}
+    	setPoints(points){
+    	   this.points=[];
+    	   this.points=points;
+    	   this.reset();
+    	}
     	setRect(x,y,width,height,rounding){
     		super.setRect(x,y,width,height);
     		this.rounding=rounding;

@@ -56,6 +56,7 @@ parse(data){
 	 	   }
 	 	   var that=this;
 	 	   j$(data).find('shapes').children().each(function(){
+	 			console.log(this);
                var shape=that.shapeFactory.createShape(this);
                that.add(shape);
 	 	   });
@@ -98,7 +99,7 @@ class FootprintContainer extends UnitContainer{
 	}
 
     parse(xml){
-    	  this.formatedFileName=(j$(xml).find("filename").text());
+    	  this.setFileName(j$(xml).find("filename").text());
     	  this.libraryname=(j$(xml).find("library").text());
     	  this.categoryname=(j$(xml).find("category").text());    	  
     	  
@@ -117,14 +118,13 @@ class FootprintContainer extends UnitContainer{
         var xml="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n"; 
         xml+="<footprints identity=\"Footprint\" version=\"1.0\">\r\n";      
     	let units=this.unitsmap.values();
-  	    for(let i=0;i<this.unitsmap.size;i++){
+  	    //for(let i=0;i<this.unitsmap.size;i++){
           let unit=units.next().value;
           xml+=unit.format();
   		  xml+="\r\n";
-  	    }    	    	
+  	    //}    	    	
         xml+="</footprints>";
         
-        console.log(xml);
         return xml;
     }
 	

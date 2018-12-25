@@ -20,7 +20,7 @@ createShape(data){
 		roundRect.fromXML(data);
 		return roundRect;
 	}
-	if (data.tagName.toLowerCase() == 'ellipse') {
+	if (data.tagName.toLowerCase() == 'circle') {
 		var circle = new Circle(0, 0, 0, 0, 0);
 		circle.fromXML(data);
 		return circle;
@@ -226,8 +226,18 @@ class RoundRect extends Shape{
 		if(j$(data)[0].hasAttribute("copper")){
 		  this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
 		}
-		this.roundRect.setRect(parseInt(j$(data).attr("x")),parseInt(j$(data).attr("y")),parseInt(j$(data).attr("width")),parseInt(j$(data).attr("height")),parseInt(j$(data).attr("arc")));
-		
+		if(j$(data).attr("width")!=undefined){
+		  this.roundRect.setRect(parseInt(j$(data).attr("x")),parseInt(j$(data).attr("y")),parseInt(j$(data).attr("width")),parseInt(j$(data).attr("height")),parseInt(j$(data).attr("arc")));
+		}else{			
+			var array = JSON.parse("[" + j$(data).attr("points") + "]");
+			let points=[];
+			points.push(new d2.Point(array[0],array[1]));
+			points.push(new d2.Point(array[2],array[3]));
+			points.push(new d2.Point(array[4],array[5]));
+			points.push(new d2.Point(array[6],array[7]));
+			this.roundRect.rounding=parseInt(j$(data).attr("arc"));
+			this.roundRect.setPoints(points);
+		}
 		
 		this.thickness = (parseInt(j$(data).attr("thickness")));
 		this.fill = parseInt(j$(data).attr("fill"));
@@ -286,7 +296,9 @@ class Circle extends Shape{
 		this.circle=new d2.Circle(new d2.Point(x,y),r);
 	}
 clone() {
-	return new Circle(this.circle.center.x,this.circle.center.y,this.circle.radius,this.thickness,this.copper.getLayerMaskID());				
+	let copy=new Circle(this.circle.center.x,this.circle.center.y,this.circle.radius,this.thickness,this.copper.getLayerMaskID());
+	copy.fill=this.fill;
+	return copy				
 	}	
 calculateShape(){    
 	 return this.circle.box;	 
@@ -323,29 +335,25 @@ isControlRectClicked(x,y) {
 	toXML() {
         return "<circle copper=\""+this.copper.getName()+"\" x=\""+(this.circle.pc.x)+"\" y=\""+(this.circle.pc.y)+"\" radius=\""+(this.circle.r)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
 	}
-	fromXML(data) {	
-        if(j$(data).attr("copper")!=null){
-            this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
-         }else{
-            this.copper=core.Layer.Copper.FSilkS;
-         }
+	fromXML(data) {	        
+        this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
+        
  		let xx=parseInt(j$(data).attr("x"));
  		let yy=parseInt(j$(data).attr("y"));
  		
- 		let diameter=parseInt(parseInt(j$(data).attr("width")));
-         //center x
-         //this.setX(xx+(parseInt(diameter/2)));
-         //center y
-         //this.setY(yy+(parseInt(diameter/2)));
-         //radius
-         //this.setWidth(parseInt(diameter/2));
-         //this.setHeight(parseInt(diameter/2));
-
-         this.circle.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
-         this.circle.r=parseInt(diameter/2);
+ 		if(j$(data).attr("width")!=undefined){
+ 			let diameter=parseInt(parseInt(j$(data).attr("width")));
+ 	        this.circle.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
+ 	        this.circle.r=parseInt(diameter/2); 			
+ 		}else{
+ 			let radius=parseInt(parseInt(j$(data).attr("radius")));
+ 	        this.circle.pc.set(xx,yy);
+ 	        this.circle.r=radius; 			 		
+ 		}
+ 		 
          
  		 this.thickness = (parseInt(j$(data).attr("thickness")));
- 		 this.fill = parseInt(j$(data).attr("fill"));
+ 		 this.fill = parseInt(j$(data).attr("fill")); 		
 	}
 	Move(xoffset, yoffset) {
 		this.circle.move(xoffset,yoffset);
@@ -458,25 +466,35 @@ getOrderWeight(){
     return this.arc.r*this.arc.r; 
 }
 fromXML(data){
-        if(j$(data).attr("copper")!=null){
-           this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
-        }else{
-           this.copper=core.Layer.Copper.FSilkS;
-        }
+        
+        this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));        
 		let xx=parseInt(j$(data).attr("x"));
 		let yy=parseInt(j$(data).attr("y"));
 		
+ 		if(j$(data).attr("width")!=undefined){
+ 			let diameter=parseInt(parseInt(j$(data).attr("width")));
+ 	        this.arc.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
+ 	        this.arc.r=parseInt(diameter/2); 			
+ 		}else{
+ 			let radius=parseInt(parseInt(j$(data).attr("radius")));
+ 	        this.arc.pc.set(xx,yy);
+ 	        this.arc.r=radius; 			 		
+ 		}
 		let diameter=parseInt(parseInt(j$(data).attr("width"))); 
 		
-        this.arc.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
-        this.arc.r = parseInt(diameter/2);
-        this.arc.startAngle = parseInt(j$(data).attr("start"));
-        this.arc.endAngle = parseInt(j$(data).attr("extend"));
+        //this.arc.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
+        //this.arc.r = parseInt(diameter/2);
         
-		this.thickness = (parseInt(j$(data).attr("thickness")));				
+		this.arc.startAngle = parseInt(j$(data).attr("start"));
+        this.arc.endAngle = parseInt(j$(data).attr("extend"));        
+		this.thickness = (parseInt(j$(data).attr("thickness")));
+		this.fill = (parseInt(j$(data).attr("fill"))||0);
 }
 toXML() {
-    return '<arc copper="'+this.copper.getName()+'"  x="'+(this.arc.pc.x)+'" y="'+(this.arc.pc.y)+'" radius="'+(this.arc.r)+'"  thickness="'+this.thickness+'" start="'+this.arc.startAngle+'" extend="'+this.arc.endAngle+'" />';
+    return '<arc copper="'+this.copper.getName()+'"  x="'+(this.arc.pc.x)+'" y="'+(this.arc.pc.y)+'" radius="'+(this.arc.r)+'"  thickness="'+this.thickness+'" start="'+this.arc.startAngle+'" extend="'+this.arc.endAngle+'" fill="'+this.fill+'" />';
+}
+setRadius(r){
+	this.arc.r=r;	
 }
 setExtendAngle(extendAngle){
     this.arc.endAngle=utilities.round(extendAngle);
@@ -893,7 +911,7 @@ getCenter(){
 	return this.shape.center;
 }
 toXML(){
-	    var xml="<pad copper=\""+this.copper.getName()+"\" type=\"" +PadType.format(this.type) + "\" shape=\""+PadShape.format(this.getShape())+"\" x=\""+this.getX()+"\" y=\""+this.getY()+"\" width=\""+this.getWidth()+"\" height=\""+this.getHeight()+"\" rt=\""+this.rotate+"\">\r\n";
+	    var xml="<pad copper=\""+this.copper.getName()+"\" type=\"" +PadType.format(this.type) + "\" shape=\""+PadShape.format(this.getShape())+"\" x=\""+this.shape.center.x+"\" y=\""+this.shape.center.y+"\" width=\""+this.getWidth()+"\" height=\""+this.getHeight()+"\" rt=\""+this.rotate+"\">\r\n";
 	        //xml+=this.shape.toXML()+"\r\n";
 	        xml+="<offset x=\""+this.offset.x+"\" y=\""+this.offset.y+"\" />\r\n";
 	    
@@ -971,7 +989,11 @@ isInRect(r) {
 	         return true;
 	        else
 	         return false; 
-	}	
+	}
+setSelected (selection) {
+	super.setSelected(selection);
+	this.text.setSelected(selection);
+}
 Move(xoffset, yoffset){
 	   this.shape.move(xoffset, yoffset);
 	   
@@ -1086,7 +1108,7 @@ Paint(g2,viewportWindow,scale){
 	        break;
 	    
 	    }
-	    this.text.Paint(g2, viewportWindow, scale);
+	    this.text.Paint(g2, viewportWindow, scale);	    
 	 }
 
 }

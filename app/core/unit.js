@@ -406,6 +406,7 @@ class UnitContainer{
 	}
     setFileName(fileName) {
         this.fileName = fileName;
+        this.formatedFileName=this.fileName;
     }
 	add(unit){
 	  this.unitsmap.set(unit.getUUID(), unit);

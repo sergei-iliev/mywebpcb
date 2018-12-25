@@ -352,6 +352,11 @@ Paint(g2,viewportWindow,scale,layermaskId){
 drawControlShape(g2, viewportWindow,scale){
     utilities.drawCrosshair(g2, viewportWindow, scale, null, this.selectionRectWidth, [this.anchorPoint]);
 }
+toXML(){
+    return (this.isEmpty()? "" :
+        this.text + "," + this.anchorPoint.x + "," + this.anchorPoint.y +
+        ",,"+this.thickness+","+this.size+","+this.rotate);	
+}
 fromXML(node){	
 	
 	if (node == null || j$(node).text().length==0) {
@@ -386,6 +391,15 @@ fromXML(node){
 	 if(side==core.Layer.Side.BOTTOM){
 		 this.Mirror(true,new d2.Line(this.anchorPoint,new d2.Point(this.anchorPoint.x,this.anchorPoint.y+100)));
 	 }
+	 //rotate
+	 let rotate=parseFloat(tokens[6]);
+     if(isNaN(rotate)){
+    	 rotate=0;
+     }
+	 this.rotate=rotate;
+	 this.glyphs.forEach(function(glyph){
+		 glyph.rotate(rotate,this.anchorPoint);   
+	 }.bind(this));
 }
 }
 var GlyphManager = (function () {

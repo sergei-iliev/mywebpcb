@@ -36,6 +36,7 @@ var ComponentPanelBuilder=BaseBuilder.extend({
 		
 	},
 	updateui:function(){
+		console.log(this.target.getModel().formatedFileName);
 		j$("#nameid").val(this.target.getModel().formatedFileName);
 	},
 	render:function(){
@@ -249,11 +250,9 @@ var PadPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='numbersizeid'){ 
 			 this.target.getChipText().getTextureByTag("number").setSize(core.MM_TO_COORD(parseFloat(j$('#numbersizeid').val())));  
 		 }
-		 if(event.target.id=='numberxid'){ 
-			 this.target.getChipText().getTextureByTag("number").anchorPoint.x=this.fromUnitX(parseFloat(j$('#numberxid').val()));
-		 }
-		 if(event.target.id=='numberyid'){ 
-			 this.target.getChipText().getTextureByTag("number").anchorPoint.y=this.fromUnitY(parseFloat(j$('#numberyid').val()));  
+		 if(event.target.id=='numberxid'||event.target.id=='numberyid'){ 
+			 this.target.getChipText().getTextureByTag("number").setLocation(this.fromUnitX(parseFloat(j$('#numberxid').val())),this.fromUnitY(parseFloat(j$('#numberyid').val())));
+			 
 		 }
 		 //--------netvalue-------
 		 if(event.target.id=='netvalueid'){ 
@@ -262,11 +261,8 @@ var PadPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='netvaluesizeid'){ 
 			 this.target.getChipText().getTextureByTag("netvalue").setSize(core.MM_TO_COORD(parseFloat(j$('#netvaluesizeid').val()))); 
 		 }
-		 if(event.target.id=='netvaluexid'){ 
-			 this.target.getChipText().getTextureByTag("netvalue").anchorPoint.x=this.fromUnitX(parseFloat(j$('#netvaluexid').val())); 
-		 }
-		 if(event.target.id=='netvalueyid'){ 
-			 this.target.getChipText().getTextureByTag("netvalue").anchorPoint.y=this.fromUnitY(parseFloat(j$('#netvalueyid').val()));
+		 if(event.target.id=='netvaluexid'||event.target.id=='netvalueyid'){ 
+			 this.target.getChipText().getTextureByTag("netvalue").setLocation(this.fromUnitX(parseFloat(j$('#netvaluexid').val())),this.fromUnitY(parseFloat(j$('#netvalueyid').val()))); 
 		 }
 		 if(event.target.id=='drillwidthid'){ 
 			 this.target.drill.setWidth(core.MM_TO_COORD(parseFloat(j$('#drillwidthid').val())));   
@@ -471,12 +467,16 @@ var ArcPanelBuilder=BaseBuilder.extend({
         'keypress #widthid' : 'onenter',
         'keypress #startangleid' : 'onenter',
         'keypress #extendangleid' : 'onenter',
+        'change #fillid': 'onchange', 
         'change #layerid':'onchange',
     },
     onchange:function(event){
         if(event.target.id=='layerid'){
         	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
         }
+        if(event.target.id=='fillid'){        
+        	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
+        }        
         this.component.Repaint(); 
     }, 
     onenter:function(event){
@@ -487,13 +487,13 @@ var ArcPanelBuilder=BaseBuilder.extend({
 			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
 		 } 
 		 if(event.target.id=='widthid'){
-			   this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#widthid').val())));			 
+			   this.target.setRadius(core.MM_TO_COORD(parseFloat(j$('#widthid').val())));			 
 		 } 
 		 if(event.target.id=='startangleid'){
-			   this.target.startAngle=utilities.round(j$('#startangleid').val());			 
+			   this.target.setStartAngle(j$('#startangleid').val());			 
 		 } 
 		 if(event.target.id=='extendangleid'){
-			   this.target.extendAngle=utilities.round(j$('#extendangleid').val());	
+			   this.target.setExtendAngle(j$('#extendangleid').val());	
 		 } 	
 		 this.component.Repaint(); 	
     },
@@ -507,6 +507,7 @@ var ArcPanelBuilder=BaseBuilder.extend({
         j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:(this.target.resizingPoint.y))); 
 		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
 		j$("#widthid").val(core.COORD_TO_MM(this.target.arc.r));
+		j$("#fillid").val(this.target.fill);
 	},
 	render:function(){
 						
@@ -521,6 +522,11 @@ var ArcPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+			
+				"<tr><td style='padding:7px'>Fill</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"fillid\">"+
+				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+			    "</select>" +
+				"</td></tr>"+				
 				"<tr><td style='padding:7px'>Radius</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Start&deg</td><td><input type='text' id='startangleid' value='' class='form-control input-sm\'></td></tr>"+	
 				"<tr><td style='padding:7px'>Extend&deg</td><td><input type='text' id='extendangleid' value='' class='form-control input-sm\'></td></tr>"+

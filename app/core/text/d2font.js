@@ -31,7 +31,7 @@ getBoundingRect(){
     
 }
 setLocation(x,y){
-	this.shape.anchorPoint.set(x,y);
+	this.shape.setLocation(x,y);
 }
 setText(text){
 	this.shape.setText(text);
@@ -50,24 +50,32 @@ Paint(g2,viewportWindow,scale){
 	 if(this.isEmpty()){
 	   return;	 
 	 }
-	 
+	 if(this.shape.fontSize*scale.getScale()<8){
+		 return;
+	 }
 	 g2.font = ""+parseInt(this.shape.fontSize*scale.getScale())+"px Monospace";
-	 if(this.selection)
-	   g2.fillStyle = 'gray';
-	 else
-	   g2.fillStyle = 'white';
+	 g2.fillStyle = 'white';
 	 
 	 let t=this.shape.clone();
      t.scale(scale.getScale());
      t.move(-viewportWindow.x,- viewportWindow.y);
 	 
      t.paint(g2);
+
+     if(this.selection){
+ 		 g2.lineWidth =1;
+ 		 g2.strokeStyle = 'blue';
+ 		 let p=this.shape.anchorPoint.clone();
+         p.scale(scale.getScale());
+         p.move(-viewportWindow.x,- viewportWindow.y);
+         p.paint(g2);    	 
+     }
 	
 }
 toXML(){
     return (this.text=="" ? "" :
         this.shape.text + "," + this.shape.anchorPoint.x + "," + this.shape.anchorPoint.y +
-        "," +this.shape.rotation+","+this.shape.fontSize);	 
+        ",,,"+this.shape.fontSize+"," +this.shape.rotation);	 
 }
 fromXML(node){
     if (node == null || node.length==0) {
@@ -80,6 +88,8 @@ fromXML(node){
     
     this.shape.setText(tokens[0]);
     this.shape.setSize(parseInt(tokens[5]));
+    this.shape.rotate(parseFloat(tokens[6])||0);
+    
 }
 }
 
