@@ -6967,7 +6967,7 @@ var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/demo/pads.xml',
+	        url: 'demo/pads.xml',
 	        dataType: "xml",
 	        success: function(data, textStatus, jqXHR){
 
