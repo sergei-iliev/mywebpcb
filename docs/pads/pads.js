@@ -6963,7 +6963,8 @@ var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
 		   //load demo footprint
 			    	loadDemo(fc);
 	});	
-	loadDemo=function(fc){		
+	loadDemo=function(fc){
+		
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
