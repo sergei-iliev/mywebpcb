@@ -161,7 +161,7 @@ var  UUID=(function(){
 	 }
 })();
 
-gridraster=[{id:2.54,value:2.54},{id:1.27,value:1.27},{id:0.635,value:0.635},{id:0.508,value:0.508},{id:0.254,value:0.254},{id:0.127,value:0.127},{id:0.0635,value:0.0635},{id:0.0508,value:0.0508},{id:0.0254,value:0.0254},{id:0.0127,value:0.0127},{id:5.0,value:5.0},{id:2.5,value:2.5},{id:1.0,value:1.0},{id:0.5,value:0.5},{id:0.25,value:0.25},{id:0.8,value:0.8},{id:0.2,value:0.2},{id:0.1,value:0.1},{id:0.05,value:0.05},{id:0.025,value:0.025},{id:0.01,value:0.01}];
+GridRaster=[{id:2.54,value:2.54},{id:1.27,value:1.27},{id:0.635,value:0.635},{id:0.508,value:0.508},{id:0.254,value:0.254},{id:0.127,value:0.127},{id:0.0635,value:0.0635},{id:0.0508,value:0.0508},{id:0.0254,value:0.0254},{id:0.0127,value:0.0127},{id:5.0,value:5.0},{id:2.5,value:2.5},{id:1.0,value:1.0},{id:0.5,value:0.5},{id:0.25,value:0.25},{id:0.8,value:0.8},{id:0.2,value:0.2},{id:0.1,value:0.1},{id:0.05,value:0.05},{id:0.025,value:0.025},{id:0.01,value:0.01}];
 
 Fill = {
 		EMPTY : 0,
@@ -868,7 +868,7 @@ getBoundingRect() {
 }
 setSelected(isSelected) {
 	 this.text.forEach(function(texture){
-		 texture.setSelected(isSelected); 	 
+		 texture.selection=isSelected; 	 
 	 });
 }
 isSelected() {
@@ -922,207 +922,6 @@ getOffset(){
  }	  
 }
 
-class Shape{
-	constructor(x, y, width, height, thickness,
-			layermask) {
-		this.owningUnit=null;
-		this.uuid = UUID();
-		this.x = x;
-		this.y = y;
-		this.width = width;
-		this.height = height;
-		this.thickness = thickness;
-		this.selection = false;
-		this.displayName = "noname";
-		this.fill = Fill.EMPTY;
-		this.fillColor;		 
-		this.copper = Layer.Copper.resolve(layermask);
-	}
-getCenter(){
-	return new d2.Point(this.x,this.y);
-}	
-setDisplayName(displayName) {
-		this.displayName = displayName;
-	}
-clear() {
-    this.owningUnit=null;
-	}
-clone() {
-	copy=new Shape(this.x,this.y,this.width,this.height,this.layermask);
-	copy.fill=this.fill;	
-	return copy;
-	}
-alignToGrid(isRequired) {
-        let point=this.owningUnit.getGrid().positionOnGrid(this.getX(), this.getY());
-        this.setX(point.x);
-        this.setY(point.y);      
-        return null;
-}
-setX(x) {
-		this.x = x;
-	}
-getX() {
-		return this.x;
-	}
-setY(y) {
-		this.y = y;
-	}
-getY() {
-		return this.y;
-	}
-setWidth(width) {
-		this.width = width;
-	}
-getWidth() {
-		return this.width;
-	}
-setHeight (height) {
-		this.height = height;
-	}
-getHeight() {
-		return this.height;
-	}
-getOrderWeight() {
-		return (this.getWidth() * this.getHeight());
-	}
-getUUID() {
-		return this.uuid;
-	}
-calculateShape() {
-
-	}
-isInRect(r){
-	let rect=this.getBoundingShape();
-        if(r.contains(rect.center))
-            return true;
-           else
-            return false; 		
-	}
-isClicked(x,y) {
-        let r=this.getBoundingShape();
-        if(r.contains(x,y))
-         return true;
-        else
-         return false;           
-    }
-getBoundingShape() {
-	return this.calculateShape();
-	}
-setSelected (selection) {
-		this.selection = selection;
-	}
-isSelected() {
-		return this.selection;
-	}
-
-Move(xoffset,yoffset) {
-      this.setX(this.getX() + xoffset);
-      this.setY(this.getY() + yoffset);    
-}
-
-Mirror(line) {
-        //let point = new d2.Point(this.x,this.y);
-        //utilities.mirrorPoint(A,B, point);
-        //this.setX(point.x);
-        //this.setY(point.y);
-}
-    
-
-Rotate(rotation) {
-		let point = new Point(this.getX(), this.getY());
-		point = utilities.rotate(point, rotation.originx,rotation.originy, rotation.angle);
-	
-        this.x=(point.x);
-        this.y=(point.y);
-}	
-fromXML(data) {
-
-	}
-
-} 
-
-/**********************Ruler**********************************/
-class Ruler extends Shape{
-constructor () {
-	super(0, 0, 0, 0, 0, 0);
-    this.text=new font.FontTexture('label','',0,0,MM_TO_COORD(1.2));       
-    this.text.fillColor='white';        
-	this.resizingPoint=null;
-}
-Resize( xOffset, yOffset) {
-    this.resizingPoint.set(this.resizingPoint.x+xOffset,this.resizingPoint.y+yOffset);
-    this.text.shape.anchorPoint.set(this.resizingPoint.x, this.resizingPoint.y);
-}	
-paint( g2,  viewportWindow,  scale) {        
-		if(this.resizingPoint==null){
-            return;
-        }
-        this.text.setText(parseFloat(COORD_TO_MM(this.resizingPoint.distanceTo(new d2.Point(this.x,this.y)))).toFixed(4)+' MM');
-        this.text.Paint(g2, viewportWindow, scale);
-
-        let line=new d2.Segment(this.x,this.y,this.resizingPoint.x,this.resizingPoint.y);
-
-        g2.strokeStyle  = 'white';
-		g2.lineWidth=1; 
-        
-        line.scale(scale.getScale());
-        line.move(-viewportWindow.x,-viewportWindow.y);
-        line.paint(g2);
-		
-    }	
-}
-/**********************Coordinate System**********************************/
-class CoordinateSystem extends Shape {
-	constructor (owningUnit) {
-		super(0, 0, 0, 0, 0, 0);
-		this.owningUnit=owningUnit;
-        this.selectionRectWidth=3000;		
-	}
-alignToGrid(isRequired) {
-    if(isRequired){
-           return super.alignToGrid(isRequired);
-    }else{
-          return null;
-    }
-}
-calculateShape() {
-    return d2.Box.fromRect(this.x-this.selectionRectWidth/2,this.y-this.selectionRectWidth/2,this.selectionRectWidth,this.selectionRectWidth);
-}
-reset(x, y) {
-		if (x < 0) {
-			x = 0;
-		} else if (x > this.owningUnit.getWidth()) {
-			x = this.owningUnit.getWidth();
-		}
-		if (y < 0) {
-			y = 0;
-		} else if (y > this.owningUnit.getWidth()) {
-			y = this.owningUnit.getWidth();
-		}
-		this.x=x;
-		this.y=y;
-}
-
-paint(g2, viewportWindow, scale) {
-		var line = new d2.Segment(0,0,0,0);		
-
-		g2.strokeStyle  = 'blue';
-		g2.lineWidth=1; 
-	
-
-		line.set(0, this.y, this.owningUnit.getWidth(),
-				this.y);
-		line.scale(scale.getScale());
-		line.move(-viewportWindow.x,- viewportWindow.y);
-	    line.paint(g2);
-	    
-	
-		line.set(this.x, 0, this.x, this.owningUnit.getHeight());
-		line.scale(scale.getScale());
-		line.move(-viewportWindow.x,- viewportWindow.y);		
-		line.paint(g2);
-	}
-}
 
 //-----------------------UnitSelectionCell---------
 var UnitSelectionCell = function (uuid,x, y,width,height,name) {
@@ -1261,7 +1060,7 @@ var UnitSelectionPanel=Backbone.View.extend({
 module.exports ={
 	mywebpcb,	
 	UUID,
-	gridraster,
+	GridRaster,
 	Fill,
 	Units,
 	ModeEnum,
@@ -1272,13 +1071,10 @@ module.exports ={
 	Grid,	
 	ChipText,
 	UnitFrame,
-	Shape,
 	AffineTransform,
     MM_TO_COORD,
     COORD_TO_MM,
 	UnitSelectionPanel,
-	CoordinateSystem,
-	Ruler,
 	CompositeLayer
 }
 
@@ -1982,8 +1778,8 @@ actionPerformed(id,context){
 	     let unit=this.component.getModel().getUnit();           
 	     let rect =unit.getBoundingRect();
 	    
-	     let x=rect.getCenterX();
-	     let y=rect.getCenterY();
+	     let x=rect.center.x;
+	     let y=rect.center.y;
 	     
 	     let unitMgr = UnitMgr.getInstance();
 	     
@@ -2043,9 +1839,212 @@ module.exports ={
 ;require.register("core/shapes.js", function(exports, require, module) {
 var core=require('core/core');
 var utilities =require('core/utilities');
-var Shape=require('core/core').Shape;
 var d2=require('d2/d2');
+var font = require('core/text/d2font');
 
+class Shape{
+	constructor(x, y, width, height, thickness,
+			layermask) {
+		this.owningUnit=null;
+		this.uuid = core.UUID();
+		this.x = x;
+		this.y = y;
+		this.width = width;
+		this.height = height;
+		this.thickness = thickness;
+		this.selection = false;
+		this.displayName = "noname";
+		this.fill = Fill.EMPTY;
+		this.fillColor;		 
+		this.copper = core.Layer.Copper.resolve(layermask);
+	}
+getCenter(){
+	return new d2.Point(this.x,this.y);
+}	
+setDisplayName(displayName) {
+		this.displayName = displayName;
+	}
+clear() {
+    this.owningUnit=null;
+	}
+clone() {
+	copy=new Shape(this.x,this.y,this.width,this.height,this.layermask);
+	copy.fill=this.fill;	
+	return copy;
+	}
+alignToGrid(isRequired) {
+        let point=this.owningUnit.getGrid().positionOnGrid(this.getX(), this.getY());
+        this.setX(point.x);
+        this.setY(point.y);      
+        return null;
+}
+setX(x) {
+		this.x = x;
+	}
+getX() {
+		return this.x;
+	}
+setY(y) {
+		this.y = y;
+	}
+getY() {
+		return this.y;
+	}
+setWidth(width) {
+		this.width = width;
+	}
+getWidth() {
+		return this.width;
+	}
+setHeight (height) {
+		this.height = height;
+	}
+getHeight() {
+		return this.height;
+	}
+getOrderWeight() {
+		return (this.getWidth() * this.getHeight());
+	}
+getUUID() {
+		return this.uuid;
+	}
+calculateShape() {
+
+	}
+isInRect(r){
+	let rect=this.getBoundingShape();
+        if(r.contains(rect.center))
+            return true;
+           else
+            return false; 		
+	}
+isClicked(x,y) {
+        let r=this.getBoundingShape();
+        if(r.contains(x,y))
+         return true;
+        else
+         return false;           
+    }
+getBoundingShape() {
+	return this.calculateShape();
+	}
+setSelected (selection) {
+		this.selection = selection;
+	}
+isSelected() {
+		return this.selection;
+	}
+
+Move(xoffset,yoffset) {
+      this.setX(this.getX() + xoffset);
+      this.setY(this.getY() + yoffset);    
+}
+
+Mirror(line) {
+        //let point = new d2.Point(this.x,this.y);
+        //utilities.mirrorPoint(A,B, point);
+        //this.setX(point.x);
+        //this.setY(point.y);
+}
+    
+
+Rotate(rotation) {
+		let point = new Point(this.getX(), this.getY());
+		point = utilities.rotate(point, rotation.originx,rotation.originy, rotation.angle);
+	
+        this.x=(point.x);
+        this.y=(point.y);
+}	
+fromXML(data) {
+
+	}
+
+} 
+
+/**********************Ruler**********************************/
+class Ruler extends Shape{
+constructor () {
+	super(0, 0, 0, 0, 0, 0);
+    this.text=new font.FontTexture('label','',0,0,20);
+    this.text.constSize=true;
+    this.text.fillColor='white';        
+	this.resizingPoint=null;
+}
+Resize( xOffset, yOffset) {
+    this.resizingPoint.set(this.resizingPoint.x+xOffset,this.resizingPoint.y+yOffset);
+    this.text.shape.anchorPoint.set(this.resizingPoint.x, this.resizingPoint.y);
+}	
+paint( g2,  viewportWindow,  scale) {        
+		if(this.resizingPoint==null){
+            return;
+        }
+        this.text.setText(parseFloat(core.COORD_TO_MM(this.resizingPoint.distanceTo(new d2.Point(this.x,this.y)))).toFixed(4)+' MM');
+                
+        this.text.Paint(g2, viewportWindow, scale);
+
+        let line=new d2.Segment(this.x,this.y,this.resizingPoint.x,this.resizingPoint.y);
+
+        g2.strokeStyle  = 'white';
+		g2.lineWidth=1; 
+        
+        line.scale(scale.getScale());
+        line.move(-viewportWindow.x,-viewportWindow.y);
+        line.paint(g2);
+		
+    }	
+}
+/**********************Coordinate System**********************************/
+class CoordinateSystem extends Shape {
+	constructor (owningUnit) {
+		super(0, 0, 0, 0, 0, 0);
+		this.owningUnit=owningUnit;
+        this.selectionRectWidth=3000;		
+	}
+alignToGrid(isRequired) {
+    if(isRequired){
+           return super.alignToGrid(isRequired);
+    }else{
+          return null;
+    }
+}
+calculateShape() {
+    return d2.Box.fromRect(this.x-this.selectionRectWidth/2,this.y-this.selectionRectWidth/2,this.selectionRectWidth,this.selectionRectWidth);
+}
+reset(x, y) {
+		if (x < 0) {
+			x = 0;
+		} else if (x > this.owningUnit.getWidth()) {
+			x = this.owningUnit.getWidth();
+		}
+		if (y < 0) {
+			y = 0;
+		} else if (y > this.owningUnit.getWidth()) {
+			y = this.owningUnit.getWidth();
+		}
+		this.x=x;
+		this.y=y;
+}
+
+paint(g2, viewportWindow, scale) {
+		var line = new d2.Segment(0,0,0,0);		
+
+		g2.strokeStyle  = 'blue';
+		g2.lineWidth=1; 
+	
+
+		line.set(0, this.y, this.owningUnit.getWidth(),
+				this.y);
+		line.scale(scale.getScale());
+		line.move(-viewportWindow.x,- viewportWindow.y);
+	    line.paint(g2);
+	    
+	
+		line.set(this.x, 0, this.x, this.owningUnit.getHeight());
+		line.scale(scale.getScale());
+		line.move(-viewportWindow.x,- viewportWindow.y);		
+		line.paint(g2);
+	}
+}
 class AbstractLine extends Shape{
 	constructor(thickness,layermaskId) {
 		super(0, 0, 0, 0, thickness,layermaskId);
@@ -2287,6 +2286,9 @@ setResizingPoint(point) {
 
 }
 module.exports ={
+		Shape,
+		CoordinateSystem,
+		Ruler,
 		AbstractLine
 }
 });
@@ -2300,10 +2302,12 @@ class FontTexture{
 	this.shape=new d2.FontText(new d2.Point(x,y),text,fontSize);    
 	this.selection=false;
 	this.selectionRectWidth=3000;
-	
+	this.constSize=false;
  }
 clone(){
      var copy=new FontTexture(this.tag,this.shape.text,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.fontSize);     
+     copy.shape.rotation=this.shape.rotation;
+     copy.shape.metrics.recalculateMetrics(this.shape.fontSize,this.shape.text);
      return copy;	 
  } 
 isEmpty() {
@@ -2323,7 +2327,7 @@ getBoundingRect(){
     
 }
 setLocation(x,y){
-	this.shape.anchorPoint.set(x,y);
+	this.shape.setLocation(x,y);
 }
 setText(text){
 	this.shape.setText(text);
@@ -2342,24 +2346,36 @@ Paint(g2,viewportWindow,scale){
 	 if(this.isEmpty()){
 	   return;	 
 	 }
-	 
-	 g2.font = ""+parseInt(this.shape.fontSize*scale.getScale())+"px Monospace";
-	 if(this.selection)
-	   g2.fillStyle = 'gray';
-	 else
-	   g2.fillStyle = 'white';
+	 if(this.constSize){
+	   g2.font = ""+parseInt(this.shape.fontSize)+"px Monospace";
+	 }else{	 
+		 if(this.shape.fontSize*scale.getScale()<8){
+			 return;
+		 }
+		 g2.font = ""+parseInt(this.shape.fontSize*scale.getScale())+"px Monospace";
+	 }
+	 g2.fillStyle = 'white';
 	 
 	 let t=this.shape.clone();
      t.scale(scale.getScale());
      t.move(-viewportWindow.x,- viewportWindow.y);
 	 
      t.paint(g2);
+
+     if(this.selection){
+ 		 g2.lineWidth =1;
+ 		 g2.strokeStyle = 'blue';
+ 		 let p=this.shape.anchorPoint.clone();
+         p.scale(scale.getScale());
+         p.move(-viewportWindow.x,- viewportWindow.y);
+         p.paint(g2);    	 
+     }
 	
 }
 toXML(){
     return (this.text=="" ? "" :
         this.shape.text + "," + this.shape.anchorPoint.x + "," + this.shape.anchorPoint.y +
-        "," +this.shape.rotation+","+this.shape.fontSize);	 
+        ",,,"+this.shape.fontSize+"," +this.shape.rotation);	 
 }
 fromXML(node){
     if (node == null || node.length==0) {
@@ -2372,6 +2388,8 @@ fromXML(node){
     
     this.shape.setText(tokens[0]);
     this.shape.setSize(parseInt(tokens[5]));
+    this.shape.rotate(parseFloat(tokens[6])||0);
+    
 }
 }
 
@@ -2573,8 +2591,6 @@ resetGlyphText(text) {
                 result+='!';
             }             
         }
-        //arrange it according to anchor point
-        this.resetGlyphsLine();
         return result;
 }
 resetGlyphsLine(){
@@ -2603,11 +2619,10 @@ resetGlyphsLine(){
     }.bind(this));
     
 }
-setSize(size) {
+reset(){
     if (this.text == null) {
         return;
     }
-    this.size=size;
     //reset original text
     this.text = this.resetGlyphText(this.text);
     //reset size
@@ -2622,13 +2637,25 @@ setSize(size) {
 		glyph.rotate(this.rotate,this.anchorPoint);		     
     }.bind(this));
 }
+setSize(size) {
+
+    this.size=size;
+    if(this.mirrored){
+       let line=new d2.Line(this.anchorPoint,new d2.Point(this.anchorPoint.x,this.anchorPoint.y+100));
+       this.mirror(true,line);
+    }else{
+       this.reset();
+    }
+}
 setText(text) {
-	console.log(this.rotate);
     //read original text
-    this.text = this.resetGlyphText(text);
-    
-    this.setSize(this.size);
-    
+    this.text = text;
+    if(this.mirrored){
+      let line=new d2.Line(this.anchorPoint,new d2.Point(this.anchorPoint.x,this.anchorPoint.y+100));
+      this.mirror(true,line);
+    }else{
+      this.reset();
+    }
 }
 getBoundingShape() {
     if (this.text == null || this.text.length == 0) {
@@ -2640,7 +2667,7 @@ getBoundingShape() {
 getBoundingRect(){
     if(this.mirrored){
         let rect= new d2.Rectangle(this.anchorPoint.x-this.width,this.anchorPoint.y-this.height,this.width,this.height);
-        rect.rotate(this.rotate-180,this.anchorPoint);
+        rect.rotate(this.rotate,this.anchorPoint);
         return rect;
      }else{    	
         let rect= new d2.Rectangle(this.anchorPoint.x,this.anchorPoint.y-this.height,this.width,this.height);
@@ -2654,20 +2681,28 @@ isClicked(x,y){
     } 
     return this.getBoundingRect().contains(x,y);   
 }
-Mirror(mirrored,line){
+mirror(mirrored,line){
 	this.mirrored=mirrored;
 	
+    //reset original text
+    this.text = this.resetGlyphText(this.text);
+    //reset size
+    this.glyphs.forEach(function(glyph){
+        glyph.setSize(core.COORD_TO_MM(this.size));
+    }.bind(this));        
+    
+    //arrange it according to anchor point
+    this.resetGlyphsLine();
+    
     this.anchorPoint.mirror(line);
     this.glyphs.forEach(function(glyph){
-        glyph.mirror(line);
+       if(this.mirrored){
+    	glyph.mirror(line);    	        
+       } 
+       glyph.rotate(this.rotate,this.anchorPoint);
+        
     }.bind(this));
-    
-  	if(this.rotate<=180){
- 	 this.rotate=180-this.rotate; 
- 	}else{
- 	 this.rotate=180+(360-this.rotate);
- 	}    
-    
+        
 }
 Move(xoffset,yoffset) {
     this.anchorPoint.move(xoffset,yoffset);
@@ -2728,16 +2763,21 @@ Paint(g2,viewportWindow,scale,layermaskId){
 	   }
    });
    
-//   let box=this.getBoundingRect();
-//   box.scale(scale.getScale());
-//   box.move(-viewportWindow.x,- viewportWindow.y);
-//   box.paint(g2);
+   //let box=this.getBoundingRect();
+   //box.scale(scale.getScale());
+   //box.move(-viewportWindow.x,- viewportWindow.y);
+   //box.paint(g2);
    if (this.isSelected){
        this.drawControlShape(g2,viewportWindow,scale);
    }   
 }
 drawControlShape(g2, viewportWindow,scale){
     utilities.drawCrosshair(g2, viewportWindow, scale, null, this.selectionRectWidth, [this.anchorPoint]);
+}
+toXML(){
+    return (this.isEmpty()? "" :
+        this.text + "," + this.anchorPoint.x + "," + this.anchorPoint.y +
+        ",,"+this.thickness+","+this.size+","+this.rotate);	
 }
 fromXML(node){	
 	
@@ -2766,13 +2806,21 @@ fromXML(node){
      if(isNaN(size)){
     	 size=20000;
      }
-     //invalidate
-     this.setSize(size);
+     this.size=size;
+
+	 let rotate=parseFloat(tokens[6]);
+     if(isNaN(rotate)){
+    	 rotate=0;
+     }
+	 this.rotate=rotate;
+	 
 	 //mirror?
      let side=core.Layer.Side.resolve(this.layermaskId);
 	 if(side==core.Layer.Side.BOTTOM){
-		 this.Mirror(true,new d2.Line(this.anchorPoint,new d2.Point(this.anchorPoint.x,this.anchorPoint.y+100)));
+		this.mirrored=true;		 
 	 }
+	 //invalidate
+	 this.setText(this.text);
 }
 }
 var GlyphManager = (function () {
@@ -2841,6 +2889,7 @@ module.exports ={
 ;require.register("core/unit.js", function(exports, require, module) {
 var mywebpcb=require('core/core').mywebpcb;
 var core = require('core/core');
+var shape = require('core/shapes');
 var events=require('core/events');
 var GlyphManager=require('core/text/d2glyph').GlyphManager;
 var ViewportWindow=require('core/core').ViewportWindow;
@@ -2950,7 +2999,7 @@ class manager{
 //**********************Unit*******************************************
 class Unit{
     constructor(width,height) {
-        this.silent=false; 	 
+        //this.silent=false; 	 
     	this.scalableTransformation=new core.ScalableTransformation(8,4,13);
     	this.uuid=core.UUID();
     	this.shapes=[];
@@ -2962,7 +3011,7 @@ class Unit{
         this.scrollPositionYValue = 0;
         this.frame=new core.UnitFrame(this.width,this.height);
         this.coordinateSystem;//=new core.CoordinateSystem(this);
-		this.ruler=new core.Ruler();
+		this.ruler=new shape.Ruler();
 		this.shapeFactory=null;
         
     }
@@ -2971,8 +3020,8 @@ setScrollPositionValue(scrollPositionXValue,scrollPositionYValue) {
         this.scrollPositionYValue = scrollPositionYValue;
        }
 fireShapeEvent(event){
-		if(this.silent)
-			return;
+		//if(this.silent)
+		//	return;
 		switch(event.type){
 		  case events.Event.SELECT_SHAPE:
 			  core.mywebpcb.trigger('shape:inspector',event);
@@ -3237,8 +3286,8 @@ paint(g2, viewportWindow){
 
 //**********************UnitContainer*******************************************
 class UnitContainer{
-	constructor(silent){
-	      this.silent= silent || false;;	
+	constructor(){
+	      //this.silent= silent || false;;	
 		  this.unitsmap=new Map();
 		  this.unit=null;
 		  this.fileName="";
@@ -3247,6 +3296,7 @@ class UnitContainer{
 	}
     setFileName(fileName) {
         this.fileName = fileName;
+        this.formatedFileName=this.fileName;
     }
 	add(unit){
 	  this.unitsmap.set(unit.getUUID(), unit);
@@ -3296,8 +3346,8 @@ class UnitContainer{
 	  return this.unit;
 	}
 	fireUnitEvent(event){
-		if(this.silent)
-			return;
+		//if(this.silent)
+		//	return;
 		switch(event.type){
 		  case events.Event.ADD_UNIT:
 			  core.mywebpcb.trigger('unit:inspector',event);
@@ -4337,6 +4387,10 @@ module.exports = function(d2) {
 			this.metrics.recalculateMetrics(this.fontSize,this.text);
 			
 		}
+		setLocation(x,y){
+			this.anchorPoint.set(x,y);
+		    this.metrics.recalculateMetrics(this.fontSize, this.text);			
+		}		
 		move(offsetX,offsetY){
 			this.anchorPoint.move(offsetX,offsetY);
 		    this.metrics.recalculateMetrics(this.fontSize, this.text);
@@ -5551,6 +5605,11 @@ module.exports = function(d2) {
     		copy.reset();
     		return copy;
     	}
+    	setPoints(points){
+    	   this.points=[];
+    	   this.points=points;
+    	   this.reset();
+    	}
     	setRect(x,y,width,height,rounding){
     		super.setRect(x,y,width,height);
     		this.rounding=rounding;
@@ -6187,7 +6246,7 @@ constructor(width,height) {
 	}
 clone(){
 	  var copy=new Footprint(this.width,this.height);
-	  copy.silent=true;
+	  //copy.silent=true;
 	  copy.unitName=this.unitName;
 	  copy.grid=this.grid.clone();
       var len=this.shapes.length;
@@ -6195,7 +6254,7 @@ clone(){
            var clone=this.shapes[i].clone();
 	       copy.add(clone);
 	  }
-	  copy.silent=false;
+	  //copy.silent=false;
 	  return copy;
 	}	
 parse(data){
@@ -6244,8 +6303,10 @@ format(){
    xml+="<units raster=\""+this.grid.getGridValue()+"\">MM</units>\r\n"; 
    xml+="<shapes>\r\n";
    this.shapes.forEach(function(shape) {
-	   xml+=shape.toXML();
-	   xml+='\r\n';
+	   if(!((shape instanceof GlyphLabel)&&(shape.texture.tag=='reference'||shape.texture.tag=='value'))){
+		   xml+=shape.toXML();
+		   xml+='\r\n';   
+	   }
    });
    xml+="</shapes>\r\n";   
    xml+="</footprint>";
@@ -6254,23 +6315,23 @@ format(){
 }
 
 class FootprintContainer extends UnitContainer{
-    constructor(silent) {
-       super(silent);
+    constructor() {
+       super();
        this.formatedFileName="Footprints"
 	}
 
     parse(xml){
-    	  this.formatedFileName=(j$(xml).find("filename").text());
+    	  this.setFileName(j$(xml).find("filename").text());
     	  this.libraryname=(j$(xml).find("library").text());
     	  this.categoryname=(j$(xml).find("category").text());    	  
     	  
     	  var that=this;
 	      j$(xml).find("footprint").each(j$.proxy(function(){
 	    	var footprint=new Footprint(j$(this).attr("width"),j$(this).attr("height"));
-	    	footprint.name=j$(this).find("name").text();
+	    	    footprint.unitName=j$(this).find("name").text();
 	    	//silent mode
-	    	footprint.silent=that.silent;
-	    	//need to have a current unit 
+	    	//footprint.silent=that.silent;
+	    	//need to have a current unit
             that.add(footprint);
             footprint.parse(this);
 	    }),that);	
@@ -6286,7 +6347,6 @@ class FootprintContainer extends UnitContainer{
   	    }    	    	
         xml+="</footprints>";
         
-        console.log(xml);
         return xml;
     }
 	
@@ -6900,8 +6960,38 @@ var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
 		            autoOpen:false
                 });	
 				
-			  
+		   //load demo footprint
+			    	loadDemo(fc);
 	});	
+	loadDemo=function(fc){		
+	    j$.ajax({
+	        type: 'GET',
+	        contentType: 'application/xml',
+	        url: '/demo/pads.xml',
+	        dataType: "xml",
+	        success: function(data, textStatus, jqXHR){
+
+	      //****load it    	
+	      		  fc.Clear();
+	      		  fc.getModel().parse(data);
+	      		  fc.getModel().setActiveUnit(0);
+	      		  fc.componentResized();
+	                //position on center
+	              var rect=fc.getModel().getUnit().getBoundingRect();
+	              fc.setScrollPosition(rect.center.x,rect.center.y);
+	              fc.getModel().fireUnitEvent({target:fc.getModel().getUnit(),type: events.Event.SELECT_UNIT});
+	      		  fc.Repaint();
+	      		  //set button group
+	      		  fc.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);	        
+	        },
+	        
+	        error: function(jqXHR, textStatus, errorThrown){
+	            	alert(errorThrown+":"+jqXHR.responseText);
+	        },
+	    });	
+	}
+	
+	
 })(jQuery);
 });
 
@@ -6980,7 +7070,7 @@ module.exports ={
 ;require.register("pads/shapes.js", function(exports, require, module) {
 var core=require('core/core');
 var utilities =require('core/utilities');
-var Shape=require('core/core').Shape;
+var Shape=require('core/shapes').Shape;
 var AbstractLine=require('core/shapes').AbstractLine;
 var glyph=require('core/text/d2glyph');
 var font=require('core/text/d2font');
@@ -7000,7 +7090,7 @@ createShape(data){
 		roundRect.fromXML(data);
 		return roundRect;
 	}
-	if (data.tagName.toLowerCase() == 'ellipse') {
+	if (data.tagName.toLowerCase() == 'circle') {
 		var circle = new Circle(0, 0, 0, 0, 0);
 		circle.fromXML(data);
 		return circle;
@@ -7043,7 +7133,7 @@ setCopper(copper){
 	
 	let side=core.Layer.Side.resolve(this.copper.getLayerMaskID());
 	
-	this.texture.Mirror(side==core.Layer.Side.BOTTOM,line);
+	this.texture.mirror(side==core.Layer.Side.BOTTOM,line);
 }
 setRotation(rotate){
    this.texture.setRotation(rotate);
@@ -7206,8 +7296,18 @@ class RoundRect extends Shape{
 		if(j$(data)[0].hasAttribute("copper")){
 		  this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
 		}
-		this.roundRect.setRect(parseInt(j$(data).attr("x")),parseInt(j$(data).attr("y")),parseInt(j$(data).attr("width")),parseInt(j$(data).attr("height")),parseInt(j$(data).attr("arc")));
-		
+		if(j$(data).attr("width")!=undefined){
+		  this.roundRect.setRect(parseInt(j$(data).attr("x")),parseInt(j$(data).attr("y")),parseInt(j$(data).attr("width")),parseInt(j$(data).attr("height")),parseInt(j$(data).attr("arc")));
+		}else{			
+			var array = JSON.parse("[" + j$(data).attr("points") + "]");
+			let points=[];
+			points.push(new d2.Point(array[0],array[1]));
+			points.push(new d2.Point(array[2],array[3]));
+			points.push(new d2.Point(array[4],array[5]));
+			points.push(new d2.Point(array[6],array[7]));
+			this.roundRect.rounding=parseInt(j$(data).attr("arc"));
+			this.roundRect.setPoints(points);
+		}
 		
 		this.thickness = (parseInt(j$(data).attr("thickness")));
 		this.fill = parseInt(j$(data).attr("fill"));
@@ -7266,7 +7366,9 @@ class Circle extends Shape{
 		this.circle=new d2.Circle(new d2.Point(x,y),r);
 	}
 clone() {
-	return new Circle(this.circle.center.x,this.circle.center.y,this.circle.radius,this.thickness,this.copper.getLayerMaskID());				
+	let copy=new Circle(this.circle.center.x,this.circle.center.y,this.circle.radius,this.thickness,this.copper.getLayerMaskID());
+	copy.fill=this.fill;
+	return copy				
 	}	
 calculateShape(){    
 	 return this.circle.box;	 
@@ -7303,29 +7405,25 @@ isControlRectClicked(x,y) {
 	toXML() {
         return "<circle copper=\""+this.copper.getName()+"\" x=\""+(this.circle.pc.x)+"\" y=\""+(this.circle.pc.y)+"\" radius=\""+(this.circle.r)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
 	}
-	fromXML(data) {	
-        if(j$(data).attr("copper")!=null){
-            this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
-         }else{
-            this.copper=core.Layer.Copper.FSilkS;
-         }
+	fromXML(data) {	        
+        this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
+        
  		let xx=parseInt(j$(data).attr("x"));
  		let yy=parseInt(j$(data).attr("y"));
  		
- 		let diameter=parseInt(parseInt(j$(data).attr("width")));
-         //center x
-         //this.setX(xx+(parseInt(diameter/2)));
-         //center y
-         //this.setY(yy+(parseInt(diameter/2)));
-         //radius
-         //this.setWidth(parseInt(diameter/2));
-         //this.setHeight(parseInt(diameter/2));
-
-         this.circle.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
-         this.circle.r=parseInt(diameter/2);
+ 		if(j$(data).attr("width")!=undefined){
+ 			let diameter=parseInt(parseInt(j$(data).attr("width")));
+ 	        this.circle.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
+ 	        this.circle.r=parseInt(diameter/2); 			
+ 		}else{
+ 			let radius=parseInt(parseInt(j$(data).attr("radius")));
+ 	        this.circle.pc.set(xx,yy);
+ 	        this.circle.r=radius; 			 		
+ 		}
+ 		 
          
  		 this.thickness = (parseInt(j$(data).attr("thickness")));
- 		 this.fill = parseInt(j$(data).attr("fill"));
+ 		 this.fill = parseInt(j$(data).attr("fill")); 		
 	}
 	Move(xoffset, yoffset) {
 		this.circle.move(xoffset,yoffset);
@@ -7438,25 +7536,35 @@ getOrderWeight(){
     return this.arc.r*this.arc.r; 
 }
 fromXML(data){
-        if(j$(data).attr("copper")!=null){
-           this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
-        }else{
-           this.copper=core.Layer.Copper.FSilkS;
-        }
+        
+        this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));        
 		let xx=parseInt(j$(data).attr("x"));
 		let yy=parseInt(j$(data).attr("y"));
 		
+ 		if(j$(data).attr("width")!=undefined){
+ 			let diameter=parseInt(parseInt(j$(data).attr("width")));
+ 	        this.arc.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
+ 	        this.arc.r=parseInt(diameter/2); 			
+ 		}else{
+ 			let radius=parseInt(parseInt(j$(data).attr("radius")));
+ 	        this.arc.pc.set(xx,yy);
+ 	        this.arc.r=radius; 			 		
+ 		}
 		let diameter=parseInt(parseInt(j$(data).attr("width"))); 
 		
-        this.arc.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
-        this.arc.r = parseInt(diameter/2);
-        this.arc.startAngle = parseInt(j$(data).attr("start"));
-        this.arc.endAngle = parseInt(j$(data).attr("extend"));
+        //this.arc.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
+        //this.arc.r = parseInt(diameter/2);
         
-		this.thickness = (parseInt(j$(data).attr("thickness")));				
+		this.arc.startAngle = parseInt(j$(data).attr("start"));
+        this.arc.endAngle = parseInt(j$(data).attr("extend"));        
+		this.thickness = (parseInt(j$(data).attr("thickness")));
+		this.fill = (parseInt(j$(data).attr("fill"))||0);
 }
 toXML() {
-    return '<arc copper="'+this.copper.getName()+'"  x="'+(this.arc.pc.x)+'" y="'+(this.arc.pc.y)+'" radius="'+(this.arc.r)+'"  thickness="'+this.thickness+'" start="'+this.arc.startAngle+'" extend="'+this.arc.endAngle+'" />';
+    return '<arc copper="'+this.copper.getName()+'"  x="'+(this.arc.pc.x)+'" y="'+(this.arc.pc.y)+'" radius="'+(this.arc.r)+'"  thickness="'+this.thickness+'" start="'+this.arc.startAngle+'" extend="'+this.arc.endAngle+'" fill="'+this.fill+'" />';
+}
+setRadius(r){
+	this.arc.r=r;	
 }
 setExtendAngle(extendAngle){
     this.arc.endAngle=utilities.round(extendAngle);
@@ -7756,11 +7864,11 @@ class Drill{
 		g2._fill=false;
 	}
 	toXML(){
-	    return "<drill type=\"CIRCULAR\" x=\""+this.circle.pc.x+"\" y=\""+this.circle.pc.y+"\" width=\""+this.circle.radius+"\" />";	
+	    return "<drill type=\"CIRCULAR\" x=\""+this.circle.pc.x+"\" y=\""+this.circle.pc.y+"\" width=\""+2*this.circle.radius+"\" />";	
 	}
 	fromXML(data){ 
 	   this.setLocation(parseInt(j$(data).attr("x")),parseInt(j$(data).attr("y")));
-	   this.setWidth(parseInt(j$(data).attr("width")));
+	   this.setWidth(parseInt(j$(data).attr("width")));  	   
 	}
 }
 
@@ -7833,7 +7941,7 @@ PadType={
 	   }
 };
 
-class Pad extends core.Shape{
+class Pad extends Shape{
 	constructor(x,y,width,height) {
 	   super(0, 0, width, height, -1, core.Layer.LAYER_BACK);
 	   this.drill=null;
@@ -7873,7 +7981,7 @@ getCenter(){
 	return this.shape.center;
 }
 toXML(){
-	    var xml="<pad copper=\""+this.copper.getName()+"\" type=\"" +PadType.format(this.type) + "\" shape=\""+PadShape.format(this.getShape())+"\" x=\""+this.getX()+"\" y=\""+this.getY()+"\" width=\""+this.getWidth()+"\" height=\""+this.getHeight()+"\" rt=\""+this.rotate+"\">\r\n";
+	    var xml="<pad copper=\""+this.copper.getName()+"\" type=\"" +PadType.format(this.type) + "\" shape=\""+PadShape.format(this.getShape())+"\" x=\""+this.shape.center.x+"\" y=\""+this.shape.center.y+"\" width=\""+this.getWidth()+"\" height=\""+this.getHeight()+"\" rt=\""+this.rotate+"\">\r\n";
 	        //xml+=this.shape.toXML()+"\r\n";
 	        xml+="<offset x=\""+this.offset.x+"\" y=\""+this.offset.y+"\" />\r\n";
 	    
@@ -7951,7 +8059,11 @@ isInRect(r) {
 	         return true;
 	        else
 	         return false; 
-	}	
+	}
+setSelected (selection) {
+	super.setSelected(selection);
+	this.text.setSelected(selection);
+}
 Move(xoffset, yoffset){
 	   this.shape.move(xoffset, yoffset);
 	   
@@ -8066,7 +8178,7 @@ Paint(g2,viewportWindow,scale){
 	        break;
 	    
 	    }
-	    this.text.Paint(g2, viewportWindow, scale);
+	    this.text.Paint(g2, viewportWindow, scale);	    
 	 }
 
 }
@@ -8918,7 +9030,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 				"</td></tr>"+
 				"<tr><td style='padding:7px'>Grid</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"gridrasterid\">"+
-			    this.fillComboBox(core.gridraster)+
+			    this.fillComboBox(core.GridRaster)+
 			    "</select>" +
 				"</td></tr>"+
 				"<tr><td style='padding:7px'>Reference</td><td>" +
@@ -9001,11 +9113,9 @@ var PadPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='numbersizeid'){ 
 			 this.target.getChipText().getTextureByTag("number").setSize(core.MM_TO_COORD(parseFloat(j$('#numbersizeid').val())));  
 		 }
-		 if(event.target.id=='numberxid'){ 
-			 this.target.getChipText().getTextureByTag("number").anchorPoint.x=this.fromUnitX(parseFloat(j$('#numberxid').val()));
-		 }
-		 if(event.target.id=='numberyid'){ 
-			 this.target.getChipText().getTextureByTag("number").anchorPoint.y=this.fromUnitY(parseFloat(j$('#numberyid').val()));  
+		 if(event.target.id=='numberxid'||event.target.id=='numberyid'){ 
+			 this.target.getChipText().getTextureByTag("number").setLocation(this.fromUnitX(parseFloat(j$('#numberxid').val())),this.fromUnitY(parseFloat(j$('#numberyid').val())));
+			 
 		 }
 		 //--------netvalue-------
 		 if(event.target.id=='netvalueid'){ 
@@ -9014,11 +9124,8 @@ var PadPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='netvaluesizeid'){ 
 			 this.target.getChipText().getTextureByTag("netvalue").setSize(core.MM_TO_COORD(parseFloat(j$('#netvaluesizeid').val()))); 
 		 }
-		 if(event.target.id=='netvaluexid'){ 
-			 this.target.getChipText().getTextureByTag("netvalue").anchorPoint.x=this.fromUnitX(parseFloat(j$('#netvaluexid').val())); 
-		 }
-		 if(event.target.id=='netvalueyid'){ 
-			 this.target.getChipText().getTextureByTag("netvalue").anchorPoint.y=this.fromUnitY(parseFloat(j$('#netvalueyid').val()));
+		 if(event.target.id=='netvaluexid'||event.target.id=='netvalueyid'){ 
+			 this.target.getChipText().getTextureByTag("netvalue").setLocation(this.fromUnitX(parseFloat(j$('#netvaluexid').val())),this.fromUnitY(parseFloat(j$('#netvalueyid').val()))); 
 		 }
 		 if(event.target.id=='drillwidthid'){ 
 			 this.target.drill.setWidth(core.MM_TO_COORD(parseFloat(j$('#drillwidthid').val())));   
@@ -9223,12 +9330,16 @@ var ArcPanelBuilder=BaseBuilder.extend({
         'keypress #widthid' : 'onenter',
         'keypress #startangleid' : 'onenter',
         'keypress #extendangleid' : 'onenter',
+        'change #fillid': 'onchange', 
         'change #layerid':'onchange',
     },
     onchange:function(event){
         if(event.target.id=='layerid'){
         	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
         }
+        if(event.target.id=='fillid'){        
+        	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
+        }        
         this.component.Repaint(); 
     }, 
     onenter:function(event){
@@ -9239,13 +9350,13 @@ var ArcPanelBuilder=BaseBuilder.extend({
 			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
 		 } 
 		 if(event.target.id=='widthid'){
-			   this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#widthid').val())));			 
+			   this.target.setRadius(core.MM_TO_COORD(parseFloat(j$('#widthid').val())));			 
 		 } 
 		 if(event.target.id=='startangleid'){
-			   this.target.startAngle=utilities.round(j$('#startangleid').val());			 
+			   this.target.setStartAngle(j$('#startangleid').val());			 
 		 } 
 		 if(event.target.id=='extendangleid'){
-			   this.target.extendAngle=utilities.round(j$('#extendangleid').val());	
+			   this.target.setExtendAngle(j$('#extendangleid').val());	
 		 } 	
 		 this.component.Repaint(); 	
     },
@@ -9259,6 +9370,7 @@ var ArcPanelBuilder=BaseBuilder.extend({
         j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:(this.target.resizingPoint.y))); 
 		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
 		j$("#widthid").val(core.COORD_TO_MM(this.target.arc.r));
+		j$("#fillid").val(this.target.fill);
 	},
 	render:function(){
 						
@@ -9273,6 +9385,11 @@ var ArcPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+			
+				"<tr><td style='padding:7px'>Fill</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"fillid\">"+
+				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+			    "</select>" +
+				"</td></tr>"+				
 				"<tr><td style='padding:7px'>Radius</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Start&deg</td><td><input type='text' id='startangleid' value='' class='form-control input-sm\'></td></tr>"+	
 				"<tr><td style='padding:7px'>Extend&deg</td><td><input type='text' id='extendangleid' value='' class='form-control input-sm\'></td></tr>"+
@@ -9819,6 +9936,7 @@ module.exports ={
 ;require.register("pads/views/togglebuttonview.js", function(exports, require, module) {
 var mywebpcb=require('core/core').mywebpcb;
 var core=require('core/core');
+var shape=require('core/shapes');
 var events=require('core/events');
 var FootprintLoadView=require('pads/views/footprintloadview');
 var FootprintSaveView=require('pads/views/footprintsaveview');
@@ -9941,7 +10059,7 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='originid'){	
 			event.data.model.setActive(!event.data.model.isActive());
 			if(event.data.model.isActive()){
-			  this.footprintComponent.getModel().getUnit().coordinateSystem=new core.CoordinateSystem(this.footprintComponent.getModel().getUnit());
+			  this.footprintComponent.getModel().getUnit().coordinateSystem=new shape.CoordinateSystem(this.footprintComponent.getModel().getUnit());
 			  this.footprintComponent.setMode(core.ModeEnum.ORIGIN_SHIFT_MODE);
 			}else{
 			  this.footprintComponent.getModel().getUnit().coordinateSystem=null;
@@ -10082,3 +10200,5 @@ module.exports =ToggleButtonView
   
 });})();require('___globals___');
 
+
+//# sourceMappingURL=pads.js.map
