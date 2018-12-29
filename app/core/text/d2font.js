@@ -6,7 +6,7 @@ class FontTexture{
 	this.shape=new d2.FontText(new d2.Point(x,y),text,fontSize);    
 	this.selection=false;
 	this.selectionRectWidth=3000;
-	
+	this.constSize=false;
  }
 clone(){
      var copy=new FontTexture(this.tag,this.shape.text,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.fontSize);     
@@ -50,10 +50,14 @@ Paint(g2,viewportWindow,scale){
 	 if(this.isEmpty()){
 	   return;	 
 	 }
-	 if(this.shape.fontSize*scale.getScale()<8){
-		 return;
+	 if(this.constSize){
+	   g2.font = ""+parseInt(this.shape.fontSize)+"px Monospace";
+	 }else{	 
+		 if(this.shape.fontSize*scale.getScale()<8){
+			 return;
+		 }
+		 g2.font = ""+parseInt(this.shape.fontSize*scale.getScale())+"px Monospace";
 	 }
-	 g2.font = ""+parseInt(this.shape.fontSize*scale.getScale())+"px Monospace";
 	 g2.fillStyle = 'white';
 	 
 	 let t=this.shape.clone();

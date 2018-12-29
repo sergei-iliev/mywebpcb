@@ -1,8 +1,211 @@
 var core=require('core/core');
 var utilities =require('core/utilities');
-var Shape=require('core/core').Shape;
 var d2=require('d2/d2');
+var font = require('core/text/d2font');
 
+class Shape{
+	constructor(x, y, width, height, thickness,
+			layermask) {
+		this.owningUnit=null;
+		this.uuid = core.UUID();
+		this.x = x;
+		this.y = y;
+		this.width = width;
+		this.height = height;
+		this.thickness = thickness;
+		this.selection = false;
+		this.displayName = "noname";
+		this.fill = Fill.EMPTY;
+		this.fillColor;		 
+		this.copper = core.Layer.Copper.resolve(layermask);
+	}
+getCenter(){
+	return new d2.Point(this.x,this.y);
+}	
+setDisplayName(displayName) {
+		this.displayName = displayName;
+	}
+clear() {
+    this.owningUnit=null;
+	}
+clone() {
+	copy=new Shape(this.x,this.y,this.width,this.height,this.layermask);
+	copy.fill=this.fill;	
+	return copy;
+	}
+alignToGrid(isRequired) {
+        let point=this.owningUnit.getGrid().positionOnGrid(this.getX(), this.getY());
+        this.setX(point.x);
+        this.setY(point.y);      
+        return null;
+}
+setX(x) {
+		this.x = x;
+	}
+getX() {
+		return this.x;
+	}
+setY(y) {
+		this.y = y;
+	}
+getY() {
+		return this.y;
+	}
+setWidth(width) {
+		this.width = width;
+	}
+getWidth() {
+		return this.width;
+	}
+setHeight (height) {
+		this.height = height;
+	}
+getHeight() {
+		return this.height;
+	}
+getOrderWeight() {
+		return (this.getWidth() * this.getHeight());
+	}
+getUUID() {
+		return this.uuid;
+	}
+calculateShape() {
+
+	}
+isInRect(r){
+	let rect=this.getBoundingShape();
+        if(r.contains(rect.center))
+            return true;
+           else
+            return false; 		
+	}
+isClicked(x,y) {
+        let r=this.getBoundingShape();
+        if(r.contains(x,y))
+         return true;
+        else
+         return false;           
+    }
+getBoundingShape() {
+	return this.calculateShape();
+	}
+setSelected (selection) {
+		this.selection = selection;
+	}
+isSelected() {
+		return this.selection;
+	}
+
+Move(xoffset,yoffset) {
+      this.setX(this.getX() + xoffset);
+      this.setY(this.getY() + yoffset);    
+}
+
+Mirror(line) {
+        //let point = new d2.Point(this.x,this.y);
+        //utilities.mirrorPoint(A,B, point);
+        //this.setX(point.x);
+        //this.setY(point.y);
+}
+    
+
+Rotate(rotation) {
+		let point = new Point(this.getX(), this.getY());
+		point = utilities.rotate(point, rotation.originx,rotation.originy, rotation.angle);
+	
+        this.x=(point.x);
+        this.y=(point.y);
+}	
+fromXML(data) {
+
+	}
+
+} 
+
+/**********************Ruler**********************************/
+class Ruler extends Shape{
+constructor () {
+	super(0, 0, 0, 0, 0, 0);
+    this.text=new font.FontTexture('label','',0,0,20);
+    this.text.constSize=true;
+    this.text.fillColor='white';        
+	this.resizingPoint=null;
+}
+Resize( xOffset, yOffset) {
+    this.resizingPoint.set(this.resizingPoint.x+xOffset,this.resizingPoint.y+yOffset);
+    this.text.shape.anchorPoint.set(this.resizingPoint.x, this.resizingPoint.y);
+}	
+paint( g2,  viewportWindow,  scale) {        
+		if(this.resizingPoint==null){
+            return;
+        }
+        this.text.setText(parseFloat(core.COORD_TO_MM(this.resizingPoint.distanceTo(new d2.Point(this.x,this.y)))).toFixed(4)+' MM');
+                
+        this.text.Paint(g2, viewportWindow, scale);
+
+        let line=new d2.Segment(this.x,this.y,this.resizingPoint.x,this.resizingPoint.y);
+
+        g2.strokeStyle  = 'white';
+		g2.lineWidth=1; 
+        
+        line.scale(scale.getScale());
+        line.move(-viewportWindow.x,-viewportWindow.y);
+        line.paint(g2);
+		
+    }	
+}
+/**********************Coordinate System**********************************/
+class CoordinateSystem extends Shape {
+	constructor (owningUnit) {
+		super(0, 0, 0, 0, 0, 0);
+		this.owningUnit=owningUnit;
+        this.selectionRectWidth=3000;		
+	}
+alignToGrid(isRequired) {
+    if(isRequired){
+           return super.alignToGrid(isRequired);
+    }else{
+          return null;
+    }
+}
+calculateShape() {
+    return d2.Box.fromRect(this.x-this.selectionRectWidth/2,this.y-this.selectionRectWidth/2,this.selectionRectWidth,this.selectionRectWidth);
+}
+reset(x, y) {
+		if (x < 0) {
+			x = 0;
+		} else if (x > this.owningUnit.getWidth()) {
+			x = this.owningUnit.getWidth();
+		}
+		if (y < 0) {
+			y = 0;
+		} else if (y > this.owningUnit.getWidth()) {
+			y = this.owningUnit.getWidth();
+		}
+		this.x=x;
+		this.y=y;
+}
+
+paint(g2, viewportWindow, scale) {
+		var line = new d2.Segment(0,0,0,0);		
+
+		g2.strokeStyle  = 'blue';
+		g2.lineWidth=1; 
+	
+
+		line.set(0, this.y, this.owningUnit.getWidth(),
+				this.y);
+		line.scale(scale.getScale());
+		line.move(-viewportWindow.x,- viewportWindow.y);
+	    line.paint(g2);
+	    
+	
+		line.set(this.x, 0, this.x, this.owningUnit.getHeight());
+		line.scale(scale.getScale());
+		line.move(-viewportWindow.x,- viewportWindow.y);		
+		line.paint(g2);
+	}
+}
 class AbstractLine extends Shape{
 	constructor(thickness,layermaskId) {
 		super(0, 0, 0, 0, thickness,layermaskId);
@@ -244,5 +447,8 @@ setResizingPoint(point) {
 
 }
 module.exports ={
+		Shape,
+		CoordinateSystem,
+		Ruler,
 		AbstractLine
 }

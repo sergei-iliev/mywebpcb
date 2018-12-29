@@ -186,8 +186,6 @@ resetGlyphText(text) {
                 result+='!';
             }             
         }
-        //arrange it according to anchor point
-        this.resetGlyphsLine();
         return result;
 }
 resetGlyphsLine(){
@@ -216,11 +214,10 @@ resetGlyphsLine(){
     }.bind(this));
     
 }
-setSize(size) {
+reset(){
     if (this.text == null) {
         return;
     }
-    this.size=size;
     //reset original text
     this.text = this.resetGlyphText(this.text);
     //reset size
@@ -235,13 +232,25 @@ setSize(size) {
 		glyph.rotate(this.rotate,this.anchorPoint);		     
     }.bind(this));
 }
+setSize(size) {
+
+    this.size=size;
+    if(this.mirrored){
+       let line=new d2.Line(this.anchorPoint,new d2.Point(this.anchorPoint.x,this.anchorPoint.y+100));
+       this.mirror(true,line);
+    }else{
+       this.reset();
+    }
+}
 setText(text) {
-	console.log(this.rotate);
     //read original text
-    this.text = this.resetGlyphText(text);
-    
-    this.setSize(this.size);
-    
+    this.text = text;
+    if(this.mirrored){
+      let line=new d2.Line(this.anchorPoint,new d2.Point(this.anchorPoint.x,this.anchorPoint.y+100));
+      this.mirror(true,line);
+    }else{
+      this.reset();
+    }
 }
 getBoundingShape() {
     if (this.text == null || this.text.length == 0) {
@@ -253,7 +262,7 @@ getBoundingShape() {
 getBoundingRect(){
     if(this.mirrored){
         let rect= new d2.Rectangle(this.anchorPoint.x-this.width,this.anchorPoint.y-this.height,this.width,this.height);
-        rect.rotate(this.rotate-180,this.anchorPoint);
+        rect.rotate(this.rotate,this.anchorPoint);
         return rect;
      }else{    	
         let rect= new d2.Rectangle(this.anchorPoint.x,this.anchorPoint.y-this.height,this.width,this.height);
@@ -267,20 +276,28 @@ isClicked(x,y){
     } 
     return this.getBoundingRect().contains(x,y);   
 }
-Mirror(mirrored,line){
+mirror(mirrored,line){
 	this.mirrored=mirrored;
 	
+    //reset original text
+    this.text = this.resetGlyphText(this.text);
+    //reset size
+    this.glyphs.forEach(function(glyph){
+        glyph.setSize(core.COORD_TO_MM(this.size));
+    }.bind(this));        
+    
+    //arrange it according to anchor point
+    this.resetGlyphsLine();
+    
     this.anchorPoint.mirror(line);
     this.glyphs.forEach(function(glyph){
-        glyph.mirror(line);
+       if(this.mirrored){
+    	glyph.mirror(line);    	        
+       } 
+       glyph.rotate(this.rotate,this.anchorPoint);
+        
     }.bind(this));
-    
-  	if(this.rotate<=180){
- 	 this.rotate=180-this.rotate; 
- 	}else{
- 	 this.rotate=180+(360-this.rotate);
- 	}    
-    
+        
 }
 Move(xoffset,yoffset) {
     this.anchorPoint.move(xoffset,yoffset);
@@ -341,10 +358,10 @@ Paint(g2,viewportWindow,scale,layermaskId){
 	   }
    });
    
-//   let box=this.getBoundingRect();
-//   box.scale(scale.getScale());
-//   box.move(-viewportWindow.x,- viewportWindow.y);
-//   box.paint(g2);
+   //let box=this.getBoundingRect();
+   //box.scale(scale.getScale());
+   //box.move(-viewportWindow.x,- viewportWindow.y);
+   //box.paint(g2);
    if (this.isSelected){
        this.drawControlShape(g2,viewportWindow,scale);
    }   
@@ -384,22 +401,21 @@ fromXML(node){
      if(isNaN(size)){
     	 size=20000;
      }
-     //invalidate
-     this.setSize(size);
-	 //mirror?
-     let side=core.Layer.Side.resolve(this.layermaskId);
-	 if(side==core.Layer.Side.BOTTOM){
-		 this.Mirror(true,new d2.Line(this.anchorPoint,new d2.Point(this.anchorPoint.x,this.anchorPoint.y+100)));
-	 }
-	 //rotate
+     this.size=size;
+
 	 let rotate=parseFloat(tokens[6]);
      if(isNaN(rotate)){
     	 rotate=0;
      }
 	 this.rotate=rotate;
-	 this.glyphs.forEach(function(glyph){
-		 glyph.rotate(rotate,this.anchorPoint);   
-	 }.bind(this));
+	 
+	 //mirror?
+     let side=core.Layer.Side.resolve(this.layermaskId);
+	 if(side==core.Layer.Side.BOTTOM){
+		this.mirrored=true;		 
+	 }
+	 //invalidate
+	 this.setText(this.text);
 }
 }
 var GlyphManager = (function () {

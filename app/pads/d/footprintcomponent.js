@@ -25,7 +25,7 @@ constructor(width,height) {
 	}
 clone(){
 	  var copy=new Footprint(this.width,this.height);
-	  copy.silent=true;
+	  //copy.silent=true;
 	  copy.unitName=this.unitName;
 	  copy.grid=this.grid.clone();
       var len=this.shapes.length;
@@ -33,7 +33,7 @@ clone(){
            var clone=this.shapes[i].clone();
 	       copy.add(clone);
 	  }
-	  copy.silent=false;
+	  //copy.silent=false;
 	  return copy;
 	}	
 parse(data){
@@ -56,7 +56,6 @@ parse(data){
 	 	   }
 	 	   var that=this;
 	 	   j$(data).find('shapes').children().each(function(){
-	 			console.log(this);
                var shape=that.shapeFactory.createShape(this);
                that.add(shape);
 	 	   });
@@ -83,8 +82,10 @@ format(){
    xml+="<units raster=\""+this.grid.getGridValue()+"\">MM</units>\r\n"; 
    xml+="<shapes>\r\n";
    this.shapes.forEach(function(shape) {
-	   xml+=shape.toXML();
-	   xml+='\r\n';
+	   if(!((shape instanceof GlyphLabel)&&(shape.texture.tag=='reference'||shape.texture.tag=='value'))){
+		   xml+=shape.toXML();
+		   xml+='\r\n';   
+	   }
    });
    xml+="</shapes>\r\n";   
    xml+="</footprint>";
@@ -93,8 +94,8 @@ format(){
 }
 
 class FootprintContainer extends UnitContainer{
-    constructor(silent) {
-       super(silent);
+    constructor() {
+       super();
        this.formatedFileName="Footprints"
 	}
 
@@ -106,10 +107,10 @@ class FootprintContainer extends UnitContainer{
     	  var that=this;
 	      j$(xml).find("footprint").each(j$.proxy(function(){
 	    	var footprint=new Footprint(j$(this).attr("width"),j$(this).attr("height"));
-	    	footprint.name=j$(this).find("name").text();
+	    	    footprint.unitName=j$(this).find("name").text();
 	    	//silent mode
-	    	footprint.silent=that.silent;
-	    	//need to have a current unit 
+	    	//footprint.silent=that.silent;
+	    	//need to have a current unit
             that.add(footprint);
             footprint.parse(this);
 	    }),that);	
@@ -118,11 +119,11 @@ class FootprintContainer extends UnitContainer{
         var xml="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n"; 
         xml+="<footprints identity=\"Footprint\" version=\"1.0\">\r\n";      
     	let units=this.unitsmap.values();
-  	    //for(let i=0;i<this.unitsmap.size;i++){
+  	    for(let i=0;i<this.unitsmap.size;i++){
           let unit=units.next().value;
           xml+=unit.format();
   		  xml+="\r\n";
-  	    //}    	    	
+  	    }    	    	
         xml+="</footprints>";
         
         return xml;

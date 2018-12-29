@@ -11,7 +11,7 @@ var  UUID=(function(){
 	 }
 })();
 
-gridraster=[{id:2.54,value:2.54},{id:1.27,value:1.27},{id:0.635,value:0.635},{id:0.508,value:0.508},{id:0.254,value:0.254},{id:0.127,value:0.127},{id:0.0635,value:0.0635},{id:0.0508,value:0.0508},{id:0.0254,value:0.0254},{id:0.0127,value:0.0127},{id:5.0,value:5.0},{id:2.5,value:2.5},{id:1.0,value:1.0},{id:0.5,value:0.5},{id:0.25,value:0.25},{id:0.8,value:0.8},{id:0.2,value:0.2},{id:0.1,value:0.1},{id:0.05,value:0.05},{id:0.025,value:0.025},{id:0.01,value:0.01}];
+GridRaster=[{id:2.54,value:2.54},{id:1.27,value:1.27},{id:0.635,value:0.635},{id:0.508,value:0.508},{id:0.254,value:0.254},{id:0.127,value:0.127},{id:0.0635,value:0.0635},{id:0.0508,value:0.0508},{id:0.0254,value:0.0254},{id:0.0127,value:0.0127},{id:5.0,value:5.0},{id:2.5,value:2.5},{id:1.0,value:1.0},{id:0.5,value:0.5},{id:0.25,value:0.25},{id:0.8,value:0.8},{id:0.2,value:0.2},{id:0.1,value:0.1},{id:0.05,value:0.05},{id:0.025,value:0.025},{id:0.01,value:0.01}];
 
 Fill = {
 		EMPTY : 0,
@@ -772,207 +772,6 @@ getOffset(){
  }	  
 }
 
-class Shape{
-	constructor(x, y, width, height, thickness,
-			layermask) {
-		this.owningUnit=null;
-		this.uuid = UUID();
-		this.x = x;
-		this.y = y;
-		this.width = width;
-		this.height = height;
-		this.thickness = thickness;
-		this.selection = false;
-		this.displayName = "noname";
-		this.fill = Fill.EMPTY;
-		this.fillColor;		 
-		this.copper = Layer.Copper.resolve(layermask);
-	}
-getCenter(){
-	return new d2.Point(this.x,this.y);
-}	
-setDisplayName(displayName) {
-		this.displayName = displayName;
-	}
-clear() {
-    this.owningUnit=null;
-	}
-clone() {
-	copy=new Shape(this.x,this.y,this.width,this.height,this.layermask);
-	copy.fill=this.fill;	
-	return copy;
-	}
-alignToGrid(isRequired) {
-        let point=this.owningUnit.getGrid().positionOnGrid(this.getX(), this.getY());
-        this.setX(point.x);
-        this.setY(point.y);      
-        return null;
-}
-setX(x) {
-		this.x = x;
-	}
-getX() {
-		return this.x;
-	}
-setY(y) {
-		this.y = y;
-	}
-getY() {
-		return this.y;
-	}
-setWidth(width) {
-		this.width = width;
-	}
-getWidth() {
-		return this.width;
-	}
-setHeight (height) {
-		this.height = height;
-	}
-getHeight() {
-		return this.height;
-	}
-getOrderWeight() {
-		return (this.getWidth() * this.getHeight());
-	}
-getUUID() {
-		return this.uuid;
-	}
-calculateShape() {
-
-	}
-isInRect(r){
-	let rect=this.getBoundingShape();
-        if(r.contains(rect.center))
-            return true;
-           else
-            return false; 		
-	}
-isClicked(x,y) {
-        let r=this.getBoundingShape();
-        if(r.contains(x,y))
-         return true;
-        else
-         return false;           
-    }
-getBoundingShape() {
-	return this.calculateShape();
-	}
-setSelected (selection) {
-		this.selection = selection;
-	}
-isSelected() {
-		return this.selection;
-	}
-
-Move(xoffset,yoffset) {
-      this.setX(this.getX() + xoffset);
-      this.setY(this.getY() + yoffset);    
-}
-
-Mirror(line) {
-        //let point = new d2.Point(this.x,this.y);
-        //utilities.mirrorPoint(A,B, point);
-        //this.setX(point.x);
-        //this.setY(point.y);
-}
-    
-
-Rotate(rotation) {
-		let point = new Point(this.getX(), this.getY());
-		point = utilities.rotate(point, rotation.originx,rotation.originy, rotation.angle);
-	
-        this.x=(point.x);
-        this.y=(point.y);
-}	
-fromXML(data) {
-
-	}
-
-} 
-
-/**********************Ruler**********************************/
-class Ruler extends Shape{
-constructor () {
-	super(0, 0, 0, 0, 0, 0);
-    this.text=new font.FontTexture('label','',0,0,MM_TO_COORD(1.2));       
-    this.text.fillColor='white';        
-	this.resizingPoint=null;
-}
-Resize( xOffset, yOffset) {
-    this.resizingPoint.set(this.resizingPoint.x+xOffset,this.resizingPoint.y+yOffset);
-    this.text.shape.anchorPoint.set(this.resizingPoint.x, this.resizingPoint.y);
-}	
-paint( g2,  viewportWindow,  scale) {        
-		if(this.resizingPoint==null){
-            return;
-        }
-        this.text.setText(parseFloat(COORD_TO_MM(this.resizingPoint.distanceTo(new d2.Point(this.x,this.y)))).toFixed(4)+' MM');
-        this.text.Paint(g2, viewportWindow, scale);
-
-        let line=new d2.Segment(this.x,this.y,this.resizingPoint.x,this.resizingPoint.y);
-
-        g2.strokeStyle  = 'white';
-		g2.lineWidth=1; 
-        
-        line.scale(scale.getScale());
-        line.move(-viewportWindow.x,-viewportWindow.y);
-        line.paint(g2);
-		
-    }	
-}
-/**********************Coordinate System**********************************/
-class CoordinateSystem extends Shape {
-	constructor (owningUnit) {
-		super(0, 0, 0, 0, 0, 0);
-		this.owningUnit=owningUnit;
-        this.selectionRectWidth=3000;		
-	}
-alignToGrid(isRequired) {
-    if(isRequired){
-           return super.alignToGrid(isRequired);
-    }else{
-          return null;
-    }
-}
-calculateShape() {
-    return d2.Box.fromRect(this.x-this.selectionRectWidth/2,this.y-this.selectionRectWidth/2,this.selectionRectWidth,this.selectionRectWidth);
-}
-reset(x, y) {
-		if (x < 0) {
-			x = 0;
-		} else if (x > this.owningUnit.getWidth()) {
-			x = this.owningUnit.getWidth();
-		}
-		if (y < 0) {
-			y = 0;
-		} else if (y > this.owningUnit.getWidth()) {
-			y = this.owningUnit.getWidth();
-		}
-		this.x=x;
-		this.y=y;
-}
-
-paint(g2, viewportWindow, scale) {
-		var line = new d2.Segment(0,0,0,0);		
-
-		g2.strokeStyle  = 'blue';
-		g2.lineWidth=1; 
-	
-
-		line.set(0, this.y, this.owningUnit.getWidth(),
-				this.y);
-		line.scale(scale.getScale());
-		line.move(-viewportWindow.x,- viewportWindow.y);
-	    line.paint(g2);
-	    
-	
-		line.set(this.x, 0, this.x, this.owningUnit.getHeight());
-		line.scale(scale.getScale());
-		line.move(-viewportWindow.x,- viewportWindow.y);		
-		line.paint(g2);
-	}
-}
 
 //-----------------------UnitSelectionCell---------
 var UnitSelectionCell = function (uuid,x, y,width,height,name) {
@@ -1111,7 +910,7 @@ var UnitSelectionPanel=Backbone.View.extend({
 module.exports ={
 	mywebpcb,	
 	UUID,
-	gridraster,
+	GridRaster,
 	Fill,
 	Units,
 	ModeEnum,
@@ -1122,13 +921,10 @@ module.exports ={
 	Grid,	
 	ChipText,
 	UnitFrame,
-	Shape,
 	AffineTransform,
     MM_TO_COORD,
     COORD_TO_MM,
 	UnitSelectionPanel,
-	CoordinateSystem,
-	Ruler,
 	CompositeLayer
 }
 

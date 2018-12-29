@@ -1,6 +1,6 @@
 var core=require('core/core');
 var utilities =require('core/utilities');
-var Shape=require('core/core').Shape;
+var Shape=require('core/shapes').Shape;
 var AbstractLine=require('core/shapes').AbstractLine;
 var glyph=require('core/text/d2glyph');
 var font=require('core/text/d2font');
@@ -63,7 +63,7 @@ setCopper(copper){
 	
 	let side=core.Layer.Side.resolve(this.copper.getLayerMaskID());
 	
-	this.texture.Mirror(side==core.Layer.Side.BOTTOM,line);
+	this.texture.mirror(side==core.Layer.Side.BOTTOM,line);
 }
 setRotation(rotate){
    this.texture.setRotation(rotate);
@@ -794,11 +794,11 @@ class Drill{
 		g2._fill=false;
 	}
 	toXML(){
-	    return "<drill type=\"CIRCULAR\" x=\""+this.circle.pc.x+"\" y=\""+this.circle.pc.y+"\" width=\""+this.circle.radius+"\" />";	
+	    return "<drill type=\"CIRCULAR\" x=\""+this.circle.pc.x+"\" y=\""+this.circle.pc.y+"\" width=\""+2*this.circle.radius+"\" />";	
 	}
 	fromXML(data){ 
 	   this.setLocation(parseInt(j$(data).attr("x")),parseInt(j$(data).attr("y")));
-	   this.setWidth(parseInt(j$(data).attr("width")));
+	   this.setWidth(parseInt(j$(data).attr("width")));  	   
 	}
 }
 
@@ -871,7 +871,7 @@ PadType={
 	   }
 };
 
-class Pad extends core.Shape{
+class Pad extends Shape{
 	constructor(x,y,width,height) {
 	   super(0, 0, width, height, -1, core.Layer.LAYER_BACK);
 	   this.drill=null;

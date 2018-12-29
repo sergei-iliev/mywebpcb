@@ -157,8 +157,8 @@ actionPerformed(id,context){
 	     let unit=this.component.getModel().getUnit();           
 	     let rect =unit.getBoundingRect();
 	    
-	     let x=rect.getCenterX();
-	     let y=rect.getCenterY();
+	     let x=rect.center.x;
+	     let y=rect.center.y;
 	     
 	     let unitMgr = UnitMgr.getInstance();
 	     

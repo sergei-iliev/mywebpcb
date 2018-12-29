@@ -83,6 +83,36 @@ var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
 		            autoOpen:false
                 });	
 				
-			  
+		   //load demo footprint
+			    	loadDemo(fc);
 	});	
+	loadDemo=function(fc){		
+	    j$.ajax({
+	        type: 'GET',
+	        contentType: 'application/xml',
+	        url: '/demo/pads.xml',
+	        dataType: "xml",
+	        success: function(data, textStatus, jqXHR){
+
+	      //****load it    	
+	      		  fc.Clear();
+	      		  fc.getModel().parse(data);
+	      		  fc.getModel().setActiveUnit(0);
+	      		  fc.componentResized();
+	                //position on center
+	              var rect=fc.getModel().getUnit().getBoundingRect();
+	              fc.setScrollPosition(rect.center.x,rect.center.y);
+	              fc.getModel().fireUnitEvent({target:fc.getModel().getUnit(),type: events.Event.SELECT_UNIT});
+	      		  fc.Repaint();
+	      		  //set button group
+	      		  fc.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);	        
+	        },
+	        
+	        error: function(jqXHR, textStatus, errorThrown){
+	            	alert(errorThrown+":"+jqXHR.responseText);
+	        },
+	    });	
+	}
+	
+	
 })(jQuery);

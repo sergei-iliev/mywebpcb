@@ -1,5 +1,6 @@
 var mywebpcb=require('core/core').mywebpcb;
 var core=require('core/core');
+var shape=require('core/shapes');
 var events=require('core/events');
 var FootprintLoadView=require('pads/views/footprintloadview');
 var FootprintSaveView=require('pads/views/footprintsaveview');
@@ -122,7 +123,7 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='originid'){	
 			event.data.model.setActive(!event.data.model.isActive());
 			if(event.data.model.isActive()){
-			  this.footprintComponent.getModel().getUnit().coordinateSystem=new core.CoordinateSystem(this.footprintComponent.getModel().getUnit());
+			  this.footprintComponent.getModel().getUnit().coordinateSystem=new shape.CoordinateSystem(this.footprintComponent.getModel().getUnit());
 			  this.footprintComponent.setMode(core.ModeEnum.ORIGIN_SHIFT_MODE);
 			}else{
 			  this.footprintComponent.getModel().getUnit().coordinateSystem=null;

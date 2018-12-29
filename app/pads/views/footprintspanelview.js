@@ -36,7 +36,6 @@ var ComponentPanelBuilder=BaseBuilder.extend({
 		
 	},
 	updateui:function(){
-		console.log(this.target.getModel().formatedFileName);
 		j$("#nameid").val(this.target.getModel().formatedFileName);
 	},
 	render:function(){
@@ -167,7 +166,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 				"</td></tr>"+
 				"<tr><td style='padding:7px'>Grid</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"gridrasterid\">"+
-			    this.fillComboBox(core.gridraster)+
+			    this.fillComboBox(core.GridRaster)+
 			    "</select>" +
 				"</td></tr>"+
 				"<tr><td style='padding:7px'>Reference</td><td>" +

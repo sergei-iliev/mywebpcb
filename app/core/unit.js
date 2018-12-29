@@ -1,5 +1,6 @@
 var mywebpcb=require('core/core').mywebpcb;
 var core = require('core/core');
+var shape = require('core/shapes');
 var events=require('core/events');
 var GlyphManager=require('core/text/d2glyph').GlyphManager;
 var ViewportWindow=require('core/core').ViewportWindow;
@@ -109,7 +110,7 @@ class manager{
 //**********************Unit*******************************************
 class Unit{
     constructor(width,height) {
-        this.silent=false; 	 
+        //this.silent=false; 	 
     	this.scalableTransformation=new core.ScalableTransformation(8,4,13);
     	this.uuid=core.UUID();
     	this.shapes=[];
@@ -121,7 +122,7 @@ class Unit{
         this.scrollPositionYValue = 0;
         this.frame=new core.UnitFrame(this.width,this.height);
         this.coordinateSystem;//=new core.CoordinateSystem(this);
-		this.ruler=new core.Ruler();
+		this.ruler=new shape.Ruler();
 		this.shapeFactory=null;
         
     }
@@ -130,8 +131,8 @@ setScrollPositionValue(scrollPositionXValue,scrollPositionYValue) {
         this.scrollPositionYValue = scrollPositionYValue;
        }
 fireShapeEvent(event){
-		if(this.silent)
-			return;
+		//if(this.silent)
+		//	return;
 		switch(event.type){
 		  case events.Event.SELECT_SHAPE:
 			  core.mywebpcb.trigger('shape:inspector',event);
@@ -396,8 +397,8 @@ paint(g2, viewportWindow){
 
 //**********************UnitContainer*******************************************
 class UnitContainer{
-	constructor(silent){
-	      this.silent= silent || false;;	
+	constructor(){
+	      //this.silent= silent || false;;	
 		  this.unitsmap=new Map();
 		  this.unit=null;
 		  this.fileName="";
@@ -456,8 +457,8 @@ class UnitContainer{
 	  return this.unit;
 	}
 	fireUnitEvent(event){
-		if(this.silent)
-			return;
+		//if(this.silent)
+		//	return;
 		switch(event.type){
 		  case events.Event.ADD_UNIT:
 			  core.mywebpcb.trigger('unit:inspector',event);
