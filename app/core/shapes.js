@@ -102,10 +102,7 @@ Move(xoffset,yoffset) {
 }
 
 Mirror(line) {
-        //let point = new d2.Point(this.x,this.y);
-        //utilities.mirrorPoint(A,B, point);
-        //this.setX(point.x);
-        //this.setY(point.y);
+
 }
     
 
@@ -414,10 +411,8 @@ isControlRectClicked(x, y) {
 Move(xoffset, yoffset) {
 	this.polyline.move(xoffset,yoffset);
 }
-Mirror(A,B) {
-	this.points.forEach(function(wirePoint) {
-		wirePoint.setLocationPoint(utilities.mirrorPoint(A,B, wirePoint));
-	});
+Mirror(line) {
+    this.polyline.mirror(line);
 }
 Rotate(rotation) {
 	this.polyline.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});

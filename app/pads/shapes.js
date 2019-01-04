@@ -89,8 +89,8 @@ isSelected() {
 Rotate(rotation) {	
 	this.texture.Rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	
 }
-Mirror(A,B) {
-  this.texture.Mirror(A,B);
+Mirror(line) {
+
 }
 Move(xoffset,yoffset) {
   this.texture.Move(xoffset, yoffset);
@@ -196,15 +196,6 @@ class RoundRect extends Shape{
 	}
 	Mirror(line){
 		this.roundRect.mirror(line);
-//	  	if(line.isVertical){
-//		 if(this.rotate<=180){
-//	  	   this.rotate=180-this.rotate; 
-//	  	 }else{
-//	  	   this.rotate=180+(360-this.rotate);
-//	  	 } 
-//	  	}else{
-//	  	   this.rotate=360-this.rotate;		  		
-//	  	}
 	}
 	Rotate(rotation){		
 		this.roundRect.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
@@ -354,6 +345,9 @@ isControlRectClicked(x,y) {
          
  		 this.thickness = (parseInt(j$(data).attr("thickness")));
  		 this.fill = parseInt(j$(data).attr("fill")); 		
+	}
+	Mirror(line){
+	   this.circle.mirror(line);	
 	}
 	Move(xoffset, yoffset) {
 		this.circle.move(xoffset,yoffset);
@@ -554,23 +548,8 @@ isExtendAnglePointClicked(x,y){
 Rotate(rotation){
   this.arc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy)); 
 }
-Mirror(A,B) {
-    super.Mirror(A,B);
-    if(A.x==B.x){
-      //***which place in regard to x origine   
-      //***tweak angles 
-        if(this.startAngle<=180){
-         this.startAngle=(180-this.startAngle);
-        }else{
-         this.startAngle=(180+(360 -this.startAngle));
-        }
-      this.extendAngle=(-1)*this.extendAngle;
-    }else{    //***top-botom mirroring
-      //***which place in regard to y origine    
-      //***tweak angles
-      this.startAngle=360-this.startAngle;
-      this.extendAngle=(-1)*this.extendAngle;
-    }
+Mirror(line) {
+  this.arc.mirror(line);
 }
 /*
  * Resize through mouse position point

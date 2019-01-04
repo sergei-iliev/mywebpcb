@@ -75,7 +75,10 @@ class MoveEventHandle extends EventHandle{
 		if(super.isRightMouseButton(event)){
             if (this.target["getLinePoints"]!=undefined){
             	this.component.popup.registerLineSelectPopup(this.target,event);
-            }else{
+            }else if(this.target["getPinsRect"]!=undefined){
+            	this.component.popup.registerPadPopup(this.target,event);
+            }
+            else{
                 this.component.popup.registerShapePopup(this.target,event);
                 
             }
