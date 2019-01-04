@@ -86,12 +86,16 @@ var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
 		   //load demo footprint
 			    	loadDemo(fc);
 	});	
-	loadDemo=function(fc){		
+	loadDemo=function(fc){
+		
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/demo/pads.xml',
+	        url: 'demo/pads.xml',
 	        dataType: "xml",
+	        beforeSend:function(){
+		          j$('#mywebpadsid').block({message:'<h5>Loading...</h5>'});	
+		    },
 	        success: function(data, textStatus, jqXHR){
 
 	      //****load it    	
@@ -111,6 +115,9 @@ var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
 	        error: function(jqXHR, textStatus, errorThrown){
 	            	alert(errorThrown+":"+jqXHR.responseText);
 	        },
+	        complete:function(jqXHR, textStatus){
+	        	j$('#mywebpadsid').unblock();
+	        }	        
 	    });	
 	}
 	
