@@ -643,7 +643,61 @@ drawMousePoint(g2,viewportWindow,scale){
 }
 
 }
+class SolidRegion extends Shape{
+	constructor(layermaskId) {
+        super( 0, 0, 0,0, 0, layermaskId);
+        this.displayName = "Solid Region";
+        this.floatingStartPoint=new d2.Point();
+        this.floatingEndPoint=new d2.Point();                 
+        this.selectionRectWidth = 3000;
+        this.fill=core.Fill.FILLED;
+        this.polygon=new d2.Polygon();
+        this.resizingPoint;
+    }
+clone(){
+	  var copy=new SolidRegion(this.copper.getLayerMaskID());
+      copy.polygon=this.polygon.clone();  
+      return copy;
+}	
+isFloating() {
+    return (!this.floatingStartPoint.equals(this.floatingEndPoint));                
+}
+Paint(g2, viewportWindow, scale) {		
+	var rect = this.polygon.box;
+	rect.scale(scale.getScale());		
+	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
+		return;
+	}
+	
+	g2.lineWidth = 1;
 
+
+	g2._fill=true;
+	if (this.selection) {
+		g2.fillStyle = "gray";
+	} else {
+		g2.fillStyle = this.copper.getColor();
+	}	
+
+	let a=this.polygon.clone();	
+	if (this.isFloating()) {
+		let p = this.floatingEndPoint.clone();
+		a.add(p);	
+    }
+	a.scale(scale.getScale());
+	a.move( - viewportWindow.x, - viewportWindow.y);		
+	a.paint(g2);
+	g2._fill=false;
+    
+//    if(this.isSelected()){  
+//    	g2.lineWidth=1;
+//    	g2.strokeStyle = "blue";                   
+//        g2.stroke();
+//    
+//        this.drawControlShape(g2,viewportWindow,scale);
+//    }   
+}
+}
 class Line extends AbstractLine{
 constructor(thickness,layermaskId) {
 			super(thickness,layermaskId);	
@@ -1352,6 +1406,7 @@ module.exports ={
 	RoundRect,
 	Circle,
 	Arc,
+	SolidRegion,
 	Pad,Drill,
 	FootprintShapeFactory
 }

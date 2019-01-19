@@ -533,6 +533,26 @@ var ArcPanelBuilder=BaseBuilder.extend({
 		return this;
 	}
 });
+var SolidRegionPanelBuilder=BaseBuilder.extend({
+	initialize:function(component){
+		SolidRegionPanelBuilder.__super__.initialize(component);
+		this.id="solidregionpanelbuilder";  
+    },	
+    events: {
+
+    },
+
+
+	updateui:function(){
+		
+	},
+	render:function(){
+		j$(this.el).empty();
+		j$(this.el).append("");
+			
+		return this;
+	}
+});
 var CirclePanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
 		CirclePanelBuilder.__super__.initialize(component);
@@ -892,6 +912,7 @@ var FootprintsInspector=Backbone.View.extend({
 		                                         new LabelPanelBuilder(this.footprintComponent),
 		                                         new ComponentPanelBuilder(this.footprintComponent),
 		                                         new CirclePanelBuilder(this.footprintComponent),
+		                                         new SolidRegionPanelBuilder(this.footprintComponent),
 		                                         new ArcPanelBuilder(this.footprintComponent)]);
 		this.el= '#footprintsinspectorid';	
 		//select container
@@ -1017,6 +1038,13 @@ var FootprintsInspector=Backbone.View.extend({
 				this.panel.attributes.delegateEvents();
 				this.render();
 			}	
+		}else if(event.target instanceof SolidRegion){
+			if(this.panel.id!='solidregionpanelbuilder'){
+				this.panel.attributes.remove();
+				this.panel=this.collection.get('solidregionpanelbuilder');
+				this.panel.attributes.delegateEvents();
+				this.render();
+			}				
 		}
 		//update panel ui values
 		this.panel.attributes.setTarget(event.target);

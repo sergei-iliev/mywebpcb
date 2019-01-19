@@ -10,6 +10,7 @@ var RoundRect=require('pads/shapes').RoundRect;
 var Circle=require('pads/shapes').Circle;
 var Arc=require('pads/shapes').Arc;
 var Pad=require('pads/shapes').Pad;
+var SolidRegion=require('pads/shapes').SolidRegion;
 var FootprintShapeFactory=require('pads/shapes').FootprintShapeFactory;
 var Drill=require('pads/shapes').Drill;
 var GlyphLabel=require('pads/shapes').GlyphLabel;
@@ -17,6 +18,7 @@ var Line=require('pads/shapes').Line;
 var LineEventHandle=require('pads/events').LineEventHandle;
 var FootprintContextMenu=require('pads/popup/footprintpopup').FootprintContextMenu;
 var GlyphManager=require('core/text/d2glyph').GlyphManager;
+var d2=require('d2/d2');
 
 class Footprint extends Unit{
 constructor(width,height) {
@@ -151,6 +153,15 @@ setMode(_mode){
 	 this.eventMgr.resetEventHandle();
 	        
 	 switch (this.mode) {
+     		case core.ModeEnum.PAD_MODE:
+         		shape=new SolidRegion(core.Layer.SILKSCREEN_LAYER_FRONT);	            	            		                        
+         		shape.polygon.add(new d2.Point(core.MM_TO_COORD(1.52),core.MM_TO_COORD(2.52)));
+         		shape.polygon.add(new d2.Point(core.MM_TO_COORD(3.52),core.MM_TO_COORD(3.52)));
+         		shape.polygon.add(new d2.Point(core.MM_TO_COORD(1.52),core.MM_TO_COORD(10.52)));
+         		this.model.getUnit().add(shape);
+         		//this.setContainerCursor(shape);               
+         		//this.getEventMgr().setEventHandle("cursor",shape);  
+         	break;	 
 	        case core.ModeEnum.PAD_MODE:
 	            shape=new Pad(0,0,core.MM_TO_COORD(1.52),core.MM_TO_COORD(2.52));	            	            		                        
 	            this.setContainerCursor(shape);               

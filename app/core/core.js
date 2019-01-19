@@ -55,6 +55,7 @@ var ModeEnum=(function(){
 		   COPPERAREA_MODE:13,
 		   VIA_MODE:14,
 		   HOLE_MODE:15,
+		   SOLID_REGION_MODE:16,
 	}
 })();
 
