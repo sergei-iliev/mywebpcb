@@ -149,6 +149,9 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='padid'){
 			this.footprintComponent.setMode(core.ModeEnum.PAD_MODE);
 		}
+		if(event.data.model.id=='solidregionid'){
+			this.footprintComponent.setMode(core.ModeEnum.SOLID_REGION);
+		}		
 		if(event.data.model.id=='selectionid'){
 		  //Footprint mode
 		   this.footprintComponent.setMode(core.ModeEnum.COMPONENT_MODE);

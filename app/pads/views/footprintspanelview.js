@@ -11,6 +11,7 @@ var	RoundRect=require('pads/shapes').RoundRect;
 var	Circle=require('pads/shapes').Circle;
 var	Arc=require('pads/shapes').Arc;
 var	Pad=require('pads/shapes').Pad;
+var	SolidRegion=require('pads/shapes').SolidRegion;
 
 var ComponentPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){

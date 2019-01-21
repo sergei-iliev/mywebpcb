@@ -14,9 +14,17 @@ module.exports = function(d2) {
     	add(point){
     	    this.points.push(point);	
     	}
-        contains(pt){
-          let x=pt.x;
-          let y=pt.y;
+        contains(...args){
+          let x=0;
+          let y=0;
+
+       	  if(args.length==1){//point
+                x=args[0].x;
+                y=args[0].y;
+          }else{	   //coordinates
+               x=args[0];
+               y=args[1];
+          }	
       	  let inside = false;
           // use some raycasting to test hits
           // https://github.com/substack/point-in-polygon/blob/master/index.js

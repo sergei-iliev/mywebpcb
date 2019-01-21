@@ -16,6 +16,7 @@ var Drill=require('pads/shapes').Drill;
 var GlyphLabel=require('pads/shapes').GlyphLabel;
 var Line=require('pads/shapes').Line;
 var LineEventHandle=require('pads/events').LineEventHandle;
+var SolidRegionEventHandle=require('pads/events').SolidRegionEventHandle;
 var FootprintContextMenu=require('pads/popup/footprintpopup').FootprintContextMenu;
 var GlyphManager=require('core/text/d2glyph').GlyphManager;
 var d2=require('d2/d2');
@@ -153,12 +154,12 @@ setMode(_mode){
 	 this.eventMgr.resetEventHandle();
 	        
 	 switch (this.mode) {
-     		case core.ModeEnum.PAD_MODE:
-         		shape=new SolidRegion(core.Layer.SILKSCREEN_LAYER_FRONT);	            	            		                        
-         		shape.polygon.add(new d2.Point(core.MM_TO_COORD(1.52),core.MM_TO_COORD(2.52)));
-         		shape.polygon.add(new d2.Point(core.MM_TO_COORD(3.52),core.MM_TO_COORD(3.52)));
-         		shape.polygon.add(new d2.Point(core.MM_TO_COORD(1.52),core.MM_TO_COORD(10.52)));
-         		this.model.getUnit().add(shape);
+     		case core.ModeEnum.SOLID_REGION:
+         		//shape=new SolidRegion(core.Layer.SILKSCREEN_LAYER_FRONT);	            	            		                        
+         		//shape.polygon.add(new d2.Point(core.MM_TO_COORD(1.52),core.MM_TO_COORD(2.52)));
+         		//shape.polygon.add(new d2.Point(core.MM_TO_COORD(3.52),core.MM_TO_COORD(3.52)));
+         		//shape.polygon.add(new d2.Point(core.MM_TO_COORD(1.52),core.MM_TO_COORD(10.52)));
+         		//this.model.getUnit().add(shape);
          		//this.setContainerCursor(shape);               
          		//this.getEventMgr().setEventHandle("cursor",shape);  
          	break;	 
@@ -276,6 +277,18 @@ mouseDown(event){
 		     }
 		  }
 		  break;
+    	case core.ModeEnum.SOLID_REGION:
+            //is this a new copper area
+            if ((this.getEventMgr().targetEventHandle == null) ||
+                !(this.getEventMgr().targetEventHandle instanceof SolidRegionEventHandle)) {
+            	if(event.which!=1){
+            		return;
+            	}
+                shape =new SolidRegion(core.Layer.LAYER_FRONT);
+                this.getModel().getUnit().add(shape);
+                this.getEventMgr().setEventHandle("solidregion", shape);
+            }     		
+    		break;
     	case core.ModeEnum.LINE_MODE:
             //***is this a new wire
             if ((this.getEventMgr().getTargetEventHandle() == null) ||

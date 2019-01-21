@@ -609,7 +609,7 @@ lengthOnGrid(length){
         return xx;	
 }
 snapToGrid(p){        
-   p.setLocation(this.lengthOnGrid(p.x), this.lengthOnGrid(p.y));
+   p.set(this.lengthOnGrid(p.x), this.lengthOnGrid(p.y));
 } 
 }
 

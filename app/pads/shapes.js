@@ -658,9 +658,62 @@ clone(){
 	  var copy=new SolidRegion(this.copper.getLayerMaskID());
       copy.polygon=this.polygon.clone();  
       return copy;
-}	
+}
+alignResizingPointToGrid(targetPoint) {
+    this.owningUnit.grid.snapToGrid(targetPoint);         
+}
+calculateShape() {
+	return this.polygon.box;	
+}
+getLinePoints() {
+	   return this.polygon.points;
+}
+add(point) {
+	    this.polygon.add(point);
+}
+setResizingPoint(point) {
+	    this.resizingPoint=point;
+}
 isFloating() {
     return (!this.floatingStartPoint.equals(this.floatingEndPoint));                
+}
+isClicked(x,y){
+	  return this.polygon.contains(x,y);
+}
+isControlRectClicked(x, y) {
+	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
+	let point = null;
+
+	this.polygon.points.some(function(wirePoint) {
+		if (rect.contains(wirePoint)) {
+					point = wirePoint;
+		  return true;
+		}else{
+		  return false;
+		}
+	});
+
+	return point;
+}
+Resize(xoffset, yoffset, clickedPoint) {
+	clickedPoint.set(clickedPoint.x + xoffset,
+								clickedPoint.y + yoffset);
+}
+reset(){
+	this.resetToPoint(this.floatingStartPoint);	
+}
+resetToPoint(p){
+    this.floatingStartPoint.set(p.x,p.y);
+    this.floatingEndPoint.set(p.x,p.y); 
+}
+Move(xoffset, yoffset) {
+	this.polygon.move(xoffset,yoffset);
+}
+Mirror(line) {
+    this.polygon.mirror(line);
+}
+Rotate(rotation) {
+	this.polygon.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
 }
 Paint(g2, viewportWindow, scale) {		
 	var rect = this.polygon.box;
@@ -689,13 +742,12 @@ Paint(g2, viewportWindow, scale) {
 	a.paint(g2);
 	g2._fill=false;
     
-//    if(this.isSelected()){  
-//    	g2.lineWidth=1;
-//    	g2.strokeStyle = "blue";                   
-//        g2.stroke();
-//    
-//        this.drawControlShape(g2,viewportWindow,scale);
-//    }   
+	if (this.isSelected()) {
+		this.drawControlPoints(g2, viewportWindow, scale);
+	}
+}
+drawControlPoints(g2, viewportWindow, scale) {
+	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.polygon.points);	
 }
 }
 class Line extends AbstractLine{
@@ -709,9 +761,9 @@ clone() {
 		}
 alignToGrid(isRequired) {
     if (isRequired) {
-        this.points.forEach(function(wirePoint){
+        this.polyline.points.forEach(function(wirePoint){
             let point = this.owningUnit.getGrid().positionOnGrid(wirePoint.x, wirePoint.y);
-              wirePoint.setLocation(point.x,point.y);
+              wirePoint.set(point.x,point.y);
         }.bind(this));
     }
     return null;
