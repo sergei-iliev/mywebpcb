@@ -535,8 +535,10 @@ var BoardPanelBuilder=BaseBuilder.extend({
 	   j$("#widthid").val(core.COORD_TO_MM( this.target.width));    
 	   j$("#heightid").val(core.COORD_TO_MM(this.target.height));
 	   j$("#gridrasterid").val(this.target.grid.getGridValue());
-	   j$("#originxid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getX()));    
-	   j$("#originyid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getY()));	   
+	   if(this.component.getModel().getUnit().coordinateSystem!=null){
+		     j$("#originxid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getX()));    
+		     j$("#originyid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getY()));
+	   }	   
 	},
 	render:function(){
 		j$(this.el).empty();
@@ -552,7 +554,7 @@ var BoardPanelBuilder=BaseBuilder.extend({
 				"</td></tr>"+
 				"<tr><td style='padding:7px'>Grid</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"gridrasterid\">"+
-			    this.fillComboBox(core.gridraster)+
+			    this.fillComboBox(core.GridRaster)+
 			    "</select>" +
 				"</td></tr>"+
 				"<tr><td style='width:50%;padding:7px'>Origin X</td><td><input type='text' id='originxid' value='' class='form-control input-sm\'></td></tr>"+
@@ -622,11 +624,11 @@ var ViaPanelBuilder=BaseBuilder.extend({
 				return; 
 		     }
 		 if(event.target.id=='drillsizeid'){
-			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#drillsizeid').val())); 
+			 this.target.inner.r=core.MM_TO_COORD(parseFloat(j$('#drillsizeid').val())/2); 
 		 }   
 		 if(event.target.id=='viasizeid'){
 			 
-			 this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#viasizeid').val()))); 
+			 this.target.outer.r=core.MM_TO_COORD(parseFloat(j$('#viasizeid').val())/2); 
 		 }   
 
 		 if(event.target.id=='xid'){	            
@@ -638,10 +640,10 @@ var ViaPanelBuilder=BaseBuilder.extend({
 		 this.component.Repaint();  
    },
 	updateui:function(){		
-        j$('#xid').val(this.toUnitX(this.target.x));
-        j$('#yid').val(this.toUnitY(this.target.y)); 
-        j$('#drillsizeid').val(core.COORD_TO_MM(this.target.thickness));
-        j$('#viasizeid').val(core.COORD_TO_MM(this.target.width));
+        j$('#xid').val(this.toUnitX(this.target.inner.pc.x));
+        j$('#yid').val(this.toUnitY(this.target.inner.pc.y)); 
+        j$('#drillsizeid').val(core.COORD_TO_MM(2*this.target.inner.r));
+        j$('#viasizeid').val(core.COORD_TO_MM(2*this.target.outer.r));
 	},
 	render:function(){
 		j$(this.el).empty();
@@ -785,23 +787,14 @@ var LabelPanelBuilder=BaseBuilder.extend({
         'keypress #xid' : 'onenter',	
         'keypress #yid' : 'onenter',
         'keypress #textid' : 'onenter',	
+        'keypress #rotateid' : 'onenter',
         'keypress #sizeid' : 'onenter',	
         'keypress #thicknessid' : 'onenter',	
-		'change #orientationid': 'onchange',
-        'change #alignmentid': 'onchange',
 		'change #layerid':'onchange',
     },
-    onchange:function(event){
-      if(event.target.id=='orientationid'){
-    	  this.target.texture.setOrientation(parseInt((j$('#orientationid :selected').val())));
-    	  //update 
-    	  this.validateAlignmentComboText('alignmentid',this.target.texture); 
-      }
-      if(event.target.id=='alignmentid'){
-    	  this.target.texture.setAlignment(parseInt((j$('#alignmentid :selected').val()))); 
-      }
+    onchange:function(event){      
 	  if(event.target.id=='layerid'){
-      	  this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+		  this.target.setCopper(core.Layer.Copper.valueOf(j$('#layerid').val()));
       }
       this.component.Repaint(); 
     },
@@ -809,6 +802,9 @@ var LabelPanelBuilder=BaseBuilder.extend({
 		 if(event.keyCode != 13){
 				return; 
 		 }
+		  if(event.target.id=='rotateid'){
+		      this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val()))); 
+		  }			 
 		 if(event.target.id=='textid'){
 			 this.target.texture.setText(j$('#textid').val());			  
 		 }
@@ -827,18 +823,13 @@ var LabelPanelBuilder=BaseBuilder.extend({
 		 this.component.Repaint();     		    	
     },
 	updateui:function(){
-	j$('#layerid').val(this.target.copper.getName());	
+	 j$("#rotateid").val(this.target.texture.rotate); 	
+	 j$('#layerid').val(this.target.copper.getName());	
 	 j$('#textid').val(this.target.texture.text);	
 	 j$('#xid').val(this.toUnitX(this.target.texture.anchorPoint.x));
 	 j$('#yid').val(this.toUnitY(this.target.texture.anchorPoint.y));	 
 	 j$('#sizeid').val(core.COORD_TO_MM(this.target.texture.size));
 	 j$('#thicknessid').val(core.COORD_TO_MM(this.target.texture.thickness));
-	 //set orientation
-	 j$('#orientationid').val(this.target.texture.alignment.getOrientation());
-	 //set alignment
-	 this.validateAlignmentComboText('alignmentid',this.target.texture);
-
-
 	},
 	render:function(){
 		j$(this.el).empty();
@@ -852,18 +843,9 @@ var LabelPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Text</td><td><input type='text' id='textid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='sizeid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Orientation</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"orientationid\">"+
-				this.fillComboBox([{id:0,value:'HORIZONTAL',selected:true},{id:1,value:'VERTICAL'}])+
-			    "</select>" +
-				"</td></tr>"+
-				"<tr><td style='padding:7px'>Alignment</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"alignmentid\">"+
-				this.fillComboBox([{id:0,value:'LEFT',selected:true},{id:1,value:'RIGHT'}])+
-			    "</select>" +
-				"</td></tr>"+
 		        "</table>");
 			
 		return this;

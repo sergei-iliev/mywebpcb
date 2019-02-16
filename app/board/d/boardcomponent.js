@@ -98,13 +98,17 @@ paint(g2, viewportWindow){
         }
  	   },this);
  	   //grid
-        this.grid.paint(g2,viewportWindow,this.scalableTransformation);
+       this.grid.paint(g2,viewportWindow,this.scalableTransformation);
         //coordinate system
-        this.coordinateSystem.Paint(g2, viewportWindow,this.scalableTransformation);
-		//ruler
-		this.ruler.Paint(g2, viewportWindow,this.scalableTransformation);
+       if(this.coordinateSystem!=null){
+         this.coordinateSystem.paint(g2, viewportWindow,this.scalableTransformation);
+       }	
+         //ruler
+	   this.ruler.paint(g2, viewportWindow,this.scalableTransformation);
         //frame
-        this.frame.paint(g2, viewportWindow,this.scalableTransformation);
+       if(this.frame!=null){
+	     this.frame.paint(g2, viewportWindow,this.scalableTransformation);
+       }
 }
 parse(data){
 	this.unitName=j$(data).find("name").first().text();
@@ -123,7 +127,7 @@ parse(data){
 class BoardContainer extends UnitContainer{
 constructor(silent) {
       super(silent);
-  	  this.fileName="Boards";
+  	  this.formatedFileName="Boards";
   	}
 parse(xml){
 	  this.filename=(j$(xml).find("filename").text());
@@ -157,7 +161,7 @@ setMode(_mode){
 	  this.mode=_mode;
 	  let shape=null;
       if (this.cursor != null) {
-          this.cursor.Clear();
+          this.cursor.clear();
           this.cursor = null;
       }
       this.eventMgr.resetEventHandle();
@@ -226,12 +230,12 @@ mouseDown(event){
                 * 2.Control rect/reshape point
                 * 3.selected shapes comes before control points
                 */	 
-         		
-          if(this.getModel().getUnit().getCoordinateSystem().isClicked(scaledEvent.x, scaledEvent.y)){
+    	  if(this.getModel().getUnit().getCoordinateSystem()!=null){ 		
+           if(this.getModel().getUnit().getCoordinateSystem().isClicked(scaledEvent.x, scaledEvent.y)){
               this.getEventMgr().setEventHandle("origin",null); 
         	  break;
-          }  
-    		
+           }  
+    	  }
     	  var shape=this.getModel().getUnit().isControlRectClicked(scaledEvent.x, scaledEvent.y);
 		  if(shape!=null){
               if(shape instanceof PCBArc){
