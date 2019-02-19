@@ -194,8 +194,11 @@ var ToggleButtonView=Backbone.View.extend({
 		  
 		  
 		  for(let unit of selectedModel.getUnits()){
+			  core.isEventEnabled=false;
 			  var copy=unit.clone();
-			  this.footprintComponent.getModel().add(copy);  
+			  core.isEventEnabled=true;
+			  
+			  this.footprintComponent.getModel().add(copy);  			  			  
 			  copy.notifyListeners(events.Event.ADD_SHAPE);
 		  };
 		  

@@ -160,7 +160,17 @@ clone(){
 	       copy.layermaskId=this.layermaskId;		
 			
 	       return copy;
-}	
+}
+copy( _copy){    
+    this.anchorPoint.set(_copy.anchorPoint.x,_copy.anchorPoint.y); 
+    this.text = _copy.text;
+    this.tag = _copy.tag;
+    this.rotate=_copy.rotate;
+    this.mirrored=_copy.mirrored;
+    this.fillColor=_copy.fillColor;    
+    this.thickness=_copy.thickness;
+    this.setSize(_copy.size);                
+}
 clear() {
     this.glyphs=[];
     this.width=0;

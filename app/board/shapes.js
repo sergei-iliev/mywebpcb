@@ -2,8 +2,8 @@ var core=require('core/core');
 var utilities =require('core/utilities');
 var Shape=require('core/shapes').Shape;
 var ResizeableShape=require('core/core').ResizeableShape;
-var glyph=require('core/text/glyph');
-var font=require('core/text/font');
+var glyph=require('core/text/d2glyph');
+var font=require('core/text/d2font');
 var Circle =require('pads/shapes').Circle;
 var Arc =require('pads/shapes').Arc;
 var Line =require('pads/shapes').Line;
@@ -101,7 +101,7 @@ getSide(){
 clear() {    
 	this.shapes.forEach(function(shape) {
 		  shape.owningUnit=null;
-		  shape.Clear();
+		  shape.clear();
 		  shape=null;
      });
      this.shapes=[];	
@@ -112,7 +112,7 @@ getOrderWeight() {
    return (r.width);
 }
 calculateShape() {
- 	var r = new core.Rectangle(0,0,0,0);
+	var r = new d2.Box(0,0,0,0);
  	var x1 = Number.MAX_VALUE; 
  	var y1 = Number.MAX_VALUE;
  	var x2 = Number.MIN_VALUE;
@@ -154,11 +154,12 @@ Rotate(rotation){
 }
 Paint(g2, viewportWindow, scale,layermask) {        
      
-	   var rect = this.getBoundingShape().getScaledRect(scale);
+	   var rect = this.getBoundingShape();		
+	   rect.scale(scale.getScale());
 	   if (!rect.intersects(viewportWindow)) {
 		 return;
 	   }
-	 
+		
 	   var len=this.shapes.length;
 	   for(i=0;i<len;i++){
 		  this.shapes[i].Paint(g2,viewportWindow,scale);  

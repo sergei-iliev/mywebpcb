@@ -5,6 +5,7 @@ var events=require('core/events');
 var GlyphManager=require('core/text/d2glyph').GlyphManager;
 var ViewportWindow=require('core/core').ViewportWindow;
 var d2=require('d2/d2');
+
 //**********************UnitMgr***************************************
 var UnitMgr=(function(){
 	var instance=null;
@@ -131,8 +132,12 @@ setScrollPositionValue(scrollPositionXValue,scrollPositionYValue) {
         this.scrollPositionYValue = scrollPositionYValue;
        }
 fireShapeEvent(event){
-		//if(this.silent)
-		//	return;
+		if(!core.isEventEnabled)
+			return;
+		if(event.target.displayName==='Circle'){
+			console.log(1)
+		}
+		console.log(event);
 		switch(event.type){
 		  case events.Event.SELECT_SHAPE:
 			  core.mywebpcb.trigger('shape:inspector',event);
@@ -456,9 +461,11 @@ class UnitContainer{
 	getUnit(){
 	  return this.unit;
 	}
+
 	fireUnitEvent(event){
-		//if(this.silent)
-		//	return;
+		if(!core.isEventEnabled)
+			return;
+		
 		switch(event.type){
 		  case events.Event.ADD_UNIT:
 			  core.mywebpcb.trigger('unit:inspector',event);
@@ -574,6 +581,10 @@ Clear(){
     this.getModel().clear();
   }
 fireContainerEvent(event){
+	
+	  if(!core.isEventEnabled)
+		return;
+	
 	  mywebpcb.trigger('container:inspector',event); 
 }
 keyPress(event){

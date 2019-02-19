@@ -329,6 +329,8 @@ var Layer=(function(){
 	};
 })();
 
+var isEventEnabled=true;
+
 class CompositeLayer{
   constructor() {
 	     this.compositelayer=Layer.Copper.All;
@@ -926,7 +928,8 @@ module.exports ={
     MM_TO_COORD,
     COORD_TO_MM,
 	UnitSelectionPanel,
-	CompositeLayer
+	CompositeLayer,
+	isEventEnabled
 }
 
 var events=require('core/events');
