@@ -276,7 +276,7 @@ var PadPanelBuilder=BaseBuilder.extend({
 		 this.component.Repaint(); 
     },
 	updateui:function(){
-		 j$("#rotateid").val(this.target.rotate); 
+
 		 j$('#layerid').val(this.target.copper.getName());
 		 j$('#padxid').val(this.toUnitX(this.target.getCenter().x));
 		 j$('#padyid').val(this.toUnitY(this.target.getCenter().y));
@@ -540,16 +540,27 @@ var SolidRegionPanelBuilder=BaseBuilder.extend({
 		this.id="solidregionpanelbuilder";  
     },	
     events: {
-
+        'change #layerid':'onchange'
     },
-
-
+    onchange:function(event){
+        if(event.target.id=='layerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        }              
+        this.component.Repaint(); 
+    }, 
 	updateui:function(){
 		
 	},
 	render:function(){
 		j$(this.el).empty();
-		j$(this.el).append("");
+		j$(this.el).append(
+				"<table width='100%'>"+
+				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+			    "</select>" +
+				"</td></tr>"+							
+		"</table>");				
 			
 		return this;
 	}
@@ -1025,21 +1036,21 @@ var FootprintsInspector=Backbone.View.extend({
 				this.render();				
 			}	
 		}
-		if((!(event.target instanceof Arc))&&(event.target instanceof Circle)){
+		if(event.target instanceof Circle){
 			if(this.panel.id!='circlepanelbuilder'){
 				this.panel.attributes.remove();
 				this.panel=this.collection.get('circlepanelbuilder');
 				this.panel.attributes.delegateEvents();
 				this.render();
 			}	
-		}else if(event.target instanceof Arc){
+		}if(event.target instanceof Arc){
 			if(this.panel.id!='arcpanelbuilder'){
 				this.panel.attributes.remove();
 				this.panel=this.collection.get('arcpanelbuilder');
 				this.panel.attributes.delegateEvents();
 				this.render();
 			}	
-		}else if(event.target instanceof SolidRegion){
+		}if(event.target instanceof SolidRegion){
 			if(this.panel.id!='solidregionpanelbuilder'){
 				this.panel.attributes.remove();
 				this.panel=this.collection.get('solidregionpanelbuilder');

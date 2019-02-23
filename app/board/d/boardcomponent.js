@@ -51,7 +51,7 @@ class manager{
 	               
 	               
 	    }
-        pcbfootprint.setDisplayName(footprint.name);
+ 	    pcbfootprint.setDisplayName(footprint.unitName);
         pcbfootprint.units=footprint.getGrid().getGridUnits();
         pcbfootprint.value=footprint.getGrid().getGridValue();
  	    return pcbfootprint; 	          

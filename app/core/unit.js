@@ -134,10 +134,7 @@ setScrollPositionValue(scrollPositionXValue,scrollPositionYValue) {
 fireShapeEvent(event){
 		if(!core.isEventEnabled)
 			return;
-		if(event.target.displayName==='Circle'){
-			console.log(1)
-		}
-		console.log(event);
+
 		switch(event.type){
 		  case events.Event.SELECT_SHAPE:
 			  core.mywebpcb.trigger('shape:inspector',event);

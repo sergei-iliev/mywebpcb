@@ -316,14 +316,12 @@ Move(xoffset,yoffset) {
     }.bind(this));      
 }
 setRotation(rotate,pt){
-	let alpha=rotate-this.rotate;		   
+	let alpha=rotate-this.rotate;
+	this.anchorPoint.rotate(alpha,pt);
 	this.glyphs.forEach(function(glyph){
-	   if(pt==null)
-		glyph.rotate(alpha,this.anchorPoint);
-	   else
 		glyph.rotate(alpha,pt);   
 	}.bind(this));	
-	this.rotate=rotate;   
+	this.rotate=rotate;   	
 }
 Rotate(rotate,pt){
 	//fix angle

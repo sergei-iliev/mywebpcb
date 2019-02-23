@@ -83,7 +83,7 @@ var CirclePanelBuilder=BaseBuilder.extend({
 			this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
 		 } 
 		 if(event.target.id=='radiusid'){
-		   this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#radiusid').val())));			 
+			 this.target.circle.r=(core.MM_TO_COORD(parseFloat(j$('#radiusid').val())));			 
 		 } 
 		 if(event.target.id=='xid'){			 
 	         var x=this.fromUnitX(j$('#xid').val()); 
@@ -103,7 +103,7 @@ var CirclePanelBuilder=BaseBuilder.extend({
         j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
         j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
 		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
-		j$("#radiusid").val(core.COORD_TO_MM(this.target.getWidth()));    
+		j$("#radiusid").val(core.COORD_TO_MM(this.target.circle.radius));   
 		j$("#fillid").val(this.target.fill);		
 	},
 	render:function(){
@@ -387,19 +387,19 @@ var FootprintPanelBuilder=BaseBuilder.extend({
       this.id="footprintpanelbuilder";
     },
     events: {
+        'keypress #rotateid' : 'onenter',
         'keypress #nameid' : 'onenter',   
         'keypress #valueid' : 'onenter',	
         'keypress #referenceid' : 'onenter',	
-        'change #rorientationid': 'onchange',
-        'change #ralignmentid': 'onchange',
-        'change #vorientationid': 'onchange',
-        'change #valignmentid': 'onchange',
         
     },
 	onenter:function(event){
 		 if(event.keyCode != 13){
 			return; 
 	     }
+		  if(event.target.id=='rotateid'){
+		      this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val()))); 
+		  }	
 		 if(event.target.id=='nameid'){
 			 this.target.displayName=j$("#nameid").val(); 
 			 this.component.getModel().fireUnitEvent({target:this.target,type:events.Event.RENAME_UNIT});		   
@@ -415,76 +415,33 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 		 this.component.Repaint();   
 	},   
 	onchange:function(event){
-	      if(event.target.id=='rorientationid'){
-	    	  var texture=core.UnitMgr.getInstance().getTextureByTag(this.target,'reference');	    	  
-	    	  texture.getAlignment().setOrientation(parseInt((j$('#rorientationid :selected').val())));
-	    	  //update 
-	    	  this.validateAlignmentComboText('ralignmentid',texture);
-	    	  this.component.Repaint(); 
-	      }
-	      if(event.target.id=='ralignmentid'){
-	    	  var texture=core.UnitMgr.getInstance().getTextureByTag(this.target,'reference');	    	  
-	    	  texture.getAlignment().set(parseInt((j$('#ralignmentid :selected').val()))); 
-	    	  this.component.Repaint(); 
-	      }		
-	      if(event.target.id=='vorientationid'){
-	    	  var texture=core.UnitMgr.getInstance().getTextureByTag(this.target,'value');	    	  
-	    	  texture.getAlignment().setOrientation(parseInt((j$('#vorientationid :selected').val())));
-	    	  //update 
-	    	  this.validateAlignmentComboText('valignmentid',texture);
-	    	  this.component.Repaint(); 
-	      }
-	      if(event.target.id=='valignmentid'){
-	    	  var texture=core.UnitMgr.getInstance().getTextureByTag(this.target,'value');	    	  
-	    	  texture.getAlignment().set(parseInt((j$('#valignmentid :selected').val()))); 
-	    	  this.component.Repaint(); 
-	      }		      
+	      
 	},	
 	updateui:function(){
 		   j$("#nameid").val(this.target.displayName);
 		   
+		   j$("#rotateid").val(this.target.rotate); 	
+		   
 		   var texture=this.target.getChipText().getTextureByTag('reference');
 		   j$("#referenceid").val(texture==null?"":texture.text);
-			 //set orientation
-		   j$('#rorientationid').val(texture.getAlignment().getOrientation());
-			 //set alignment
-		   this.validateAlignmentComboText('ralignmentid',texture);
+
 			 
 		   texture=this.target.getChipText().getTextureByTag('value');
 		   j$("#valueid").val(texture==null?"":texture.text);
-			 //set orientation
-		   j$('#vorientationid').val(texture.getAlignment().getOrientation());
-			 //set alignment
-		   this.validateAlignmentComboText('valignmentid',texture);
 	},
 	render:function(){	
 		j$(this.el).empty();
 		j$(this.el).append(
 		"<table width='100%'>"+
+		"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
+		"<select class=\"form-control input-sm\" id=\"layerid\">"+
+	    this.fillComboBox([{id:'1',value:'TOP',selected:true},{id:'2',value:'BOTTOM'}])+
+	    "</select>" +
+		"</td></tr>"+
 		"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
 		"<tr><td style='width:50%;padding:7px'>Reference</td><td><input type='text' id='referenceid' value='' class='form-control input-sm\'></td></tr>"+
-		"<tr><td style='padding:7px'>Orientation</td><td>" +
-		"<select class=\"form-control input-sm\" id=\"rorientationid\">"+
-		this.fillComboBox([{id:0,value:'HORIZONTAL',selected:true},{id:1,value:'VERTICAL'}])+
-	    "</select>" +
-		"</td></tr>"+
-		"<tr><td style='padding:7px'>Alignment</td><td>" +
-		"<select class=\"form-control input-sm\" id=\"ralignmentid\">"+
-		this.fillComboBox([{id:0,value:'LEFT',selected:true},{id:1,value:'RIGHT'}])+
-	    "</select>" +
-		"</td></tr>"+		
 		"<tr><td style='width:50%;padding:7px'>Value</td><td><input type='text' id='valueid' value='' class='form-control input-sm\'></td></tr>"+
-		"<tr><td style='padding:7px'>Orientation</td><td>" +
-		"<select class=\"form-control input-sm\" id=\"vorientationid\">"+
-		this.fillComboBox([{id:0,value:'HORIZONTAL',selected:true},{id:1,value:'VERTICAL'}])+
-	    "</select>" +
-		"</td></tr>"+
-		"<tr><td style='padding:7px'>Alignment</td><td>" +
-		"<select class=\"form-control input-sm\" id=\"valignmentid\">"+
-		this.fillComboBox([{id:0,value:'LEFT',selected:true},{id:1,value:'RIGHT'}])+
-	    "</select>" +
-		"</td></tr>"+
-
+		"<tr><td style='width:50%;padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+						
 		"</table>");
 			
 		return this;
@@ -580,7 +537,7 @@ var HolePanelBuilder=BaseBuilder.extend({
 				return; 
 		     }
 		 if(event.target.id=='drillsizeid'){
-			 this.target.width=core.MM_TO_COORD(parseFloat(j$('#drillsizeid').val())); 
+			 this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#drillsizeid').val()))); 
 		 }     
 
 		 if(event.target.id=='xid'){	            
@@ -592,9 +549,10 @@ var HolePanelBuilder=BaseBuilder.extend({
 		 this.component.Repaint();  
    },
 	updateui:function(){		
-        j$('#xid').val(this.toUnitX(this.target.x));
-        j$('#yid').val(this.toUnitY(this.target.y)); 
-        j$('#drillsizeid').val(core.COORD_TO_MM(this.target.width));
+        j$('#xid').val(this.toUnitX(this.target.circle.center.x));
+        j$('#yid').val(this.toUnitY(this.target.circle.center.y)); 
+        j$('#drillsizeid').val(core.COORD_TO_MM(2*this.target.circle.r));
+        
 	},
 	render:function(){
 		j$(this.el).empty();

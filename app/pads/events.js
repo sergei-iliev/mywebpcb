@@ -356,7 +356,7 @@ class FootprintEventMgr{
     var handle=this.hash.get(eventKey);
 	if(handle!=null){
 	  handle.setTarget(target);
-	  if(eventKey=='resize'||eventKey=='move'||eventKey=='line'||eventKey=='texture'){
+	  if(eventKey=='resize'||eventKey=='move'||eventKey=='line'||eventKey=='solidregion'||eventKey=='texture'){
 	     this.component.getModel().getUnit().fireShapeEvent({target:target,type:events.Event.SELECT_SHAPE});
 	  }
 	  if(eventKey=='component'||eventKey=="origin"){

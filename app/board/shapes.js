@@ -74,11 +74,13 @@ constructor(layermaskId){
 	    this.text.Add(new glyph.GlyphTexture("","value", 8,8,core.MM_TO_COORD(1.2)));		 	    
         this.units=core.Units.MM;
         this.value=2.54;  
+        this.rotate=0;
 	}
 clone(){
         var copy=new PCBFootprint(this.copper.getLayerMaskID());
         copy.text =this.text.clone();
         copy.shapes=[];
+        copy.rotate=this.rotate;
         copy.units=this.units;
         copy.value=this.value;
         copy.displayName=this.displayName;
@@ -144,6 +146,17 @@ Move(xoffset,yoffset){
 		   this.shapes[i].Move(xoffset,yoffset);  
 	   }	
 	   this.text.Move(xoffset,yoffset);
+}
+setRotation(rotate){
+	let alpha=rotate-this.rotate;
+	let center=this.getBoundingShape().center;
+	let len=this.shapes.length;
+	for(var i=0;i<len;i++){
+		
+	   this.shapes[i].setRotation(rotate,center);  
+	}	
+	this.text.setRotation(rotate,center);
+	this.rotate=rotate;
 }
 Rotate(rotation){
 	   var len=this.shapes.length;

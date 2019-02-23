@@ -65,8 +65,12 @@ setCopper(copper){
 	
 	this.texture.mirror(side==core.Layer.Side.BOTTOM,line);
 }
-setRotation(rotate){
-   this.texture.setRotation(rotate);
+setRotation(rotate,center){
+	if(center==undefined){
+		  this.texture.setRotation(rotate,this.getCenter());
+	}else{
+		  this.texture.setRotation(rotate,center);	
+	}
 }
 calculateShape(){ 
   return this.texture.getBoundingShape();
@@ -176,10 +180,14 @@ class RoundRect extends Shape{
 	   	});
 	   	return result;
 	}	
-	setRotation(rotate){
+	setRotation(rotate,center){
 		let alpha=rotate-this.rotate;
 		let box=this.roundRect.box;
-		this.roundRect.rotate(alpha,box.center);
+		if(center==undefined){
+		  this.roundRect.rotate(alpha,box.center);
+		}else{
+		  this.roundRect.rotate(alpha,center);	 	
+		}
 		this.rotate=rotate;
 	}
 	setRounding(rounding){	  
@@ -285,9 +293,11 @@ class Circle extends Shape{
 		this.selectionRectWidth=3000;
 		this.resizingPoint=null;
 		this.circle=new d2.Circle(new d2.Point(x,y),r);
+		this.rotate=0;
 	}
 clone() {
 	let copy=new Circle(this.circle.center.x,this.circle.center.y,this.circle.radius,this.thickness,this.copper.getLayerMaskID());
+	copy.rotate=this.rotate;
 	copy.fill=this.fill;
 	return copy				
 	}	
@@ -323,6 +333,15 @@ isControlRectClicked(x,y) {
    	});
    	return result;
     }	
+setRotation(rotate,center){
+	let alpha=rotate-this.rotate;
+	if(center==undefined){
+		this.circle.rotate(alpha,this.circle.center);
+	}else{
+		this.circle.rotate(alpha,center);	 	
+	}
+	this.rotate=rotate;
+}
 	toXML() {
         return "<circle copper=\""+this.copper.getName()+"\" x=\""+(this.circle.pc.x)+"\" y=\""+(this.circle.pc.y)+"\" radius=\""+(this.circle.r)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
 	}
@@ -444,12 +463,13 @@ constructor(x,y,r,thickness,layermaskid){
 		this.selectionRectWidth=3000;
 		this.resizingPoint=null;
 		this.arc=new d2.Arc(new d2.Point(x,y),r,50,70);
+		this.rotate=0;
 }
 clone() {
 		var copy = new Arc(this.arc.center.x,this.arc.center.y, this.arc.r,this.thickness,this.copper.getLayerMaskID());		
         copy.arc.startAngle = this.arc.startAngle;
         copy.arc.endAngle = this.arc.endAngle; 
-        
+        copy.rotate=this.rotate;
 		copy.fill = this.fill;
 		return copy;
 }
@@ -545,6 +565,15 @@ isExtendAnglePointClicked(x,y){
         return false;
 	}
 }	
+setRotation(rotate,center){
+	let alpha=rotate-this.rotate;
+	if(center==undefined){
+		this.arc.rotate(alpha,this.arc.center);
+	}else{
+		this.arc.rotate(alpha,center);	 	
+	}
+	this.rotate=rotate;
+}
 Rotate(rotation){
   this.arc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy)); 
 }
@@ -712,6 +741,16 @@ Move(xoffset, yoffset) {
 Mirror(line) {
     this.polygon.mirror(line);
 }
+setRotation(rotate,center){
+	let alpha=rotate-this.rotate;
+	let box=this.polygon.box;
+	if(center==undefined){
+		this.polygon.rotate(alpha,box.center);
+	}else{
+		this.polygon.rotate(alpha,center);	 	
+	}
+	this.rotate=rotate;
+}
 Rotate(rotation) {
 	this.polygon.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
 }
@@ -723,14 +762,19 @@ Paint(g2, viewportWindow, scale) {
 	}
 	
 	g2.lineWidth = 1;
+	
+	if(this.isFloating()){
+      g2.strokeStyle = this.copper.getColor();		
+	}else{
+	  g2._fill=true;
+	  if (this.selection) {
+		 g2.fillStyle = "gray";
+	  } else {
+		 g2.fillStyle = this.copper.getColor();
+	  }
+	}
 
-
-	g2._fill=true;
-	if (this.selection) {
-		g2.fillStyle = "gray";
-	} else {
-		g2.fillStyle = this.copper.getColor();
-	}	
+	
 
 	let a=this.polygon.clone();	
 	if (this.isFloating()) {
@@ -768,7 +812,16 @@ alignToGrid(isRequired) {
     }
     return null;
 }
-
+setRotation(rotate,center){
+	let alpha=rotate-this.rotate;
+	let box=this.polyline.box;
+	if(center==undefined){
+		this.polyline.rotate(alpha,box.center);
+	}else{
+		this.polyline.rotate(alpha,center);	 	
+	}
+	this.rotate=rotate;
+}
 getOrderWeight() {
 	return 2;
 }
@@ -864,6 +917,9 @@ class Drill{
 	 }
 	 setWidth(width){
 		 this.circle.r=width/2;
+	 }
+	 setRotation(rotate,center){
+	    this.circle.rotate(rotate,center); 
 	 }
 	 Rotate(rotation) {	    		    
 	    	this.circle.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
@@ -983,12 +1039,6 @@ clone(){
 	     }
 	     return copy;
 	}
-setRotation(rotate){
-	let alpha=rotate-this.rotate;	
-	this.shape.rotate(alpha);
-	this.text.setRotation(rotate,this.shape.center);
-	this.rotate=rotate;
-}
 getChipText() {
 	    return this.text;
 }
@@ -1098,6 +1148,20 @@ Mirror(line) {
 //        this.drill.Mirror(A, B);
 //    }
 //    this.text.Mirror(A, B);
+}
+setRotation(rotate,center){
+	let alpha=rotate-this.rotate;	
+	if(center==null){
+	  this.shape.rotate(alpha);
+	  this.text.setRotation(rotate,this.shape.center);
+	}else{
+	  this.shape.rotate(alpha,center);
+	  this.text.setRotation(rotate,center);
+	    if(this.drill!=null){
+	        this.drill.setRotation(rotate,center);
+	    }	  
+	}
+	this.rotate=rotate;
 }
 Rotate(rotation){
 	let alpha=this.rotate+rotation.angle;

@@ -155,13 +155,6 @@ setMode(_mode){
 	        
 	 switch (this.mode) {
      		case core.ModeEnum.SOLID_REGION:
-         		//shape=new SolidRegion(core.Layer.SILKSCREEN_LAYER_FRONT);	            	            		                        
-         		//shape.polygon.add(new d2.Point(core.MM_TO_COORD(1.52),core.MM_TO_COORD(2.52)));
-         		//shape.polygon.add(new d2.Point(core.MM_TO_COORD(3.52),core.MM_TO_COORD(3.52)));
-         		//shape.polygon.add(new d2.Point(core.MM_TO_COORD(1.52),core.MM_TO_COORD(10.52)));
-         		//this.model.getUnit().add(shape);
-         		//this.setContainerCursor(shape);               
-         		//this.getEventMgr().setEventHandle("cursor",shape);  
          	break;	 
 	        case core.ModeEnum.PAD_MODE:
 	            shape=new Pad(0,0,core.MM_TO_COORD(1.52),core.MM_TO_COORD(2.52));	            	            		                        
