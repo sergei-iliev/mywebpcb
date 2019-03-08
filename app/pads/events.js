@@ -391,6 +391,7 @@ module.exports ={
 	  FootprintEventMgr,
 	  ArcExtendAngleEventHandler,
 	  ArcStartAngleEventHandle,
+	  ArcMidPointEventHandle,
 	  LineEventHandle,
 	  SolidRegionEventHandle
 }

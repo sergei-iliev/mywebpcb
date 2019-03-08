@@ -250,26 +250,26 @@ var ArcPanelBuilder=BaseBuilder.extend({
 			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
 		 } 
 		 if(event.target.id=='widthid'){
-			   this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#widthid').val())));			 
+			   this.target.setRadius(core.MM_TO_COORD(parseFloat(j$('#widthid').val())));			 
 		 } 
 		 if(event.target.id=='startangleid'){
-			   this.target.startAngle=utilities.round(j$('#startangleid').val());			 
+			   this.target.setStartAngle(j$('#startangleid').val());			 
 		 } 
 		 if(event.target.id=='extendangleid'){
-			   this.target.extendAngle=utilities.round(j$('#extendangleid').val());	
+			   this.target.setExtendAngle(j$('#extendangleid').val());	
 		 } 	
 		 this.component.Repaint(); 	
     },
 	updateui:function(){
 		j$('#layerid').val(this.target.copper.getName());
-		j$("#startangleid").val(this.target.startAngle);    
-		j$("#extendangleid").val(this.target.extendAngle);		
+		j$("#startangleid").val(this.target.arc.startAngle);    
+		j$("#extendangleid").val(this.target.arc.endAngle);		
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
         j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
         j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:(this.target.resizingPoint.x)));
         j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:(this.target.resizingPoint.y))); 
 		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
-		j$("#widthid").val(core.COORD_TO_MM(this.target.getWidth()));
+		j$("#widthid").val(core.COORD_TO_MM(this.target.arc.r));
 		j$("#fillid").val(this.target.fill);
 	},
 	render:function(){

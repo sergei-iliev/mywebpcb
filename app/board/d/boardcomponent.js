@@ -19,6 +19,8 @@ var PCBLine=require('board/shapes').PCBLine;
 var PCBRoundRect=require('board/shapes').PCBRoundRect;
 var PCBCopperArea=require('board/shapes').PCBCopperArea;
 var PCBTrack=require('board/shapes').PCBTrack;
+var PCBSolidRegion=require('board/shapes').PCBSolidRegion;
+var SolidRegionEventHandle=require('pads/events').SolidRegionEventHandle;
 
 var LineEventHandle=require('pads/events').LineEventHandle;
 var CopperAreaEventHandle=require('board/events').CopperAreaEventHandle;
@@ -167,6 +169,8 @@ setMode(_mode){
       this.eventMgr.resetEventHandle();
       
       switch (this.mode) {
+		case core.ModeEnum.SOLID_REGION:
+         	break;      
       case core.ModeEnum.HOLE_MODE:          
           shape = new PCBHole();
           this.setContainerCursor(shape);
@@ -250,7 +254,8 @@ mouseDown(event){
                   }
                  }else{
 						this.getEventMgr().setEventHandle("resize",shape); 
-                 }
+                 }                            
+              
 		  }else{
 		     shape = this.getModel().getUnit().getClickedShape(scaledEvent.x, scaledEvent.y, true);
 		     
@@ -281,6 +286,18 @@ mouseDown(event){
             	this.getEventMgr().setEventHandle("line", shape);
             }
 	    break;
+    	case core.ModeEnum.SOLID_REGION:
+            //is this a new copper area
+            if ((this.getEventMgr().targetEventHandle == null) ||
+                !(this.getEventMgr().targetEventHandle instanceof SolidRegionEventHandle)) {
+            	if(event.which!=1){
+            		return;
+            	}
+                shape =new PCBSolidRegion(core.Layer.LAYER_FRONT);
+                this.getModel().getUnit().add(shape);
+                this.getEventMgr().setEventHandle("solidregion", shape);
+            }     		
+    		break;	    
         case  core.ModeEnum.COPPERAREA_MODE:
             //is this a new copper area
             if ((this.getEventMgr().targetEventHandle == null) ||

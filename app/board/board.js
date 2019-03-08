@@ -39,6 +39,7 @@ var Board=require('board/d/boardcomponent').Board;
 			 new togglebutton.ToggleButtonModel({id:'ellipseid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'arcid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'lineid',group:'lefttogglegroup'}),
+			 new togglebutton.ToggleButtonModel({id:'solidregionid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'rectid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'trackid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'holeid',group:'lefttogglegroup'}),
@@ -46,7 +47,7 @@ var Board=require('board/d/boardcomponent').Board;
 			 new togglebutton.ToggleButtonModel({id:'labelid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'copperareaid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'anchorid'}),
-			 new togglebutton.ToggleButtonModel({id:'originid',group:'lefttogglegroup'}),
+			 new togglebutton.ToggleButtonModel({id:'originid'}),
 			 new togglebutton.ToggleButtonModel({id:'measureid',group:'lefttogglegroup'})
 			 ]);
 		

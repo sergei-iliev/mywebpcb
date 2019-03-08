@@ -1,5 +1,6 @@
 var mywebpcb=require('core/core').mywebpcb;
 var core=require('core/core');
+var shape=require('core/shapes');
 var events=require('core/events');
 var FootprintLoadView=require('pads/views/footprintloadview');
 var BoardMgr = require('board/d/boardcomponent').BoardMgr;
@@ -72,6 +73,9 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='lineid'){
 		    this.boardComponent.setMode(core.ModeEnum.LINE_MODE);
 		}
+		if(event.data.model.id=='solidregionid'){
+			this.boardComponent.setMode(core.ModeEnum.SOLID_REGION);
+		}		
 		if(event.data.model.id=='trackid'){
 		  //Track mode
 		   this.boardComponent.setMode(core.ModeEnum.TRACK_MODE);
@@ -109,7 +113,14 @@ var ToggleButtonView=Backbone.View.extend({
 			this.boardComponent.setMode(core.ModeEnum.MEASUMENT_MODE);
 		}		
 		if(event.data.model.id=='originid'){			 
-		   this.boardComponent.setMode(core.ModeEnum.ORIGIN_SHIFT_MODE);
+			event.data.model.setActive(!event.data.model.isActive());
+			if(event.data.model.isActive()){
+			  this.boardComponent.getModel().getUnit().coordinateSystem=new shape.CoordinateSystem(this.boardComponent.getModel().getUnit());
+			  this.boardComponent.setMode(core.ModeEnum.ORIGIN_SHIFT_MODE);
+			}else{
+			  this.boardComponent.getModel().getUnit().coordinateSystem=null;
+			  this.boardComponent.setMode(core.ModeEnum.COMPONENT_MODE);
+			}
 		}
 		if(event.data.model.id=='copperareaid'){
 		    this.boardComponent.setMode(core.ModeEnum.COPPERAREA_MODE);

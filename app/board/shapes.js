@@ -8,6 +8,7 @@ var Circle =require('pads/shapes').Circle;
 var Arc =require('pads/shapes').Arc;
 var Line =require('pads/shapes').Line;
 var RoundRect =require('pads/shapes').RoundRect;
+var SolidRegion =require('pads/shapes').SolidRegion;
 var GlyphLabel=require('pads/shapes').GlyphLabel;
 var AbstractLine=require('core/shapes').AbstractLine;
 var FootprintShapeFactory=require('pads/shapes').FootprintShapeFactory;
@@ -308,6 +309,17 @@ clone() {
 		  return copy;
 	}    
 }
+class PCBSolidRegion extends SolidRegion{
+	constructor(layermaskId){
+	        super(layermaskId);
+	    }
+	clone() {
+			var copy = new PCBSolidRegion(this.copper.getLayerMaskID());
+			  copy.polygon=this.polygon.clone();  
+			  return copy;
+		}    
+}
+
 class PCBRoundRect extends RoundRect{
 constructor( x, y,  width,height,arc,  thickness, layermaskid) {
         super( x, y, width,height,arc, thickness, layermaskid);
@@ -329,9 +341,7 @@ constructor(thickness,layermaskId){
 	}
 clone() {
 	var copy = new PCBTrack(this.thickness,this.copper.getLayerMaskID());
-		for (var index = 0; index < this.points.length; index++) {
-		   copy.points.push(new core.Point(this.points[index].x,this.points[index].y));
-		}
+	copy.polyline=this.polyline.clone();
 	return copy;
 
 	}
@@ -355,44 +365,43 @@ getOrderWeight() {
 }
 
 Paint(g2, viewportWindow, scale) {
-	var rect = this.getBoundingShape().getScaledRect(scale);
-	if (!this.isFloating()
-							&& (!rect.intersects(viewportWindow))) {
+	var rect = this.polyline.box;
+	rect.scale(scale.getScale());		
+	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
 		return;
 	}
-					// scale points
-	let dst = [];
-	this.points.forEach(function(wirePoint) {
-		dst.push(wirePoint.getScaledPoint(scale));
-	});
-
+	
 	g2.globalCompositeOperation = 'lighter';
-	g2.beginPath();
 	g2.lineCap = 'round';
 	g2.lineJoin = 'round';
-	g2.moveTo(dst[0].x - viewportWindow.x, dst[0].y
-							- viewportWindow.y);
-	for (var i = 1; i < dst.length; i++) {
-						g2.lineTo(dst[i].x - viewportWindow.x, dst[i].y
-								- viewportWindow.y);
-	}
+	
 
 	g2.lineWidth = this.thickness * scale.getScale();
 
-	// draw floating point
-	if (this.isFloating()) {
-			let p = this.floatingEndPoint.getScaledPoint(scale);
-				g2.lineTo(p.x - viewportWindow.x, p.y
-								- viewportWindow.y);
-	}
 
 	if (this.selection)
 		g2.strokeStyle = "gray";
 	else
 		g2.strokeStyle = this.copper.getColor();
 
-	g2.stroke();
+	let a=this.polyline.clone();
+	a.scale(scale.getScale());
+	a.move( - viewportWindow.x, - viewportWindow.y);		
+	a.paint(g2);
+	
+	// draw floating point
+	if (this.isFloating()) {
+			let p = this.floatingEndPoint.clone();
+			p.scale(scale.getScale());
+			p.move( - viewportWindow.x, - viewportWindow.y);
+				g2.lineTo(p.x, p.y);									
+				g2.stroke();					
+	}
+	
 	g2.globalCompositeOperation = 'source-over';
+	if (this.selection) {
+		this.drawControlPoints(g2, viewportWindow, scale);
+	}
 
 
 }
@@ -400,7 +409,7 @@ drawControlShape(g2, viewportWindow, scale){
     if((!this.isSelected())/*&&(!this.isSublineSelected())*/){
       return;
     }
-    super.drawControlShape(g2, viewportWindow, scale);
+    //super.drawControlShape(g2, viewportWindow, scale);
 }
 fromXML(data) {
 
@@ -775,6 +784,7 @@ module.exports ={
 		PCBHole,
 		PCBTrack,
 		PCBLine,
+		PCBSolidRegion,
 		BoardShapeFactory
 		
 }

@@ -123,7 +123,7 @@ class BoardEventMgr{
 	    this.component=component;
 		this.targetEventHandle=null;	
 		this.hash = new Map();
-//		this.hash.set("arc.mid.point",new ArcMidPointEventHandle(component));
+		this.hash.set("arc.mid.point",new pad_events.ArcMidPointEventHandle(component));
 		this.hash.set("arc.start.angle",new pad_events.ArcStartAngleEventHandle(component));
 		this.hash.set("arc.extend.angle",new pad_events.ArcExtendAngleEventHandler(component));
 		this.hash.set("move",new events.MoveEventHandle(component));
@@ -138,6 +138,7 @@ class BoardEventMgr{
 		this.hash.set("origin",new events.OriginEventHandle(component));
 		this.hash.set("measure",new events.MeasureEventHandle(component));
 		this.hash.set("copperarea",new CopperAreaEventHandle(component));
+		this.hash.set("solidregion",new pad_events.SolidRegionEventHandle(component));		
 	 }
 	 //****private
 	 getEventHandle(eventKey,target) {
