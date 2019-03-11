@@ -585,10 +585,7 @@ Mirror(line) {
  */
 Resize(xoffset, yoffset,point) {    
     let pt=this.calculateResizingMidPoint(point.x,point.y);
-    
-    let p=new d2.Point(pt.x,pt.y);
-    let r=this.arc.center.distanceTo(p);
-
+    let r=this.arc.center.distanceTo(pt);
     this.arc.r=r;
 }
 Move(xoffset,yoffset){
@@ -650,26 +647,31 @@ getResizingPoint() {
 	return this.resizingPoint;
 }
 calculateResizingMidPoint(x,y){
-	let a=this.arc.middle;
-	let b=new d2.Point(this.arc.center.x,this.arc.center.y);
-	//let p=this.resizingPoint;
-	let p={x,y};
+	//let a=this.arc.middle;
+	//let b=new d2.Point(this.arc.center.x,this.arc.center.y);
+	let line=new d2.Line(this.arc.center,this.arc.middle);
+	return line.projectionPoint(new d2.Point(x,y));
 	
-	let atob = { x: b.x - a.x, y: b.y - a.y };
-    let atop = { x: p.x - a.x, y: p.y - a.y };
-    let len = atob.x * atob.x + atob.y * atob.y;
-    let dot = atop.x * atob.x + atop.y * atob.y;
-    let t = dot / len ;
-  
-    return new d2.Point(a.x + atob.x * t,a.y + atob.y * t);	
+//	let a=this.arc.middle;
+//	let b=new d2.Point(this.arc.center.x,this.arc.center.y);
+//	//let p=this.resizingPoint;
+//	let p={x,y};
+//	
+//	let atob = { x: b.x - a.x, y: b.y - a.y };
+//    let atop = { x: p.x - a.x, y: p.y - a.y };
+//    let len = atob.x * atob.x + atob.y * atob.y;
+//    let dot = atop.x * atob.x + atop.y * atob.y;
+//    let t = dot / len ;
+//  
+//    return new d2.Point(a.x + atob.x * t,a.y + atob.y * t);	
 }
-drawMousePoint(g2,viewportWindow,scale){
-
-	let point=this.calculateResizingMidPoint(this.resizingPoint.x,this.resizingPoint.y);
-    
-	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[point]);
-    
-}
+//drawMousePoint(g2,viewportWindow,scale){
+//
+//	let point=this.calculateResizingMidPoint(this.resizingPoint.x,this.resizingPoint.y);
+//    
+//	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[point]);
+//    
+//}
 
 }
 class SolidRegion extends Shape{
