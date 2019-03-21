@@ -40,6 +40,11 @@ createShape(data){
 		label.fromXML(data);		
 		return label;
 	}
+	if (data.tagName.toLowerCase() == 'solidregion') {
+		var region = new SolidRegion(0);
+		region.fromXML(data);		
+		return region;
+	}	
 }
 }	
 
@@ -65,7 +70,7 @@ setCopper(copper){
 	
 	this.texture.mirror(side==core.Layer.Side.BOTTOM,line);
 }
-setRotation(rotate,center){
+setRotation(rotate,center){	
 	if(center==undefined){
 		  this.texture.setRotation(rotate,this.getCenter());
 	}else{
@@ -205,7 +210,16 @@ class RoundRect extends Shape{
 	Mirror(line){
 		this.roundRect.mirror(line);
 	}
-	Rotate(rotation){		
+	Rotate(rotation){	
+		//fix angle
+		let alpha=this.rotate+rotation.angle;
+		if(alpha>=360){
+			alpha-=360
+		}
+		if(alpha<0){
+		 alpha+=360; 
+		}	
+		this.rotate=alpha;		
 		this.roundRect.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	}
 	Resize(xoffset, yoffset,clickedPoint){
@@ -333,19 +347,10 @@ isControlRectClicked(x,y) {
    	});
    	return result;
     }	
-setRotation(rotate,center){
-	let alpha=rotate-this.rotate;
-	if(center==undefined){
-		this.circle.rotate(alpha,this.circle.center);
-	}else{
-		this.circle.rotate(alpha,center);	 	
-	}
-	this.rotate=rotate;
-}
-	toXML() {
+toXML() {
         return "<circle copper=\""+this.copper.getName()+"\" x=\""+(this.circle.pc.x)+"\" y=\""+(this.circle.pc.y)+"\" radius=\""+(this.circle.r)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
 	}
-	fromXML(data) {	        
+fromXML(data) {	        
         this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
         
  		let xx=parseInt(j$(data).attr("x"));
@@ -371,7 +376,25 @@ setRotation(rotate,center){
 	Move(xoffset, yoffset) {
 		this.circle.move(xoffset,yoffset);
 	}	
+	setRotation(rotate,center){
+		let alpha=rotate-this.rotate;
+		if(center==null){
+			this.circle.rotate(alpha,this.circle.center);
+		}else{
+			this.circle.rotate(alpha,center);	 	
+		}
+		this.rotate=rotate;						
+	}		
 	Rotate(rotation){
+		//fix angle
+		let alpha=this.rotate+rotation.angle;
+		if(alpha>=360){
+			alpha-=360
+		}
+		if(alpha<0){
+		 alpha+=360; 
+		}	
+		this.rotate=alpha;
 		this.circle.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	}
 	Resize(xoffset, yoffset,point) {    
@@ -464,6 +487,7 @@ constructor(x,y,r,thickness,layermaskid){
 		this.resizingPoint=null;
 		this.arc=new d2.Arc(new d2.Point(x,y),r,50,70);
 		this.rotate=0;
+		this.center=null;
 }
 clone() {
 		var copy = new Arc(this.arc.center.x,this.arc.center.y, this.arc.r,this.thickness,this.copper.getLayerMaskID());		
@@ -575,6 +599,15 @@ setRotation(rotate,center){
 	this.rotate=rotate;
 }
 Rotate(rotation){
+	//fix angle
+  let alpha=this.rotate+rotation.angle;
+  if(alpha>=360){
+		alpha-=360
+  }
+  if(alpha<0){
+	 alpha+=360; 
+  }	
+  this.rotate=alpha;	
   this.arc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy)); 
 }
 Mirror(line) {
@@ -584,9 +617,90 @@ Mirror(line) {
  * Resize through mouse position point
  */
 Resize(xoffset, yoffset,point) {    
-    let pt=this.calculateResizingMidPoint(point.x,point.y);
-    let r=this.arc.center.distanceTo(pt);
-    this.arc.r=r;
+    //let pt=this.calculateResizingMidPoint(point.x,point.y);    
+    //let r=this.arc.center.distanceTo(pt);
+    //this.arc.r=r;
+    
+	let a1=this.arc.middle;  //old middle
+	let m=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
+	let a2=this.calculateResizingMidPoint(point.x,point.y);  //new middle
+    
+	let vec = new d2.Vector(m, a2);
+	let linevec=new d2.Vector(m,a1);
+    let samePlane = d2.utils.GT(vec.dot(linevec.normalize()), 0);
+//which plane
+	console.log(samePlane);
+	if(samePlane){
+		let C=this.calculateResizingMidPoint(point.x,point.y);  //projection
+		let C1=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
+    
+		let y=C1.distanceTo(C);
+		let x=C1.distanceTo(this.arc.start);
+    
+		let l=(x*x)/y;
+		let lambda=(l-y)/2;
+
+		let v=new d2.Vector(C,C1);
+		let norm=v.normalize();			  
+	
+		let a=C1.x +lambda*norm.x;
+		let b=C1.y + lambda*norm.y;
+		let center=new d2.Point(a,b);
+    
+    
+		let startAngle =new d2.Vector(center,this.arc.start).slope;
+		let endAngle = new d2.Vector(center, this.arc.end).slope;
+    
+		let r = center.distanceTo(this.arc.start);
+
+    //fix angles
+		let start = 360 - startAngle;
+		let end= (360-endAngle-start);
+		if(end<0){
+			end=360-Math.abs(end);
+		}
+	//console.log(endAngle);
+    
+		this.arc.center.set(center.x,center.y);
+		this.arc.r=r;
+		this.arc.startAngle=start;
+		this.arc.endAngle=end;
+	}else{
+		let C=this.calculateResizingMidPoint(point.x,point.y);  //projection
+		let C1=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
+		
+		let y=C1.distanceTo(C);
+		let x=C1.distanceTo(this.arc.start);
+    
+		let l=(x*x)/y;
+		let lambda=(l-y)/2;
+		
+		let v=new d2.Vector(C,C1);
+		let norm=v.normalize();			  
+	
+		let a=C1.x +lambda*norm.x;
+		let b=C1.y + lambda*norm.y;
+		let center=new d2.Point(a,b);
+		
+		let startAngle =new d2.Vector(center,this.arc.start).slope;
+		let endAngle = new d2.Vector(center, this.arc.end).slope;
+    
+		let r = center.distanceTo(this.arc.start);
+		
+	    //fix angles
+		let start = 360 - startAngle;
+		let end= (360-endAngle-start);
+		console.log(end);
+		//if(end<0){
+		//	end=360-Math.abs(end);
+		//}
+	//console.log(endAngle);
+    
+		this.arc.center.set(center.x,center.y);
+		this.arc.r=r;
+		this.arc.startAngle=start;
+		this.arc.endAngle=end;
+	}
 }
 Move(xoffset,yoffset){
   this.arc.move(xoffset,yoffset);	
@@ -635,10 +749,12 @@ Paint(g2, viewportWindow, scale) {
 		if (this.isSelected()) {
 			this.drawControlPoints(g2, viewportWindow, scale);
 		}
-		
+		if (this.center!=null) {
+			utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.center]);	
+		}
 }
 drawControlPoints(g2, viewportWindow, scale) {
-	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.arc.start,this.arc.end,this.arc.middle]);	
+	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.arc.center,this.arc.start,this.arc.end,this.arc.middle]);	
 }
 setResizingPoint(pt){
 	this.resizingPoint=pt;
@@ -647,23 +763,8 @@ getResizingPoint() {
 	return this.resizingPoint;
 }
 calculateResizingMidPoint(x,y){
-	//let a=this.arc.middle;
-	//let b=new d2.Point(this.arc.center.x,this.arc.center.y);
 	let line=new d2.Line(this.arc.center,this.arc.middle);
-	return line.projectionPoint(new d2.Point(x,y));
-	
-//	let a=this.arc.middle;
-//	let b=new d2.Point(this.arc.center.x,this.arc.center.y);
-//	//let p=this.resizingPoint;
-//	let p={x,y};
-//	
-//	let atob = { x: b.x - a.x, y: b.y - a.y };
-//    let atop = { x: p.x - a.x, y: p.y - a.y };
-//    let len = atob.x * atob.x + atob.y * atob.y;
-//    let dot = atop.x * atob.x + atop.y * atob.y;
-//    let t = dot / len ;
-//  
-//    return new d2.Point(a.x + atob.x * t,a.y + atob.y * t);	
+	return line.projectionPoint(new d2.Point(x,y));	
 }
 //drawMousePoint(g2,viewportWindow,scale){
 //
@@ -681,13 +782,14 @@ class SolidRegion extends Shape{
         this.floatingStartPoint=new d2.Point();
         this.floatingEndPoint=new d2.Point();                 
         this.selectionRectWidth = 3000;
-        this.fill=core.Fill.FILLED;
         this.polygon=new d2.Polygon();
         this.resizingPoint;
+        this.rotate=0;
     }
 clone(){
 	  var copy=new SolidRegion(this.copper.getLayerMaskID());
-      copy.polygon=this.polygon.clone();  
+      copy.polygon=this.polygon.clone();
+      copy.rotate=this.rotate;
       return copy;
 }
 alignResizingPointToGrid(targetPoint) {
@@ -746,7 +848,7 @@ Mirror(line) {
 setRotation(rotate,center){
 	let alpha=rotate-this.rotate;
 	let box=this.polygon.box;
-	if(center==undefined){
+	if(center==null){
 		this.polygon.rotate(alpha,box.center);
 	}else{
 		this.polygon.rotate(alpha,center);	 	
@@ -754,6 +856,15 @@ setRotation(rotate,center){
 	this.rotate=rotate;
 }
 Rotate(rotation) {
+	//fix angle
+	let alpha=this.rotate+rotation.angle;
+	if(alpha>=360){
+		alpha-=360
+	}
+	if(alpha<0){
+	 alpha+=360; 
+	}	
+	this.rotate=alpha;
 	this.polygon.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
 }
 Paint(g2, viewportWindow, scale) {		
@@ -795,7 +906,30 @@ Paint(g2, viewportWindow, scale) {
 drawControlPoints(g2, viewportWindow, scale) {
 	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.polygon.points);	
 }
+toXML() {
+	var result = "<solidregion copper=\"" + this.copper.getName() + "\">";
+	this.polygon.points.forEach(function(point) {
+		result += point.x + "," + point.y + ",";
+	});
+	result += "</solidregion>";
+	return result;
 }
+fromXML(data) {
+       if(j$(data).attr("copper")!=null){
+        this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
+       }else{
+        this.copper=core.Layer.Copper.FSilkS;
+       }	
+   	   var tokens = data.textContent.split(",");
+	   var len = Math.floor(tokens.length / 2) * 2;
+	   for (var index = 0; index < len; index += 2) {
+			var x = parseFloat(tokens[index]);
+			var y = parseFloat(tokens[index + 1]);
+			this.polygon.points.push(new d2.Point(x, y));
+		}
+}
+}
+
 class Line extends AbstractLine{
 constructor(thickness,layermaskId) {
 			super(thickness,layermaskId);	
@@ -803,6 +937,7 @@ constructor(thickness,layermaskId) {
 clone() {
 		  var copy = new Line(this.thickness,this.copper.getLayerMaskID());
 		  copy.polyline=this.polyline.clone();
+		  copy.rotate=this.rotate;
 		  return copy;
 		}
 alignToGrid(isRequired) {
@@ -814,16 +949,7 @@ alignToGrid(isRequired) {
     }
     return null;
 }
-setRotation(rotate,center){
-	let alpha=rotate-this.rotate;
-	let box=this.polyline.box;
-	if(center==undefined){
-		this.polyline.rotate(alpha,box.center);
-	}else{
-		this.polyline.rotate(alpha,center);	 	
-	}
-	this.rotate=rotate;
-}
+
 getOrderWeight() {
 	return 2;
 }
@@ -888,8 +1014,8 @@ fromXML(data) {
    	   var tokens = data.textContent.split(",");
 	   var len = Math.floor(tokens.length / 2) * 2;
 	   for (var index = 0; index < len; index += 2) {
-			var x = parseInt(tokens[index]);
-			var y = parseInt(tokens[index + 1]);
+			var x = parseFloat(tokens[index]);
+			var y = parseFloat(tokens[index + 1]);
 			this.polyline.points.push(new d2.Point(x, y));
 		}
 }

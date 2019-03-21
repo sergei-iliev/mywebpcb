@@ -132,7 +132,8 @@ var ToggleButtonView=Backbone.View.extend({
             }  
 			//shapes= this.boardComponent.getModel().getUnit().getSelectedShapes();
 			var r=this.boardComponent.getModel().getUnit().getShapesRect(shapes);
-            UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.getCenterX(),r.getCenterY(),(event.data.model.id==("rotateleftid")?-1:1)*(90.0)));   
+               
+            UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(event.data.model.id==("rotateleftid")?1:-1)*(90.0)));
             UnitMgr.getInstance().alignBlock(this.boardComponent.getModel().getUnit().grid,shapes);  
             
             this.boardComponent.Repaint();

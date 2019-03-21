@@ -15,6 +15,7 @@ var PCBLine=require('board/shapes').PCBLine;
 var PCBRoundRect=require('board/shapes').PCBRoundRect;
 var PCBCopperArea=require('board/shapes').PCBCopperArea;
 var PCBHole=require('board/shapes').PCBHole;
+var	PCBSolidRegion=require('board/shapes').PCBSolidRegion;
 
 var ComponentPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
@@ -162,12 +163,6 @@ var RectPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='thicknessid'){
 			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
 		 } 
-		 if(event.target.id=='widthid'){
-		   this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#widthid').val())));			 
-		 } 
-		 if(event.target.id=='heightid'){
-			   this.target.setHeight(core.MM_TO_COORD(parseFloat(j$('#heightid').val())));			 
-		 } 	
 		 if(event.target.id=='xid'){			 
 	         var x=this.fromUnitX(j$('#xid').val()); 
 	         this.target.Resize(x-this.target.resizingPoint.x, 0, this.target.resizingPoint);			   
@@ -177,8 +172,8 @@ var RectPanelBuilder=BaseBuilder.extend({
 	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
 		 } 	
 		 if(event.target.id=='roundingid'){
-			 this.target.arc=core.MM_TO_COORD(parseFloat(j$('#roundingid').val()));			 
-			 }
+			 this.target.setRounding(core.MM_TO_COORD(parseFloat(j$('#roundingid').val())));			 
+		 }
 		 this.component.Repaint(); 		 
     },
 	updateui:function(){
@@ -187,10 +182,8 @@ var RectPanelBuilder=BaseBuilder.extend({
         j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
         j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
         j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
-		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
-		j$("#widthid").val(core.COORD_TO_MM(this.target.getWidth()));    
-		j$("#heightid").val(core.COORD_TO_MM(this.target.getHeight()));
-		j$("#roundingid").val(core.COORD_TO_MM(this.target.arc));
+		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));	
+		j$("#roundingid").val(core.COORD_TO_MM(this.target.roundRect.rounding));
 		j$("#fillid").val(this.target.fill);
 	},
 	render:function(){
@@ -210,10 +203,39 @@ var RectPanelBuilder=BaseBuilder.extend({
 				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
 			    "</select>" +
 				"</td></tr>"+
-				"<tr><td style='padding:7px'>Width</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='heightid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Rounding</td><td><input type='text' id='roundingid' value='' class='form-control input-sm\'></td></tr>"+						        
 		"</table>");
+			
+		return this;
+	}
+});
+var SolidRegionPanelBuilder=BaseBuilder.extend({
+	initialize:function(component){
+		SolidRegionPanelBuilder.__super__.initialize(component);
+		this.id="solidregionpanelbuilder";  
+    },	
+    events: {
+        'change #layerid':'onchange'
+    },
+    onchange:function(event){
+        if(event.target.id=='layerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        }              
+        this.component.Repaint(); 
+    }, 
+	updateui:function(){
+		
+	},
+	render:function(){
+		j$(this.el).empty();
+		j$(this.el).append(
+				"<table width='100%'>"+
+				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+			    "</select>" +
+				"</td></tr>"+							
+		"</table>");				
 			
 		return this;
 	}
@@ -967,6 +989,7 @@ var BoardsInspector=Backbone.View.extend({
 		                                         new LinePanelBuilder(this.boardComponent),
 		                                         new RectPanelBuilder(this.boardComponent),
 		                                         new HolePanelBuilder(this.boardComponent),
+		                                         new SolidRegionPanelBuilder(this.boardComponent),
 		                                         new CopperAreaPanelBuilder(this.boardComponent)
 		                                         ]);
 		this.el= '#boardsinspectorid';	
@@ -1118,7 +1141,15 @@ var BoardsInspector=Backbone.View.extend({
 				this.panel.attributes.delegateEvents();
 				this.render();
 			}
-		}	
+		}
+		if(event.target instanceof PCBSolidRegion){
+			if(this.panel.id!='solidregionpanelbuilder'){
+				this.panel.attributes.remove();
+				this.panel=this.collection.get('solidregionpanelbuilder');
+				this.panel.attributes.delegateEvents();
+				this.render();
+			}				
+		}
 		if((event.target instanceof PCBTrack)){
 			if(this.panel.id!='trackpanelbuilder'){
 				this.panel.attributes.remove();

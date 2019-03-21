@@ -644,9 +644,9 @@ setRotation(alpha,pt){
 			 texture.setRotation(alpha,pt); 
 		  }); 	
 }
-Rotate(rotation) {
+Rotate(rotate,pt) {
 		  this.text.forEach(function(texture){
-		     texture.Rotate(rotation); 
+		     texture.Rotate(rotate,pt); 
 		   });         
 		 }		 
 Paint( g2,  viewportWindow,  scale) {

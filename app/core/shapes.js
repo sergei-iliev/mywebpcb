@@ -63,6 +63,9 @@ setHeight (height) {
 getHeight() {
 		return this.height;
 	}
+getDrawingOrder() {
+    return 100;
+}
 getOrderWeight() {
 		return (this.getWidth() * this.getHeight());
 	}
@@ -218,6 +221,7 @@ class AbstractLine extends Shape{
 																		// degree
 																		// forming
 		this.floatingEndPoint = new d2.Point();
+		this.rotate=0;
 		
 }
 getLinePoints(){
@@ -414,7 +418,26 @@ Move(xoffset, yoffset) {
 Mirror(line) {
     this.polyline.mirror(line);
 }
+setRotation(rotate,center){
+	let alpha=rotate-this.rotate;
+	let box=this.polyline.box;
+	if(center==undefined){
+		this.polyline.rotate(alpha,box.center);
+	}else{
+		this.polyline.rotate(alpha,center);	 	
+	}
+	this.rotate=rotate;
+}
 Rotate(rotation) {
+	//fix angle
+	let alpha=this.rotate+rotation.angle;
+	if(alpha>=360){
+	  alpha-=360
+	}
+	if(alpha<0){
+	 alpha+=360; 
+	}	
+	this.rotate=alpha;	
 	this.polyline.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
 }
 calculateShape() {
