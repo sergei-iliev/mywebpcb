@@ -334,11 +334,18 @@ var isEventEnabled=true;
 class CompositeLayer{
   constructor() {
 	     this.compositelayer=Layer.Copper.All;
-	     this.activeside=Layer.Side.TOP;
+	     this.activeSide=Layer.Side.TOP;
   }
 isLayerVisible(mask) {
-	     return (compositelayer & mask)!=0;          
+	     return (this.compositelayer & mask)!=0;          
   } 
+setLayerVisible(mask,flag) {
+    if(flag){
+        this.compositelayer |= mask;     
+    }else{
+        this.compositelayer &= ~mask;
+    }
+}
 	  
 }
 

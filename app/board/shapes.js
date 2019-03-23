@@ -363,14 +363,13 @@ getDrawingOrder() {
         return order;
     }
     
-//    if(this.owningUnit.getActiveSide()==Layer.Side.resolve(this.copper.getLayerMaskID())){
-//       order= 4;
-//     }else{
-//       order= 3; 
-//     }  
+    if(this.owningUnit.activeSide==core.Layer.Side.resolve(this.copper.getLayerMaskID())){
+       order= 4;
+     }else{
+       order= 3; 
+     }  
     return order;     
 }
-
 getOrderWeight() {
     return 4;
 }
@@ -664,20 +663,32 @@ getLinePoints() {
 add(point) {
     this.polygon.add(point);
 }
+getDrawingOrder() {
+    if(this.owningUnit==null){            
+        return super.getDrawingOrder();
+    }
+    
+    if(this.owningUnit.getActiveSide()==core.Layer.Side.resolve(this.copper.getLayerMaskID())){
+       return 2;
+    }else{
+       return 1; 
+    }
+}
 setResizingPoint(point) {
     this.resizingPoint=point;
 }
 isFloating() {
     return (!this.floatingStartPoint.equals(this.floatingEndPoint));                
 }
+isClicked(x,y){
+	  return this.polygon.contains(x,y);
+}
 isControlRectClicked(x, y) {
-	var rect = new core.Rectangle(x
-								- this.selectionRectWidth / 2, y - this.selectionRectWidth
-								/ 2, this.selectionRectWidth, this.selectionRectWidth);
+	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
 	let point = null;
 
 	this.polygon.points.some(function(wirePoint) {
-		if (rect.contains(wirePoint.x, wirePoint.y)) {
+		if (rect.contains(wirePoint)) {
 					point = wirePoint;
 		  return true;
 		}else{
@@ -686,9 +697,6 @@ isControlRectClicked(x, y) {
 	});
 
 	return point;
-}
-isClicked(x,y){
-	 return this.polygon.contains(x,y);
 }
 isInRect(r) {
 
@@ -701,71 +709,94 @@ reset(){
 	this.resetToPoint(this.floatingStartPoint);	
 }
 resetToPoint(p){
-    this.floatingStartPoint.setLocation(p.x,p.y);
-    this.floatingEndPoint.setLocation(p.x,p.y); 
+    this.floatingStartPoint.set(p.x,p.y);
+    this.floatingEndPoint.set(p.x,p.y); 
 }
 Rotate(rotation) {
-	this.polygon.points.forEach(function(point) {
-				var p = utilities.rotate(point,
-									rotation.originx, rotation.originy,
-									rotation.angle);
-				point.setLocation(p.x, p.y);
-	});
+	this.polygon.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
 }
 Resize(xoffset, yoffset, clickedPoint) {
-	clickedPoint.setLocation(clickedPoint.x + xoffset,
+	clickedPoint.set(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);
 }
 Paint(g2,viewportWindow,scale, layersmask){
-	var rect = this.getBoundingShape().getScaledRect(scale);
+	var rect = this.polygon.box;
+	rect.scale(scale.getScale());		
 	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
 		return;
 	}
-	let dst = [];
-	this.polygon.points.forEach(function(point) {
-		dst.push(point.getScaledPoint(scale));
-	});
-	g2.globalCompositeOperation = 'lighter';
-	g2.beginPath();
-	g2.lineCap = 'round';
-	g2.lineJoin = 'round';
-	g2.moveTo(dst[0].x - viewportWindow.x, dst[0].y
-							- viewportWindow.y);
-	for (var i = 1; i < dst.length; i++) {
-						g2.lineTo(dst[i].x - viewportWindow.x, dst[i].y
-								- viewportWindow.y);
+	
+	g2.lineWidth = 1;
+	
+	if(this.isFloating()){
+      g2.strokeStyle = this.copper.getColor();		
+	}else{
+	  g2._fill=true;
+	  if (this.selection) {
+		 g2.fillStyle = "gray";
+	  } else {
+		 g2.fillStyle = this.copper.getColor();
+	  }
+	}
+	let a=this.polygon.clone();	
+	if (this.isFloating()) {
+		let p = this.floatingEndPoint.clone();
+		a.add(p);	
+    }
+	a.scale(scale.getScale());
+	a.move( - viewportWindow.x, - viewportWindow.y);		
+	a.paint(g2);
+	g2._fill=false;
+    
+	if (this.isSelected()) {
+		this.drawControlShape(g2, viewportWindow, scale);
 	}
 	
-	// draw floating point
-	if (this.isFloating()) {
-			let p = this.floatingEndPoint.getScaledPoint(scale);
-				g2.lineTo(p.x - viewportWindow.x, p.y
-								- viewportWindow.y);
-	}
-	g2.closePath();
-
-	if (this.selection){
-		g2.fillStyle = "gray";
-    }else{    	
-		g2.fillStyle = this.copper.getColor();
-	}
-    g2.fill();   
-    
-    if(this.isSelected()){  
-    	g2.lineWidth=1;
-    	g2.strokeStyle = "blue";                   
-        g2.stroke();
-    
-        this.drawControlShape(g2,viewportWindow,scale);
-    }
-    
-	g2.globalCompositeOperation = 'source-over';
+	
+//	let dst = [];
+//	this.polygon.points.forEach(function(point) {
+//		dst.push(point.getScaledPoint(scale));
+//	});
+//	g2.globalCompositeOperation = 'lighter';
+//	g2.beginPath();
+//	g2.lineCap = 'round';
+//	g2.lineJoin = 'round';
+//	g2.moveTo(dst[0].x - viewportWindow.x, dst[0].y
+//							- viewportWindow.y);
+//	for (var i = 1; i < dst.length; i++) {
+//						g2.lineTo(dst[i].x - viewportWindow.x, dst[i].y
+//								- viewportWindow.y);
+//	}
+//	
+//	// draw floating point
+//	if (this.isFloating()) {
+//			let p = this.floatingEndPoint.getScaledPoint(scale);
+//				g2.lineTo(p.x - viewportWindow.x, p.y
+//								- viewportWindow.y);
+//	}
+//	g2.closePath();
+//
+//	if (this.selection){
+//		g2.fillStyle = "gray";
+//    }else{    	
+//		g2.fillStyle = this.copper.getColor();
+//	}
+//    g2.fill();   
+//    
+//    if(this.isSelected()){  
+//    	g2.lineWidth=1;
+//    	g2.strokeStyle = "blue";                   
+//        g2.stroke();
+//    
+//        this.drawControlShape(g2,viewportWindow,scale);
+//    }
+//    
+//	g2.globalCompositeOperation = 'source-over';
 }	
-drawControlShape(g2, viewportWindow,scalableTransformation) {
-    if((!this.isSelected())){
-        return;
-    }  
-	utilities.drawCrosshair(g2, viewportWindow,scalableTransformation,this.resizingPoint,this.selectionRectWidth,this.polygon.points);
+drawControlShape(g2, viewportWindow, scale) {
+	if (this.isSelected()) {	
+	  utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.polygon.points);
+	}
 }
 fromXML(data){
     this.copper =core.Layer.Copper.valueOf(j$(data).attr("layer"));

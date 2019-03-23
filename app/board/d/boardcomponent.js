@@ -89,6 +89,39 @@ clone(){
 	 copy.silent=false;
 	 return copy;
 	}
+add(shape){
+    if (this.shapes.length == 0) {
+        super.add(shape);
+    } else {
+    	let len=this.shapes.length;
+    	for(i=0;i<len;i++){                      
+            if (this.shapes[i].getDrawingOrder() >= shape.getDrawingOrder()) {             
+                this.shapes.splice(i, 0,shape);
+           	    shape.owningUnit=this;
+        	    this.fireShapeEvent({target:shape,type:events.Event.ADD_SHAPE});
+//        	    this.shapes.forEach(function(s){
+//        	    	console.log(s.getDrawingOrder())
+//        	    	}
+//        	    );
+                return;
+            }
+    	}
+        super.add(shape);
+    }
+}
+reorder(){
+    this.shapes.sort(function(a,b){
+		if (a.getDrawingOrder() > b.getDrawingOrder()) {  
+			return 1;
+		}else if(a.getDrawingOrder() < b.getDrawingOrder()){
+			return -1;
+		}else
+			return 0;
+	});
+}
+getActiveSide() {
+    return this.compositeLayer.activeSide;
+}
 paint(g2, viewportWindow){
 	   let len=this.shapes.length;
  	   for(let i=0;i<len;i++){

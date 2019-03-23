@@ -2,6 +2,7 @@ var EventHandle = require('core/events').EventHandle;
 var events = require('core/events');
 var core = require('core/core');
 var pad_events=require('pads/events');
+var d2=require('d2/d2');
 
 class FootprintEventHandle extends EventHandle{
 constructor(component) {
@@ -77,7 +78,7 @@ mousePressed(event){
       if(this.component.getParameter("snaptogrid")){
         p=this.component.getModel().getUnit().getGrid().positionOnGrid(event.x,event.y);       		
       }else{
-        p=new core.Point(event.x,event.y);
+        p=new d2.Point(event.x,event.y);
       }
       let justcreated=this.target.polygon.points.length==2;
       
@@ -100,7 +101,7 @@ mouseDragged(event){
 		
 	 }
 mouseMove(event){
-    this.target.floatingEndPoint.setLocation(event.x,event.y);   
+    this.target.floatingEndPoint.set(event.x,event.y);   
     this.component.Repaint();	 
 	 }	 
 dblClick(){

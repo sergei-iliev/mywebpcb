@@ -336,6 +336,7 @@ var CopperAreaPanelBuilder=BaseBuilder.extend({
     onchange:function(event){
         if(event.target.id=='layerid'){
         	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+            this.component.getModel().getUnit().reorder();
         }
         if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
@@ -381,7 +382,7 @@ var CopperAreaPanelBuilder=BaseBuilder.extend({
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"layerid\">"+
-				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+				this.fillComboBox([{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'}])+
 			    "</select>" +
 				"</td></tr>"+				
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
@@ -711,6 +712,7 @@ var TrackPanelBuilder=BaseBuilder.extend({
     onchange:function(event){
         if(event.target.id=='layerid'){
         	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        	this.component.getModel().getUnit().reorder();
         }
         this.component.Repaint(); 
       }, 
