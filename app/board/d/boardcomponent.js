@@ -21,6 +21,7 @@ var PCBCopperArea=require('board/shapes').PCBCopperArea;
 var PCBTrack=require('board/shapes').PCBTrack;
 var PCBSolidRegion=require('board/shapes').PCBSolidRegion;
 var SolidRegionEventHandle=require('pads/events').SolidRegionEventHandle;
+var d2=require('d2/d2');
 
 var LineEventHandle=require('pads/events').LineEventHandle;
 var CopperAreaEventHandle=require('board/events').CopperAreaEventHandle;
@@ -197,12 +198,24 @@ setMode(_mode){
       
       switch (this.mode) {
 		case core.ModeEnum.SOLID_REGION:
-         	break;      
-      case core.ModeEnum.HOLE_MODE:          
-          shape = new PCBHole();
-          this.setContainerCursor(shape);
-          this.getEventMgr().setEventHandle("cursor", shape);
-          break;      
+         	break;
+		case core.ModeEnum.HOLE_MODE:
+			shape=new PCBCopperArea(core.Layer.LAYER_FRONT);
+			shape.add(new d2.Point(core.MM_TO_COORD(6),core.MM_TO_COORD(13)));
+			shape.add(new d2.Point(core.MM_TO_COORD(15),core.MM_TO_COORD(14)));
+			shape.add(new d2.Point(core.MM_TO_COORD(16),core.MM_TO_COORD(8)));
+			shape.add(new d2.Point(core.MM_TO_COORD(6),core.MM_TO_COORD(7)));
+			this.getModel().getUnit().add(shape);
+			
+			shape=new PCBLabel(core.Layer.LAYER_FRONT);
+			shape.Move(core.MM_TO_COORD(8),core.MM_TO_COORD(11));
+			this.getModel().getUnit().add(shape);
+         	break;       	
+//      case core.ModeEnum.HOLE_MODE:          
+//          shape = new PCBHole();
+//          this.setContainerCursor(shape);
+//          this.getEventMgr().setEventHandle("cursor", shape);
+//          break;      
       case core.ModeEnum.VIA_MODE:          
           shape = new PCBVia();
           this.setContainerCursor(shape);
