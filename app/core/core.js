@@ -307,8 +307,10 @@ var Layer=(function(){
 	            }	            
 	            if(layermask==(Layer.LAYER_BACK|Layer.LAYER_FRONT)){
 	                return Layer.Copper.Cu;
-	            }            
-	            else{
+	            } 
+	            if (layermask == Layer.LAYER_ALL) {
+	                return Layer.Copper.All;
+	            }else{
 	                return Layer.Copper.None;
 	            }	            	            
 	        },
@@ -333,12 +335,15 @@ var isEventEnabled=true;
 
 class CompositeLayer{
   constructor() {
-	     this.compositelayer=Layer.Copper.All;
+	     this.compositelayer=Layer.LAYER_ALL;
 	     this.activeSide=Layer.Side.TOP;
   }
 isLayerVisible(mask) {
 	     return (this.compositelayer & mask)!=0;          
   } 
+getLayerMaskID() {
+    return this.compositelayer;
+}
 setLayerVisible(mask,flag) {
     if(flag){
         this.compositelayer |= mask;     

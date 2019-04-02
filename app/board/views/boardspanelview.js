@@ -351,7 +351,7 @@ var CopperAreaPanelBuilder=BaseBuilder.extend({
 			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
 		 } 
 		 if(event.target.id=='clearanceid'){
-			   this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#widthid').val())));			 
+			   this.target.clearance=(core.MM_TO_COORD(parseFloat(j$('#clearanceid').val())));			 
 		 } 
 		 if(event.target.id=='xid'){			 
 	         var x=this.fromUnitX(j$('#xid').val()); 
@@ -371,7 +371,7 @@ var CopperAreaPanelBuilder=BaseBuilder.extend({
         j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
         j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:(this.target.resizingPoint.x)));
         j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:(this.target.resizingPoint.y))); 
-		//j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
+		j$('#clearanceid').val(core.COORD_TO_MM(this.target.clearance));
 		//j$("#widthid").val(core.COORD_TO_MM(this.target.getWidth()));
 		j$("#fillid").val(this.target.fill);
 	},

@@ -94,15 +94,11 @@ add(shape){
         super.add(shape);
     } else {
     	let len=this.shapes.length;
+    	shape.owningUnit=this;
     	for(i=0;i<len;i++){                      
             if (this.shapes[i].getDrawingOrder() >= shape.getDrawingOrder()) {             
-                this.shapes.splice(i, 0,shape);
-           	    shape.owningUnit=this;
+                this.shapes.splice(i, 0,shape);           	    
         	    this.fireShapeEvent({target:shape,type:events.Event.ADD_SHAPE});
-//        	    this.shapes.forEach(function(s){
-//        	    	console.log(s.getDrawingOrder())
-//        	    	}
-//        	    );
                 return;
             }
     	}
@@ -119,9 +115,7 @@ reorder(){
 			return 0;
 	});
 }
-getActiveSide() {
-    return this.compositeLayer.activeSide;
-}
+
 paint(g2, viewportWindow){
 	   let len=this.shapes.length;
  	   for(let i=0;i<len;i++){

@@ -239,62 +239,130 @@ getWidth(){
 getHeight(){
  	return this.height;
  	}
-buildClickableOrderItem(x,  y,  isTextIncluded){
-     var orderElements = [];
-     var index = 0;
-     this.shapes.forEach(function(shape){
-         if(isTextIncluded){
-           	if((undefined !=shape['getChipText'])&&shape.getChipText().isClicked(x, y)){
-           	    orderElements.push({index:index,orderWeight:0});
-           	}
-         }		 
-         
-		if(!shape.isClicked(x, y)){
-               index++;
-               return; 
+buildClickedShapesList(x,  y,  isTextIncluded){
+   var orderElements = [];
+   let len=this.shapes.length;
+   for(i=0;i<len;i++){   
+       if(isTextIncluded){
+    	if((undefined !=this.shapes[i]['getChipText'])&&this.shapes[i].getChipText().isClicked(x, y)){                               
+             orderElements.splice(0, 0, this.shapes[i]);
+             continue;
         }
-         //***give selected a higher priority
-        orderElements.push({index:index,
-         	                orderWeight:shape.isSelected() && shape.getOrderWeight() > 1 ? 2 : shape.getOrderWeight()});
-
-         index++;
-     }.bind(this));
-     return orderElements;
- }
+       }     
+       if(this.shapes[i].isClicked(x, y)){
+          orderElements.push(this.shapes[i]);
+       
+       }  
+   }
+   return orderElements;
+}
 getClickedShape( x,  y,  isTextIncluded){
- 	       var result=null;
- 	       var orderElements=this.buildClickableOrderItem(x,y,isTextIncluded);
- 	       
- 	      
- 	       orderElements.sort(function(a,b) {
- 	    	   if (a.orderWeight < b.orderWeight){
- 		    	      return -1;
- 	    	   }
- 		       if (a.orderWeight > b.orderWeight){
- 		    	     return 1;
- 		       }	     
- 		       return 0;
- 		    });
- 	    
- 	       orderElements.some(function(item) {			   
- 	    	    var shape=this.shapes[item.index];
-				
-                 if(isTextIncluded){
-                 	if((undefined !=shape['getChipText'])&&shape.getChipText().isClicked(x, y)){
-                 	    result=shape;
-                 		return true;
-                 	}
+    let clickedShapes = this.buildClickedShapesList(x,y,isTextIncluded);
+    if(clickedShapes.length==0){
+        return null;
+    }
+    //Text?
+    if (undefined !=this.shapes[0]['getChipText']) {   
+        if(this.isShapeVisibleOnLayers(clickedShapes.get(0))){             
+          return clickedShapes.get(0);
+        }
+    }
+
+    clickedShapes.sort(function(o1, o2){
+       
+            //both on same side
+           let s1=core.Layer.Side.resolve(o1.copper.getLayerMaskID());
+           let s2=core.Layer.Side.resolve(o2.copper.getLayerMaskID());
+           let active=o1.owningUnit.compositeLayer.activeSide;
+             //active layer has presedense
+           if(s1!=s2){
+               if(s1==active){
+                     return -1;
+                 }else{
+                     return 1;
                  }
- 	 		   
- 	 		    //if (shape.isClicked(x, y)) {
-                 result=shape;
- 				 return true;				 
-                //}  
-				 
-            }.bind(this));
- 		   
- 		   return result;
- 	}
+           }
+       
+                   
+       if ((o1.orderWeight - o2.orderWeight) == 0)
+           return 0;
+       if ((o1.orderWeight - o2.orderWeight) > 0)
+           return 1;
+       else
+           return -1;
+       
+       }.bind(this));
+    
+    for(i=0;i<clickedShapes.length;i++){
+       if(!this.isShapeVisibleOnLayers(clickedShapes[i])){             
+           continue;              
+       }        
+       return clickedShapes[i];
+    };
+    return null;  
+}
+isShapeVisibleOnLayers(shape){
+    if(shape.isVisibleOnLayers(this.compositeLayer.getLayerMaskID())){
+      return true;
+    }else{
+      return false;  
+    }    
+}
+//buildClickableOrderItem(x,  y,  isTextIncluded){
+//     var orderElements = [];
+//     var index = 0;
+//     this.shapes.forEach(function(shape){
+//         if(isTextIncluded){
+//           	if((undefined !=shape['getChipText'])&&shape.getChipText().isClicked(x, y)){
+//           	    orderElements.push({index:index,orderWeight:0});
+//           	}
+//         }		 
+//         
+//		if(!shape.isClicked(x, y)){
+//               index++;
+//               return; 
+//        }
+//         //***give selected a higher priority
+//        orderElements.push({index:index,
+//         	                orderWeight:shape.isSelected() && shape.getOrderWeight() > 1 ? 2 : shape.getOrderWeight()});
+//
+//         index++;
+//     }.bind(this));
+//     return orderElements;
+// }
+//getClickedShape( x,  y,  isTextIncluded){
+// 	       var result=null;
+// 	       var orderElements=this.buildClickableOrderItem(x,y,isTextIncluded);
+//
+// 	       orderElements.sort(function(a,b) {
+// 	    	   if (a.orderWeight < b.orderWeight){
+// 		    	      return -1;
+// 	    	   }
+// 		       if (a.orderWeight > b.orderWeight){
+// 		    	     return 1;
+// 		       }	     
+// 		       return 0;
+// 		    });
+// 	    
+// 	       orderElements.some(function(item) {			   
+// 	    	    var shape=this.shapes[item.index];
+//				
+//                 if(isTextIncluded){
+//                 	if((undefined !=shape['getChipText'])&&shape.getChipText().isClicked(x, y)){
+//                 	    result=shape;
+//                 		return true;
+//                 	}
+//                 }
+// 	 		   
+// 	 		    //if (shape.isClicked(x, y)) {
+//                 result=shape;
+// 				 return true;				 
+//                //}  
+//				 
+//            }.bind(this));
+// 		   
+// 		   return result;
+// 	}
 isControlRectClicked( x,  y) {
          /*
           * if two symbols overlap and one is selected

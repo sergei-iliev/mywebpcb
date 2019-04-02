@@ -280,20 +280,51 @@ class PCBArc extends Arc{
 class PCBLabel extends GlyphLabel{
     constructor( layermaskId) {
         super("Label",core.MM_TO_COORD(0.3),layermaskId);
+        this.clearance=0;
     }
 clone(){
 	var copy = new PCBLabel(this.copper.getLayerMaskID());
     copy.texture = this.texture.clone();        
     copy.copper=this.copper;
 	return copy;
-}    
+} 
+drawClearence(g2,viewportWindow,scale,source){
+   if((source.copper.getLayerMaskID()&this.copper.getLayerMaskID())==0){        
+	   return;  //not on the same layer
+   }
+   let clear=this.clearance!=0?this.clearance:source.clearance;
+   
+   let rect=this.texture.getBoundingShape();
+   rect.min.move(-clear,-clear);
+   rect.max.move(clear,clear);
+   
+    if (!rect.intersects(source.getBoundingShape())) {
+		return;
+    }
+
+    let r=this.texture.getBoundingRect();
+	r.scale(scale.getScale());
+	if (!r.intersects(viewportWindow)) {
+		return;
+	}
+	
+	g2._fill=true;
+	g2.fillStyle = "black";	
+	
+	
+    r.move(-viewportWindow.x,- viewportWindow.y);
+	r.paint(g2);
+	
+    g2._fill=false;	
+   
+}
 getDrawingOrder() {
         let order=super.getDrawingOrder();
         if(this.owningUnit==null){            
            return order;
         }
         
-        if(owningUnit.getActiveSide()==Layer.Side.resolve(this.copper.getLayerMaskID())){
+        if(this.owningUnit.activeSide==core.Layer.Side.resolve(this.copper.getLayerMaskID())){
           order= 4;
         }else{
           order= 3; 
@@ -349,14 +380,15 @@ class PCBTrack extends AbstractLine{
 constructor(thickness,layermaskId){
        super(thickness,layermaskId);
        this.displayName = "Track";
+       this.clearance=0;
 	}
 clone() {
 	var copy = new PCBTrack(this.thickness,this.copper.getLayerMaskID());
+	copy.clearance=this.clearance=0;;
 	copy.polyline=this.polyline.clone();
 	return copy;
 
 	}
-
 getDrawingOrder() {
     let order=super.getDrawingOrder();
     if(this.owningUnit==null){            
@@ -373,7 +405,31 @@ getDrawingOrder() {
 getOrderWeight() {
     return 4;
 }
+drawClearence(g2,viewportWindow,scale,source){
+   if((source.copper.getLayerMaskID()&this.copper.getLayerMaskID())==0){        
+	   return;  //not on the same layer
+   }
+   g2.lineWidth=(this.thickness+2*(this.clearance!=0?this.clearance:source.clearance))*scale.getScale(); 
+   g2.strokeStyle = "black";
+   
+    
+   let clip=source.clip;
+   g2.save();
+   g2.beginPath();
+   g2.moveTo(clip[0].x,clip[0].y);
+   for (var i = 1; i < clip.length; i++) {
+	   g2.lineTo(clip[i].x, clip[i].y);
+   } 
+   g2.fill();
+   g2.clip();
+   
+   let a=this.polyline.clone();
+   a.scale(scale.getScale());
+   a.move( - viewportWindow.x, - viewportWindow.y);		
+   a.paint(g2);
 
+   g2.restore();
+}
 Paint(g2, viewportWindow, scale) {
 	var rect = this.polyline.box;
 	rect.scale(scale.getScale());		
@@ -409,9 +465,9 @@ Paint(g2, viewportWindow, scale) {
 	}
 	
 	g2.globalCompositeOperation = 'source-over';
-	if (this.selection) {
-		this.drawControlPoints(g2, viewportWindow, scale);
-	}
+//	if (this.selection) {
+//		this.drawControlPoints(g2, viewportWindow, scale);
+//	}
 
 
 }
@@ -419,7 +475,7 @@ drawControlShape(g2, viewportWindow, scale){
     if((!this.isSelected())/*&&(!this.isSublineSelected())*/){
       return;
     }
-    //super.drawControlShape(g2, viewportWindow, scale);
+    this.drawControlPoints(g2, viewportWindow, scale);
 }
 fromXML(data) {
 
@@ -441,6 +497,7 @@ class PCBHole extends Shape{
         this.fillColor='white';
         this.selectionRectWidth = 3000;
         this.circle=new d2.Circle(new d2.Point(0,0),core.MM_TO_COORD(1.6)/2);
+        this.clearance=0;
    	}
 clone(){
 	   	var copy = new PCBHole();
@@ -467,7 +524,29 @@ setWidth(width){
 	}
 calculateShape() {
 	    return this.circle.box;
-	}	
+	}
+drawClearence(g2, viewportWindow,scale, source) {
+	
+    let r=this.circle.r+(this.clearance!=0?this.clearance:source.clearance);
+    let c=new d2.Circle(this.circle.pc.clone(),r);
+	let rect=c.box;
+	if (!rect.intersects(source.getBoundingShape())) {
+		return;
+	}
+
+	rect.scale(scale.getScale());
+	if (!rect.intersects(viewportWindow)) {
+		return;
+	}
+	g2._fill=true;
+	g2.fillStyle = "black";	
+	
+	c.scale(scale.getScale());
+    c.move(-viewportWindow.x,- viewportWindow.y);
+	c.paint(g2);
+	
+    g2._fill=false;	
+}
 Paint(g2, viewportWindow, scale) {	
 	var rect = this.calculateShape();
 	rect.scale(scale.getScale());
@@ -505,7 +584,8 @@ constructor() {
 		this.inner=new d2.Circle(new d2.Point(0,0),core.MM_TO_COORD(0.4));
         this.selectionRectWidth = 3000;
 		this.displayName='Via';	
-        this.fillColor='white';         
+        this.fillColor='white'; 
+        this.clearance=0;
    	}
 
 clone(){
@@ -531,6 +611,28 @@ setWidth(width){
 }
 calculateShape() {
     return this.outer.box;
+}
+drawClearence(g2, viewportWindow,scale, source) {    
+	
+    let r=this.outer.r+(this.clearance!=0?this.clearance:source.clearance);
+    let c=new d2.Circle(this.outer.pc.clone(),r);
+	let rect=c.box;
+	if (!rect.intersects(source.getBoundingShape())) {
+		return;
+	}
+
+	rect.scale(scale.getScale());
+	if (!rect.intersects(viewportWindow)) {
+		return;
+	}
+	g2._fill=true;
+	g2.fillStyle = "black";	
+	
+	c.scale(scale.getScale());
+    c.move(-viewportWindow.x,- viewportWindow.y);
+	c.paint(g2);
+	
+    g2._fill=false;
 }
 Paint(g2, viewportWindow, scale) {
 	
@@ -647,12 +749,23 @@ class PCBCopperArea extends Shape{
         this.fill=core.Fill.FILLED;
         this.polygon=new d2.Polygon();
         this.resizingPoint;
+        this.clip=[];
     }
 clone(){
     let copy=new PCBCopperArea(this.copper.getLayerMaskID());
     copy.polygon=this.polygon.clone();  
     return copy;	
-}	
+}
+
+prepareClippingRegion(viewportWindow,scale){
+    this.clip=[];
+    this.polygon.points.forEach(function(point){
+        let p=point.clone();            
+        p.scale(scale.getScale());
+        p.move(-viewportWindow.x,-viewportWindow.y);
+        this.clip.push(p);    
+	}.bind(this));
+}
 calculateShape(){  	    
    return this.polygon.box;
 }	
@@ -668,7 +781,7 @@ getDrawingOrder() {
         return super.getDrawingOrder();
     }
     
-    if(this.owningUnit.getActiveSide()==core.Layer.Side.resolve(this.copper.getLayerMaskID())){
+    if(this.owningUnit.compositeLayer.activeSide==core.Layer.Side.resolve(this.copper.getLayerMaskID())){
        return 2;
     }else{
        return 1; 
@@ -748,9 +861,14 @@ Paint(g2,viewportWindow,scale, layersmask){
 	a.paint(g2);
 	g2._fill=false;
     
-	if (this.isSelected()) {
-		this.drawControlShape(g2, viewportWindow, scale);
-	}
+    
+    //draw clearence background
+    this.prepareClippingRegion(viewportWindow, scale);
+    this.owningUnit.shapes.forEach(target=>{
+    	if(target.drawClearence!=undefined){
+         target.drawClearence(g2, viewportWindow, scale, this);
+    	}
+    });
 	
 	
 //	let dst = [];

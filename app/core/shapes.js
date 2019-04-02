@@ -75,6 +75,13 @@ getUUID() {
 calculateShape() {
 
 	}
+isVisibleOnLayers(layermasks){
+    if((this.copper.getLayerMaskID()&layermasks)!=0){
+        return true;
+    }else{
+        return false;
+    }
+}
 isInRect(r){
 	let rect=this.getBoundingShape();
         if(r.contains(rect.center))
