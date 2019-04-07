@@ -116,6 +116,9 @@ module.exports = function(d2) {
             this.x=scalar * this.x;
             this.y=scalar * this.y;
         }
+        add(v){
+        	return new Vector(this.x+v.x,this.y+v.y);
+        }
 
 	}
 	

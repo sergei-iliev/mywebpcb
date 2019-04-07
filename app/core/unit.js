@@ -302,11 +302,15 @@ getClickedShape( x,  y,  isTextIncluded){
     return null;  
 }
 isShapeVisibleOnLayers(shape){
+   if (undefined !=this.compositeLayer) {	
     if(shape.isVisibleOnLayers(this.compositeLayer.getLayerMaskID())){
       return true;
     }else{
       return false;  
     }    
+   }else{
+	   return true;
+   }
 }
 //buildClickableOrderItem(x,  y,  isTextIncluded){
 //     var orderElements = [];

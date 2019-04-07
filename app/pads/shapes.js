@@ -488,6 +488,7 @@ constructor(x,y,r,thickness,layermaskid){
 		this.arc=new d2.Arc(new d2.Point(x,y),r,50,70);
 		this.rotate=0;
 		this.center=null;
+		this.temp=1;
 }
 clone() {
 		var copy = new Arc(this.arc.center.x,this.arc.center.y, this.arc.r,this.thickness,this.copper.getLayerMaskID());		
@@ -620,17 +621,27 @@ Resize(xoffset, yoffset,point) {
     //let pt=this.calculateResizingMidPoint(point.x,point.y);    
     //let r=this.arc.center.distanceTo(pt);
     //this.arc.r=r;
-    
-	let a1=this.arc.middle;  //old middle
+	
+	//old middle point on arc
+	let a1=this.arc.middle;  
+	//mid point on line
 	let m=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
+	//new middle point on arc
 	let a2=this.calculateResizingMidPoint(point.x,point.y);  //new middle
-    
+	
+	//do they belong to the same plane in regard to m 
 	let vec = new d2.Vector(m, a2);
 	let linevec=new d2.Vector(m,a1);
     let samePlane = d2.utils.GT(vec.dot(linevec.normalize()), 0);
+    
+    
 //which plane
 	console.log(samePlane);
-	if(samePlane){
+	if(!samePlane){
+		this.temp*=-1;
+		//this.arc.endAngle*=-1;	
+	}
+	if(this.temp>0){
 		let C=this.calculateResizingMidPoint(point.x,point.y);  //projection
 		let C1=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
     
@@ -656,50 +667,17 @@ Resize(xoffset, yoffset,point) {
     //fix angles
 		let start = 360 - startAngle;
 		let end= (360-endAngle-start);
-		if(end<0){
+		if(end<0){ 
 			end=360-Math.abs(end);
 		}
-	//console.log(endAngle);
-    
+
+	
 		this.arc.center.set(center.x,center.y);
 		this.arc.r=r;
 		this.arc.startAngle=start;
 		this.arc.endAngle=end;
 	}else{
-		let C=this.calculateResizingMidPoint(point.x,point.y);  //projection
-		let C1=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
 		
-		let y=C1.distanceTo(C);
-		let x=C1.distanceTo(this.arc.start);
-    
-		let l=(x*x)/y;
-		let lambda=(l-y)/2;
-		
-		let v=new d2.Vector(C,C1);
-		let norm=v.normalize();			  
-	
-		let a=C1.x +lambda*norm.x;
-		let b=C1.y + lambda*norm.y;
-		let center=new d2.Point(a,b);
-		
-		let startAngle =new d2.Vector(center,this.arc.start).slope;
-		let endAngle = new d2.Vector(center, this.arc.end).slope;
-    
-		let r = center.distanceTo(this.arc.start);
-		
-	    //fix angles
-		let start = 360 - startAngle;
-		let end= (360-endAngle-start);
-		console.log(end);
-		//if(end<0){
-		//	end=360-Math.abs(end);
-		//}
-	//console.log(endAngle);
-    
-		this.arc.center.set(center.x,center.y);
-		this.arc.r=r;
-		this.arc.startAngle=start;
-		this.arc.endAngle=end;
 	}
 }
 Move(xoffset,yoffset){

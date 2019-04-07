@@ -341,6 +341,114 @@ module.exports = function(d2) {
 			}
 	    	
 		}
+	    grow(offset,g2){
+	    	let copy=this.clone();
+	    	//left
+	    	let v=new d2.Vector(copy.points[1],copy.points[0]);
+	    	let p=copy.points[0].clone();
+	    	let norm=v.normalize();
+	    	let x=p.x+offset*norm.x;
+	    	let y=p.y+offset*norm.y;
+	    	
+	    	let a=new d2.Vector(p,new d2.Point(x,y));
+	    	
+	    	 v=new d2.Vector(copy.points[3],copy.points[0]);
+	    	 norm=v.normalize();
+	    	 x=p.x+offset*norm.x;
+	    	 y=p.y+offset*norm.y;
+			
+	    	 
+	    	 let b=new d2.Vector(p,new d2.Point(x,y));
+	    	 let c=a.add(b);
+	    	 let length=c.length;
+	    	 
+	    	 
+	    	 norm=c.normalize();
+	    	 x=p.x+length*norm.x;
+	    	 y=p.y+length*norm.y;
+	    	 
+	    	 this.points[0].set(x,y);
+	    	
+	    	 //right
+		     v=new d2.Vector(copy.points[0],copy.points[1]);
+		     p=copy.points[1].clone();
+		     norm=v.normalize();
+		     x=p.x+offset*norm.x;
+		     y=p.y+offset*norm.y;
+		    	
+		     a=new d2.Vector(p,new d2.Point(x,y));
+		    	
+		     v=new d2.Vector(copy.points[2],copy.points[1]);
+		     norm=v.normalize();
+		     x=p.x+offset*norm.x;
+		     y=p.y+offset*norm.y;
+
+				    
+		     b=new d2.Vector(p,new d2.Point(x,y));
+		     c=a.add(b);
+		     length=c.length;
+		    	 
+		    	 
+		     norm=c.normalize();
+		     x=p.x+length*norm.x;
+		     y=p.y+length*norm.y;
+		    	 
+		     this.points[1].set(x,y);
+	    	 
+	    	 //bottom right
+		     v=new d2.Vector(copy.points[1],copy.points[2]);
+		     p=this.points[2].clone();
+		     norm=v.normalize();
+		     x=p.x+offset*norm.x;
+		     y=p.y+offset*norm.y;
+		    	
+		     a=new d2.Vector(p,new d2.Point(x,y));
+		    	
+		    	
+		     v=new d2.Vector(copy.points[3],copy.points[2]);
+		     norm=v.normalize();
+		     x=p.x+offset*norm.x;
+		     y=p.y+offset*norm.y;
+		    				 
+				    
+		     b=new d2.Vector(p,new d2.Point(x,y));
+		     c=a.add(b);
+		     length=c.length;
+		    	 
+		    	 
+		     norm=c.normalize();
+		     x=p.x+length*norm.x;
+		     y=p.y+length*norm.y;
+		    	 
+		     this.points[2].set(x,y);
+		     
+	    	 //bottom left
+		     v=new d2.Vector(copy.points[0],copy.points[3]);
+		     p=copy.points[3].clone();
+		     norm=v.normalize();
+		     x=p.x+offset*norm.x;
+		     y=p.y+offset*norm.y;
+		    	
+		     a=new d2.Vector(p,new d2.Point(x,y));
+		    	
+		    	
+		     v=new d2.Vector(copy.points[2],copy.points[3]);
+		     norm=v.normalize();
+		     x=p.x+offset*norm.x;
+		     y=p.y+offset*norm.y;
+		    				 
+				    
+		     b=new d2.Vector(p,new d2.Point(x,y));
+		     c=a.add(b);
+		     length=c.length;
+		    	 
+		    	 
+		     norm=c.normalize();
+		     x=p.x+length*norm.x;
+		     y=p.y+length*norm.y;
+		    	 
+		     this.points[3].set(x,y);		     
+	    }
 		intersects(r) {
 			let box=this.box;	
 	    // calculate the left common area coordinate:

@@ -298,12 +298,14 @@ drawClearence(g2,viewportWindow,scale,source){
    rect.min.move(-clear,-clear);
    rect.max.move(clear,clear);
    
-    if (!rect.intersects(source.getBoundingShape())) {
+   if (!rect.intersects(source.getBoundingShape())) {
 		return;
-    }
+   }
 
     let r=this.texture.getBoundingRect();
-	r.scale(scale.getScale());
+ 
+	r.grow(clear);
+    r.scale(scale.getScale());
 	if (!r.intersects(viewportWindow)) {
 		return;
 	}
