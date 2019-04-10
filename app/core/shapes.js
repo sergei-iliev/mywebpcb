@@ -133,7 +133,7 @@ fromXML(data) {
 class Ruler extends Shape{
 constructor () {
 	super(0, 0, 0, 0, 0, 0);
-    this.text=new font.FontTexture('label','',0,0,20);
+    this.text=new font.FontTexture('label','',0,0,20,0);
     this.text.constSize=true;
     this.text.fillColor='white';        
 	this.resizingPoint=null;

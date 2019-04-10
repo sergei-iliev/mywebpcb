@@ -1128,8 +1128,8 @@ class Pad extends Shape{
 	   this.setType(PadType.THROUGH_HOLE);	   
 	   this.setDisplayName("Pad");
 	   this.text=new core.ChipText();
-	   this.text.Add(new font.FontTexture("number","1",x,y,4000));
-	   this.text.Add(new font.FontTexture("netvalue","",x,y,4000));   
+	   this.text.Add(new font.FontTexture("number","1",x,y,4000,0));
+	   this.text.Add(new font.FontTexture("netvalue","",x,y,4000,0));   
 	}
 clone(){
 	     var copy=new Pad(0,0,this.width,this.height);

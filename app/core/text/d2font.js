@@ -1,17 +1,30 @@
 var d2=require('d2/d2');
-
+class TextureCache{
+	constructor(shape) {
+		this.shape=shape;
+		this.rotation=0;
+		this.fontSize=0;
+		this.text=0;
+	}
+	reset(shape,fontSize,text,rotation){
+		this.shape=shape;
+		this.rotation=rotation;
+		this.fontSize=fontSize;
+		this.text=text;
+	
+	}
+}
 class FontTexture{
- constructor(tag,text,x,y,fontSize) {
+ constructor(tag,text,x,y,fontSize,rotation) {
     this.tag=tag;
-	this.shape=new d2.FontText(new d2.Point(x,y),text,fontSize);    
+	this.shape=new d2.FontText(new d2.Point(x,y),text,fontSize,rotation);    
 	this.selection=false;
 	this.selectionRectWidth=3000;
 	this.constSize=false;
+	this.cache=new TextureCache(this);
  }
 clone(){
-     var copy=new FontTexture(this.tag,this.shape.text,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.fontSize);     
-     copy.shape.rotation=this.shape.rotation;
-     copy.shape.metrics.recalculateMetrics(this.shape.fontSize,this.shape.text);
+     var copy=new FontTexture(this.tag,this.shape.text,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.fontSize,this.shape.rotation);     
      return copy;	 
  } 
 isEmpty() {
@@ -29,6 +42,9 @@ getBoundingRect(){
         return null;
     } 
     
+}
+isChanged(fontSize,text,rotation){
+	return fontSize===this.cache.fontSize&&text===this.cache.text&&rotation===this.cache.rotation
 }
 setLocation(x,y){
 	this.shape.setLocation(x,y);
@@ -60,12 +76,23 @@ Paint(g2,viewportWindow,scale){
 	 }
 	 g2.fillStyle = 'white';
 	 
-	 let t=this.shape.clone();
-     t.scale(scale.getScale());
-     t.move(-viewportWindow.x,- viewportWindow.y);
+//	 if(!this.isChanged(parseInt(this.shape.fontSize*scale.getScale()),this.shape.text,this.shape.rotation)){
+//	  this.cache.reset(this.shape.clone(),parseInt(this.shape.fontSize*scale.getScale()),this.shape.text,this.shape.rotation);
+//      this.cache.shape.scale(scale.getScale());
+//      this.cache.shape.move(-viewportWindow.x,- viewportWindow.y);
+//	 }else{
+//		 
+//		 console.log('2222');
+//	 }
+//     this.cache.shape.paint(g2);
 	 
-     t.paint(g2);
-
+//     let t=this.shape.clone();
+//     t.scale(scale.getScale());
+//     t.move(-viewportWindow.x,- viewportWindow.y);     
+//     t.paint(g2);
+  
+	 this.shape.scalePaint(g2,viewportWindow,scale.getScale());
+		 
      if(this.selection){
  		 g2.lineWidth =1;
  		 g2.strokeStyle = 'blue';
