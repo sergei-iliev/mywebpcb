@@ -262,7 +262,7 @@ getClickedShape( x,  y,  isTextIncluded){
         return null;
     }
     //Text?
-    if (undefined !=this.shapes[0]['getChipText']) {   
+    if (undefined !=clickedShapes[0]['getChipText']) {   
         if(this.isShapeVisibleOnLayers(clickedShapes[0])){             
           return clickedShapes[0];
         }
