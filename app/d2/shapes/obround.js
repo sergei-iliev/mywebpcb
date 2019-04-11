@@ -2,6 +2,7 @@ module.exports = function(d2) {
 	
 	d2.Obround = class Obround{
 		/**
+		 * Obround is regarded as a line with variable thickness
 		 * @input pt - center 
 		 * @input width - relative,  line width + 2  arcs at both ends
 		 * this.width=ps to pe + 2 rcs radius
@@ -111,7 +112,14 @@ module.exports = function(d2) {
             this.pc.move(offsetX,offsetY);
             this.ps.move(offsetX,offsetY);
             this.pe.move(offsetX,offsetY);
-        }    	
+        }  
+	    grow(offset){
+			if(this.width>=this.height){
+			  this.height+=2*offset;
+			}else{
+			  this.width+=2*offset;
+			}
+	    }
 		paint(g2){
 			g2.beginPath();
 			let l=g2.lineWidth;

@@ -341,7 +341,7 @@ module.exports = function(d2) {
 			}
 	    	
 		}
-	    grow(offset,g2){
+	    grow(offset){
 	    	let copy=this.clone();
 	    	//left
 	    	let v=new d2.Vector(copy.points[1],copy.points[0]);

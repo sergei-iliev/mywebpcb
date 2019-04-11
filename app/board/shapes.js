@@ -6,6 +6,7 @@ var glyph=require('core/text/d2glyph');
 var font=require('core/text/d2font');
 var Circle =require('pads/shapes').Circle;
 var Arc =require('pads/shapes').Arc;
+var Pad =require('pads/shapes').Pad;
 var Line =require('pads/shapes').Line;
 var RoundRect =require('pads/shapes').RoundRect;
 var SolidRegion =require('pads/shapes').SolidRegion;
@@ -176,6 +177,24 @@ Rotate(rotation){
 	  
 	   this.text.Rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	   this.rotate=alpha;
+}
+drawClearence(g2,viewportWindow,scale,source){
+    let rect=this.getBoundingShape();
+    if (!rect.intersects(source.getBoundingShape())) {    
+    	return;
+    }
+    
+    rect.scale(scale.getScale());
+	if (!rect.intersects(viewportWindow)) {
+		return;
+	}
+	var len=this.shapes.length;
+	for(i=0;i<len;i++){
+	  if(this.shapes[i] instanceof Pad){
+		  this.shapes[i].drawClearence(g2,viewportWindow,scale,source); 
+	  }
+	}
+	
 }
 Paint(g2, viewportWindow, scale,layermask) {        
      

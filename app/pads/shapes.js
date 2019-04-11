@@ -1349,6 +1349,21 @@ setHeight(height){
 calculateShape() {
 	return this.shape.box;
 } 
+validateClearance(source){
+    //is different layer and SMD -> no clearance
+    if ((source.copper.getLayerMaskID() & this.copper.getLayerMaskID()) == 0) {
+        //if(this.type==PadType.SMD)
+           return false; //not on the same layer
+    }	
+	return true;
+}
+drawClearence(g2,viewportWindow,scale,source){
+    if(!this.validateClearance(source)){
+        return;
+    }
+	
+	this.shape.drawClearence(g2,viewportWindow,scale,source);
+}
 Paint(g2,viewportWindow,scale){
 	    switch(this.type){
 	    case PadType.THROUGH_HOLE:
@@ -1373,6 +1388,22 @@ class CircularShape{
 		this.pad=pad;
 		this.circle=new d2.Circle(new d2.Point(x,y),width/2);		
 	}
+	drawClearence(g2,viewportWindow,scale,source){
+	    let c=this.circle.clone();
+	    
+		
+		g2._fill=true;
+		g2.fillStyle = "black";	
+		
+		c.grow(source.clearance);
+		
+		
+	    c.scale(scale.getScale());		
+	    c.move(-viewportWindow.x,- viewportWindow.y);
+		c.paint(g2);
+		
+	    g2._fill=false;			
+	}	
     Paint(g2,viewportWindow,scale){
 	     var box=this.circle.box;
 	     box.scale(scale.scale);     
@@ -1438,6 +1469,21 @@ class RectangularShape{
 		this.pad=pad;
 		this.rect=new d2.Rectangle(new d2.Point(x-width/2,y-height/2),width,height);			
 }
+drawClearence(g2,viewportWindow,scale,source){
+    let r=this.rect.clone();
+    
+	
+	g2._fill=true;
+	g2.fillStyle = "black";	
+	
+	r.grow(source.clearance);
+	
+    r.scale(scale.getScale());		
+    r.move(-viewportWindow.x,- viewportWindow.y);
+	r.paint(g2);
+	
+    g2._fill=false;			
+}
 Paint(g2,viewportWindow,scale){
 	   var box=this.rect.box;
 	   box.scale(scale.scale);     
@@ -1502,6 +1548,17 @@ class OvalShape{
 	   this.pad=pad;
 	   this.obround=new d2.Obround(new d2.Point(x,y),width,height);
 	}
+	drawClearence(g2,viewportWindow,scale,source){
+		let o=this.obround.clone();
+	    o.grow(source.clearance);
+
+	    g2.strokeStyle = "black";  
+
+		o.scale(scale.getScale());
+	    o.move(-viewportWindow.x,- viewportWindow.y);
+		o.paint(g2);
+		
+	}
 Paint(g2,viewportWindow,scale){
 	     var box=this.obround.box;
 	     box.scale(scale.scale);     
@@ -1565,7 +1622,18 @@ constructor(x,y,width,pad){
 		this.pad=pad;
 		this.hexagon=new d2.Hexagon(new d2.Point(x,y),width);		
 }	
-
+drawClearence(g2,viewportWindow,scale,source){
+	    let h=new d2.Hexagon(this.hexagon.center.clone(),(this.hexagon.width+2*source.clearance));
+	    h.rotate(this.pad.rotate);
+     
+	    g2._fill=true;		   
+		g2.fillStyle = "black";	
+	    h.scale(scale.getScale());
+        h.move(-viewportWindow.x,- viewportWindow.y);
+	    h.paint(g2);
+	    
+	    g2._fill=false;
+}
 Paint(g2, viewportWindow, scale) {
 		   var box=this.hexagon.box;
 		   box.scale(scale.scale);     

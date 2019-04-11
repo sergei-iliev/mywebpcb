@@ -55,6 +55,7 @@ app.get('/rest/footprints/libraries/Atmel/categories/CPU', (req, res, next) => {
 '<name fullname="Tiny2313" category="CPU"  library="Atmel">Tiny2313</name>'+
 '<name fullname="Mega16" category="CPU"  library="Atmel">Mega16</name>'+
 '<name fullname="test" category="CPU"  library="Atmel">test</name>'+
+'<name fullname="test1" category="CPU"  library="Atmel">test1</name>'+
 '<name fullname="testpackage" category="CPU"  library="Atmel">testpackage</name>'+
 '</units>'
 );
@@ -79,6 +80,11 @@ app.get('/rest/footprints/libraries/Atmel/categories/CPU/mega8', (req, res, next
 });
 app.get('/rest/footprints/libraries/Atmel/categories/CPU/test', (req, res, next) => {
     fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\library\\footprints\\Atmel\\CPU\\test.xml','utf8', function(err, data) {
+		res.send(data);
+  });
+});
+app.get('/rest/footprints/libraries/Atmel/categories/CPU/test1', (req, res, next) => {
+    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\library\\footprints\\Atmel\\CPU\\test1.xml','utf8', function(err, data) {
 		res.send(data);
   });
 });

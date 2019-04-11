@@ -42,6 +42,9 @@ module.exports = function(d2) {
        mirror(line){
     	   this.pc.mirror(line);
        }
+       grow(offset){
+    	  this.r+=offset; 
+       }
        scale(alpha){
     	   this.pc.scale(alpha);
     	   this.r*=alpha;
