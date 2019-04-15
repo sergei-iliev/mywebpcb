@@ -133,7 +133,7 @@ fromXML(data) {
 class Ruler extends Shape{
 constructor () {
 	super(0, 0, 0, 0, 0, 0);
-    this.text=new font.FontTexture('label','',0,0,20,0);
+    this.text=new font.FontTexture('label','',0,0,core.MM_TO_COORD(1),0);
     this.text.constSize=true;
     this.text.fillColor='white';        
 	this.resizingPoint=null;
@@ -149,7 +149,6 @@ paint( g2,  viewportWindow,  scale) {
         this.text.setText(parseFloat(core.COORD_TO_MM(this.resizingPoint.distanceTo(new d2.Point(this.x,this.y)))).toFixed(4)+' MM');
                 
         this.text.Paint(g2, viewportWindow, scale);
-
         let line=new d2.Segment(this.x,this.y,this.resizingPoint.x,this.resizingPoint.y);
 
         g2.strokeStyle  = 'white';
@@ -453,7 +452,7 @@ calculateShape() {
 
 
 drawControlPoints(g2, viewportWindow, scale) {
-	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.polyline.points);	
+	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.polyline.points);	
 }
 isFloating() {
 	return (!(this.floatingStartPoint

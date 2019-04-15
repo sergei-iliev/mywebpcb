@@ -116,7 +116,10 @@ reorder(){
 			return 0;
 	});
 }
-
+setActiveSide(side) {
+    this.compositeLayer.activeSide=side;
+    this.reorder();
+}
 paint(g2, viewportWindow){
 	   let len=this.shapes.length;
  	   for(let i=0;i<len;i++){

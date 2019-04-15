@@ -481,6 +481,7 @@ var BoardPanelBuilder=BaseBuilder.extend({
         'keypress #widthid':'onenter',
         'keypress #heightid':'onenter',
         'change #gridrasterid': 'onchange',
+        'change #sideid': 'onchange',
         'keypress #originxid':'onenter',
         'keypress #originyid':'onenter',
     },
@@ -508,13 +509,18 @@ var BoardPanelBuilder=BaseBuilder.extend({
 		if(event.target.id=='gridrasterid'){
 			this.target.grid.setGridValue(parseFloat(j$("#gridrasterid").val()));
 			this.component.Repaint();
+		}	
+		if(event.target.id=='sideid'){
+			this.target.setActiveSide(j$("#sideid").val());
+			this.component.Repaint();
 		}		
 	},
 	updateui:function(){
 	   j$("#nameid").val(this.target.unitName);
 	   j$("#widthid").val(core.COORD_TO_MM( this.target.width));    
 	   j$("#heightid").val(core.COORD_TO_MM(this.target.height));
-	   j$("#gridrasterid").val(this.target.grid.getGridValue());
+	   j$("#gridrasterid").val(this.target.grid.getGridValue());	 
+	   j$("#sideid").val(this.target.compositeLayer.activeSide);
 	   if(this.component.getModel().getUnit().coordinateSystem!=null){
 		     j$("#originxid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getX()));    
 		     j$("#originyid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getY()));
@@ -524,6 +530,11 @@ var BoardPanelBuilder=BaseBuilder.extend({
 		j$(this.el).empty();
 		j$(this.el).append(
 				"<table width='100%'>"+
+				"<tr><td style='padding:7px'>Side</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"sideid\">"+
+			    this.fillComboBox([{id:1,value:'TOP',selected:true},{id:2,value:'BOTTOM'}])+
+			    "</select>" +
+				"</td></tr>"+				
 				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Width</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='heightid' value='' class='form-control input-sm\'></td></tr>"+

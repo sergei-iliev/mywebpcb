@@ -486,10 +486,6 @@ Paint(g2, viewportWindow, scale) {
 	}
 	
 	g2.globalCompositeOperation = 'source-over';
-//	if (this.selection) {
-//		this.drawControlPoints(g2, viewportWindow, scale);
-//	}
-
 
 }
 drawControlShape(g2, viewportWindow, scale){   
