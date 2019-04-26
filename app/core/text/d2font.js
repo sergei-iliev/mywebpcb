@@ -62,7 +62,7 @@ Move(xoffset, yoffset){
    this.shape.move(xoffset, yoffset);  
 }
 
-Paint(g2,viewportWindow,scale){
+paint(g2,viewportWindow,scale){
 	 if(this.isEmpty()){
 	   return;	 
 	 }

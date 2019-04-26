@@ -134,7 +134,7 @@ Paint(g2, viewportWindow, scale) {
 		} else {
 			this.texture.fillColor = this.copper.getColor();
 		}
-		this.texture.Paint(g2, viewportWindow, scale,this.copper.getLayerMaskID());
+		this.texture.paint(g2, viewportWindow, scale,this.copper.getLayerMaskID());
     }
 }	
 class RoundRect extends Shape{
@@ -1378,7 +1378,7 @@ Paint(g2,viewportWindow,scale){
 	        break;
 	    
 	    }
-	    this.text.Paint(g2, viewportWindow, scale);	    
+	    this.text.paint(g2, viewportWindow, scale);	    
 	 }
 
 }

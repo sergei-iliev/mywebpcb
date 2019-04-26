@@ -211,7 +211,7 @@ Paint(g2, viewportWindow, scale,layermask) {
     this.text.text.forEach(function(texture){
            //if((texture.getLayermaskId()&layermask)!=0){            
        texture.fillColor=(this.selection?'gray':'cyan');
-       texture.Paint(g2,viewportWindow,scale,layermask);
+       texture.paint(g2,viewportWindow,scale,layermask);
            //}
     },this);      
     

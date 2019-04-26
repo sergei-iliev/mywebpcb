@@ -661,9 +661,9 @@ Rotate(rotate,pt) {
 		     texture.Rotate(rotate,pt); 
 		   });         
 		 }		 
-Paint( g2,  viewportWindow,  scale) {
+paint( g2,  viewportWindow,  scale) {
 	  this.text.forEach(function(texture){
-		  texture.Paint(g2,viewportWindow,scale); 
+		  texture.paint(g2,viewportWindow,scale); 
 	   }); 
 	  }
 setLocation( x,  y) {

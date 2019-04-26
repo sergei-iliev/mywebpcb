@@ -148,7 +148,7 @@ paint( g2,  viewportWindow,  scale) {
         }
         this.text.setText(parseFloat(core.COORD_TO_MM(this.resizingPoint.distanceTo(new d2.Point(this.x,this.y)))).toFixed(4)+' MM');
                 
-        this.text.Paint(g2, viewportWindow, scale);
+        this.text.paint(g2, viewportWindow, scale);
         let line=new d2.Segment(this.x,this.y,this.resizingPoint.x,this.resizingPoint.y);
 
         g2.strokeStyle  = 'white';

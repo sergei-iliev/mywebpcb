@@ -341,7 +341,7 @@ Rotate(rotate,pt){
 	}.bind(this));	
 		
 }
-Paint(g2,viewportWindow,scale,layermaskId){
+paint(g2,viewportWindow,scale,layermaskId){
    if (this.isEmpty()) {
         return;
    }
