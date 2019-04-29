@@ -34,6 +34,7 @@ var Board=require('board/d/boardcomponent').Board;
 			 new togglebutton.ToggleButtonModel({id:'rotaterightid'}),
 			 new togglebutton.ToggleButtonModel({id:'grabid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'tocenterid'}),
+			 new togglebutton.ToggleButtonModel({id:'layerid'}),
 			 new togglebutton.ToggleButtonModel({active:true,id:'selectionid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'loadfootprintid'}),
 			 new togglebutton.ToggleButtonModel({id:'ellipseid',group:'lefttogglegroup'}),
@@ -82,6 +83,8 @@ var Board=require('board/d/boardcomponent').Board;
 		            width: 520,
 		            height: 400,
 		            autoOpen:false
-             });				
+             });
+	
+			 
 	});
 })(jQuery);

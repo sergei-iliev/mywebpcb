@@ -618,10 +618,10 @@ Mirror(line) {
  * Resize through mouse position point
  */
 Resize(xoffset, yoffset,point) {    
-    //let pt=this.calculateResizingMidPoint(point.x,point.y);    
-    //let r=this.arc.center.distanceTo(pt);
-    //this.arc.r=r;
-	
+    let pt=this.calculateResizingMidPoint(point.x,point.y);    
+    let r=this.arc.center.distanceTo(pt);
+    this.arc.r=r;
+/*	
 	//old middle point on arc
 	let a1=this.arc.middle;  
 	//mid point on line
@@ -679,6 +679,7 @@ Resize(xoffset, yoffset,point) {
 	}else{
 		
 	}
+*/
 }
 Move(xoffset,yoffset){
   this.arc.move(xoffset,yoffset);	

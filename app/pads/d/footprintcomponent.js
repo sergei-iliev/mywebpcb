@@ -67,7 +67,7 @@ parse(data){
 	}	
 format(){   
    var xml="<footprint width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
-   xml+="<name>"+this.name+"</name>\r\n";
+   xml+="<name>"+this.unitName+"</name>\r\n";
    //***reference
    var text=UnitMgr.getInstance().getLabelByTag(this,'reference');
    if(text!=null){

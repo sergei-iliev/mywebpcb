@@ -20,11 +20,9 @@ var ComponentPanelBuilder=BaseBuilder.extend({
     },
     events: {
         'keypress #nameid' : 'onenter',	
+       
     },
-	onclick:function(event){
-		event.preventDefault();
-		alert("Hello from me with event.");
-	},
+	
 	onenter:function(event){
 		 if(event.keyCode != 13){
 			return; 
@@ -32,6 +30,9 @@ var ComponentPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='nameid'){
 			 this.target.getModel().setFileName(j$("#nameid").val()); 
 			 this.target.fireContainerEvent({target:null,type:events.Event.RENAME_CONTAINER});
+		 }
+		 if(event.target.id=='importid'){
+			 console.log(34);
 		 }
 		 //mycanvas.focus();
 		
@@ -44,9 +45,8 @@ var ComponentPanelBuilder=BaseBuilder.extend({
 		j$(this.el).append(
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
-				"</td></tr>"+
-		"</table>");
-			
+				"</td></tr></table>"
+		);	
 		return this;
 	}
 });

@@ -6,6 +6,8 @@ var FootprintLoadView=require('pads/views/footprintloadview');
 var BoardMgr = require('board/d/boardcomponent').BoardMgr;
 var UnitMgr = require('core/unit').UnitMgr;
 var BoardLoadView=require('board/views/boardloadview');
+var LayersPanelView=require('board/views/layerspanelview');
+
 
 var ToggleButtonView=Backbone.View.extend({
 
@@ -151,7 +153,10 @@ var ToggleButtonView=Backbone.View.extend({
 			
             this.boardComponent.setScrollPosition(parseInt(this.boardComponent.getModel().getUnit().width/2),
             		parseInt(this.boardComponent.getModel().getUnit().height/2));
-		}			
+		}	
+		if(event.data.model.id=='layerid'){
+			new LayersPanelView();		
+		}		
 	},
 	onfootprintload:function(selectedModel){
 		  let scaledEvent=this.boardComponent.getScaledEvent(selectedModel.event);
