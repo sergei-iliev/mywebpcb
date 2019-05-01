@@ -55,8 +55,10 @@ show(){
 	}    
 	this.opened = true;		  		  
 }
-close() {        
-    this.placeholder.className = "hidden";
+close() {
+	
+	j$(this.placeholder).removeClass("visible");
+	j$(this.placeholder).empty();
     this.opened = false;  
 }
 isOpen(){

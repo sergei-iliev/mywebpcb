@@ -8,14 +8,15 @@ exports.files = {
 	order:{
       before: [        
         'vendor/jquery/jquery-3.2.1.min.js',
-		'vendor/bootstrap/js/bootstrap.min.js',
 		'vendor/jqwidgets/js/jqxcore.js',
-		'vendor/jqwidgets/js/jqxwindow.js',
-		'vendor/jqwidgets/js/jqxbuttons.js',
-		'vendor/jqwidgets/js/jqxscrollbar.js',
+		'vendor/jqwidgets/js/jqxmenu.js',			
 		'vendor/jqwidgets/js/jqxpanel.js',
-		'vendor/jqwidgets/js/jqxtree.js',
+		'vendor/jqwidgets/js/jqxtree.js',		
+		'vendor/jqwidgets/js/jqxbuttons.js',
 		'vendor/jqwidgets/js/jqxcheckbox.js',
+		'vendor/jqwidgets/js/jqxscrollbar.js',		
+		'vendor/jqwidgets/js/jqxwindow.js',
+		'vendor/bootstrap/js/bootstrap.min.js',
 		'vendor/backbone/underscore-min.js',
 		'vendor/backbone/backbone-min.js'
 	  ]

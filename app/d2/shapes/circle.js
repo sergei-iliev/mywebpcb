@@ -12,7 +12,10 @@ module.exports = function(d2) {
        }
        clone() {
            return new d2.Circle(this.pc.clone(), this.r);
-       }   
+       } 
+       get area(){
+           return  ( Math.PI * this.r*this.r );	
+       }
        get center() {
            return this.pc;
        }
@@ -42,14 +45,13 @@ module.exports = function(d2) {
        mirror(line){
     	   this.pc.mirror(line);
        }
-       grow(offset){
-    	  this.r+=offset; 
-       }
        scale(alpha){
     	   this.pc.scale(alpha);
     	   this.r*=alpha;
        }
-       
+       grow(offset){
+     	  this.r+=offset; 
+       }
        paint(g2){
        	g2.beginPath();       	
        	g2.arc(this.pc.x,this.pc.y,this.r,0,2*Math.PI,true);

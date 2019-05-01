@@ -16,13 +16,15 @@ var ToggleButtonView=Backbone.View.extend({
 		this.collection=opt.collection;
 		this.footprintComponent=opt.footprintComponent;
 		mywebpcb.bind('libraryview:load',this.onload,this);
-		this.bind();
+		this.bind();	       
 		this.update();
 	},
 	bind:function(){
 		_.each(this.collection.models,j$.proxy(function(model,index,list) {
 				j$("#"+model.id).bind( "click",{model:model},j$.proxy(this.onclick,this));
-			}),this);	
+			}),this);
+		j$("#importfromclipboardid").click(j$.proxy(this.onimport,this));
+		
 	},
 	update:function(){
 		_.each(this.collection.models,function(model,index,list) {
@@ -37,6 +39,9 @@ var ToggleButtonView=Backbone.View.extend({
 		    }
 		}),this);		
 	},
+	onimport:function(event){
+		
+	},
 	onclick:function(event){
 	    event.preventDefault();
 	    //is this a group button
@@ -49,15 +54,16 @@ var ToggleButtonView=Backbone.View.extend({
 		    event.data.model.attributes.active=!event.data.model.attributes.active;
 	    }
 		this.update();
-		if(event.data.model.id=='newfootprintid'){
-			var footprint=new Footprint(core.MM_TO_COORD(50),core.MM_TO_COORD(50));
-            footprint.name="Sergio Leone";
-			this.footprintComponent.getModel().add(footprint);
-            this.footprintComponent.getModel().setActiveUnitUUID(footprint.getUUID());
-            this.footprintComponent.componentResized(); 
-            this.footprintComponent.Repaint();
-            this.footprintComponent.getModel().fireUnitEvent({target:this.footprintComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 	
-		}
+//		if(event.data.model.id=='newfootprintid'){
+			
+//			var footprint=new Footprint(core.MM_TO_COORD(50),core.MM_TO_COORD(50));
+//            footprint.name="Sergio Leone";
+//			this.footprintComponent.getModel().add(footprint);
+//            this.footprintComponent.getModel().setActiveUnitUUID(footprint.getUUID());
+//            this.footprintComponent.componentResized(); 
+//            this.footprintComponent.Repaint();
+//            this.footprintComponent.getModel().fireUnitEvent({target:this.footprintComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 	
+//		}
 		if(event.data.model.id=='saveid'){
 //		    j$.ajax({
 //		        type: 'GET',
@@ -82,7 +88,8 @@ var ToggleButtonView=Backbone.View.extend({
 
 		if(event.data.model.id=='loadid'){
 			 new FootprintLoadView({enabled:false}).render();			
-			 /**
+			 
+			/**
 		    j$.ajax({
 		        type: 'GET',
 		        contentType: 'application/xml',

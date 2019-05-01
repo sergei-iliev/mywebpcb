@@ -33,6 +33,9 @@ module.exports = function(d2) {
 	  clone(){
 		  return new d2.Box([this.min,this.max]);
 	  }
+	  get area(){
+		 return (this.max.x-this.min.x)*(this.max.y-this.min.y);  
+	  }
 	  setRect(x,y,width,height){
 		  this.min.set(x,y);
 		  this.max.set(x+width,y+height);

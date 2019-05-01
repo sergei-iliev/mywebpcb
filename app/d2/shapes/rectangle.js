@@ -34,6 +34,9 @@ module.exports = function(d2) {
     	    });  
     	    return copy;
 		}
+		get area(){
+			return (this.points[0].distanceTo(this.points[1]))*(this.points[1].distanceTo(this.points[2]));
+		}
 		reset(width,height){
 			let pc=this.box.center;			
 			this.points=[];

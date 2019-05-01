@@ -271,7 +271,8 @@ getClickedShape( x,  y,  isTextIncluded){
     clickedShapes.sort(function(o1, o2){
        
             //both on same side
-           let s1=core.Layer.Side.resolve(o1.copper.getLayerMaskID());
+    	 if(o1.owningUnit.compositeLayer!=undefined){    
+    	   let s1=core.Layer.Side.resolve(o1.copper.getLayerMaskID());
            let s2=core.Layer.Side.resolve(o2.copper.getLayerMaskID());
            let active=o1.owningUnit.compositeLayer.activeSide;
              //active layer has presedense
@@ -282,16 +283,16 @@ getClickedShape( x,  y,  isTextIncluded){
                      return 1;
                  }
            }
-       
+    	 }
                    
-       if ((o1.orderWeight - o2.orderWeight) == 0)
+       if ((o1.getOrderWeight() - o2.getOrderWeight()) == 0)
            return 0;
-       if ((o1.orderWeight - o2.orderWeight) > 0)
+       if ((o1.getOrderWeight() - o2.getOrderWeight()) > 0)
            return 1;
        else
            return -1;
        
-       }.bind(this));
+   }.bind(this));
     
     for(i=0;i<clickedShapes.length;i++){
        if(!this.isShapeVisibleOnLayers(clickedShapes[i])){             

@@ -226,7 +226,7 @@ class RoundRect extends Shape{
 		this.roundRect.resize(xoffset, yoffset,clickedPoint);
 	}
 	getOrderWeight(){
-		 return this.roundRect.box.width*this.roundRect.box.height; 
+		return this.roundRect.area; 
 	}	
 	toXML() {
 		return "<rectangle copper=\"" + this.copper.getName()
@@ -467,8 +467,8 @@ drawControlPoints(g2, viewportWindow, scale) {
 	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.circle.vertices);	
 }
 getOrderWeight(){
-	 return this.circle.r*this.circle.r; 
-}
+	return this.circle.area; 
+}	
 getResizingPoint() {
         return null;
 }
@@ -502,7 +502,7 @@ calculateShape() {
 	return this.arc.box;	
 }
 getOrderWeight(){
-    return this.arc.r*this.arc.r; 
+	return this.arc.area; 
 }
 fromXML(data){
         
@@ -770,6 +770,9 @@ clone(){
       copy.polygon=this.polygon.clone();
       copy.rotate=this.rotate;
       return copy;
+}
+getOrderWeight(){
+	return this.polygon.box.area; 
 }
 alignResizingPointToGrid(targetPoint) {
     this.owningUnit.grid.snapToGrid(targetPoint);         

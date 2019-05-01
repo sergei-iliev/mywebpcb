@@ -38,6 +38,7 @@ var ComponentPanelBuilder=BaseBuilder.extend({
 		
 	},
 	updateui:function(){
+		console.log(this.target.getModel());
 		j$("#nameid").val(this.target.getModel().formatedFileName);
 	},
 	render:function(){

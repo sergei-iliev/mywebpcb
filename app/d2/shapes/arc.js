@@ -17,6 +17,9 @@ module.exports = function(d2) {
         clone(){
            return new d2.Arc(this.pc.clone(),this.r,this.startAngle,this.endAngle);  	
         }
+        get area(){
+           return  ( Math.PI * this.r*this.r ) * ( this.sweep / 360 )	
+        }
         get center(){
         	return this.pc;
         }
@@ -68,7 +71,7 @@ module.exports = function(d2) {
         rotate(angle,center = {x:0, y:0}){
         	 this.pc.rotate(angle,center);
         	 this.startAngle+=angle;
-        	 if(this.startAngle>360){
+        	 if(this.startAngle>=360){
         		 this.startAngle-=360;
         	 }
         	 if(this.startAngle<0){
