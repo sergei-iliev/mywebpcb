@@ -6,6 +6,7 @@ var FootprintLoadView=require('pads/views/footprintloadview');
 var FootprintSaveView=require('pads/views/footprintsaveview');
 var Footprint=require('pads/d/footprintcomponent').Footprint;
 var UnitMgr = require('core/unit').UnitMgr;
+var FootprintContainer=require('pads/d/footprintcomponent').FootprintContainer;
 
 var ToggleButtonView=Backbone.View.extend({
 
@@ -40,7 +41,14 @@ var ToggleButtonView=Backbone.View.extend({
 		}),this);		
 	},
 	onimport:function(event){
-		
+		navigator.clipboard.readText().then(data =>{ 
+		      let footprintContainer=new FootprintContainer(true);
+		      //disable 
+		      core.isEventEnabled=false;
+		      footprintContainer.parse(data);
+		      core.isEventEnabled=true;
+		  	  mywebpcb.trigger('libraryview:load',footprintContainer);
+			});
 	},
 	onclick:function(event){
 	    event.preventDefault();
