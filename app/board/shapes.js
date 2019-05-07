@@ -196,7 +196,7 @@ drawClearence(g2,viewportWindow,scale,source){
 	}
 	
 }
-Paint(g2, viewportWindow, scale,layermask) {        
+paint(g2, viewportWindow, scale,layermask) {        
      
 	   var rect = this.getBoundingShape();		
 	   rect.scale(scale.getScale());
@@ -206,7 +206,7 @@ Paint(g2, viewportWindow, scale,layermask) {
 		
 	   var len=this.shapes.length;
 	   for(i=0;i<len;i++){
-		  this.shapes[i].Paint(g2,viewportWindow,scale);  
+		  this.shapes[i].paint(g2,viewportWindow,scale);  
 	   }
     this.text.text.forEach(function(texture){
            //if((texture.getLayermaskId()&layermask)!=0){            
@@ -451,13 +451,17 @@ drawClearence(g2,viewportWindow,scale,source){
 
    g2.restore();
 }
-Paint(g2, viewportWindow, scale) {
+paint(g2, viewportWindow, scale) {
+    //if ((this.copper.getLayerMaskID() & layermask) == 0) {
+    //    return;
+    //}
+	
 	var rect = this.polyline.box;
 	rect.scale(scale.getScale());		
 	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
 		return;
 	}
-	
+
 	g2.globalCompositeOperation = 'lighter';
 	g2.lineCap = 'round';
 	g2.lineJoin = 'round';
@@ -564,7 +568,7 @@ drawClearence(g2, viewportWindow,scale, source) {
 	
     g2._fill=false;	
 }
-Paint(g2, viewportWindow, scale) {	
+paint(g2, viewportWindow, scale) {	
 	var rect = this.calculateShape();
 	rect.scale(scale.getScale());
 	if (!rect.intersects(viewportWindow)) {
@@ -651,7 +655,7 @@ drawClearence(g2, viewportWindow,scale, source) {
 	
     g2._fill=false;
 }
-Paint(g2, viewportWindow, scale) {
+paint(g2, viewportWindow, scale) {
 	
 	var rect = this.calculateShape();
 	rect.scale(scale.getScale());
@@ -849,7 +853,7 @@ Resize(xoffset, yoffset, clickedPoint) {
 	clickedPoint.set(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);
 }
-Paint(g2,viewportWindow,scale, layersmask){
+paint(g2,viewportWindow,scale, layersmask){
 	var rect = this.polygon.box;
 	rect.scale(scale.getScale());		
 	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {

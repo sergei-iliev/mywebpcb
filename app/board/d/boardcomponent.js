@@ -123,7 +123,7 @@ setActiveSide(side) {
 paint(g2, viewportWindow){
 	   let len=this.shapes.length;
  	   for(let i=0;i<len;i++){
- 		   this.shapes[i].Paint(g2,viewportWindow,this.scalableTransformation);  
+ 		   this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation);  
  	   }
  	   this.shapes.forEach(function(shape){
  	    if (shape instanceof PCBTrack || shape instanceof PCBCopperArea) {

@@ -155,7 +155,7 @@ var ToggleButtonView=Backbone.View.extend({
             		parseInt(this.boardComponent.getModel().getUnit().height/2));
 		}	
 		if(event.data.model.id=='layerid'){
-			new LayersPanelView();		
+			new LayersPanelView(this.boardComponent);		
 		}		
 	},
 	onfootprintload:function(selectedModel){

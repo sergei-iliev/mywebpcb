@@ -452,7 +452,7 @@ notifyListeners(eventType) {
 paint(g2, viewportWindow){
  	   let len=this.shapes.length;
  	   for(let i=0;i<len;i++){
- 		   this.shapes[i].Paint(g2,viewportWindow,this.scalableTransformation);  
+ 		   this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation);  
  	   }
  	   //grid
        this.grid.paint(g2,viewportWindow,this.scalableTransformation);
@@ -837,9 +837,9 @@ Repaint(){
 	  if(this.getModel().getUnit()!=null){
       this.ctx.fillStyle = "black";
       this.ctx.fillRect(0, 0, this.width, this.height); 
-		this.getModel().getUnit().paint(this.ctx,this.viewportWindow);
+	  this.getModel().getUnit().paint(this.ctx,this.viewportWindow);
       if (this.cursor != null) {
-      	this.cursor.Paint(this.ctx,this.viewportWindow, this.getModel().getUnit().getScalableTransformation());
+      	this.cursor.paint(this.ctx,this.viewportWindow, this.getModel().getUnit().getScalableTransformation());
 
       }
 	  }else{

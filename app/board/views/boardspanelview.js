@@ -65,11 +65,11 @@ var CirclePanelBuilder=BaseBuilder.extend({
         'keypress #thicknessid' : 'onenter',        
         'keypress #radiusid' : 'onenter',
         'change #fillid': 'onchange',
-        'change #layerid':'onchange',
+        'change #controllayerid':'onchange',
     },
     onchange:function(event){
-        if(event.target.id=='layerid'){
-        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        if(event.target.id=='controllayerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
         }
         if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
@@ -98,7 +98,7 @@ var CirclePanelBuilder=BaseBuilder.extend({
     },
 
 	updateui:function(){
-		j$('#layerid').val(this.target.copper.getName());
+		j$('#controllayerid').val(this.target.copper.getName());
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
         j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
         j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
@@ -112,7 +112,7 @@ var CirclePanelBuilder=BaseBuilder.extend({
 		j$(this.el).append(
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
 				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
 			    "</select>" +
 				"</td></tr>"+				
@@ -145,11 +145,11 @@ var RectPanelBuilder=BaseBuilder.extend({
         'keypress #heightid' : 'onenter',
         'keypress #roundingid' : 'onenter',
         'change #fillid': 'onchange',
-        'change #layerid': 'onchange',
+        'change #controllayerid': 'onchange',
     },
     onchange:function(event){
-        if(event.target.id=='layerid'){
-        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        if(event.target.id=='controllayerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
         }
     	if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
@@ -177,7 +177,7 @@ var RectPanelBuilder=BaseBuilder.extend({
 		 this.component.Repaint(); 		 
     },
 	updateui:function(){
-		j$('#layerid').val(this.target.copper.getName());
+		j$('#controllayerid').val(this.target.copper.getName());
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
         j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
         j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
@@ -191,7 +191,7 @@ var RectPanelBuilder=BaseBuilder.extend({
 		j$(this.el).append(
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
 				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
 			    "</select>" +
 				"</td></tr>"+				
@@ -215,11 +215,11 @@ var SolidRegionPanelBuilder=BaseBuilder.extend({
 		this.id="solidregionpanelbuilder";  
     },	
     events: {
-        'change #layerid':'onchange'
+        'change #controllayerid':'onchange'
     },
     onchange:function(event){
-        if(event.target.id=='layerid'){
-        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        if(event.target.id=='controllayerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
         }              
         this.component.Repaint(); 
     }, 
@@ -231,7 +231,7 @@ var SolidRegionPanelBuilder=BaseBuilder.extend({
 		j$(this.el).append(
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
 				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
 			    "</select>" +
 				"</td></tr>"+							
@@ -253,11 +253,11 @@ var ArcPanelBuilder=BaseBuilder.extend({
         'keypress #startangleid' : 'onenter',
         'keypress #extendangleid' : 'onenter',
         'change #fillid': 'onchange', 
-        'change #layerid':'onchange',
+        'change #controllayerid':'onchange',
     },
     onchange:function(event){
-        if(event.target.id=='layerid'){
-        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        if(event.target.id=='controllayerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
         }
         if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
@@ -283,7 +283,7 @@ var ArcPanelBuilder=BaseBuilder.extend({
 		 this.component.Repaint(); 	
     },
 	updateui:function(){
-		j$('#layerid').val(this.target.copper.getName());
+		j$('#controllayerid').val(this.target.copper.getName());
 		j$("#startangleid").val(this.target.arc.startAngle);    
 		j$("#extendangleid").val(this.target.arc.endAngle);		
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
@@ -300,7 +300,7 @@ var ArcPanelBuilder=BaseBuilder.extend({
 		j$(this.el).append(
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
 				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
 			    "</select>" +
 				"</td></tr>"+				
@@ -330,12 +330,12 @@ var CopperAreaPanelBuilder=BaseBuilder.extend({
         'keypress #clearanceid' : 'onenter',
         'keypress #netid' : 'onenter',
         'change #fillid': 'onchange', 
-        'change #layerid':'onchange',
+        'change #controllayerid':'onchange',
         'change #paddconnectionid': 'onchange',
     },
     onchange:function(event){
-        if(event.target.id=='layerid'){
-        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        if(event.target.id=='controllayerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
             this.component.getModel().getUnit().reorder();
         }
         if(event.target.id=='fillid'){        
@@ -364,7 +364,7 @@ var CopperAreaPanelBuilder=BaseBuilder.extend({
 		 this.component.Repaint(); 	
     },
 	updateui:function(){
-		j$('#layerid').val(this.target.copper.getName());
+		j$('#controllayerid').val(this.target.copper.getName());
 		//j$("#startangleid").val(this.target.startAngle);    
 		//j$("#extendangleid").val(this.target.extendAngle);		
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
@@ -381,7 +381,7 @@ var CopperAreaPanelBuilder=BaseBuilder.extend({
 		j$(this.el).append(
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
 				this.fillComboBox([{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'}])+
 			    "</select>" +
 				"</td></tr>"+				
@@ -457,7 +457,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 		j$(this.el).append(
 		"<table width='100%'>"+
 		"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-		"<select class=\"form-control input-sm\" id=\"layerid\">"+
+		"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
 	    this.fillComboBox([{id:'1',value:'TOP',selected:true},{id:'2',value:'BOTTOM'}])+
 	    "</select>" +
 		"</td></tr>"+
@@ -660,11 +660,11 @@ var LinePanelBuilder=BaseBuilder.extend({
         'keypress #xid' : 'onenter',	
         'keypress #yid' : 'onenter',	
         'keypress #thicknessid' : 'onenter',
-        'change #layerid':'onchange',
+        'change #controllayerid':'onchange',
     },
     onchange:function(event){
-        if(event.target.id=='layerid'){
-        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        if(event.target.id=='controllayerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
         }
         this.component.Repaint(); 
       }, 
@@ -684,7 +684,7 @@ var LinePanelBuilder=BaseBuilder.extend({
 		 this.component.Repaint();  
     },
 	updateui:function(){
-		j$('#layerid').val(this.target.copper.getName());
+		j$('#controllayerid').val(this.target.copper.getName());
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
         j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
         j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
@@ -696,7 +696,7 @@ var LinePanelBuilder=BaseBuilder.extend({
 		j$(this.el).append(
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
 				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
 			    "</select>" +
 				"</td></tr>"+				
@@ -718,11 +718,11 @@ var TrackPanelBuilder=BaseBuilder.extend({
         'keypress #xid' : 'onenter',	
         'keypress #yid' : 'onenter',	
         'keypress #thicknessid' : 'onenter',
-        'change #layerid':'onchange',
+        'change #controllayerid':'onchange',
     },
     onchange:function(event){
-        if(event.target.id=='layerid'){
-        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        if(event.target.id=='controllayerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
         	this.component.getModel().getUnit().reorder();
         }
         this.component.Repaint(); 
@@ -743,7 +743,7 @@ var TrackPanelBuilder=BaseBuilder.extend({
 		 this.component.Repaint();  
     },
 	updateui:function(){
-		j$('#layerid').val(this.target.copper.getName());
+		j$('#controllayerid').val(this.target.copper.getName());
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
         j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
         j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
@@ -755,7 +755,7 @@ var TrackPanelBuilder=BaseBuilder.extend({
 		j$(this.el).append(
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
 				this.fillComboBox([{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'}])+
 			    "</select>" +
 				"</td></tr>"+				
@@ -783,11 +783,11 @@ var LabelPanelBuilder=BaseBuilder.extend({
         'keypress #rotateid' : 'onenter',
         'keypress #sizeid' : 'onenter',	
         'keypress #thicknessid' : 'onenter',	
-		'change #layerid':'onchange',
+		'change #controllayerid':'onchange',
     },
     onchange:function(event){      
-	  if(event.target.id=='layerid'){
-		  this.target.setCopper(core.Layer.Copper.valueOf(j$('#layerid').val()));
+	  if(event.target.id=='controllayerid'){
+		  this.target.setCopper(core.Layer.Copper.valueOf(j$('#controllayerid').val()));
       }
       this.component.Repaint(); 
     },
@@ -817,7 +817,7 @@ var LabelPanelBuilder=BaseBuilder.extend({
     },
 	updateui:function(){
 	 j$("#rotateid").val(this.target.texture.rotate); 	
-	 j$('#layerid').val(this.target.copper.getName());	
+	 j$('#controllayerid').val(this.target.copper.getName());	
 	 j$('#textid').val(this.target.texture.text);	
 	 j$('#xid').val(this.toUnitX(this.target.texture.anchorPoint.x));
 	 j$('#yid').val(this.toUnitY(this.target.texture.anchorPoint.y));	 
@@ -829,7 +829,7 @@ var LabelPanelBuilder=BaseBuilder.extend({
 		j$(this.el).append(
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
 				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
 			    "</select>" +
 				"</td></tr>"+

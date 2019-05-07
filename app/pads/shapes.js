@@ -119,7 +119,7 @@ fromXML(data){
         }
         this.texture.fromXML(data);  
 }    
-Paint(g2, viewportWindow, scale) {
+paint(g2, viewportWindow, scale) {
         //if((this.getCopper().getLayerMaskID()&layermask)==0){
         //    return;
         //}
@@ -255,7 +255,7 @@ class RoundRect extends Shape{
 		this.thickness = (parseInt(j$(data).attr("thickness")));
 		this.fill = parseInt(j$(data).attr("fill"));
 	}
-	Paint(g2, viewportWindow, scale) {
+	paint(g2, viewportWindow, scale) {
 		var rect = this.roundRect.box;
 		rect.scale(scale.getScale());
 		if (!rect.intersects(viewportWindow)) {
@@ -425,7 +425,7 @@ fromXML(data) {
          
         this.circle.r=radius;
     }	
-	Paint(g2, viewportWindow, scale) {
+	paint(g2, viewportWindow, scale) {
 		var rect = this.circle.box;
 		rect.scale(scale.getScale());
 		if (!rect.intersects(viewportWindow)) {
@@ -684,7 +684,7 @@ Resize(xoffset, yoffset,point) {
 Move(xoffset,yoffset){
   this.arc.move(xoffset,yoffset);	
 }
-Paint(g2, viewportWindow, scale) {
+paint(g2, viewportWindow, scale) {
 		
 		var rect = this.arc.box;
 		rect.scale(scale.getScale());
@@ -849,7 +849,7 @@ Rotate(rotation) {
 	this.rotate=alpha;
 	this.polygon.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
 }
-Paint(g2, viewportWindow, scale) {		
+paint(g2, viewportWindow, scale) {		
 	var rect = this.polygon.box;
 	rect.scale(scale.getScale());		
 	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
@@ -936,7 +936,7 @@ getOrderWeight() {
 	return 2;
 }
 
-Paint(g2, viewportWindow, scale) {		
+paint(g2, viewportWindow, scale) {		
 		var rect = this.polyline.box;
 		rect.scale(scale.getScale());		
 		if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
@@ -1034,7 +1034,7 @@ class Drill{
 	 Rotate(rotation) {	    		    
 	    	this.circle.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	 } 
-	Paint(g2,viewportWindow,scale){
+	paint(g2,viewportWindow,scale){
 	    g2._fill=true;
 	    g2.fillStyle = 'black';
 	    let c=this.circle.clone();
@@ -1368,17 +1368,17 @@ drawClearence(g2,viewportWindow,scale,source){
 	
 	this.shape.drawClearence(g2,viewportWindow,scale,source);
 }
-Paint(g2,viewportWindow,scale){
+paint(g2,viewportWindow,scale){
 	    switch(this.type){
 	    case PadType.THROUGH_HOLE:
-	        if(this.shape.Paint(g2, viewportWindow, scale)){
+	        if(this.shape.paint(g2, viewportWindow, scale)){
 	         if(this.drill!=null){
-	            this.drill.Paint(g2, viewportWindow, scale);
+	            this.drill.paint(g2, viewportWindow, scale);
 	         }
 	        }
 	        break;
 	    case PadType.SMD:
-	        this.shape.Paint(g2, viewportWindow, scale);
+	        this.shape.paint(g2, viewportWindow, scale);
 	        break;
 	    
 	    }
@@ -1408,7 +1408,7 @@ class CircularShape{
 		
 	    g2._fill=false;			
 	}	
-    Paint(g2,viewportWindow,scale){
+    paint(g2,viewportWindow,scale){
 	     var box=this.circle.box;
 	     box.scale(scale.scale);     
        //check if outside of visible window
@@ -1488,7 +1488,7 @@ drawClearence(g2,viewportWindow,scale,source){
 	
     g2._fill=false;			
 }
-Paint(g2,viewportWindow,scale){
+paint(g2,viewportWindow,scale){
 	   var box=this.rect.box;
 	   box.scale(scale.scale);     
        //check if outside of visible window
@@ -1563,7 +1563,7 @@ class OvalShape{
 		o.paint(g2);
 		
 	}
-Paint(g2,viewportWindow,scale){
+paint(g2,viewportWindow,scale){
 	     var box=this.obround.box;
 	     box.scale(scale.scale);     
        //check if outside of visible window
@@ -1638,7 +1638,7 @@ drawClearence(g2,viewportWindow,scale,source){
 	    
 	    g2._fill=false;
 }
-Paint(g2, viewportWindow, scale) {
+paint(g2, viewportWindow, scale) {
 		   var box=this.hexagon.box;
 		   box.scale(scale.scale);     
 	       //check if outside of visible window

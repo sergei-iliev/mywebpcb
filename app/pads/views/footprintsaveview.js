@@ -162,7 +162,7 @@ var FootprintSaveView=Backbone.View.extend({
         "Override existing unit" +
         "</div>"+
         "<div class=\"col-md-6\">"+   
-        "<input type='checkbox' id='overrideCheck' style='width:5vw;height:5vh;'>" +
+        "<input type='checkbox' id='overrideCheck' style='width:3vw;height:3vh;'>" +
         "</div>"+                       
         "</div>"+    
         
