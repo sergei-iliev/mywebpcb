@@ -25,6 +25,8 @@ var d2=require('d2/d2');
 
 var LineEventHandle=require('pads/events').LineEventHandle;
 var CopperAreaEventHandle=require('board/events').CopperAreaEventHandle;
+var TrackEventHandle=require('board/events').TrackEventHandle;
+var SlopLineBendingProcessor=require('core/line/linebendingprocessor').SlopLineBendingProcessor;
 
 var shapes=require('pads/shapes');
 //**********************UnitMgr***************************************
@@ -188,7 +190,7 @@ constructor(hbar,vbar,canvas,popup) {
 	this.eventMgr=new BoardEventMgr(this); 
 	this.model=new BoardContainer();
 	this.popup=new BoardContextMenu(this,popup);
-      
+    this.lineBendingProcessor=new SlopLineBendingProcessor();  
 }
 setMode(_mode){
 	  this.mode=_mode;
@@ -309,13 +311,13 @@ mouseDown(event){
     		
             //***is this a new wire
             if ((this.getEventMgr().getTargetEventHandle() == null) ||
-                !(this.getEventMgr().getTargetEventHandle() instanceof LineEventHandle)) {
+                !(this.getEventMgr().getTargetEventHandle() instanceof TrackEventHandle)) {
                	if(event.which!=1){
             		return;
             	}
                 shape = new PCBTrack(core.MM_TO_COORD(0.4),core.Layer.LAYER_FRONT);
                 this.getModel().getUnit().add(shape);                
-            	this.getEventMgr().setEventHandle("line", shape);
+            	this.getEventMgr().setEventHandle("track", shape);
             }
 	    break;
     	case core.ModeEnum.SOLID_REGION:

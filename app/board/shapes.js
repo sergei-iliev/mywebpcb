@@ -482,13 +482,19 @@ paint(g2, viewportWindow, scale) {
 	
 	// draw floating point
 	if (this.isFloating()) {
-			let p = this.floatingEndPoint.clone();
+			let p = this.floatingMidPoint.clone();
 			p.scale(scale.getScale());
 			p.move( - viewportWindow.x, - viewportWindow.y);
-				g2.lineTo(p.x, p.y);									
-				g2.stroke();					
+			g2.lineTo(p.x, p.y);									
+			g2.stroke();							    		
+		
+			p = this.floatingEndPoint.clone();
+			p.scale(scale.getScale());
+			p.move( - viewportWindow.x, - viewportWindow.y);
+			g2.lineTo(p.x, p.y);									
+			g2.stroke();					
 	}
-	
+
 	g2.globalCompositeOperation = 'source-over';
 
 }
@@ -697,68 +703,6 @@ fromXML(data) {
 	this.thickness = (parseInt(j$(data).attr("drill")));  	
 }
 }
-//class Polygon{
-//	constructor(){
-//		this.points=[];
-//	}
-//add(point){
-//  this.points.push(point);	
-//}
-//insert(point, index) {
-//    this.points.splice(index, 0, point);
-//}
-//contains(x,y){
-//	  let inside = false;
-//      // use some raycasting to test hits
-//      // https://github.com/substack/point-in-polygon/blob/master/index.js
-//      
-//	  //flat out points
-//	  let p = [];
-//
-//      for (let i = 0, il = this.points.length; i < il; i++)
-//      {
-//          p.push(this.points[i].x, this.points[i].y);
-//      }
-//
-//	  
-//	  let length = p.length / 2;
-//
-//      for (let i = 0, j = length - 1; i < length; j = i++)
-//      {
-//          let xi = p[i * 2];
-//          let yi = p[(i * 2) + 1];
-//          let xj = p[j * 2];
-//          let yj = p[(j * 2) + 1];
-//          let intersect = ((yi > y) !== (yj > y)) && (x < ((xj - xi) * ((y - yi) / (yj - yi))) + xi);
-//
-//          if (intersect)
-//          {
-//              inside = !inside;
-//          }
-//      }
-//
-//      return inside;
-//}
-//getBoundingRect(){	
-//	let r= new core.Rectangle(0,0,0,0);
-//	
-//    var x1 = Number.MAX_VALUE; 
-//    var y1 = Number.MAX_VALUE;
-//    var x2 = Number.MIN_VALUE;
-//    var y2 = Number.MIN_VALUE;
-//
-//    this.points.forEach(function(p) {
-//        x1 = Math.min(x1, p.x);
-//        y1 = Math.min(y1, p.y);
-//        x2 = Math.max(x2, p.x);
-//        y2 = Math.max(y2, p.y);
-//    });
-//
-//    r.setRect(x1, y1, x2 - x1, y2 - y1);
-//    return r;	
-//}
-//
-//}
 class PCBCopperArea extends Shape{
 	constructor( layermaskid) {
         super( 0, 0, 0,0, 0, layermaskid);
@@ -815,7 +759,7 @@ isFloating() {
     return (!this.floatingStartPoint.equals(this.floatingEndPoint));                
 }
 isClicked(x,y){
-	  return this.polygon.contains(x,y);
+	  return false;
 }
 isControlRectClicked(x, y) {
 	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);

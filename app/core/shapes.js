@@ -267,6 +267,9 @@ isClicked(x, y) {
 
 	return result;
 }
+addPoint(point) {
+    this.polyline.add(point);
+}
 resetToPoint(point) {
 	this.floatingStartPoint.set(point);
 	this.floatingMidPoint.set(point);
@@ -286,7 +289,10 @@ Resize(xoffset, yoffset, clickedPoint) {
 	clickedPoint.set(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);
 }
-
+shiftFloatingPoints(){
+    this.floatingStartPoint.set(this.polyline.points[this.polyline.points.length-1].x, this.polyline.points[this.polyline.points.length-1].y);
+    this.floatingMidPoint.set(this.floatingEndPoint.x, this.floatingEndPoint.y); 	
+}
 insertPoint( x, y) {
     
     let flag = false;

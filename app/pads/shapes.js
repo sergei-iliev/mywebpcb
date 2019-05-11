@@ -398,7 +398,7 @@ fromXML(data) {
 		this.circle.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	}
 	Resize(xoffset, yoffset,point) {    
-        let quadrant= utilities.getQuadrantLocation(point,this.circle.center.x,this.circle.center.y);
+        let quadrant= utilities.getQuadrantLocation(point,this.circle.center);
         let radius=this.circle.r;
         switch(quadrant){
         case utilities.QUADRANT.FIRST:case utilities.QUADRANT.FORTH: 

@@ -42,17 +42,16 @@ var mirrorPoint=function(A,B,sourcePoint){
         sourcePoint.setLocation(x, y);
         return sourcePoint;	
 }
-var getQuadrantLocation=function(origin,x,y) {
-        if (x >= origin.x && y <= origin.y)
+var getQuadrantLocation=function(origin,point) {
+        if (point.x >= origin.x && point.y <= origin.y)
             return QUADRANT.FIRST;
-        else if (x <= origin.x && y <= origin.y)
+        else if (point.x <= origin.x && point.y <= origin.y)
             return QUADRANT.SECOND;
-        else if (x <= origin.x && y >= origin.y)
+        else if (point.x <= origin.x && point.y >= origin.y)
             return QUADRANT.THIRD;
         else
             return QUADRANT.FORTH;
 }
-	
 var drawCrosshair=function(g2,viewportWindow,scale,resizingPoint,length,points){
         let line = new d2.Segment(0,0,0,0);
         
