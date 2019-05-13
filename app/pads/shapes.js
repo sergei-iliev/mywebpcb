@@ -1028,12 +1028,13 @@ class Drill{
 	 setWidth(width){
 		 this.circle.r=width/2;
 	 }
-	 setRotation(rotate,center){
-	    this.circle.rotate(rotate,center); 
+	 rotate(alpha,origin){
+	    if(origin==null){
+	       this.circle.rotate(alpha);
+	    }else{
+	       this.circle.rotate(alpha,origin);	
+	    }		 
 	 }
-	 Rotate(rotation) {	    		    
-	    	this.circle.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
-	 } 
 	paint(g2,viewportWindow,scale){
 	    g2._fill=true;
 	    g2.fillStyle = 'black';
@@ -1259,17 +1260,20 @@ Mirror(line) {
 //    }
 //    this.text.Mirror(A, B);
 }
-setRotation(rotate,center){
+setRotation(rotate,center){	
 	let alpha=rotate-this.rotate;	
 	if(center==null){
 	  this.shape.rotate(alpha);
 	  this.text.setRotation(rotate,this.shape.center);
-	}else{
+	  if(this.drill!=null){
+		this.drill.rotate(alpha);
+	  }	  	  
+	}else{		
 	  this.shape.rotate(alpha,center);
 	  this.text.setRotation(rotate,center);
-	    if(this.drill!=null){
-	        this.drill.setRotation(rotate,center);
-	    }	  
+	  if(this.drill!=null){
+	    this.drill.rotate(alpha,center);
+	  }	  
 	}
 	this.rotate=rotate;
 }

@@ -115,6 +115,19 @@ getOrderWeight() {
    var r=this.getBoundingShape();
    return (r.width);
 }
+isClicked(x,y){
+
+	return this.shapes.some(function(shape) {
+	   return shape.isClicked(x,y);	
+	});		
+	
+}
+setSelected (selection) {
+	super.setSelected(selection);
+	this.shapes.forEach(function(shape) {		  
+		  shape.setSelected(selection);
+   });	
+}
 calculateShape() {
 	var r = new d2.Box(0,0,0,0);
  	var x1 = Number.MAX_VALUE; 
@@ -198,16 +211,16 @@ drawClearence(g2,viewportWindow,scale,source){
 }
 paint(g2, viewportWindow, scale,layermask) {        
      
-	   var rect = this.getBoundingShape();		
-	   rect.scale(scale.getScale());
-	   if (!rect.intersects(viewportWindow)) {
-		 return;
-	   }
+	var rect = this.getBoundingShape();		
+	rect.scale(scale.getScale());
+	if (!rect.intersects(viewportWindow)) {
+	 return;
+	}
 		
-	   var len=this.shapes.length;
-	   for(i=0;i<len;i++){
+	var len=this.shapes.length;
+	for(i=0;i<len;i++){
 		  this.shapes[i].paint(g2,viewportWindow,scale);  
-	   }
+	}
     this.text.text.forEach(function(texture){
            //if((texture.getLayermaskId()&layermask)!=0){            
        texture.fillColor=(this.selection?'gray':'cyan');
@@ -217,16 +230,16 @@ paint(g2, viewportWindow, scale,layermask) {
     
     if(this.selection){
 
-		g2.globalCompositeOperation = 'lighter';
-		g2.beginPath();
-		utilities.roundrect(g2, rect.x - viewportWindow.x, rect.y
-				- viewportWindow.y, rect.width, rect.height, 3000
-				* scale.getScale());
-		
-		g2.closePath();
-		g2.fillStyle = "gray";
-		g2.fill();
-		g2.globalCompositeOperation = 'source-over';
+//		g2.globalCompositeOperation = 'lighter';
+//		g2.beginPath();
+//		utilities.roundrect(g2, rect.x - viewportWindow.x, rect.y
+//				- viewportWindow.y, rect.width, rect.height, 3000
+//				* scale.getScale());
+//		
+//		g2.closePath();
+//		g2.fillStyle = "gray";
+//		g2.fill();
+//		g2.globalCompositeOperation = 'source-over';
     }
  }    
 fromXML(data){
