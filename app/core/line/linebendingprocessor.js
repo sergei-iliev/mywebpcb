@@ -204,9 +204,31 @@ moveLinePoint(x,y){
 }	
 	
 }
+class DefaultLineBendingProcessor extends LineBendingProcessor {
+constructor () {
+		super();
+  }	   
+addLinePoint(point) {      
+       let result=false;
+       if(!this.isOverlappedPoint(point)){
+           if(!this.isPointOnLine(point)){
+               this.line.addPoint(point);   
+               result=true;
+           }               
+       }         
+       this.line.resetToPoint(point); 
+       return result;
+    }
 
+moveLinePoint( x,  y) {
+      this.line.floatingEndPoint.set(x,y); 
+      this.line.floatingMidPoint.set(x,y);
+    }
+
+}
 
 module.exports ={
 		SlopLineBendingProcessor,
-		LineSlopBendingProcessor
+		LineSlopBendingProcessor,
+		DefaultLineBendingProcessor
 }

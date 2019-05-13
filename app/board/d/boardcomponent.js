@@ -26,7 +26,7 @@ var d2=require('d2/d2');
 var LineEventHandle=require('pads/events').LineEventHandle;
 var CopperAreaEventHandle=require('board/events').CopperAreaEventHandle;
 var TrackEventHandle=require('board/events').TrackEventHandle;
-var SlopLineBendingProcessor=require('core/line/linebendingprocessor').SlopLineBendingProcessor;
+var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').DefaultLineBendingProcessor;
 
 var shapes=require('pads/shapes');
 //**********************UnitMgr***************************************
@@ -190,7 +190,7 @@ constructor(hbar,vbar,canvas,popup) {
 	this.eventMgr=new BoardEventMgr(this); 
 	this.model=new BoardContainer();
 	this.popup=new BoardContextMenu(this,popup);
-    this.lineBendingProcessor=new SlopLineBendingProcessor();  
+    this.lineBendingProcessor=new DefaultLineBendingProcessor();  
 }
 setMode(_mode){
 	  this.mode=_mode;

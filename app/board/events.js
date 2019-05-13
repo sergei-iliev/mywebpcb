@@ -71,7 +71,7 @@ Attach() {
 }
 mousePressed(event){
     if(this.isRightMouseButton(event)){           
-    //    getComponent().getPopupMenu().registerTrackPopup(e,getTarget());  
+		this.component.popup.registerTrackPopup(this.target,event);            
         return;
     }
     
@@ -96,7 +96,7 @@ mousePressed(event){
             //getComponent().getModel().getUnit().registerMemento(getTarget().getState(MementoType.CREATE_MEMENTO));   
             //getComponent().getModel().getUnit().registerMemento(getTarget().getState(MementoType.MOVE_MEMENTO));    
         }
-        if(this.target.getLinePoints().size()>=2){
+        if(this.target.getLinePoints().length>=2){
            //this.component.getModel().getUnit().registerMemento(getTarget().getState(MementoType.MOVE_MEMENTO));    
         }            
     }
