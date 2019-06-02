@@ -6,6 +6,7 @@ var FootprintLoadView=require('pads/views/footprintloadview');
 var BoardMgr = require('board/d/boardcomponent').BoardMgr;
 var UnitMgr = require('core/unit').UnitMgr;
 var BoardLoadView=require('board/views/boardloadview');
+var BoardSaveView=require('board/views/boardsaveview');
 var LayersPanelView=require('board/views/layerspanelview');
 
 
@@ -62,7 +63,7 @@ var ToggleButtonView=Backbone.View.extend({
             this.boardComponent.getModel().fireUnitEvent({target:this.boardComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 	
 		}
 		if(event.data.model.id=='saveid'){
-			new mywebpcb.board.views.BoardSaveView({boardComponent:this.boardComponent}).render();			
+			new BoardSaveView({boardComponent:this.boardComponent}).render();			
 		}
 
 		if(event.data.model.id=='loadid'){

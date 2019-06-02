@@ -36,7 +36,7 @@ LibraryView=Backbone.View.extend({
 		j$('#boardtree').jqxTree({width: '100%',height:'260px'});
 		//bind select element
 		j$('#boardtree').on('select',j$.proxy(this.onvaluechange,this));			
-        this.loadprojects();
+        this.loadworkspaces();
 	},
 	clear:function(){
 	    //unbind select element		
@@ -83,16 +83,16 @@ LibraryView=Backbone.View.extend({
       this.unitSelectionPanel.unitSelectionGrid.build();   
       this.unitSelectionPanel.render();
     },
-    loadprojects:function(){
+    loadworkspaces:function(){
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/rest/boards/projects',
+	        url: '/rest/boards/workspaces',
 	        dataType: "xml",
 	        beforeSend:function(){
 		          j$('#BoardLoadDialog').block({message:'<h5>Loading...</h5>'});	
 		        },
-	        success: j$.proxy(this.onloadprojects,this),
+	        success: j$.proxy(this.onloadworkspaces,this),
 	        
 	        error: function(jqXHR, textStatus, errorThrown){
 	            	alert(errorThrown+":"+jqXHR.responseText);
@@ -103,7 +103,7 @@ LibraryView=Backbone.View.extend({
 	    });
 	    
 	}, 
-	onloadprojects:function(data, textStatus, jqXHR){
+	onloadworkspaces:function(data, textStatus, jqXHR){
 		var that=this; 
 		j$(data).find("name").each(j$.proxy(function(){
 		  j$('#projectcombo').append('<option value=' +j$(this).text()+ '>' +  j$(this).text() + '</option>');

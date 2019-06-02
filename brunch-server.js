@@ -6,7 +6,7 @@ const app = express();
 app.use(express.static(__dirname + '/public'));
 
 //**************BOARD****************************************
-app.get('/rest/boards/projects', (req, res, next) => {
+app.get('/rest/boards/workspaces', (req, res, next) => {
 	  res.send(
 	  '<?xml version="1.0" encoding="UTF-8"?><library>'+
 	  '<name>CardReader</name>'+	  

@@ -84,7 +84,14 @@ var Board=require('board/d/boardcomponent').Board;
 		            height: 400,
 		            autoOpen:false
              });
-	
+			  //init save dialog
+			 j$('#BoardSaveDialog').jqxWindow({
+				    resizable: false,
+				    position: 'center',
+		            width: 350,
+		            height: 270,
+		            autoOpen:false
+             });	
 			 
 	});
 })(jQuery);
