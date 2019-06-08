@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 import com.google.cloud.Timestamp;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
@@ -24,6 +25,10 @@ public class User implements Serializable{
 	private Timestamp registrationDate;
 	@Index
 	private boolean enabled;
+	
+	public Key<User> getKey() {
+		   return Key.create(User.class, id);
+		}
 	
 	public User() {
 	    this.enabled=true;

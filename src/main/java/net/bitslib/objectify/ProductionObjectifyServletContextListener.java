@@ -7,6 +7,8 @@ import com.google.cloud.datastore.DatastoreOptions;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.ObjectifyService;
 
+import net.bitslib.entity.Board;
+import net.bitslib.entity.BoardWorkspace;
 import net.bitslib.entity.FileObject;
 import net.bitslib.entity.Footprint;
 import net.bitslib.entity.FootprintLibrary;
@@ -33,7 +35,8 @@ public class ProductionObjectifyServletContextListener implements ServletContext
 		 ObjectifyService.register(FileObject.class);
 		 ObjectifyService.register(Footprint.class);
 		 ObjectifyService.register(FootprintLibrary.class);
-
+		 ObjectifyService.register(BoardWorkspace.class);
+		 ObjectifyService.register(Board.class);		 
 	}
 
 	@Override

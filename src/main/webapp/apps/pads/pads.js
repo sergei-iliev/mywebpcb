@@ -2863,7 +2863,7 @@ drawControlShape(g2, viewportWindow,scale){
 }
 toXML(){
     return (this.isEmpty()? "" :
-        this.text + "," + this.anchorPoint.x + "," + this.anchorPoint.y +
+        this.text + "," + utilities.roundFloat(this.anchorPoint.x,5) + "," + utilities.roundFloat(this.anchorPoint.y,5) +
         ",,"+this.thickness+","+this.size+","+this.rotate);	
 }
 fromXML(node){	
@@ -3857,6 +3857,10 @@ var roundDouble=function(number){
 var round=function(angle){
 	return Math.round(angle*100.0)/100.0;
 }
+
+var roundFloat=function(value, decimals) {
+	return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+}
 var mirrorPoint=function(A,B,sourcePoint){
         let x = sourcePoint.x, y = sourcePoint.y;
         //***is this right-left mirroring
@@ -4017,6 +4021,7 @@ module.exports = {
   version,
   round,
   roundDouble,
+  roundFloat,
   getQuadrantLocation,  
   drawCrosshair,
   //ellipse,
@@ -7732,11 +7737,15 @@ class RoundRect extends Shape{
 		return this.roundRect.area; 
 	}	
 	toXML() {
+		let points="";
+		this.roundRect.points.forEach(function(point) {
+			points += utilities.roundFloat(point.x,5) + "," + utilities.roundFloat(point.y,5) + ",";
+		},this);
 		return "<rectangle copper=\"" + this.copper.getName()
 		        +"\" thickness=\"" + this.thickness
 				+ "\" fill=\"" + this.fill + "\" arc=\"" + this.roundRect.rounding
-				+"\" points=\"" + this.roundRect.points
-				+ "\" rt=\""+this.rotate+"\"></rectangle>";
+				+"\" points=\"" + points
+				+ "\"></rectangle>";
 	}
 	fromXML(data) {
 		if(j$(data)[0].hasAttribute("copper")){
@@ -8484,8 +8493,8 @@ toXML() {
 	var result = "<line copper=\"" + this.copper.getName()
 								+ "\" thickness=\"" + this.thickness + "\">";
 	this.polyline.points.forEach(function(point) {
-		result += point.x + "," + point.y + ",";
-	});
+		result += utilities.roundFloat(point.x,5) + "," + utilities.roundFloat(point.y,5) + ",";
+	},this);
 	result += "</line>";
 	return result;
 }
@@ -11031,3 +11040,5 @@ module.exports =ToggleButtonView
   
 });})();require('___globals___');
 
+
+//# sourceMappingURL=pads.js.map

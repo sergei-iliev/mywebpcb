@@ -234,7 +234,14 @@ var Board=require('board/d/boardcomponent').Board;
 		            height: 400,
 		            autoOpen:false
              });
-	
+			  //init save dialog
+			 j$('#BoardSaveDialog').jqxWindow({
+				    resizable: false,
+				    position: 'center',
+		            width: 350,
+		            height: 270,
+		            autoOpen:false
+             });	
 			 
 	});
 })(jQuery);
@@ -400,6 +407,21 @@ parse(data){
        }	  
    	});	
 }
+format(){   
+	   var xml="<board width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
+	   xml+="<name>"+this.unitName+"</name>\r\n";
+	   xml+="<units raster=\"" + this.grid.getGridValue() + "\">MM</units>\r\n";
+	   
+	   xml+="<symbols>\r\n";
+	   this.shapes.forEach(s=>{
+		  xml+=s.toXML()+"\r\n";
+	   });
+	   xml+="</symbols>\r\n";   
+	   xml+="</board>";
+	   return xml;
+	}	
+
+
 }
 
 class BoardContainer extends UnitContainer{
@@ -422,7 +444,19 @@ parse(xml){
         board.parse(this);
     }),that);	
 }
-
+format() {
+    var xml="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n"; 
+    xml+="<boards identity=\"Board\" version=\"1.0\">\r\n";      
+	let units=this.unitsmap.values();
+	for(let i=0;i<this.unitsmap.size;i++){
+      let unit=units.next().value;
+      xml+=unit.format();
+	  xml+="\r\n";
+	}    	    	
+    xml+="</boards>";
+    
+    return xml;
+}
 
 }
 
@@ -1160,6 +1194,19 @@ getOrderWeight() {
    var r=this.getBoundingShape();
    return (r.width);
 }
+isClicked(x,y){
+
+	return this.shapes.some(function(shape) {
+	   return shape.isClicked(x,y);	
+	});		
+	
+}
+setSelected (selection) {
+	super.setSelected(selection);
+	this.shapes.forEach(function(shape) {		  
+		  shape.setSelected(selection);
+   });	
+}
 calculateShape() {
 	var r = new d2.Box(0,0,0,0);
  	var x1 = Number.MAX_VALUE; 
@@ -1243,16 +1290,16 @@ drawClearence(g2,viewportWindow,scale,source){
 }
 paint(g2, viewportWindow, scale,layermask) {        
      
-	   var rect = this.getBoundingShape();		
-	   rect.scale(scale.getScale());
-	   if (!rect.intersects(viewportWindow)) {
-		 return;
-	   }
+	var rect = this.getBoundingShape();		
+	rect.scale(scale.getScale());
+	if (!rect.intersects(viewportWindow)) {
+	 return;
+	}
 		
-	   var len=this.shapes.length;
-	   for(i=0;i<len;i++){
+	var len=this.shapes.length;
+	for(i=0;i<len;i++){
 		  this.shapes[i].paint(g2,viewportWindow,scale);  
-	   }
+	}
     this.text.text.forEach(function(texture){
            //if((texture.getLayermaskId()&layermask)!=0){            
        texture.fillColor=(this.selection?'gray':'cyan');
@@ -1262,16 +1309,16 @@ paint(g2, viewportWindow, scale,layermask) {
     
     if(this.selection){
 
-		g2.globalCompositeOperation = 'lighter';
-		g2.beginPath();
-		utilities.roundrect(g2, rect.x - viewportWindow.x, rect.y
-				- viewportWindow.y, rect.width, rect.height, 3000
-				* scale.getScale());
-		
-		g2.closePath();
-		g2.fillStyle = "gray";
-		g2.fill();
-		g2.globalCompositeOperation = 'source-over';
+//		g2.globalCompositeOperation = 'lighter';
+//		g2.beginPath();
+//		utilities.roundrect(g2, rect.x - viewportWindow.x, rect.y
+//				- viewportWindow.y, rect.width, rect.height, 3000
+//				* scale.getScale());
+//		
+//		g2.closePath();
+//		g2.fillStyle = "gray";
+//		g2.fill();
+//		g2.globalCompositeOperation = 'source-over';
     }
  }    
 fromXML(data){
@@ -1312,6 +1359,32 @@ fromXML(data){
          that.add(shape);
 	 });
 }
+
+toXML() {
+    let xml="<footprint layer=\""+this.copper.getName()+"\">\r\n";
+           xml+="<name>"+this.displayName+"</name>\r\n";
+           xml+="<units raster=\""+this.value+"\">"+this.units+"</units>\r\n"; 
+           xml+="<reference layer=\""+core.Layer.Copper.resolve(this.text.getTextureByTag("reference").layermaskId).getName()+"\">"+(this.text.getTextureByTag("reference")==null?"":this.text.getTextureByTag("reference").toXML())+"</reference>\r\n";                           
+           xml+="<value layer=\""+core.Layer.Copper.resolve(this.text.getTextureByTag("value").layermaskId).getName()+"\">"+(this.text.getTextureByTag("value")==null?"":this.text.getTextureByTag("value").toXML())+"</value>\r\n";
+//    //***labels and connectors
+//           BoardMgr boardMgr = BoardMgr.getInstance();
+//           if(boardMgr.getChildrenByParent(getOwningUnit().getShapes(),this).size()>0){
+//             xml.append("<children>\r\n");
+//               Collection<Shape> children=boardMgr.getChildrenByParent(getOwningUnit().getShapes(),this);
+//                for(Shape child:children){
+//                  xml.append(((Externalizable)child).toXML());  
+//                }
+//                xml.append("</children>\r\n");
+//    }               
+//              
+           xml+="<shapes>\r\n";
+           this.shapes.forEach(
+            s=>xml+=s.toXML()
+           )
+           xml+="\r\n</shapes>\r\n";
+           xml+="</footprint>";                 
+    return xml;  
+}
 }
 
 class PCBCircle extends Circle{
@@ -1323,7 +1396,9 @@ class PCBCircle extends Circle{
     	copy.circle=this.circle.clone();
     	copy.fill=this.fill;
     	return copy;
-    }    
+    }  
+    
+    
 }
 
 class PCBArc extends Arc{
@@ -1397,15 +1472,6 @@ getDrawingOrder() {
         }  
         return order;
     }
-fromXML(data){
-    //extract layer info        
-    if(j$(data).attr("layer")!=null){
-       this.copper =core.Layer.Copper.valueOf(j$(data).attr("layer"));
-    }else{
-       this.copper=core.Layer.Copper.FSilkS;
-    }
-    this.texture.fromXML(data);  	
-}
 }
 class PCBLine extends Line{
 constructor(thickness,layermaskId){
@@ -1560,6 +1626,15 @@ fromXML(data) {
 			var y = parseInt(tokens[index + 1]);
 			this.points.push(new core.Point(x, y));
 		}
+}
+toXML() {
+	var result = "<track layer=\"" + this.copper.getName()
+								+ "\" thickness=\"" + this.thickness + "\" clearance=\"" + this.clearance + "\" net=\"" + this.net +"\">";
+	this.polyline.points.forEach(function(point) {
+		result += utilities.roundFloat(point.x,5) + "," + utilities.roundFloat(point.y,5) + ",";
+	},this);
+	result += "</track>";
+	return result;
 }
 }
 class PCBHole extends Shape{
@@ -1747,6 +1822,9 @@ fromXML(data) {
 	this.setWidth(parseInt(j$(data).attr("width")));
 	this.thickness = (parseInt(j$(data).attr("drill")));  	
 }
+toXML() {
+    return "<via type=\"\" x=\""+utilities.roundFloat(this.inner.center.x,5)+"\" y=\""+utilities.roundFloat(this.inner.center.y,5)+"\" width=\""+this.outer.r+"\" drill=\""+this.inner.r+"\"   clearance=\""+this.clearance+"\" net=\""+(this.net==null?"":this.net)+"\" />";    
+}
 }
 class PCBCopperArea extends Shape{
 	constructor( layermaskid) {
@@ -1760,6 +1838,7 @@ class PCBCopperArea extends Shape{
         this.polygon=new d2.Polygon();
         this.resizingPoint;
         this.clip=[];
+        this.net='gnd';
     }
 clone(){
     let copy=new PCBCopperArea(this.copper.getLayerMaskID());
@@ -1804,7 +1883,32 @@ isFloating() {
     return (!this.floatingStartPoint.equals(this.floatingEndPoint));                
 }
 isClicked(x,y){
-	  return false;
+	  var result = false;
+		// build testing rect
+	  var rect = d2.Box.fromRect(x
+								- (3000 / 2), y
+								- (3000 / 2), 3000,
+								3000);
+	  var r1 = rect.min;
+	  var r2 = rect.max;
+
+	  // ***make lines and iterate one by one
+	  var prevPoint = this.polygon.points[this.polygon.points.length-1];
+
+	  this.polygon.points.some(function(wirePoint) {
+							// skip first point
+							{
+								if (utilities.intersectLineRectangle(
+										prevPoint, wirePoint, r1, r2)) {
+									result = true;
+									return true;
+								}
+								prevPoint = wirePoint;
+							}
+
+						});
+console.log(result);
+	return result;
 }
 isControlRectClicked(x, y) {
 	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
@@ -1939,6 +2043,15 @@ fromXML(data){
 			this.polygon.points.push(new core.Point(x, y));
 	   }
 }
+toXML() {
+	var result = "<copperarea layer=\"" + this.copper.getName()
+								+ "\" padconnect=\"" + this.padConnection + "\" clearance=\"" + this.clearance + "\" net=\"" + this.net +"\">";
+	this.polygon.points.forEach(function(point) {
+		result += utilities.roundFloat(point.x,5) + "," + utilities.roundFloat(point.y,5) + ",";
+	},this);
+	result += "</copperarea>";
+	return result;
+}
 }
 
 module.exports ={
@@ -1971,8 +2084,7 @@ BoardLoadView=Backbone.View.extend({
 			j$('#BoardLoadDialog').on('close', j$.proxy(this.onclose,this)); 
 			this.unitSelectionPanel=new core.UnitSelectionPanel({selectorid:'boardselectionpanel',canvasprefixid:'b',enabled:opt.enabled});
 			this.libraryview=new LibraryView({unitSelectionPanel:this.unitSelectionPanel});  
-	    	this.buttonview=new ButtonView({unitSelectionPanel:this.unitSelectionPanel});  
-	    	//j$('#loadtitle').html("Load Board");
+	    	this.buttonview=new ButtonLoadView({unitSelectionPanel:this.unitSelectionPanel});  
 		  },
       onclose:function(){
     	  this.undelegateEvents();
@@ -1997,7 +2109,7 @@ LibraryView=Backbone.View.extend({
 		j$('#boardtree').jqxTree({width: '100%',height:'260px'});
 		//bind select element
 		j$('#boardtree').on('select',j$.proxy(this.onvaluechange,this));			
-        this.loadprojects();
+        this.loadworkspaces();
 	},
 	clear:function(){
 	    //unbind select element		
@@ -2014,18 +2126,17 @@ LibraryView=Backbone.View.extend({
     onvaluechange:function(event){
         //is this category or footprint selection
     	var item = j$('#boardtree').jqxTree('getItem', event.args.element);
-    	var	callback=this.loadboard;
-    	var  url=item.value.project+"/"+item.value.fullname;	
-
+    	var  url=j$('#projectcombo').val()+'/'+item.value.project;	
+console.log(url);
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/rest/boards/projects/'+url,
+	        url:encodeURI('/rest/boards/workspaces/'+url),
 	        dataType: "xml",
 	        beforeSend:function(){
 		          j$('#BoardLoadDialog').block({message:'<h5>Loading...</h5>'});	
 		        },
-	        success: j$.proxy(callback,this),
+	        success: j$.proxy(this.loadboard,this),
 	        
 	        error: function(jqXHR, textStatus, errorThrown){
 	            	alert(errorThrown+":"+jqXHR.responseText);
@@ -2044,16 +2155,16 @@ LibraryView=Backbone.View.extend({
       this.unitSelectionPanel.unitSelectionGrid.build();   
       this.unitSelectionPanel.render();
     },
-    loadprojects:function(){
+    loadworkspaces:function(){
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/rest/boards/projects',
+	        url: '/rest/boards/workspaces',
 	        dataType: "xml",
 	        beforeSend:function(){
 		          j$('#BoardLoadDialog').block({message:'<h5>Loading...</h5>'});	
 		        },
-	        success: j$.proxy(this.onloadprojects,this),
+	        success: j$.proxy(this.onloadworkspaces,this),
 	        
 	        error: function(jqXHR, textStatus, errorThrown){
 	            	alert(errorThrown+":"+jqXHR.responseText);
@@ -2064,19 +2175,21 @@ LibraryView=Backbone.View.extend({
 	    });
 	    
 	}, 
-	onloadprojects:function(data, textStatus, jqXHR){
+	onloadworkspaces:function(data, textStatus, jqXHR){
 		var that=this; 
 		j$(data).find("name").each(j$.proxy(function(){
-		  j$('#projectcombo').append('<option value=' +j$(this).text()+ '>' +  j$(this).text() + '</option>');
+			console.log();
+		  j$('#projectcombo').append('<option value="' +j$(this).text()+ '">' +  j$(this).text() + '</option>');
 		}),that);
-		//category load		
+
 		this.loadboards(j$('#projectcombo').val());
 	},	
-	loadboards:function(project){
+	loadboards:function(workspace){
+		console.log(workspace);
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/rest/boards/projects/'+project,
+	        url: encodeURI('/rest/boards/workspaces/'+workspace),
 	        dataType: "xml",
 	        beforeSend:function(){
 		          j$('#BoardLoadDialog').block({message:'<h5>Loading...</h5>'});	
@@ -2105,7 +2218,7 @@ LibraryView=Backbone.View.extend({
 		
 	}
 });
-ButtonView=Backbone.View.extend({
+ButtonLoadView=Backbone.View.extend({
 	el:"#boardbuttonslot",
 	initialize:function(opt){
 	  this.unitSelectionPanel=opt.unitSelectionPanel;
@@ -2140,7 +2253,131 @@ ButtonView=Backbone.View.extend({
 module.exports =BoardLoadView;
 });
 
-require.register("board/views/boardspanelview.js", function(exports, require, module) {
+require.register("board/views/boardsaveview.js", function(exports, require, module) {
+var mywebpcb=require('core/core').mywebpcb;
+var core=require('core/core');
+var BoardContainer=require('board/d/boardcomponent').BoardContainer;
+
+
+var BoardSaveView=Backbone.View.extend({
+	initialize:function(opt){
+			this.model=opt.model; 
+			j$('#BoardSaveDialog').jqxWindow({height: 300, width: 420});
+			j$('#BoardSaveDialog').jqxWindow('open');
+			j$('#BoardSaveDialog').off('close', j$.proxy(this.onclose,this)); 
+			j$('#BoardSaveDialog').on('close', j$.proxy(this.onclose,this)); 				    	
+			this.workspaceview=new WorkspaceView(opt);
+			this.buttonview=new ButtonView(opt); 
+			
+	},
+    render:function(){ 
+    	this.buttonview.render();
+    }
+		  
+});
+
+WorkspaceView=Backbone.View.extend({
+	initialize:function(opt){
+		this.model=opt.model;
+		j$('#workspacecomboid').editableSelect('clear');
+		j$('#projectnameid').val(this.model.formatedFileName);
+		j$('#workspacecomboid').val('');
+		 this.loadworkspaces();
+	},
+    loadworkspaces:function(){
+	    j$.ajax({
+	        type: 'GET',
+	        contentType: 'application/xml',
+	        url: '/rest/boards/workspaces',
+	        dataType: "xml",
+	        beforeSend:function(){
+		          j$('#BoardSaveDialog').block({message:'<h5>Loading...</h5>'});	
+		        },
+	        success: j$.proxy(this.onloadworkspaces,this),
+	        
+	        error: function(jqXHR, textStatus, errorThrown){
+	            	alert(errorThrown+":"+jqXHR.responseText);
+	        },
+	        complete:function(jqXHR, textStatus){
+	        	j$('#BoardSaveDialog').unblock();
+	        }
+	    });    	
+    },
+    onloadworkspaces:function(data, textStatus, jqXHR){
+		let that=this;
+    	j$(data).find("name").each(j$.proxy(function(){
+		  j$('#workspacecomboid').editableSelect('add',j$(this).text());
+		}),that);  	
+    },
+
+	render:function(){
+
+		
+	}
+});
+
+ButtonView=Backbone.View.extend({
+	el:"#savebuttonslot",
+	initialize:function(opt){
+	  this.model=opt.model;
+    },	
+    clear:function(){
+       this.undelegateEvents();
+    },
+    events: {
+        "click  #savebuttonid" : "onsave",	
+        "click  #closebuttonid" : "onclose",	
+    },
+    onsave:function(){
+    	let workspace=j$('#workspacecomboid').val()!=''?j$('#workspacecomboid').val():'null';
+	    let name=j$('#projectnameid').val()!=''?j$('#projectnameid').val():'null'
+	    	console.log(workspace+'='+name);	
+    	j$.ajax({
+	        type: 'POST',
+	        contentType: 'application/xml',
+	        url: '/rest/boards/workspaces/'+workspace+'?projectName='+name+'&overwrite='+j$('#overrideCheck').is(":checked"),
+	        dataType: "xml",
+	        data:this.model.format(),
+	        beforeSend:function(){
+		          j$('#BoardSaveDialog').block({message:'<h5>Saving...</h5>'});	
+		        },
+	        success: function(){
+	    		//close dialog 
+	    		j$('#BoardSaveDialog').jqxWindow('close');
+	        },	        		        
+	        error: function(jqXHR, textStatus, errorThrown){
+	            //if(jqXHR.status==404){
+	            	//data=jqXHR.responseJSON;
+	            	//clean error list
+	            	//$("#errorsres ul").empty();
+	            	//for(var i = 0; i < data.length; i++) {
+	            	//	$("#errorsres ul").append('<li>'+data[i]+'</li>');
+	            	//}
+	            //}else{
+	            	alert(errorThrown+":"+jqXHR.responseText);
+	            //}
+	        },
+	        complete:function(jqXHR, textStatus){
+	        	j$('#BoardSaveDialog').unblock();
+	        }
+	    });    	
+    },
+    onclose:function(){
+    	j$('#BoardSaveDialog').jqxWindow('close'); 	
+    },
+    
+	render:function(){
+		j$(this.el).empty();
+		j$(this.el).append(
+		"<button  id=\"savebuttonid\" class=\"btn btn-default\">Save</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+
+	    "<button  id=\"closebuttonid\" class=\"btn btn-default\">Close</button>");
+	}
+});
+
+module.exports =BoardSaveView
+});
+
+;require.register("board/views/boardspanelview.js", function(exports, require, module) {
 var mywebpcb=require('core/core').mywebpcb;
 var events=require('core/events');
 var core=require('core/core');
@@ -3438,6 +3675,7 @@ var FootprintLoadView=require('pads/views/footprintloadview');
 var BoardMgr = require('board/d/boardcomponent').BoardMgr;
 var UnitMgr = require('core/unit').UnitMgr;
 var BoardLoadView=require('board/views/boardloadview');
+var BoardSaveView=require('board/views/boardsaveview');
 var LayersPanelView=require('board/views/layerspanelview');
 
 
@@ -3494,7 +3732,7 @@ var ToggleButtonView=Backbone.View.extend({
             this.boardComponent.getModel().fireUnitEvent({target:this.boardComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 	
 		}
 		if(event.data.model.id=='saveid'){
-			new mywebpcb.board.views.BoardSaveView({boardComponent:this.boardComponent}).render();			
+			new BoardSaveView({model:this.boardComponent.model}).render();			
 		}
 
 		if(event.data.model.id=='loadid'){
@@ -6606,7 +6844,7 @@ drawControlShape(g2, viewportWindow,scale){
 }
 toXML(){
     return (this.isEmpty()? "" :
-        this.text + "," + this.anchorPoint.x + "," + this.anchorPoint.y +
+        this.text + "," + utilities.roundFloat(this.anchorPoint.x,5) + "," + utilities.roundFloat(this.anchorPoint.y,5) +
         ",,"+this.thickness+","+this.size+","+this.rotate);	
 }
 fromXML(node){	
@@ -7600,6 +7838,10 @@ var roundDouble=function(number){
 var round=function(angle){
 	return Math.round(angle*100.0)/100.0;
 }
+
+var roundFloat=function(value, decimals) {
+	return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+}
 var mirrorPoint=function(A,B,sourcePoint){
         let x = sourcePoint.x, y = sourcePoint.y;
         //***is this right-left mirroring
@@ -7760,6 +8002,7 @@ module.exports = {
   version,
   round,
   roundDouble,
+  roundFloat,
   getQuadrantLocation,  
   drawCrosshair,
   //ellipse,
@@ -11347,11 +11590,15 @@ class RoundRect extends Shape{
 		return this.roundRect.area; 
 	}	
 	toXML() {
+		let points="";
+		this.roundRect.points.forEach(function(point) {
+			points += utilities.roundFloat(point.x,5) + "," + utilities.roundFloat(point.y,5) + ",";
+		},this);
 		return "<rectangle copper=\"" + this.copper.getName()
 		        +"\" thickness=\"" + this.thickness
 				+ "\" fill=\"" + this.fill + "\" arc=\"" + this.roundRect.rounding
-				+"\" points=\"" + this.roundRect.points
-				+ "\" rt=\""+this.rotate+"\"></rectangle>";
+				+"\" points=\"" + points
+				+ "\"></rectangle>";
 	}
 	fromXML(data) {
 		if(j$(data)[0].hasAttribute("copper")){
@@ -12099,8 +12346,8 @@ toXML() {
 	var result = "<line copper=\"" + this.copper.getName()
 								+ "\" thickness=\"" + this.thickness + "\">";
 	this.polyline.points.forEach(function(point) {
-		result += point.x + "," + point.y + ",";
-	});
+		result += utilities.roundFloat(point.x,5) + "," + utilities.roundFloat(point.y,5) + ",";
+	},this);
 	result += "</line>";
 	return result;
 }
@@ -13064,3 +13311,5 @@ module.exports =FootprintLoadView
   
 });})();require('___globals___');
 
+
+//# sourceMappingURL=board.js.map

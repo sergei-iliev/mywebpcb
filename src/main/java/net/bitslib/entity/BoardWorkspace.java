@@ -1,9 +1,6 @@
 package net.bitslib.entity;
 
-
 import java.io.Serializable;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import com.google.cloud.Timestamp;
 import com.googlecode.objectify.Key;
@@ -14,31 +11,34 @@ import com.googlecode.objectify.annotation.Index;
 
 @Cache
 @Entity
-public class FootprintLibrary implements Serializable{
+public class BoardWorkspace implements Serializable{
 
 	@Id
 	private Long id;    
+	
 	@Index
 	private String name;
+	
 	@Index
-    private String lowercasename;      
+    private String lowercasename; 
+	
+    @Index
+    private Key<User> user;
+    
     @Index
     private Timestamp createDate;
-    
-	private SortedSet<String> categories=new TreeSet<>();
 
+    public BoardWorkspace() {
+    	this.createDate=Timestamp.now();
+	}
+	public Key<BoardWorkspace> getKey() {
+		   return Key.create(BoardWorkspace.class, id);
+	}
+	
 	public Long getId() {
 		return id;
 	}
-	public void addCategory(String category){
-	  if(category!=null&&!category.equals("")){
-	     categories.add(category); 
-	  }
-	}		
-	public Key<FootprintLibrary> getKey() {
-	   return Key.create(FootprintLibrary.class, id);
-	}
-	
+
 	public void setId(Long id) {
 		this.id = id;
 	}
@@ -49,7 +49,9 @@ public class FootprintLibrary implements Serializable{
 
 	public void setName(String name) {
 		this.name = name;
-		this.lowercasename=this.name.toLowerCase();
+		if(name!=null){
+		  this.lowercasename=name.toLowerCase();
+		}
 	}
 
 	public String getLowercasename() {
@@ -60,16 +62,22 @@ public class FootprintLibrary implements Serializable{
 		this.lowercasename = lowercasename;
 	}
 
-	public SortedSet<String> getCategories() {
-		return categories;
+	public Key<User> getUser() {
+		return user;
 	}
 
-	public void setCategories(SortedSet<String> categories) {
-		this.categories = categories;
-	} 
+	public void setUser(Key<User> user) {
+		this.user = user;
+	}
+
+	public Timestamp getCreateDate() {
+		return createDate;
+	}
+
+	public void setCreateDate(Timestamp createDate) {
+		this.createDate = createDate;
+	}
+    
     
 	
-	
-    
-    
 }
