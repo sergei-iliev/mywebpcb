@@ -280,6 +280,32 @@ fromXML(data){
          that.add(shape);
 	 });
 }
+
+toXML() {
+    let xml="<footprint layer=\""+this.copper.getName()+"\">\r\n";
+           xml+="<name>"+this.displayName+"</name>\r\n";
+           xml+="<units raster=\""+this.value+"\">"+this.units+"</units>\r\n"; 
+           xml+="<reference layer=\""+core.Layer.Copper.resolve(this.text.getTextureByTag("reference").layermaskId).getName()+"\">"+(this.text.getTextureByTag("reference")==null?"":this.text.getTextureByTag("reference").toXML())+"</reference>\r\n";                           
+           xml+="<value layer=\""+core.Layer.Copper.resolve(this.text.getTextureByTag("value").layermaskId).getName()+"\">"+(this.text.getTextureByTag("value")==null?"":this.text.getTextureByTag("value").toXML())+"</value>\r\n";
+//    //***labels and connectors
+//           BoardMgr boardMgr = BoardMgr.getInstance();
+//           if(boardMgr.getChildrenByParent(getOwningUnit().getShapes(),this).size()>0){
+//             xml.append("<children>\r\n");
+//               Collection<Shape> children=boardMgr.getChildrenByParent(getOwningUnit().getShapes(),this);
+//                for(Shape child:children){
+//                  xml.append(((Externalizable)child).toXML());  
+//                }
+//                xml.append("</children>\r\n");
+//    }               
+//              
+           xml+="<shapes>\r\n";
+           this.shapes.forEach(
+            s=>xml+=s.toXML()
+           )
+           xml+="\r\n</shapes>\r\n";
+           xml+="</footprint>";                 
+    return xml;  
+}
 }
 
 class PCBCircle extends Circle{
@@ -291,7 +317,9 @@ class PCBCircle extends Circle{
     	copy.circle=this.circle.clone();
     	copy.fill=this.fill;
     	return copy;
-    }    
+    }  
+    
+    
 }
 
 class PCBArc extends Arc{
@@ -365,15 +393,6 @@ getDrawingOrder() {
         }  
         return order;
     }
-fromXML(data){
-    //extract layer info        
-    if(j$(data).attr("layer")!=null){
-       this.copper =core.Layer.Copper.valueOf(j$(data).attr("layer"));
-    }else{
-       this.copper=core.Layer.Copper.FSilkS;
-    }
-    this.texture.fromXML(data);  	
-}
 }
 class PCBLine extends Line{
 constructor(thickness,layermaskId){
@@ -528,6 +547,15 @@ fromXML(data) {
 			var y = parseInt(tokens[index + 1]);
 			this.points.push(new core.Point(x, y));
 		}
+}
+toXML() {
+	var result = "<track layer=\"" + this.copper.getName()
+								+ "\" thickness=\"" + this.thickness + "\" clearance=\"" + this.clearance + "\" net=\"" + this.net +"\">";
+	this.polyline.points.forEach(function(point) {
+		result += utilities.roundFloat(point.x,5) + "," + utilities.roundFloat(point.y,5) + ",";
+	},this);
+	result += "</track>";
+	return result;
 }
 }
 class PCBHole extends Shape{
@@ -715,6 +743,9 @@ fromXML(data) {
 	this.setWidth(parseInt(j$(data).attr("width")));
 	this.thickness = (parseInt(j$(data).attr("drill")));  	
 }
+toXML() {
+    return "<via type=\"\" x=\""+utilities.roundFloat(this.inner.center.x,5)+"\" y=\""+utilities.roundFloat(this.inner.center.y,5)+"\" width=\""+this.outer.r+"\" drill=\""+this.inner.r+"\"   clearance=\""+this.clearance+"\" net=\""+(this.net==null?"":this.net)+"\" />";    
+}
 }
 class PCBCopperArea extends Shape{
 	constructor( layermaskid) {
@@ -728,6 +759,7 @@ class PCBCopperArea extends Shape{
         this.polygon=new d2.Polygon();
         this.resizingPoint;
         this.clip=[];
+        this.net='gnd';
     }
 clone(){
     let copy=new PCBCopperArea(this.copper.getLayerMaskID());
@@ -772,7 +804,32 @@ isFloating() {
     return (!this.floatingStartPoint.equals(this.floatingEndPoint));                
 }
 isClicked(x,y){
-	  return false;
+	  var result = false;
+		// build testing rect
+	  var rect = d2.Box.fromRect(x
+								- (3000 / 2), y
+								- (3000 / 2), 3000,
+								3000);
+	  var r1 = rect.min;
+	  var r2 = rect.max;
+
+	  // ***make lines and iterate one by one
+	  var prevPoint = this.polygon.points[this.polygon.points.length-1];
+
+	  this.polygon.points.some(function(wirePoint) {
+							// skip first point
+							{
+								if (utilities.intersectLineRectangle(
+										prevPoint, wirePoint, r1, r2)) {
+									result = true;
+									return true;
+								}
+								prevPoint = wirePoint;
+							}
+
+						});
+console.log(result);
+	return result;
 }
 isControlRectClicked(x, y) {
 	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
@@ -906,6 +963,15 @@ fromXML(data){
 			var y = parseInt(tokens[index + 1]);
 			this.polygon.points.push(new core.Point(x, y));
 	   }
+}
+toXML() {
+	var result = "<copperarea layer=\"" + this.copper.getName()
+								+ "\" padconnect=\"" + this.padConnection + "\" clearance=\"" + this.clearance + "\" net=\"" + this.net +"\">";
+	this.polygon.points.forEach(function(point) {
+		result += utilities.roundFloat(point.x,5) + "," + utilities.roundFloat(point.y,5) + ",";
+	},this);
+	result += "</copperarea>";
+	return result;
 }
 }
 

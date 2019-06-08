@@ -5,7 +5,7 @@ var BoardContainer=require('board/d/boardcomponent').BoardContainer;
 
 var BoardSaveView=Backbone.View.extend({
 	initialize:function(opt){
-			this.boardComponent=opt.boardComponent; 
+			this.model=opt.model; 
 			j$('#BoardSaveDialog').jqxWindow({height: 300, width: 420});
 			j$('#BoardSaveDialog').jqxWindow('open');
 			j$('#BoardSaveDialog').off('close', j$.proxy(this.onclose,this)); 
@@ -22,8 +22,10 @@ var BoardSaveView=Backbone.View.extend({
 
 WorkspaceView=Backbone.View.extend({
 	initialize:function(opt){
-		this.boardContainer=opt.boardContainer;
-		j$('#workspacecombo').editableSelect('clear');
+		this.model=opt.model;
+		j$('#workspacecomboid').editableSelect('clear');
+		j$('#projectnameid').val(this.model.formatedFileName);
+		j$('#workspacecomboid').val('');
 		 this.loadworkspaces();
 	},
     loadworkspaces:function(){
@@ -48,7 +50,7 @@ WorkspaceView=Backbone.View.extend({
     onloadworkspaces:function(data, textStatus, jqXHR){
 		let that=this;
     	j$(data).find("name").each(j$.proxy(function(){
-		  j$('#workspacecombo').editableSelect('add',j$(this).text());
+		  j$('#workspacecomboid').editableSelect('add',j$(this).text());
 		}),that);  	
     },
 
@@ -61,7 +63,7 @@ WorkspaceView=Backbone.View.extend({
 ButtonView=Backbone.View.extend({
 	el:"#savebuttonslot",
 	initialize:function(opt){
-	  this.unitSelectionPanel=opt.unitSelectionPanel;
+	  this.model=opt.model;
     },	
     clear:function(){
        this.undelegateEvents();
@@ -71,9 +73,38 @@ ButtonView=Backbone.View.extend({
         "click  #closebuttonid" : "onclose",	
     },
     onsave:function(){
-
-		//close dialog 
-		j$('#BoardSaveDialog').jqxWindow('close');
+    	let workspace=j$('#workspacecomboid').val()!=''?j$('#workspacecomboid').val():'null';
+	    let name=j$('#projectnameid').val()!=''?j$('#projectnameid').val():'null'
+	    	console.log(workspace+'='+name);	
+    	j$.ajax({
+	        type: 'POST',
+	        contentType: 'application/xml',
+	        url: '/rest/boards/workspaces/'+workspace+'?projectName='+name+'&overwrite='+j$('#overrideCheck').is(":checked"),
+	        dataType: "xml",
+	        data:this.model.format(),
+	        beforeSend:function(){
+		          j$('#BoardSaveDialog').block({message:'<h5>Saving...</h5>'});	
+		        },
+	        success: function(){
+	    		//close dialog 
+	    		j$('#BoardSaveDialog').jqxWindow('close');
+	        },	        		        
+	        error: function(jqXHR, textStatus, errorThrown){
+	            //if(jqXHR.status==404){
+	            	//data=jqXHR.responseJSON;
+	            	//clean error list
+	            	//$("#errorsres ul").empty();
+	            	//for(var i = 0; i < data.length; i++) {
+	            	//	$("#errorsres ul").append('<li>'+data[i]+'</li>');
+	            	//}
+	            //}else{
+	            	alert(errorThrown+":"+jqXHR.responseText);
+	            //}
+	        },
+	        complete:function(jqXHR, textStatus){
+	        	j$('#BoardSaveDialog').unblock();
+	        }
+	    });    	
     },
     onclose:function(){
     	j$('#BoardSaveDialog').jqxWindow('close'); 	

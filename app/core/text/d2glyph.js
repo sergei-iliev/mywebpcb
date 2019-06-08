@@ -379,7 +379,7 @@ drawControlShape(g2, viewportWindow,scale){
 }
 toXML(){
     return (this.isEmpty()? "" :
-        this.text + "," + this.anchorPoint.x + "," + this.anchorPoint.y +
+        this.text + "," + utilities.roundFloat(this.anchorPoint.x,5) + "," + utilities.roundFloat(this.anchorPoint.y,5) +
         ",,"+this.thickness+","+this.size+","+this.rotate);	
 }
 fromXML(node){	

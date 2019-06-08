@@ -22,6 +22,10 @@ var roundDouble=function(number){
 var round=function(angle){
 	return Math.round(angle*100.0)/100.0;
 }
+
+var roundFloat=function(value, decimals) {
+	return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+}
 var mirrorPoint=function(A,B,sourcePoint){
         let x = sourcePoint.x, y = sourcePoint.y;
         //***is this right-left mirroring
@@ -182,6 +186,7 @@ module.exports = {
   version,
   round,
   roundDouble,
+  roundFloat,
   getQuadrantLocation,  
   drawCrosshair,
   //ellipse,

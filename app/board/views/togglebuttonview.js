@@ -63,7 +63,7 @@ var ToggleButtonView=Backbone.View.extend({
             this.boardComponent.getModel().fireUnitEvent({target:this.boardComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 	
 		}
 		if(event.data.model.id=='saveid'){
-			new BoardSaveView({boardComponent:this.boardComponent}).render();			
+			new BoardSaveView({model:this.boardComponent.model}).render();			
 		}
 
 		if(event.data.model.id=='loadid'){

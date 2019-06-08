@@ -157,6 +157,21 @@ parse(data){
        }	  
    	});	
 }
+format(){   
+	   var xml="<board width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
+	   xml+="<name>"+this.unitName+"</name>\r\n";
+	   xml+="<units raster=\"" + this.grid.getGridValue() + "\">MM</units>\r\n";
+	   
+	   xml+="<symbols>\r\n";
+	   this.shapes.forEach(s=>{
+		  xml+=s.toXML()+"\r\n";
+	   });
+	   xml+="</symbols>\r\n";   
+	   xml+="</board>";
+	   return xml;
+	}	
+
+
 }
 
 class BoardContainer extends UnitContainer{
@@ -179,7 +194,19 @@ parse(xml){
         board.parse(this);
     }),that);	
 }
-
+format() {
+    var xml="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n"; 
+    xml+="<boards identity=\"Board\" version=\"1.0\">\r\n";      
+	let units=this.unitsmap.values();
+	for(let i=0;i<this.unitsmap.size;i++){
+      let unit=units.next().value;
+      xml+=unit.format();
+	  xml+="\r\n";
+	}    	    	
+    xml+="</boards>";
+    
+    return xml;
+}
 
 }
 
