@@ -125,7 +125,7 @@ setActiveSide(side) {
 paint(g2, viewportWindow){
 	   let len=this.shapes.length;
  	   for(let i=0;i<len;i++){
- 		   this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation);  
+ 		   this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation,this.compositeLayer.getLayerMaskID());  
  	   }
  	   this.shapes.forEach(function(shape){
  	    if (shape instanceof PCBTrack || shape instanceof PCBCopperArea) {
@@ -175,8 +175,8 @@ format(){
 }
 
 class BoardContainer extends UnitContainer{
-constructor(silent) {
-      super(silent);
+constructor() {
+      super();
   	  this.formatedFileName="Boards";
   	}
 parse(xml){
@@ -187,8 +187,6 @@ parse(xml){
 	  var that=this;
       j$(xml).find("board").each(j$.proxy(function(){
     	var board=new Board(j$(this).attr("width"),j$(this).attr("height"));
-    	//silent mode
-    	board.silent=that.silent;
     	//need to have a current unit 
         that.add(board);
         board.parse(this);

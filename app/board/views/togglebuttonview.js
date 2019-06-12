@@ -19,7 +19,7 @@ var ToggleButtonView=Backbone.View.extend({
 		this.collection=opt.collection;
 		this.boardComponent=opt.boardComponent;
 		mywebpcb.bind('libraryview:load',this.onfootprintload,this);
-		mywebpcb.bind('workspaceview:load',this.onload,this);
+		mywebpcb.bind('workspaceview:load',this.onboardload,this);
 		this.bind();
 		this.update();
 	},
@@ -178,12 +178,14 @@ var ToggleButtonView=Backbone.View.extend({
           this.boardComponent.mouseMove(selectedModel.event);
           //this.boardComponent.Repaint();
 	},
-	onload:function(selectedModel){
+	onboardload:function(selectedModel){
 		  this.boardComponent.Clear();
 		  this.boardComponent.setMode(core.ModeEnum.COMPONENT_MODE);
 		  
 		  for(let unit of selectedModel.getUnits()){
-			  var copy=unit.clone();			  
+			  core.isEventEnabled=false;
+			  var copy=unit.clone();	
+			  core.isEventEnabled=true;
 			  this.boardComponent.getModel().add(copy);  
 			  copy.notifyListeners(events.Event.ADD_SHAPE);
 		  };
@@ -197,7 +199,7 @@ var ToggleButtonView=Backbone.View.extend({
 
 	        //position on center
           var rect=this.boardComponent.getModel().getUnit().getBoundingRect();
-          this.boardComponent.setScrollPosition(rect.getCenterX(),rect.getCenterY());
+          this.boardComponent.setScrollPosition(rect.center.x,rect.center.y);
           this.boardComponent.fireContainerEvent({target:null,type: events.Event.RENAME_CONTAINER});
           this.boardComponent.getModel().fireUnitEvent({target:this.boardComponent.getModel().getUnit(),type: events.Event.SELECT_UNIT});
 		  this.boardComponent.Repaint();

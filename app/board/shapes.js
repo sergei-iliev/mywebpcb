@@ -28,11 +28,11 @@ class BoardShapeFactory{
 			via.fromXML(data);
 			return via;
 		}		
-//		if (data.tagName.toLowerCase() == 'rectangle') {
-//			var roundRect = new RoundRect(0, 0, 0, 0, 0,0, core.Layer.SILKSCREEN_LAYER_FRONT);
-//			roundRect.fromXML(data);
-//			return roundRect;
-//		}
+		if (data.tagName.toLowerCase() == 'circle') {
+			var circle = new PCBCircle(0, 0, 0, 0, 0);
+			circle.fromXML(data);
+			return circle;
+		}
 		if (data.tagName.toLowerCase() == 'ellipse') {
 			var circle = new Circle(0, 0, 0, 0, 0);
 			circle.fromXML(data);
@@ -53,11 +53,11 @@ class BoardShapeFactory{
 		    track.fromXML(data);
 		    return track;
 	    }		
-//		if (data.tagName.toLowerCase() == 'arc') {
-//			var arc = new Arc(0, 0, 0, 0, 0);
-//			arc.fromXML(data);
-//			return arc;
-//		}
+		if (data.tagName.toLowerCase() == 'hole') {
+			var hole = new PCBHole(0, 0, 0, 0, 0);
+			hole.fromXML(data);
+			return hole;
+		}
 		if (data.tagName.toLowerCase() == 'label') {
 			var label = new PCBLabel(0, 0, 0);
 			label.fromXML(data);		
@@ -483,10 +483,10 @@ drawClearence(g2,viewportWindow,scale,source){
 
    g2.restore();
 }
-paint(g2, viewportWindow, scale) {
-    //if ((this.copper.getLayerMaskID() & layermask) == 0) {
-    //    return;
-    //}
+paint(g2, viewportWindow, scale,layersmask) {
+    if((this.copper.getLayerMaskID()&layersmask)==0){
+        return;
+      }
 	
 	var rect = this.polyline.box;
 	rect.scale(scale.getScale());		
@@ -545,7 +545,7 @@ fromXML(data) {
 	   for (var index = 0; index < len; index += 2) {
 			var x = parseInt(tokens[index]);
 			var y = parseInt(tokens[index + 1]);
-			this.points.push(new core.Point(x, y));
+			this.polyline.points.push(new d2.Point(x, y));
 		}
 }
 toXML() {
@@ -638,10 +638,16 @@ paint(g2, viewportWindow, scale) {
 	  utilities.drawCrosshair(g2, viewportWindow, scale,null,this.selectionRectWidth,[this.circle.center]);
 	}
 }
-fromXML(node) {
-	this.setX(parseInt(j$(data).attr("x")));
-	this.setY(parseInt(j$(data).attr("y")));
-	this.setWidth(parseInt(j$(data).attr("width")));	      
+toXML(){
+	
+}
+fromXML(data) {
+	let x=parseFloat(j$(data).attr("x"));
+	let y=parseFloat(j$(data).attr("y"));
+    this.circle.pc.set(x,y);
+
+	this.circle.r=(parseInt(j$(data).attr("width")));	
+	this.clearance=(parseInt(j$(data).attr("clearance")));	      
 } 
 
 }
@@ -738,10 +744,15 @@ getOrderWeight() {
     return 3;
 }
 fromXML(data) {
-	this.setX(parseInt(j$(data).attr("x")));
-	this.setY(parseInt(j$(data).attr("y")));
-	this.setWidth(parseInt(j$(data).attr("width")));
-	this.thickness = (parseInt(j$(data).attr("drill")));  	
+	let x=parseFloat(j$(data).attr("x"));
+	let y=parseFloat(j$(data).attr("y"));
+    this.inner.pc.set(x,y);
+    this.outer.pc.set(x,y);
+
+
+	this.outer.r=(parseInt(j$(data).attr("width")));
+	this.inner.r = (parseInt(j$(data).attr("drill")));
+	this.clearance=(parseInt(j$(data).attr("clearance")));
 }
 toXML() {
     return "<via type=\"\" x=\""+utilities.roundFloat(this.inner.center.x,5)+"\" y=\""+utilities.roundFloat(this.inner.center.y,5)+"\" width=\""+this.outer.r+"\" drill=\""+this.inner.r+"\"   clearance=\""+this.clearance+"\" net=\""+(this.net==null?"":this.net)+"\" />";    
@@ -828,7 +839,7 @@ isClicked(x,y){
 							}
 
 						});
-console.log(result);
+
 	return result;
 }
 isControlRectClicked(x, y) {
@@ -868,6 +879,10 @@ Resize(xoffset, yoffset, clickedPoint) {
 								clickedPoint.y + yoffset);
 }
 paint(g2,viewportWindow,scale, layersmask){
+   
+    if((this.copper.getLayerMaskID()&layersmask)==0){
+      return;
+    }
 	var rect = this.polygon.box;
 	rect.scale(scale.getScale());		
 	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
@@ -961,7 +976,7 @@ fromXML(data){
 	   for (var index = 0; index < len; index += 2) {
 			var x = parseInt(tokens[index]);
 			var y = parseInt(tokens[index + 1]);
-			this.polygon.points.push(new core.Point(x, y));
+			this.polygon.points.push(new d2.Point(x, y));
 	   }
 }
 toXML() {

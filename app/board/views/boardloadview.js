@@ -53,7 +53,6 @@ LibraryView=Backbone.View.extend({
         //is this category or footprint selection
     	var item = j$('#boardtree').jqxTree('getItem', event.args.element);
     	var  url=j$('#projectcombo').val()+'/'+item.value.project;	
-console.log(url);
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
@@ -62,7 +61,18 @@ console.log(url);
 	        beforeSend:function(){
 		          j$('#BoardLoadDialog').block({message:'<h5>Loading...</h5>'});	
 		        },
-	        success: j$.proxy(this.loadboard,this),
+	        success: j$.proxy(function(data, textStatus, jqXHR){
+	        	console.log(33);
+	            this.unitSelectionPanel.release();
+	            
+	            let boardContainer=new BoardContainer(true);	            
+	            core.isEventEnabled=false;
+	            boardContainer.parse(data);
+	            core.isEventEnabled=true;
+	            this.unitSelectionPanel.unitSelectionGrid.setModel(boardContainer);
+	            this.unitSelectionPanel.unitSelectionGrid.build();   
+	            this.unitSelectionPanel.render();	        	
+	        },this),
 	        
 	        error: function(jqXHR, textStatus, errorThrown){
 	            	alert(errorThrown+":"+jqXHR.responseText);
@@ -72,14 +82,6 @@ console.log(url);
 	        }
 	    });
     	
-    },
-    loadboard:function(data, textStatus, jqXHR){
-      this.unitSelectionPanel.release();
-      let boardContainer=new BoardContainer(true);      
-      boardContainer.parse(data);
-      this.unitSelectionPanel.unitSelectionGrid.setModel(boardContainer);
-      this.unitSelectionPanel.unitSelectionGrid.build();   
-      this.unitSelectionPanel.render();
     },
     loadworkspaces:function(){
 	    j$.ajax({
@@ -163,6 +165,7 @@ ButtonLoadView=Backbone.View.extend({
     	mywebpcb.trigger('workspaceview:load',this.unitSelectionPanel.unitSelectionGrid.model);
 		//close dialog 
 		j$('#BoardLoadDialog').jqxWindow('close');
+		
     },
     onclose:function(){
     	j$('#BoardLoadDialog').jqxWindow('close'); 	

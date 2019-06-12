@@ -92,7 +92,7 @@ var LibraryView=Backbone.View.extend({
     },
     loadfootprint:function(data, textStatus, jqXHR){
       this.unitSelectionPanel.release();
-      footprintContainer=new FootprintContainer(true);
+      footprintContainer=new FootprintContainer();
       //disable 
       core.isEventEnabled=false;
       footprintContainer.parse(data);

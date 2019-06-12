@@ -529,13 +529,13 @@ var BoardPanelBuilder=BaseBuilder.extend({
 	render:function(){
 		j$(this.el).empty();
 		j$(this.el).append(
-				"<table width='100%'>"+
+				"<table width='100%'>"+			
+				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Side</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"sideid\">"+
 			    this.fillComboBox([{id:1,value:'TOP',selected:true},{id:2,value:'BOTTOM'}])+
 			    "</select>" +
-				"</td></tr>"+				
-				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+				
+				"</td></tr>"+					
 				"<tr><td style='padding:7px'>Width</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='heightid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Units</td><td>" +

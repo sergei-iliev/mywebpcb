@@ -8,20 +8,20 @@ app.use(express.static(__dirname + '/public'));
 //**************BOARD****************************************
 app.get('/rest/boards/workspaces', (req, res, next) => {
 	  res.send(
-	  '<?xml version="1.0" encoding="UTF-8"?><library>'+
+	  '<?xml version="1.0" encoding="UTF-8"?><workspace>'+
 	  '<name>CardReader</name>'+	  
 	  '<name>Demo</name>'+	  
-	  '</library>'
+	  '</workspace>'
 	);
 });
-app.get('/rest/boards/projects/CardReader', (req, res, next) => {
+app.get('/rest/boards/workspaces/CardReader', (req, res, next) => {
 	  res.send(
 	'<?xml version="1.0" encoding="UTF-8"?><boards>'+
-	'<name fullname="CR_v1" project="CardReader">CR_v1</name>'+
+	'<name fullname="CR_v1" project="CR_v1">CR_v1</name>'+
 	'</boards>'
 	);
 	});
-app.get('/rest/boards/projects/CardReader/CR_v1', (req, res, next) => {
+app.get('/rest/boards/workspaces/CardReader/CR_v1', (req, res, next) => {
     fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\workspace\\boards\\CardReader\\CardReader.xml','utf8', function(err, data) {
 		res.send(data);
   });
