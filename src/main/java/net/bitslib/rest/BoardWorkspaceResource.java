@@ -58,11 +58,9 @@ public class BoardWorkspaceResource {
 
 		// read symbol
 		Board board = boardRepository.getBoard(workspace.getKey(), projectName);
-		System.out.println(board);
-		System.out.println(board.getXml());
 		FileObject xml=boardRepository.getFileObjectById(board.getXml());
+		
 		String content=xml.toString();
-		System.out.println(content);
 		return ResponseEntity.ok(content);
 	}	
 	@RequestMapping(value = "/workspaces/{workspaceName}", method = RequestMethod.POST,produces={MediaType.APPLICATION_XML_VALUE})

@@ -956,6 +956,7 @@ var UnitSelectionGrid = Backbone.Model.extend({
 	initialize: function(){
     this.model=null;
     this.cells=[];
+    this.scaleFactor=10;
   },
 setModel:function(model){
 		this.model=model;
@@ -979,7 +980,7 @@ build:function(){
 		 //hide frame
 		 unit.frame=null;
 		 //make it smaller
-		 unit.scalableTransformation=new ScalableTransformation(10,4,13);
+		 unit.scalableTransformation=new ScalableTransformation(this.scaleFactor,4,13);
 	     var w=Math.round(unit.getBoundingRect().width*unit.scalableTransformation.getScale());
 		 width=Math.max(width,w);
        
@@ -7748,13 +7749,19 @@ class RoundRect extends Shape{
 				+ "\"></rectangle>";
 	}
 	fromXML(data) {
+
 		if(j$(data)[0].hasAttribute("copper")){
 		  this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
 		}
 		if(j$(data).attr("width")!=undefined){
-		  this.roundRect.setRect(parseInt(j$(data).attr("x")),parseInt(j$(data).attr("y")),parseInt(j$(data).attr("width")),parseInt(j$(data).attr("height")),parseInt(j$(data).attr("arc")));
+		  this.roundRect.setRect(parseInt(j$(data).attr("x")),parseInt(j$(data).attr("y")),parseInt(j$(data).attr("width")),parseInt(j$(data).attr("height")),parseInt(j$(data).attr("arc"))/2);
 		}else{			
-			var array = JSON.parse("[" + j$(data).attr("points") + "]");
+			var pts=j$(data).attr("points");			
+			var lastchar = pts[pts.length - 1];
+			if(lastchar==","){
+				pts=pts.substr(0,pts.length - 1); 
+			}
+			var array = JSON.parse("[" +pts+ "]");
 			let points=[];
 			points.push(new d2.Point(array[0],array[1]));
 			points.push(new d2.Point(array[2],array[3]));
@@ -9318,7 +9325,7 @@ var LibraryView=Backbone.View.extend({
     },
     loadfootprint:function(data, textStatus, jqXHR){
       this.unitSelectionPanel.release();
-      footprintContainer=new FootprintContainer(true);
+      footprintContainer=new FootprintContainer();
       //disable 
       core.isEventEnabled=false;
       footprintContainer.parse(data);
@@ -11040,5 +11047,3 @@ module.exports =ToggleButtonView
   
 });})();require('___globals___');
 
-
-//# sourceMappingURL=pads.js.map

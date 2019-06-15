@@ -375,7 +375,7 @@ setActiveSide(side) {
 paint(g2, viewportWindow){
 	   let len=this.shapes.length;
  	   for(let i=0;i<len;i++){
- 		   this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation);  
+ 		   this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation,this.compositeLayer.getLayerMaskID());  
  	   }
  	   this.shapes.forEach(function(shape){
  	    if (shape instanceof PCBTrack || shape instanceof PCBCopperArea) {
@@ -425,8 +425,8 @@ format(){
 }
 
 class BoardContainer extends UnitContainer{
-constructor(silent) {
-      super(silent);
+constructor() {
+      super();
   	  this.formatedFileName="Boards";
   	}
 parse(xml){
@@ -435,10 +435,9 @@ parse(xml){
 	  this.categoryname=(j$(xml).find("category").text()); 	
 
 	  var that=this;
+	  
       j$(xml).find("board").each(j$.proxy(function(){
     	var board=new Board(j$(this).attr("width"),j$(this).attr("height"));
-    	//silent mode
-    	board.silent=that.silent;
     	//need to have a current unit 
         that.add(board);
         board.parse(this);
@@ -454,7 +453,7 @@ format() {
 	  xml+="\r\n";
 	}    	    	
     xml+="</boards>";
-    
+    console.log(xml);
     return xml;
 }
 
@@ -1107,11 +1106,11 @@ class BoardShapeFactory{
 			via.fromXML(data);
 			return via;
 		}		
-//		if (data.tagName.toLowerCase() == 'rectangle') {
-//			var roundRect = new RoundRect(0, 0, 0, 0, 0,0, core.Layer.SILKSCREEN_LAYER_FRONT);
-//			roundRect.fromXML(data);
-//			return roundRect;
-//		}
+		if (data.tagName.toLowerCase() == 'circle') {
+			var circle = new PCBCircle(0, 0, 0, 0, 0);
+			circle.fromXML(data);
+			return circle;
+		}
 		if (data.tagName.toLowerCase() == 'ellipse') {
 			var circle = new Circle(0, 0, 0, 0, 0);
 			circle.fromXML(data);
@@ -1132,11 +1131,11 @@ class BoardShapeFactory{
 		    track.fromXML(data);
 		    return track;
 	    }		
-//		if (data.tagName.toLowerCase() == 'arc') {
-//			var arc = new Arc(0, 0, 0, 0, 0);
-//			arc.fromXML(data);
-//			return arc;
-//		}
+		if (data.tagName.toLowerCase() == 'hole') {
+			var hole = new PCBHole(0, 0, 0, 0, 0);
+			hole.fromXML(data);
+			return hole;
+		}
 		if (data.tagName.toLowerCase() == 'label') {
 			var label = new PCBLabel(0, 0, 0);
 			label.fromXML(data);		
@@ -1562,10 +1561,10 @@ drawClearence(g2,viewportWindow,scale,source){
 
    g2.restore();
 }
-paint(g2, viewportWindow, scale) {
-    //if ((this.copper.getLayerMaskID() & layermask) == 0) {
-    //    return;
-    //}
+paint(g2, viewportWindow, scale,layersmask) {
+    if((this.copper.getLayerMaskID()&layersmask)==0){
+        return;
+      }
 	
 	var rect = this.polyline.box;
 	rect.scale(scale.getScale());		
@@ -1616,7 +1615,6 @@ drawControlShape(g2, viewportWindow, scale){
     this.drawControlPoints(g2, viewportWindow, scale);
 }
 fromXML(data) {
-
        this.copper =core.Layer.Copper.valueOf(j$(data).attr("layer"));
 	   this.thickness = (parseInt(j$(data).attr("thickness")));
 	   var tokens = data.textContent.split(",");
@@ -1624,7 +1622,7 @@ fromXML(data) {
 	   for (var index = 0; index < len; index += 2) {
 			var x = parseInt(tokens[index]);
 			var y = parseInt(tokens[index + 1]);
-			this.points.push(new core.Point(x, y));
+			this.polyline.points.push(new d2.Point(x, y));
 		}
 }
 toXML() {
@@ -1717,10 +1715,16 @@ paint(g2, viewportWindow, scale) {
 	  utilities.drawCrosshair(g2, viewportWindow, scale,null,this.selectionRectWidth,[this.circle.center]);
 	}
 }
-fromXML(node) {
-	this.setX(parseInt(j$(data).attr("x")));
-	this.setY(parseInt(j$(data).attr("y")));
-	this.setWidth(parseInt(j$(data).attr("width")));	      
+toXML(){
+	
+}
+fromXML(data) {
+	let x=parseFloat(j$(data).attr("x"));
+	let y=parseFloat(j$(data).attr("y"));
+    this.circle.pc.set(x,y);
+
+	this.circle.r=(parseInt(j$(data).attr("width")));	
+	this.clearance=(parseInt(j$(data).attr("clearance")));	      
 } 
 
 }
@@ -1817,10 +1821,15 @@ getOrderWeight() {
     return 3;
 }
 fromXML(data) {
-	this.setX(parseInt(j$(data).attr("x")));
-	this.setY(parseInt(j$(data).attr("y")));
-	this.setWidth(parseInt(j$(data).attr("width")));
-	this.thickness = (parseInt(j$(data).attr("drill")));  	
+	let x=parseFloat(j$(data).attr("x"));
+	let y=parseFloat(j$(data).attr("y"));
+    this.inner.pc.set(x,y);
+    this.outer.pc.set(x,y);
+
+
+	this.outer.r=(parseInt(j$(data).attr("width")));
+	this.inner.r = (parseInt(j$(data).attr("drill")));
+	this.clearance=(parseInt(j$(data).attr("clearance")));
 }
 toXML() {
     return "<via type=\"\" x=\""+utilities.roundFloat(this.inner.center.x,5)+"\" y=\""+utilities.roundFloat(this.inner.center.y,5)+"\" width=\""+this.outer.r+"\" drill=\""+this.inner.r+"\"   clearance=\""+this.clearance+"\" net=\""+(this.net==null?"":this.net)+"\" />";    
@@ -1907,7 +1916,7 @@ isClicked(x,y){
 							}
 
 						});
-console.log(result);
+
 	return result;
 }
 isControlRectClicked(x, y) {
@@ -1947,6 +1956,10 @@ Resize(xoffset, yoffset, clickedPoint) {
 								clickedPoint.y + yoffset);
 }
 paint(g2,viewportWindow,scale, layersmask){
+   
+    if((this.copper.getLayerMaskID()&layersmask)==0){
+      return;
+    }
 	var rect = this.polygon.box;
 	rect.scale(scale.getScale());		
 	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
@@ -2040,7 +2053,7 @@ fromXML(data){
 	   for (var index = 0; index < len; index += 2) {
 			var x = parseInt(tokens[index]);
 			var y = parseInt(tokens[index + 1]);
-			this.polygon.points.push(new core.Point(x, y));
+			this.polygon.points.push(new d2.Point(x, y));
 	   }
 }
 toXML() {
@@ -2127,7 +2140,6 @@ LibraryView=Backbone.View.extend({
         //is this category or footprint selection
     	var item = j$('#boardtree').jqxTree('getItem', event.args.element);
     	var  url=j$('#projectcombo').val()+'/'+item.value.project;	
-console.log(url);
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
@@ -2136,7 +2148,18 @@ console.log(url);
 	        beforeSend:function(){
 		          j$('#BoardLoadDialog').block({message:'<h5>Loading...</h5>'});	
 		        },
-	        success: j$.proxy(this.loadboard,this),
+	        success: j$.proxy(function(data, textStatus, jqXHR){
+	            this.unitSelectionPanel.release();
+	            
+	            let boardContainer=new BoardContainer(true);	            
+	            core.isEventEnabled=false;
+	            boardContainer.parse(data);
+	            core.isEventEnabled=true;
+	            this.unitSelectionPanel.unitSelectionGrid.setModel(boardContainer);
+	            this.unitSelectionPanel.unitSelectionGrid.scaleFactor=11;
+	            this.unitSelectionPanel.unitSelectionGrid.build();   
+	            this.unitSelectionPanel.render();	        	
+	        },this),
 	        
 	        error: function(jqXHR, textStatus, errorThrown){
 	            	alert(errorThrown+":"+jqXHR.responseText);
@@ -2146,14 +2169,6 @@ console.log(url);
 	        }
 	    });
     	
-    },
-    loadboard:function(data, textStatus, jqXHR){
-      this.unitSelectionPanel.release();
-      let boardContainer=new BoardContainer(true);      
-      boardContainer.parse(data);
-      this.unitSelectionPanel.unitSelectionGrid.setModel(boardContainer);
-      this.unitSelectionPanel.unitSelectionGrid.build();   
-      this.unitSelectionPanel.render();
     },
     loadworkspaces:function(){
 	    j$.ajax({
@@ -2237,6 +2252,7 @@ ButtonLoadView=Backbone.View.extend({
     	mywebpcb.trigger('workspaceview:load',this.unitSelectionPanel.unitSelectionGrid.model);
 		//close dialog 
 		j$('#BoardLoadDialog').jqxWindow('close');
+		
     },
     onclose:function(){
     	j$('#BoardLoadDialog').jqxWindow('close'); 	
@@ -2909,13 +2925,13 @@ var BoardPanelBuilder=BaseBuilder.extend({
 	render:function(){
 		j$(this.el).empty();
 		j$(this.el).append(
-				"<table width='100%'>"+
+				"<table width='100%'>"+			
+				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Side</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"sideid\">"+
 			    this.fillComboBox([{id:1,value:'TOP',selected:true},{id:2,value:'BOTTOM'}])+
 			    "</select>" +
-				"</td></tr>"+				
-				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+				
+				"</td></tr>"+					
 				"<tr><td style='padding:7px'>Width</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='heightid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Units</td><td>" +
@@ -3673,6 +3689,7 @@ var shape=require('core/shapes');
 var events=require('core/events');
 var FootprintLoadView=require('pads/views/footprintloadview');
 var BoardMgr = require('board/d/boardcomponent').BoardMgr;
+var BoardContainer = require('board/d/boardcomponent').BoardContainer;
 var UnitMgr = require('core/unit').UnitMgr;
 var BoardLoadView=require('board/views/boardloadview');
 var BoardSaveView=require('board/views/boardsaveview');
@@ -3688,7 +3705,7 @@ var ToggleButtonView=Backbone.View.extend({
 		this.collection=opt.collection;
 		this.boardComponent=opt.boardComponent;
 		mywebpcb.bind('libraryview:load',this.onfootprintload,this);
-		mywebpcb.bind('workspaceview:load',this.onload,this);
+		mywebpcb.bind('workspaceview:load',this.onboardload,this);
 		this.bind();
 		this.update();
 	},
@@ -3696,6 +3713,7 @@ var ToggleButtonView=Backbone.View.extend({
 		_.each(this.collection.models,j$.proxy(function(model,index,list) {
 			    j$("#"+model.id).bind( "click",{model:model},j$.proxy(this.onclick,this));
 			}),this);	
+		j$("#importfromclipboardid").click(j$.proxy(this.onimport,this));
 	},
 	update:function(){
 		_.each(this.collection.models,function(model,index,list) {
@@ -3710,6 +3728,17 @@ var ToggleButtonView=Backbone.View.extend({
 		    }
 		}),this);		
 	},
+	onimport:function(event){
+		navigator.clipboard.readText().then(data =>{ 
+		      let boardContainer=new BoardContainer(true);
+		      let xml=(j$.parseXML(data));		    	  
+		      //disable 
+		      core.isEventEnabled=false;
+		      boardContainer.parse(xml);
+		      core.isEventEnabled=true;
+		  	  mywebpcb.trigger('workspaceview:load',boardContainer);
+			});
+	},	
 	onclick:function(event){
 	    event.preventDefault();
 	    //is this a group button
@@ -3847,12 +3876,14 @@ var ToggleButtonView=Backbone.View.extend({
           this.boardComponent.mouseMove(selectedModel.event);
           //this.boardComponent.Repaint();
 	},
-	onload:function(selectedModel){
+	onboardload:function(selectedModel){
 		  this.boardComponent.Clear();
 		  this.boardComponent.setMode(core.ModeEnum.COMPONENT_MODE);
 		  
 		  for(let unit of selectedModel.getUnits()){
-			  var copy=unit.clone();			  
+			  core.isEventEnabled=false;
+			  var copy=unit.clone();	
+			  core.isEventEnabled=true;
 			  this.boardComponent.getModel().add(copy);  
 			  copy.notifyListeners(events.Event.ADD_SHAPE);
 		  };
@@ -3866,7 +3897,7 @@ var ToggleButtonView=Backbone.View.extend({
 
 	        //position on center
           var rect=this.boardComponent.getModel().getUnit().getBoundingRect();
-          this.boardComponent.setScrollPosition(rect.getCenterX(),rect.getCenterY());
+          this.boardComponent.setScrollPosition(rect.center.x,rect.center.y);
           this.boardComponent.fireContainerEvent({target:null,type: events.Event.RENAME_CONTAINER});
           this.boardComponent.getModel().fireUnitEvent({target:this.boardComponent.getModel().getUnit(),type: events.Event.SELECT_UNIT});
 		  this.boardComponent.Repaint();
@@ -4700,6 +4731,7 @@ var UnitSelectionGrid = Backbone.Model.extend({
 	initialize: function(){
     this.model=null;
     this.cells=[];
+    this.scaleFactor=10;
   },
 setModel:function(model){
 		this.model=model;
@@ -4723,7 +4755,7 @@ build:function(){
 		 //hide frame
 		 unit.frame=null;
 		 //make it smaller
-		 unit.scalableTransformation=new ScalableTransformation(10,4,13);
+		 unit.scalableTransformation=new ScalableTransformation(this.scaleFactor,4,13);
 	     var w=Math.round(unit.getBoundingRect().width*unit.scalableTransformation.getScale());
 		 width=Math.max(width,w);
        
@@ -11601,13 +11633,19 @@ class RoundRect extends Shape{
 				+ "\"></rectangle>";
 	}
 	fromXML(data) {
+
 		if(j$(data)[0].hasAttribute("copper")){
 		  this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
 		}
 		if(j$(data).attr("width")!=undefined){
-		  this.roundRect.setRect(parseInt(j$(data).attr("x")),parseInt(j$(data).attr("y")),parseInt(j$(data).attr("width")),parseInt(j$(data).attr("height")),parseInt(j$(data).attr("arc")));
+		  this.roundRect.setRect(parseInt(j$(data).attr("x")),parseInt(j$(data).attr("y")),parseInt(j$(data).attr("width")),parseInt(j$(data).attr("height")),parseInt(j$(data).attr("arc"))/2);
 		}else{			
-			var array = JSON.parse("[" + j$(data).attr("points") + "]");
+			var pts=j$(data).attr("points");			
+			var lastchar = pts[pts.length - 1];
+			if(lastchar==","){
+				pts=pts.substr(0,pts.length - 1); 
+			}
+			var array = JSON.parse("[" +pts+ "]");
 			let points=[];
 			points.push(new d2.Point(array[0],array[1]));
 			points.push(new d2.Point(array[2],array[3]));
@@ -13171,7 +13209,7 @@ var LibraryView=Backbone.View.extend({
     },
     loadfootprint:function(data, textStatus, jqXHR){
       this.unitSelectionPanel.release();
-      footprintContainer=new FootprintContainer(true);
+      footprintContainer=new FootprintContainer();
       //disable 
       core.isEventEnabled=false;
       footprintContainer.parse(data);
@@ -13311,5 +13349,3 @@ module.exports =FootprintLoadView
   
 });})();require('___globals___');
 
-
-//# sourceMappingURL=board.js.map

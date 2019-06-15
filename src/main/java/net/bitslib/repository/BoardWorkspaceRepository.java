@@ -32,8 +32,7 @@ public class BoardWorkspaceRepository {
 		return xml.toString();	
 	}
 	public String getBoardsToXML(Key<BoardWorkspace> workspace){
-		Collection<Board> _boards=ObjectifyService.ofy().load().type(Board.class).list();
-		_boards.forEach(e->System.out.println(e.getWorkspace()));
+
 		Collection<Board> boards=ObjectifyService.ofy().load().type(Board.class).filter("workspace",workspace).order("name").list();
 		
 		StringBuffer xml = new StringBuffer();
