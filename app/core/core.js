@@ -806,6 +806,7 @@ var UnitSelectionGrid = Backbone.Model.extend({
 	initialize: function(){
     this.model=null;
     this.cells=[];
+    this.scaleFactor=10;
   },
 setModel:function(model){
 		this.model=model;
@@ -829,7 +830,7 @@ build:function(){
 		 //hide frame
 		 unit.frame=null;
 		 //make it smaller
-		 unit.scalableTransformation=new ScalableTransformation(10,4,13);
+		 unit.scalableTransformation=new ScalableTransformation(this.scaleFactor,4,13);
 	     var w=Math.round(unit.getBoundingRect().width*unit.scalableTransformation.getScale());
 		 width=Math.max(width,w);
        

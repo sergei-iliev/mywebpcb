@@ -4,6 +4,7 @@ var shape=require('core/shapes');
 var events=require('core/events');
 var FootprintLoadView=require('pads/views/footprintloadview');
 var BoardMgr = require('board/d/boardcomponent').BoardMgr;
+var BoardContainer = require('board/d/boardcomponent').BoardContainer;
 var UnitMgr = require('core/unit').UnitMgr;
 var BoardLoadView=require('board/views/boardloadview');
 var BoardSaveView=require('board/views/boardsaveview');
@@ -27,6 +28,7 @@ var ToggleButtonView=Backbone.View.extend({
 		_.each(this.collection.models,j$.proxy(function(model,index,list) {
 			    j$("#"+model.id).bind( "click",{model:model},j$.proxy(this.onclick,this));
 			}),this);	
+		j$("#importfromclipboardid").click(j$.proxy(this.onimport,this));
 	},
 	update:function(){
 		_.each(this.collection.models,function(model,index,list) {
@@ -41,6 +43,17 @@ var ToggleButtonView=Backbone.View.extend({
 		    }
 		}),this);		
 	},
+	onimport:function(event){
+		navigator.clipboard.readText().then(data =>{ 
+		      let boardContainer=new BoardContainer(true);
+		      let xml=(j$.parseXML(data));		    	  
+		      //disable 
+		      core.isEventEnabled=false;
+		      boardContainer.parse(xml);
+		      core.isEventEnabled=true;
+		  	  mywebpcb.trigger('workspaceview:load',boardContainer);
+			});
+	},	
 	onclick:function(event){
 	    event.preventDefault();
 	    //is this a group button

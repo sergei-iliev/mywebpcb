@@ -537,7 +537,6 @@ drawControlShape(g2, viewportWindow, scale){
     this.drawControlPoints(g2, viewportWindow, scale);
 }
 fromXML(data) {
-
        this.copper =core.Layer.Copper.valueOf(j$(data).attr("layer"));
 	   this.thickness = (parseInt(j$(data).attr("thickness")));
 	   var tokens = data.textContent.split(",");

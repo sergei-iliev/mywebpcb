@@ -62,7 +62,6 @@ LibraryView=Backbone.View.extend({
 		          j$('#BoardLoadDialog').block({message:'<h5>Loading...</h5>'});	
 		        },
 	        success: j$.proxy(function(data, textStatus, jqXHR){
-	        	console.log(33);
 	            this.unitSelectionPanel.release();
 	            
 	            let boardContainer=new BoardContainer(true);	            
@@ -70,6 +69,7 @@ LibraryView=Backbone.View.extend({
 	            boardContainer.parse(data);
 	            core.isEventEnabled=true;
 	            this.unitSelectionPanel.unitSelectionGrid.setModel(boardContainer);
+	            this.unitSelectionPanel.unitSelectionGrid.scaleFactor=11;
 	            this.unitSelectionPanel.unitSelectionGrid.build();   
 	            this.unitSelectionPanel.render();	        	
 	        },this),

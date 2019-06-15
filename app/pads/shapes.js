@@ -240,14 +240,19 @@ class RoundRect extends Shape{
 				+ "\"></rectangle>";
 	}
 	fromXML(data) {
-		console.log(data);
+
 		if(j$(data)[0].hasAttribute("copper")){
 		  this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
 		}
 		if(j$(data).attr("width")!=undefined){
 		  this.roundRect.setRect(parseInt(j$(data).attr("x")),parseInt(j$(data).attr("y")),parseInt(j$(data).attr("width")),parseInt(j$(data).attr("height")),parseInt(j$(data).attr("arc"))/2);
 		}else{			
-			var array = JSON.parse("[" + j$(data).attr("points") + "]");
+			var pts=j$(data).attr("points");			
+			var lastchar = pts[pts.length - 1];
+			if(lastchar==","){
+				pts=pts.substr(0,pts.length - 1); 
+			}
+			var array = JSON.parse("[" +pts+ "]");
 			let points=[];
 			points.push(new d2.Point(array[0],array[1]));
 			points.push(new d2.Point(array[2],array[3]));

@@ -185,6 +185,7 @@ parse(xml){
 	  this.categoryname=(j$(xml).find("category").text()); 	
 
 	  var that=this;
+	  
       j$(xml).find("board").each(j$.proxy(function(){
     	var board=new Board(j$(this).attr("width"),j$(this).attr("height"));
     	//need to have a current unit 
@@ -202,7 +203,7 @@ format() {
 	  xml+="\r\n";
 	}    	    	
     xml+="</boards>";
-    
+    console.log(xml);
     return xml;
 }
 
