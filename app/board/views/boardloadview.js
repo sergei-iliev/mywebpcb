@@ -113,7 +113,9 @@ LibraryView=Backbone.View.extend({
 		this.loadboards(j$('#projectcombo').val());
 	},	
 	loadboards:function(workspace){
-		console.log(workspace);
+		if(workspace==null){
+			return;
+		}
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',

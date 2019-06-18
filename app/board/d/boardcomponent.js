@@ -180,10 +180,10 @@ constructor() {
   	  this.formatedFileName="Boards";
   	}
 parse(xml){
-	  this.filename=(j$(xml).find("filename").text());
-	  this.libraryname=(j$(xml).find("library").text());
-	  this.categoryname=(j$(xml).find("category").text()); 	
-
+	  this.workspacename=(j$(xml).find("workspaceName").text());
+	  console.log(j$(xml).find("projectName").text());
+	   	
+	  this.setFileName(j$(xml).find("projectName").text());
 	  var that=this;
 	  
       j$(xml).find("board").each(j$.proxy(function(){

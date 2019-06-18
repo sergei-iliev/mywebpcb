@@ -84,7 +84,7 @@ var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
                 });	
 				
 		   //load demo footprint
-			    	//loadDemo(fc);
+			    	loadDemo(fc);
 	});	
 	loadDemo=function(fc){
 		

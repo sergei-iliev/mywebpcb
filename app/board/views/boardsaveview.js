@@ -14,6 +14,9 @@ var BoardSaveView=Backbone.View.extend({
 			this.buttonview=new ButtonView(opt); 
 			
 	},
+	onclose:function(){
+		this.buttonview.clear();	
+	},
     render:function(){ 
     	this.buttonview.render();
     }
