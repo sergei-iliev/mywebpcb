@@ -242,8 +242,43 @@ var Board=require('board/d/boardcomponent').Board;
 		            height: 270,
 		            autoOpen:false
              });	
-			 
-	});
+			   //load demo board
+		      loadDemo(bc);
+});	
+loadDemo=function(bc){
+	
+ j$.ajax({
+     type: 'GET',
+     contentType: 'application/xml',
+     url: 'demo/board.xml',
+     dataType: "xml",
+     beforeSend:function(){
+	          j$('#mywebboardid').block({message:'<h5>Loading...</h5>'});	
+	    },
+     success: function(data, textStatus, jqXHR){
+
+   //****load it    	
+   		  bc.Clear();
+   		  bc.getModel().parse(data);
+   		  bc.getModel().setActiveUnit(0);
+   		  bc.componentResized();
+             //position on center
+           var rect=fc.getModel().getUnit().getBoundingRect();
+           bc.setScrollPosition(rect.center.x,rect.center.y);
+           bc.getModel().fireUnitEvent({target:fc.getModel().getUnit(),type: events.Event.SELECT_UNIT});
+   		   bc.Repaint();
+   		  //set button group
+   		   bc.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);	        
+     },
+     
+     error: function(jqXHR, textStatus, errorThrown){
+         	alert(errorThrown+":"+jqXHR.responseText);
+     },
+     complete:function(jqXHR, textStatus){
+     	j$('#mywebboardid').unblock();
+     }	        
+ });	
+}
 })(jQuery);
 });
 
