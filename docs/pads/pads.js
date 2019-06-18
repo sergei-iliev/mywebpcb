@@ -205,6 +205,7 @@ var ModeEnum=(function(){
 		   COPPERAREA_MODE:13,
 		   VIA_MODE:14,
 		   HOLE_MODE:15,
+		   SOLID_REGION_MODE:16,
 	}
 })();
 
@@ -456,8 +457,10 @@ var Layer=(function(){
 	            }	            
 	            if(layermask==(Layer.LAYER_BACK|Layer.LAYER_FRONT)){
 	                return Layer.Copper.Cu;
-	            }            
-	            else{
+	            } 
+	            if (layermask == Layer.LAYER_ALL) {
+	                return Layer.Copper.All;
+	            }else{
 	                return Layer.Copper.None;
 	            }	            	            
 	        },
@@ -478,14 +481,26 @@ var Layer=(function(){
 	};
 })();
 
+var isEventEnabled=true;
+
 class CompositeLayer{
   constructor() {
-	     this.compositelayer=Layer.Copper.All;
-	     this.activeside=Layer.Side.TOP;
+	     this.compositelayer=Layer.LAYER_ALL;
+	     this.activeSide=Layer.Side.TOP;
   }
 isLayerVisible(mask) {
-	     return (compositelayer & mask)!=0;          
+	     return (this.compositelayer & mask)!=0;          
   } 
+getLayerMaskID() {
+    return this.compositelayer;
+}
+setLayerVisible(mask,flag) {
+    if(flag){
+        this.compositelayer |= mask;     
+    }else{
+        this.compositelayer &= ~mask;
+    }
+}
 	  
 }
 
@@ -758,7 +773,7 @@ lengthOnGrid(length){
         return xx;	
 }
 snapToGrid(p){        
-   p.setLocation(this.lengthOnGrid(p.x), this.lengthOnGrid(p.y));
+   p.set(this.lengthOnGrid(p.x), this.lengthOnGrid(p.y));
 } 
 }
 
@@ -791,14 +806,14 @@ setRotation(alpha,pt){
 			 texture.setRotation(alpha,pt); 
 		  }); 	
 }
-Rotate(rotation) {
+Rotate(rotate,pt) {
 		  this.text.forEach(function(texture){
-		     texture.Rotate(rotation); 
+		     texture.Rotate(rotate,pt); 
 		   });         
 		 }		 
-Paint( g2,  viewportWindow,  scale) {
+paint( g2,  viewportWindow,  scale) {
 	  this.text.forEach(function(texture){
-		  texture.Paint(g2,viewportWindow,scale); 
+		  texture.paint(g2,viewportWindow,scale); 
 	   }); 
 	  }
 setLocation( x,  y) {
@@ -941,6 +956,7 @@ var UnitSelectionGrid = Backbone.Model.extend({
 	initialize: function(){
     this.model=null;
     this.cells=[];
+    this.scaleFactor=10;
   },
 setModel:function(model){
 		this.model=model;
@@ -964,7 +980,7 @@ build:function(){
 		 //hide frame
 		 unit.frame=null;
 		 //make it smaller
-		 unit.scalableTransformation=new ScalableTransformation(10,4,13);
+		 unit.scalableTransformation=new ScalableTransformation(this.scaleFactor,4,13);
 	     var w=Math.round(unit.getBoundingRect().width*unit.scalableTransformation.getScale());
 		 width=Math.max(width,w);
        
@@ -1075,7 +1091,8 @@ module.exports ={
     MM_TO_COORD,
     COORD_TO_MM,
 	UnitSelectionPanel,
-	CompositeLayer
+	CompositeLayer,
+	isEventEnabled
 }
 
 var events=require('core/events');
@@ -1161,7 +1178,10 @@ class MoveEventHandle extends EventHandle{
 		if(super.isRightMouseButton(event)){
             if (this.target["getLinePoints"]!=undefined){
             	this.component.popup.registerLineSelectPopup(this.target,event);
-            }else{
+            }else if(this.target["getPinsRect"]!=undefined){
+            	this.component.popup.registerPadPopup(this.target,event);
+            }
+            else{
                 this.component.popup.registerShapePopup(this.target,event);
                 
             }
@@ -1676,8 +1696,10 @@ show(){
 	}    
 	this.opened = true;		  		  
 }
-close() {        
-    this.placeholder.className = "hidden";
+close() {
+	
+	j$(this.placeholder).removeClass("visible");
+	j$(this.placeholder).empty();
     this.opened = false;  
 }
 isOpen(){
@@ -1770,7 +1792,8 @@ actionPerformed(id,context){
          let r=this.component.getModel().getUnit().getShapesRect(shapes);       
          let unitMgr = UnitMgr.getInstance();
          
-         unitMgr.rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(id==("rotateleftid")?-1:1)*(90.0)));
+         unitMgr.rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(id==("rotateleftid")?1:-1)*(90.0)));
+         
          unitMgr.alignBlock(this.component.getModel().getUnit().grid,shapes);
          this.component.Repaint();		 
 	 }
@@ -1902,6 +1925,9 @@ setHeight (height) {
 getHeight() {
 		return this.height;
 	}
+getDrawingOrder() {
+    return 100;
+}
 getOrderWeight() {
 		return (this.getWidth() * this.getHeight());
 	}
@@ -1911,6 +1937,13 @@ getUUID() {
 calculateShape() {
 
 	}
+isVisibleOnLayers(layermasks){
+    if((this.copper.getLayerMaskID()&layermasks)!=0){
+        return true;
+    }else{
+        return false;
+    }
+}
 isInRect(r){
 	let rect=this.getBoundingShape();
         if(r.contains(rect.center))
@@ -1941,10 +1974,7 @@ Move(xoffset,yoffset) {
 }
 
 Mirror(line) {
-        //let point = new d2.Point(this.x,this.y);
-        //utilities.mirrorPoint(A,B, point);
-        //this.setX(point.x);
-        //this.setY(point.y);
+
 }
     
 
@@ -1965,7 +1995,7 @@ fromXML(data) {
 class Ruler extends Shape{
 constructor () {
 	super(0, 0, 0, 0, 0, 0);
-    this.text=new font.FontTexture('label','',0,0,20);
+    this.text=new font.FontTexture('label','',0,0,core.MM_TO_COORD(1),0);
     this.text.constSize=true;
     this.text.fillColor='white';        
 	this.resizingPoint=null;
@@ -1980,8 +2010,7 @@ paint( g2,  viewportWindow,  scale) {
         }
         this.text.setText(parseFloat(core.COORD_TO_MM(this.resizingPoint.distanceTo(new d2.Point(this.x,this.y)))).toFixed(4)+' MM');
                 
-        this.text.Paint(g2, viewportWindow, scale);
-
+        this.text.paint(g2, viewportWindow, scale);
         let line=new d2.Segment(this.x,this.y,this.resizingPoint.x,this.resizingPoint.y);
 
         g2.strokeStyle  = 'white';
@@ -2060,6 +2089,7 @@ class AbstractLine extends Shape{
 																		// degree
 																		// forming
 		this.floatingEndPoint = new d2.Point();
+		this.rotate=0;
 		
 }
 getLinePoints(){
@@ -2099,6 +2129,9 @@ isClicked(x, y) {
 
 	return result;
 }
+addPoint(point) {
+    this.polyline.add(point);
+}
 resetToPoint(point) {
 	this.floatingStartPoint.set(point);
 	this.floatingMidPoint.set(point);
@@ -2118,7 +2151,10 @@ Resize(xoffset, yoffset, clickedPoint) {
 	clickedPoint.set(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);
 }
-
+shiftFloatingPoints(){
+    this.floatingStartPoint.set(this.polyline.points[this.polyline.points.length-1].x, this.polyline.points[this.polyline.points.length-1].y);
+    this.floatingMidPoint.set(this.floatingEndPoint.x, this.floatingEndPoint.y); 	
+}
 insertPoint( x, y) {
     
     let flag = false;
@@ -2253,12 +2289,29 @@ isControlRectClicked(x, y) {
 Move(xoffset, yoffset) {
 	this.polyline.move(xoffset,yoffset);
 }
-Mirror(A,B) {
-	this.points.forEach(function(wirePoint) {
-		wirePoint.setLocationPoint(utilities.mirrorPoint(A,B, wirePoint));
-	});
+Mirror(line) {
+    this.polyline.mirror(line);
+}
+setRotation(rotate,center){
+	let alpha=rotate-this.rotate;
+	let box=this.polyline.box;
+	if(center==undefined){
+		this.polyline.rotate(alpha,box.center);
+	}else{
+		this.polyline.rotate(alpha,center);	 	
+	}
+	this.rotate=rotate;
 }
 Rotate(rotation) {
+	//fix angle
+	let alpha=this.rotate+rotation.angle;
+	if(alpha>=360){
+	  alpha-=360
+	}
+	if(alpha<0){
+	 alpha+=360; 
+	}	
+	this.rotate=alpha;	
 	this.polyline.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
 }
 calculateShape() {
@@ -2267,7 +2320,7 @@ calculateShape() {
 
 
 drawControlPoints(g2, viewportWindow, scale) {
-	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.polyline.points);	
+	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.polyline.points);	
 }
 isFloating() {
 	return (!(this.floatingStartPoint
@@ -2295,19 +2348,32 @@ module.exports ={
 
 ;require.register("core/text/d2font.js", function(exports, require, module) {
 var d2=require('d2/d2');
-
+class TextureCache{
+	constructor(shape) {
+		this.shape=shape;
+		this.rotation=0;
+		this.fontSize=0;
+		this.text=0;
+	}
+	reset(shape,fontSize,text,rotation){
+		this.shape=shape;
+		this.rotation=rotation;
+		this.fontSize=fontSize;
+		this.text=text;
+	
+	}
+}
 class FontTexture{
- constructor(tag,text,x,y,fontSize) {
+ constructor(tag,text,x,y,fontSize,rotation) {
     this.tag=tag;
-	this.shape=new d2.FontText(new d2.Point(x,y),text,fontSize);    
+	this.shape=new d2.FontText(new d2.Point(x,y),text,fontSize,rotation);    
 	this.selection=false;
 	this.selectionRectWidth=3000;
 	this.constSize=false;
+	this.cache=new TextureCache(this);
  }
 clone(){
-     var copy=new FontTexture(this.tag,this.shape.text,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.fontSize);     
-     copy.shape.rotation=this.shape.rotation;
-     copy.shape.metrics.recalculateMetrics(this.shape.fontSize,this.shape.text);
+     var copy=new FontTexture(this.tag,this.shape.text,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.fontSize,this.shape.rotation);     
      return copy;	 
  } 
 isEmpty() {
@@ -2326,6 +2392,9 @@ getBoundingRect(){
     } 
     
 }
+isChanged(fontSize,text,rotation){
+	return fontSize===this.cache.fontSize&&text===this.cache.text&&rotation===this.cache.rotation
+}
 setLocation(x,y){
 	this.shape.setLocation(x,y);
 }
@@ -2342,7 +2411,7 @@ Move(xoffset, yoffset){
    this.shape.move(xoffset, yoffset);  
 }
 
-Paint(g2,viewportWindow,scale){
+paint(g2,viewportWindow,scale){
 	 if(this.isEmpty()){
 	   return;	 
 	 }
@@ -2356,12 +2425,23 @@ Paint(g2,viewportWindow,scale){
 	 }
 	 g2.fillStyle = 'white';
 	 
-	 let t=this.shape.clone();
-     t.scale(scale.getScale());
-     t.move(-viewportWindow.x,- viewportWindow.y);
+//	 if(!this.isChanged(parseInt(this.shape.fontSize*scale.getScale()),this.shape.text,this.shape.rotation)){
+//	  this.cache.reset(this.shape.clone(),parseInt(this.shape.fontSize*scale.getScale()),this.shape.text,this.shape.rotation);
+//      this.cache.shape.scale(scale.getScale());
+//      this.cache.shape.move(-viewportWindow.x,- viewportWindow.y);
+//	 }else{
+//		 
+//		 console.log('2222');
+//	 }
+//     this.cache.shape.paint(g2);
 	 
-     t.paint(g2);
-
+//     let t=this.shape.clone();
+//     t.scale(scale.getScale());
+//     t.move(-viewportWindow.x,- viewportWindow.y);     
+//     t.paint(g2);
+  
+	 this.shape.scalePaint(g2,viewportWindow,scale.getScale());
+		 
      if(this.selection){
  		 g2.lineWidth =1;
  		 g2.strokeStyle = 'blue';
@@ -2565,7 +2645,17 @@ clone(){
 	       copy.layermaskId=this.layermaskId;		
 			
 	       return copy;
-}	
+}
+copy( _copy){    
+    this.anchorPoint.set(_copy.anchorPoint.x,_copy.anchorPoint.y); 
+    this.text = _copy.text;
+    this.tag = _copy.tag;
+    this.rotate=_copy.rotate;
+    this.mirrored=_copy.mirrored;
+    this.fillColor=_copy.fillColor;    
+    this.thickness=_copy.thickness;
+    this.setSize(_copy.size);                
+}
 clear() {
     this.glyphs=[];
     this.width=0;
@@ -2711,14 +2801,12 @@ Move(xoffset,yoffset) {
     }.bind(this));      
 }
 setRotation(rotate,pt){
-	let alpha=rotate-this.rotate;		   
+	let alpha=rotate-this.rotate;
+	this.anchorPoint.rotate(alpha,pt);
 	this.glyphs.forEach(function(glyph){
-	   if(pt==null)
-		glyph.rotate(alpha,this.anchorPoint);
-	   else
 		glyph.rotate(alpha,pt);   
 	}.bind(this));	
-	this.rotate=rotate;   
+	this.rotate=rotate;   	
 }
 Rotate(rotate,pt){
 	//fix angle
@@ -2738,7 +2826,7 @@ Rotate(rotate,pt){
 	}.bind(this));	
 		
 }
-Paint(g2,viewportWindow,scale,layermaskId){
+paint(g2,viewportWindow,scale,layermaskId){
    if (this.isEmpty()) {
         return;
    }
@@ -2776,7 +2864,7 @@ drawControlShape(g2, viewportWindow,scale){
 }
 toXML(){
     return (this.isEmpty()? "" :
-        this.text + "," + this.anchorPoint.x + "," + this.anchorPoint.y +
+        this.text + "," + utilities.roundFloat(this.anchorPoint.x,5) + "," + utilities.roundFloat(this.anchorPoint.y,5) +
         ",,"+this.thickness+","+this.size+","+this.rotate);	
 }
 fromXML(node){	
@@ -2894,6 +2982,7 @@ var events=require('core/events');
 var GlyphManager=require('core/text/d2glyph').GlyphManager;
 var ViewportWindow=require('core/core').ViewportWindow;
 var d2=require('d2/d2');
+
 //**********************UnitMgr***************************************
 var UnitMgr=(function(){
 	var instance=null;
@@ -3020,8 +3109,9 @@ setScrollPositionValue(scrollPositionXValue,scrollPositionYValue) {
         this.scrollPositionYValue = scrollPositionYValue;
        }
 fireShapeEvent(event){
-		//if(this.silent)
-		//	return;
+		if(!core.isEventEnabled)
+			return;
+
 		switch(event.type){
 		  case events.Event.SELECT_SHAPE:
 			  core.mywebpcb.trigger('shape:inspector',event);
@@ -3126,62 +3216,135 @@ getWidth(){
 getHeight(){
  	return this.height;
  	}
-buildClickableOrderItem(x,  y,  isTextIncluded){
-     var orderElements = [];
-     var index = 0;
-     this.shapes.forEach(function(shape){
-         if(isTextIncluded){
-           	if((undefined !=shape['getChipText'])&&shape.getChipText().isClicked(x, y)){
-           	    orderElements.push({index:index,orderWeight:0});
-           	}
-         }		 
-         
-		if(!shape.isClicked(x, y)){
-               index++;
-               return; 
+buildClickedShapesList(x,  y,  isTextIncluded){
+   var orderElements = [];
+   let len=this.shapes.length;
+   for(i=0;i<len;i++){   
+       if(isTextIncluded){
+    	if((undefined !=this.shapes[i]['getChipText'])&&this.shapes[i].getChipText().isClicked(x, y)){                               
+             orderElements.splice(0, 0, this.shapes[i]);
+             continue;
         }
-         //***give selected a higher priority
-        orderElements.push({index:index,
-         	                orderWeight:shape.isSelected() && shape.getOrderWeight() > 1 ? 2 : shape.getOrderWeight()});
-
-         index++;
-     }.bind(this));
-     return orderElements;
- }
+       }     
+       if(this.shapes[i].isClicked(x, y)){
+          orderElements.push(this.shapes[i]);
+       
+       }  
+   }
+   return orderElements;
+}
 getClickedShape( x,  y,  isTextIncluded){
- 	       var result=null;
- 	       var orderElements=this.buildClickableOrderItem(x,y,isTextIncluded);
- 	       
- 	      
- 	       orderElements.sort(function(a,b) {
- 	    	   if (a.orderWeight < b.orderWeight){
- 		    	      return -1;
- 	    	   }
- 		       if (a.orderWeight > b.orderWeight){
- 		    	     return 1;
- 		       }	     
- 		       return 0;
- 		    });
- 	    
- 	       orderElements.some(function(item) {			   
- 	    	    var shape=this.shapes[item.index];
-				
-                 if(isTextIncluded){
-                 	if((undefined !=shape['getChipText'])&&shape.getChipText().isClicked(x, y)){
-                 	    result=shape;
-                 		return true;
-                 	}
+    let clickedShapes = this.buildClickedShapesList(x,y,isTextIncluded);
+    if(clickedShapes.length==0){
+        return null;
+    }
+    //Text?
+    if (undefined !=clickedShapes[0]['getChipText']) {   
+        if(this.isShapeVisibleOnLayers(clickedShapes[0])){             
+          return clickedShapes[0];
+        }
+    }
+
+    clickedShapes.sort(function(o1, o2){
+       
+            //both on same side
+    	 if(o1.owningUnit.compositeLayer!=undefined){    
+    	   let s1=core.Layer.Side.resolve(o1.copper.getLayerMaskID());
+           let s2=core.Layer.Side.resolve(o2.copper.getLayerMaskID());
+           let active=o1.owningUnit.compositeLayer.activeSide;
+             //active layer has presedense
+           if(s1!=s2){
+               if(s1==active){
+                     return -1;
+                 }else{
+                     return 1;
                  }
- 	 		   
- 	 		    //if (shape.isClicked(x, y)) {
-                 result=shape;
- 				 return true;				 
-                //}  
-				 
-            }.bind(this));
- 		   
- 		   return result;
- 	}
+           }
+    	 }
+                   
+       if ((o1.getOrderWeight() - o2.getOrderWeight()) == 0)
+           return 0;
+       if ((o1.getOrderWeight() - o2.getOrderWeight()) > 0)
+           return 1;
+       else
+           return -1;
+       
+   }.bind(this));
+    
+    for(i=0;i<clickedShapes.length;i++){
+       if(!this.isShapeVisibleOnLayers(clickedShapes[i])){             
+           continue;              
+       }        
+       return clickedShapes[i];
+    };
+    return null;  
+}
+isShapeVisibleOnLayers(shape){
+   if (undefined !=this.compositeLayer) {	
+    if(shape.isVisibleOnLayers(this.compositeLayer.getLayerMaskID())){
+      return true;
+    }else{
+      return false;  
+    }    
+   }else{
+	   return true;
+   }
+}
+//buildClickableOrderItem(x,  y,  isTextIncluded){
+//     var orderElements = [];
+//     var index = 0;
+//     this.shapes.forEach(function(shape){
+//         if(isTextIncluded){
+//           	if((undefined !=shape['getChipText'])&&shape.getChipText().isClicked(x, y)){
+//           	    orderElements.push({index:index,orderWeight:0});
+//           	}
+//         }		 
+//         
+//		if(!shape.isClicked(x, y)){
+//               index++;
+//               return; 
+//        }
+//         //***give selected a higher priority
+//        orderElements.push({index:index,
+//         	                orderWeight:shape.isSelected() && shape.getOrderWeight() > 1 ? 2 : shape.getOrderWeight()});
+//
+//         index++;
+//     }.bind(this));
+//     return orderElements;
+// }
+//getClickedShape( x,  y,  isTextIncluded){
+// 	       var result=null;
+// 	       var orderElements=this.buildClickableOrderItem(x,y,isTextIncluded);
+//
+// 	       orderElements.sort(function(a,b) {
+// 	    	   if (a.orderWeight < b.orderWeight){
+// 		    	      return -1;
+// 	    	   }
+// 		       if (a.orderWeight > b.orderWeight){
+// 		    	     return 1;
+// 		       }	     
+// 		       return 0;
+// 		    });
+// 	    
+// 	       orderElements.some(function(item) {			   
+// 	    	    var shape=this.shapes[item.index];
+//				
+//                 if(isTextIncluded){
+//                 	if((undefined !=shape['getChipText'])&&shape.getChipText().isClicked(x, y)){
+//                 	    result=shape;
+//                 		return true;
+//                 	}
+//                 }
+// 	 		   
+// 	 		    //if (shape.isClicked(x, y)) {
+//                 result=shape;
+// 				 return true;				 
+//                //}  
+//				 
+//            }.bind(this));
+// 		   
+// 		   return result;
+// 	}
 isControlRectClicked( x,  y) {
          /*
           * if two symbols overlap and one is selected
@@ -3266,7 +3429,7 @@ notifyListeners(eventType) {
 paint(g2, viewportWindow){
  	   let len=this.shapes.length;
  	   for(let i=0;i<len;i++){
- 		   this.shapes[i].Paint(g2,viewportWindow,this.scalableTransformation);  
+ 		   this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation);  
  	   }
  	   //grid
        this.grid.paint(g2,viewportWindow,this.scalableTransformation);
@@ -3345,9 +3508,11 @@ class UnitContainer{
 	getUnit(){
 	  return this.unit;
 	}
+
 	fireUnitEvent(event){
-		//if(this.silent)
-		//	return;
+		if(!core.isEventEnabled)
+			return;
+		
 		switch(event.type){
 		  case events.Event.ADD_UNIT:
 			  core.mywebpcb.trigger('unit:inspector',event);
@@ -3463,6 +3628,10 @@ Clear(){
     this.getModel().clear();
   }
 fireContainerEvent(event){
+	
+	  if(!core.isEventEnabled)
+		return;
+	
 	  mywebpcb.trigger('container:inspector',event); 
 }
 keyPress(event){
@@ -3645,9 +3814,9 @@ Repaint(){
 	  if(this.getModel().getUnit()!=null){
       this.ctx.fillStyle = "black";
       this.ctx.fillRect(0, 0, this.width, this.height); 
-		this.getModel().getUnit().paint(this.ctx,this.viewportWindow);
+	  this.getModel().getUnit().paint(this.ctx,this.viewportWindow);
       if (this.cursor != null) {
-      	this.cursor.Paint(this.ctx,this.viewportWindow, this.getModel().getUnit().getScalableTransformation());
+      	this.cursor.paint(this.ctx,this.viewportWindow, this.getModel().getUnit().getScalableTransformation());
 
       }
 	  }else{
@@ -3689,6 +3858,10 @@ var roundDouble=function(number){
 var round=function(angle){
 	return Math.round(angle*100.0)/100.0;
 }
+
+var roundFloat=function(value, decimals) {
+	return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+}
 var mirrorPoint=function(A,B,sourcePoint){
         let x = sourcePoint.x, y = sourcePoint.y;
         //***is this right-left mirroring
@@ -3709,17 +3882,16 @@ var mirrorPoint=function(A,B,sourcePoint){
         sourcePoint.setLocation(x, y);
         return sourcePoint;	
 }
-var getQuadrantLocation=function(origin,x,y) {
-        if (x >= origin.x && y <= origin.y)
+var getQuadrantLocation=function(origin,point) {
+        if (point.x >= origin.x && point.y <= origin.y)
             return QUADRANT.FIRST;
-        else if (x <= origin.x && y <= origin.y)
+        else if (point.x <= origin.x && point.y <= origin.y)
             return QUADRANT.SECOND;
-        else if (x <= origin.x && y >= origin.y)
+        else if (point.x <= origin.x && point.y >= origin.y)
             return QUADRANT.THIRD;
         else
             return QUADRANT.FORTH;
 }
-	
 var drawCrosshair=function(g2,viewportWindow,scale,resizingPoint,length,points){
         let line = new d2.Segment(0,0,0,0);
         
@@ -3850,6 +4022,7 @@ module.exports = {
   version,
   round,
   roundDouble,
+  roundFloat,
   getQuadrantLocation,  
   drawCrosshair,
   //ellipse,
@@ -3991,6 +4164,9 @@ module.exports = function(d2) {
         clone(){
            return new d2.Arc(this.pc.clone(),this.r,this.startAngle,this.endAngle);  	
         }
+        get area(){
+           return  ( Math.PI * this.r*this.r ) * ( this.sweep / 360 )	
+        }
         get center(){
         	return this.pc;
         }
@@ -4042,7 +4218,7 @@ module.exports = function(d2) {
         rotate(angle,center = {x:0, y:0}){
         	 this.pc.rotate(angle,center);
         	 this.startAngle+=angle;
-        	 if(this.startAngle>360){
+        	 if(this.startAngle>=360){
         		 this.startAngle-=360;
         	 }
         	 if(this.startAngle<0){
@@ -4140,6 +4316,9 @@ module.exports = function(d2) {
 	  clone(){
 		  return new d2.Box([this.min,this.max]);
 	  }
+	  get area(){
+		 return (this.max.x-this.min.x)*(this.max.y-this.min.y);  
+	  }
 	  setRect(x,y,width,height){
 		  this.min.set(x,y);
 		  this.max.set(x+width,y+height);
@@ -4208,7 +4387,11 @@ module.exports = function(d2) {
       paint(g2){
     	    g2.beginPath();
     	    g2.rect(this.min.x,this.min.y,this.width,this.height);                   
-	        g2.stroke();
+        	  if(g2._fill!=undefined&&g2._fill){
+            	  g2.fill();	
+              }else{
+            	  g2.stroke();
+              }
       }
   }
 }
@@ -4229,7 +4412,10 @@ module.exports = function(d2) {
        }
        clone() {
            return new d2.Circle(this.pc.clone(), this.r);
-       }   
+       } 
+       get area(){
+           return  ( Math.PI * this.r*this.r );	
+       }
        get center() {
            return this.pc;
        }
@@ -4263,7 +4449,9 @@ module.exports = function(d2) {
     	   this.pc.scale(alpha);
     	   this.r*=alpha;
        }
-       
+       grow(offset){
+     	  this.r+=offset; 
+       }
        paint(g2){
        	g2.beginPath();       	
        	g2.arc(this.pc.x,this.pc.y,this.r,0,2*Math.PI,true);
@@ -4360,17 +4548,16 @@ recalculateMetrics(fontSize,text) {
 
 module.exports = function(d2) {
 	d2.FontText = class FontText{
-		constructor(pt,text,fontSize){
+		constructor(pt,text,fontSize,rotation){
 			this.anchorPoint=pt;
 			this.text=text;
 			this.fontSize=fontSize;
-		    this.rotation=0;	
+		    this.rotation=rotation;	
 		    this.metrics=new TextMetrics();  
 		    this.metrics.recalculateMetrics(this.fontSize,this.text);
 		}
 		clone(){
-			let copy=new FontText(this.anchorPoint.clone(),this.text,this.size);
-			copy.rotation=this.rotation;
+			let copy=new FontText(this.anchorPoint.clone(),this.text,this.fontSize,this.rotation);		
 			return copy;
 		}
 		setText(text){
@@ -4383,17 +4570,17 @@ module.exports = function(d2) {
 		}
 		scale(alpha){
 	      	this.anchorPoint.scale(alpha);
-			this.fontSize*=alpha;
+			this.fontSize=parseInt(this.fontSize*alpha);
 			this.metrics.recalculateMetrics(this.fontSize,this.text);
 			
 		}
 		setLocation(x,y){
 			this.anchorPoint.set(x,y);
-		    this.metrics.recalculateMetrics(this.fontSize, this.text);			
-		}		
+		    //this.metrics.recalculateMetrics(this.fontSize, this.text);			
+		}
 		move(offsetX,offsetY){
 			this.anchorPoint.move(offsetX,offsetY);
-		    this.metrics.recalculateMetrics(this.fontSize, this.text);
+		    //this.metrics.recalculateMetrics(this.fontSize, this.text);
 		}
 		rotate(angle, center = {x:this.anchorPoint.x, y:this.anchorPoint.y}) {        	
         	this.anchorPoint.rotate((angle-this.rotation),center);
@@ -4432,6 +4619,7 @@ module.exports = function(d2) {
 			
 			let l=new d2.Line(ps,pe);
 			l.rotate(this.rotation,this.anchorPoint);
+
         	let projectionPoint=l.projectionPoint(pt);
         	
 		    let a=(projectionPoint.x-ps.x)/((pe.x-ps.x)==0?1:pe.x-ps.x);
@@ -4471,8 +4659,35 @@ module.exports = function(d2) {
 	        	*/
         	
 		}
+		scalePaint(g2,viewportWindow,alpha){
+			let scaledAnchorPoint=this.anchorPoint.clone();			
+	      	scaledAnchorPoint.scale(alpha);
+	      	scaledAnchorPoint.move(-viewportWindow.x,- viewportWindow.y);
+			let scaledFontSize=parseInt(this.fontSize*alpha);
+			
+			
+			g2.font = ""+(scaledFontSize)+"px Monospace";
+			g2.textBaseline='middle';
+			g2.textAlign='center';
+			g2.save();
+			g2.translate(scaledAnchorPoint.x,scaledAnchorPoint.y);
+			if(0<=this.rotation&&this.rotation<90){
+			  g2.rotate(d2.utils.radians(360-this.rotation));
+			}else if(90<=this.rotation&&this.rotation<=180){
+			  g2.rotate(d2.utils.radians(180-this.rotation));	
+			}else{
+			  g2.rotate(d2.utils.radians(360-(this.rotation-180)));	
+			}
+            //let box=this.box;
+            //box.move(-this.anchorPoint.x,-this.anchorPoint.y);
+            //box.paint(g2);
+            
+			g2.fillText(this.text,0,0);				
+			g2.restore();
+			
+		}
 		paint(g2){					
-			g2.font = ""+parseInt(this.fontSize)+"px Monospace";
+			g2.font = ""+(this.fontSize)+"px Monospace";
 			g2.textBaseline='middle';
 			g2.textAlign='center';
 			g2.save();
@@ -4484,9 +4699,9 @@ module.exports = function(d2) {
 			}else{
 			  g2.rotate(d2.utils.radians(360-(this.rotation-180)));	
 			}
-            let box=this.box;
-            box.move(-this.anchorPoint.x,-this.anchorPoint.y);
-            box.paint(g2);
+            //let box=this.box;
+            //box.move(-this.anchorPoint.x,-this.anchorPoint.y);
+            //box.paint(g2);
             
 			g2.fillText(this.text,0,0);				
 			g2.restore();
@@ -4611,6 +4826,7 @@ module.exports = function(d2) {
 	
 	d2.Obround = class Obround{
 		/**
+		 * Obround is regarded as a line with variable thickness
 		 * @input pt - center 
 		 * @input width - relative,  line width + 2  arcs at both ends
 		 * this.width=ps to pe + 2 rcs radius
@@ -4720,7 +4936,14 @@ module.exports = function(d2) {
             this.pc.move(offsetX,offsetY);
             this.ps.move(offsetX,offsetY);
             this.pe.move(offsetX,offsetY);
-        }    	
+        }  
+	    grow(offset){
+			if(this.width>=this.height){
+			  this.height+=2*offset;
+			}else{
+			  this.width+=2*offset;
+			}
+	    }
 		paint(g2){
 			g2.beginPath();
 			let l=g2.lineWidth;
@@ -5031,9 +5254,17 @@ module.exports = function(d2) {
     	add(point){
     	    this.points.push(point);	
     	}
-        contains(pt){
-          let x=pt.x;
-          let y=pt.y;
+        contains(...args){
+          let x=0;
+          let y=0;
+
+       	  if(args.length==1){//point
+                x=args[0].x;
+                y=args[0].y;
+          }else{	   //coordinates
+               x=args[0];
+               y=args[1];
+          }	
       	  let inside = false;
           // use some raycasting to test hits
           // https://github.com/substack/point-in-polygon/blob/master/index.js
@@ -5216,6 +5447,9 @@ module.exports = function(d2) {
     	    	copy.points.push(point.clone());
     	    });  
     	    return copy;
+		}
+		get area(){
+			return (this.points[0].distanceTo(this.points[1]))*(this.points[1].distanceTo(this.points[2]));
 		}
 		reset(width,height){
 			let pc=this.box.center;			
@@ -5524,6 +5758,114 @@ module.exports = function(d2) {
 			}
 	    	
 		}
+	    grow(offset){
+	    	let copy=this.clone();
+	    	//left
+	    	let v=new d2.Vector(copy.points[1],copy.points[0]);
+	    	let p=copy.points[0].clone();
+	    	let norm=v.normalize();
+	    	let x=p.x+offset*norm.x;
+	    	let y=p.y+offset*norm.y;
+	    	
+	    	let a=new d2.Vector(p,new d2.Point(x,y));
+	    	
+	    	 v=new d2.Vector(copy.points[3],copy.points[0]);
+	    	 norm=v.normalize();
+	    	 x=p.x+offset*norm.x;
+	    	 y=p.y+offset*norm.y;
+			
+	    	 
+	    	 let b=new d2.Vector(p,new d2.Point(x,y));
+	    	 let c=a.add(b);
+	    	 let length=c.length;
+	    	 
+	    	 
+	    	 norm=c.normalize();
+	    	 x=p.x+length*norm.x;
+	    	 y=p.y+length*norm.y;
+	    	 
+	    	 this.points[0].set(x,y);
+	    	
+	    	 //right
+		     v=new d2.Vector(copy.points[0],copy.points[1]);
+		     p=copy.points[1].clone();
+		     norm=v.normalize();
+		     x=p.x+offset*norm.x;
+		     y=p.y+offset*norm.y;
+		    	
+		     a=new d2.Vector(p,new d2.Point(x,y));
+		    	
+		     v=new d2.Vector(copy.points[2],copy.points[1]);
+		     norm=v.normalize();
+		     x=p.x+offset*norm.x;
+		     y=p.y+offset*norm.y;
+
+				    
+		     b=new d2.Vector(p,new d2.Point(x,y));
+		     c=a.add(b);
+		     length=c.length;
+		    	 
+		    	 
+		     norm=c.normalize();
+		     x=p.x+length*norm.x;
+		     y=p.y+length*norm.y;
+		    	 
+		     this.points[1].set(x,y);
+	    	 
+	    	 //bottom right
+		     v=new d2.Vector(copy.points[1],copy.points[2]);
+		     p=this.points[2].clone();
+		     norm=v.normalize();
+		     x=p.x+offset*norm.x;
+		     y=p.y+offset*norm.y;
+		    	
+		     a=new d2.Vector(p,new d2.Point(x,y));
+		    	
+		    	
+		     v=new d2.Vector(copy.points[3],copy.points[2]);
+		     norm=v.normalize();
+		     x=p.x+offset*norm.x;
+		     y=p.y+offset*norm.y;
+		    				 
+				    
+		     b=new d2.Vector(p,new d2.Point(x,y));
+		     c=a.add(b);
+		     length=c.length;
+		    	 
+		    	 
+		     norm=c.normalize();
+		     x=p.x+length*norm.x;
+		     y=p.y+length*norm.y;
+		    	 
+		     this.points[2].set(x,y);
+		     
+	    	 //bottom left
+		     v=new d2.Vector(copy.points[0],copy.points[3]);
+		     p=copy.points[3].clone();
+		     norm=v.normalize();
+		     x=p.x+offset*norm.x;
+		     y=p.y+offset*norm.y;
+		    	
+		     a=new d2.Vector(p,new d2.Point(x,y));
+		    	
+		    	
+		     v=new d2.Vector(copy.points[2],copy.points[3]);
+		     norm=v.normalize();
+		     x=p.x+offset*norm.x;
+		     y=p.y+offset*norm.y;
+		    				 
+				    
+		     b=new d2.Vector(p,new d2.Point(x,y));
+		     c=a.add(b);
+		     length=c.length;
+		    	 
+		    	 
+		     norm=c.normalize();
+		     x=p.x+length*norm.x;
+		     y=p.y+length*norm.y;
+		    	 
+		     this.points[3].set(x,y);		     
+	    }
 		intersects(r) {
 			let box=this.box;	
 	    // calculate the left common area coordinate:
@@ -6057,6 +6399,9 @@ module.exports = function(d2) {
             this.x=scalar * this.x;
             this.y=scalar * this.y;
         }
+        add(v){
+        	return new Vector(this.x+v.x,this.y+v.y);
+        }
 
 	}
 	
@@ -6231,13 +6576,16 @@ var RoundRect=require('pads/shapes').RoundRect;
 var Circle=require('pads/shapes').Circle;
 var Arc=require('pads/shapes').Arc;
 var Pad=require('pads/shapes').Pad;
+var SolidRegion=require('pads/shapes').SolidRegion;
 var FootprintShapeFactory=require('pads/shapes').FootprintShapeFactory;
 var Drill=require('pads/shapes').Drill;
 var GlyphLabel=require('pads/shapes').GlyphLabel;
 var Line=require('pads/shapes').Line;
 var LineEventHandle=require('pads/events').LineEventHandle;
+var SolidRegionEventHandle=require('pads/events').SolidRegionEventHandle;
 var FootprintContextMenu=require('pads/popup/footprintpopup').FootprintContextMenu;
 var GlyphManager=require('core/text/d2glyph').GlyphManager;
+var d2=require('d2/d2');
 
 class Footprint extends Unit{
 constructor(width,height) {
@@ -6285,7 +6633,7 @@ parse(data){
 	}	
 format(){   
    var xml="<footprint width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
-   xml+="<name>"+this.name+"</name>\r\n";
+   xml+="<name>"+this.unitName+"</name>\r\n";
    //***reference
    var text=UnitMgr.getInstance().getLabelByTag(this,'reference');
    if(text!=null){
@@ -6372,6 +6720,8 @@ setMode(_mode){
 	 this.eventMgr.resetEventHandle();
 	        
 	 switch (this.mode) {
+     		case core.ModeEnum.SOLID_REGION:
+         	break;	 
 	        case core.ModeEnum.PAD_MODE:
 	            shape=new Pad(0,0,core.MM_TO_COORD(1.52),core.MM_TO_COORD(2.52));	            	            		                        
 	            this.setContainerCursor(shape);               
@@ -6486,6 +6836,18 @@ mouseDown(event){
 		     }
 		  }
 		  break;
+    	case core.ModeEnum.SOLID_REGION:
+            //is this a new copper area
+            if ((this.getEventMgr().targetEventHandle == null) ||
+                !(this.getEventMgr().targetEventHandle instanceof SolidRegionEventHandle)) {
+            	if(event.which!=1){
+            		return;
+            	}
+                shape =new SolidRegion(core.Layer.LAYER_FRONT);
+                this.getModel().getUnit().add(shape);
+                this.getEventMgr().setEventHandle("solidregion", shape);
+            }     		
+    		break;
     	case core.ModeEnum.LINE_MODE:
             //***is this a new wire
             if ((this.getEventMgr().getTargetEventHandle() == null) ||
@@ -6810,7 +7172,64 @@ mousePressed(event){
 	 super.Detach();
  }    
 }
+class SolidRegionEventHandle extends EventHandle{
+	constructor(component) {
+		 super(component);
+	 }
+mousePressed(event){
+      this.mx=event.x;
+	  this.my=event.y;
+	  if(super.isRightMouseButton(event)){                                  
+           return;
+      }
+      this.component.getModel().getUnit().setSelected(false);
+	  this.target.setSelected(true);
 
+      let p;      
+      
+      if(this.component.getParameter("snaptogrid")){
+        p=this.component.getModel().getUnit().getGrid().positionOnGrid(event.x,event.y);       		
+      }else{
+        p=new d2.Point(event.x,event.y);
+      }
+      let justcreated=this.target.polygon.points.length==2;
+      
+      if(this.target.getLinePoints().length==0){
+    	  this.target.add(p);    
+          //avoid point over point
+      }else if(!this.target.getLinePoints()[this.target.getLinePoints().length-1].equals(p)){
+    	  this.target.add(p);           
+      }
+      
+      
+	  this.component.Repaint();	   
+	    
+	 }
+mouseReleased(event){
+		
+	 }
+	 
+mouseDragged(event){
+		
+	 }
+mouseMove(event){
+    this.target.floatingEndPoint.set(event.x,event.y);   
+    this.component.Repaint();	 
+	 }	 
+dblClick(){
+      
+    this.target.setSelected(false);
+    this.component.getEventMgr().resetEventHandle();
+    this.component.Repaint();	 
+} 
+Detach() {
+    this.target.reset(); 
+    if(this.target.polygon.points.length<3){
+        this.target.owningUnit.remove(this.target.uuid);
+    }
+    super.Detach();
+}	
+}
 class FootprintEventMgr{
  constructor(component) {
     this.component=component;
@@ -6829,13 +7248,14 @@ class FootprintEventMgr{
 	this.hash.set("dragheand",new events.DragingEventHandle(component));
 	this.hash.set("origin",new events.OriginEventHandle(component));
 	this.hash.set("measure",new events.MeasureEventHandle(component));
+	this.hash.set("solidregion",new SolidRegionEventHandle(component));
  }
  //****private
  getEventHandle(eventKey,target) {
     var handle=this.hash.get(eventKey);
 	if(handle!=null){
 	  handle.setTarget(target);
-	  if(eventKey=='resize'||eventKey=='move'||eventKey=='line'||eventKey=='texture'){
+	  if(eventKey=='resize'||eventKey=='move'||eventKey=='line'||eventKey=='solidregion'||eventKey=='texture'){
 	     this.component.getModel().getUnit().fireShapeEvent({target:target,type:events.Event.SELECT_SHAPE});
 	  }
 	  if(eventKey=='component'||eventKey=="origin"){
@@ -6870,7 +7290,9 @@ module.exports ={
 	  FootprintEventMgr,
 	  ArcExtendAngleEventHandler,
 	  ArcStartAngleEventHandle,
-	  LineEventHandle
+	  ArcMidPointEventHandle,
+	  LineEventHandle,
+	  SolidRegionEventHandle
 }
 });
 
@@ -6898,11 +7320,11 @@ var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
 			//enable tooltips
 			j$('[data-toggle="tooltip"]').tooltip();
 
-			var fc=new FootprintComponent('jqxScrollBar','jqxVerticalScrollBar','mycanvas','popup-menu');
+			var fc=new FootprintComponent('jqxHorizontalScrollBar','jqxVerticalScrollBar','mycanvas','popup-menu');
 			
 			//create ui
 			var toggleButtonCollection=new togglebutton.ToggleButtonCollection(
-			[new togglebutton.ToggleButtonModel({id:'newfootprintid'}),
+			[new togglebutton.ToggleButtonModel({id:'mainmenuid'}),
 			 new togglebutton.ToggleButtonModel({id:'printfootrpintid'}),
 			 new togglebutton.ToggleButtonModel({id:'saveid'}),
 			 new togglebutton.ToggleButtonModel({id:'loadid'}),
@@ -6961,7 +7383,7 @@ var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
                 });	
 				
 		   //load demo footprint
-			    	loadDemo(fc);
+			    	//loadDemo(fc);
 	});	
 	loadDemo=function(fc){
 		
@@ -7010,6 +7432,16 @@ class FootprintContextMenu extends ContextMenu{
 constructor(component,placeholderid){
 		super(component,placeholderid);	
 	}	
+registerPadPopup(target,event){
+	var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
+	  items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
+	  items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
+	  items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
+	  items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
+	  items+="</table></div>";
+	  this.setContent(items,{target:target});	
+	  this.open(event);	
+	}
 registerUnitPopup(target,event){	          	            
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
 	    items+="<tr id='selectallid' ><td style='padding: 0.4em;'>Select All</td></tr>";
@@ -7117,6 +7549,11 @@ createShape(data){
 		label.fromXML(data);		
 		return label;
 	}
+	if (data.tagName.toLowerCase() == 'solidregion') {
+		var region = new SolidRegion(0);
+		region.fromXML(data);		
+		return region;
+	}	
 }
 }	
 
@@ -7142,8 +7579,12 @@ setCopper(copper){
 	
 	this.texture.mirror(side==core.Layer.Side.BOTTOM,line);
 }
-setRotation(rotate){
-   this.texture.setRotation(rotate);
+setRotation(rotate,center){	
+	if(center==undefined){
+		  this.texture.setRotation(rotate,this.getCenter());
+	}else{
+		  this.texture.setRotation(rotate,center);	
+	}
 }
 calculateShape(){ 
   return this.texture.getBoundingShape();
@@ -7166,8 +7607,8 @@ isSelected() {
 Rotate(rotation) {	
 	this.texture.Rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	
 }
-Mirror(A,B) {
-  this.texture.Mirror(A,B);
+Mirror(line) {
+
 }
 Move(xoffset,yoffset) {
   this.texture.Move(xoffset, yoffset);
@@ -7187,7 +7628,7 @@ fromXML(data){
         }
         this.texture.fromXML(data);  
 }    
-Paint(g2, viewportWindow, scale) {
+paint(g2, viewportWindow, scale) {
         //if((this.getCopper().getLayerMaskID()&layermask)==0){
         //    return;
         //}
@@ -7202,7 +7643,7 @@ Paint(g2, viewportWindow, scale) {
 		} else {
 			this.texture.fillColor = this.copper.getColor();
 		}
-		this.texture.Paint(g2, viewportWindow, scale,this.copper.getLayerMaskID());
+		this.texture.paint(g2, viewportWindow, scale,this.copper.getLayerMaskID());
     }
 }	
 class RoundRect extends Shape{
@@ -7253,10 +7694,14 @@ class RoundRect extends Shape{
 	   	});
 	   	return result;
 	}	
-	setRotation(rotate){
+	setRotation(rotate,center){
 		let alpha=rotate-this.rotate;
 		let box=this.roundRect.box;
-		this.roundRect.rotate(alpha,box.center);
+		if(center==undefined){
+		  this.roundRect.rotate(alpha,box.center);
+		}else{
+		  this.roundRect.rotate(alpha,center);	 	
+		}
 		this.rotate=rotate;
 	}
 	setRounding(rounding){	  
@@ -7273,40 +7718,50 @@ class RoundRect extends Shape{
 	}
 	Mirror(line){
 		this.roundRect.mirror(line);
-//	  	if(line.isVertical){
-//		 if(this.rotate<=180){
-//	  	   this.rotate=180-this.rotate; 
-//	  	 }else{
-//	  	   this.rotate=180+(360-this.rotate);
-//	  	 } 
-//	  	}else{
-//	  	   this.rotate=360-this.rotate;		  		
-//	  	}
 	}
-	Rotate(rotation){		
+	Rotate(rotation){	
+		//fix angle
+		let alpha=this.rotate+rotation.angle;
+		if(alpha>=360){
+			alpha-=360
+		}
+		if(alpha<0){
+		 alpha+=360; 
+		}	
+		this.rotate=alpha;		
 		this.roundRect.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	}
 	Resize(xoffset, yoffset,clickedPoint){
 		this.roundRect.resize(xoffset, yoffset,clickedPoint);
 	}
 	getOrderWeight(){
-		 return this.roundRect.box.width*this.roundRect.box.height; 
+		return this.roundRect.area; 
 	}	
 	toXML() {
+		let points="";
+		this.roundRect.points.forEach(function(point) {
+			points += utilities.roundFloat(point.x,5) + "," + utilities.roundFloat(point.y,5) + ",";
+		},this);
 		return "<rectangle copper=\"" + this.copper.getName()
 		        +"\" thickness=\"" + this.thickness
 				+ "\" fill=\"" + this.fill + "\" arc=\"" + this.roundRect.rounding
-				+"\" points=\"" + this.roundRect.points
-				+ "\" rt=\""+this.rotate+"\"></rectangle>";
+				+"\" points=\"" + points
+				+ "\"></rectangle>";
 	}
 	fromXML(data) {
+
 		if(j$(data)[0].hasAttribute("copper")){
 		  this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
 		}
 		if(j$(data).attr("width")!=undefined){
-		  this.roundRect.setRect(parseInt(j$(data).attr("x")),parseInt(j$(data).attr("y")),parseInt(j$(data).attr("width")),parseInt(j$(data).attr("height")),parseInt(j$(data).attr("arc")));
+		  this.roundRect.setRect(parseInt(j$(data).attr("x")),parseInt(j$(data).attr("y")),parseInt(j$(data).attr("width")),parseInt(j$(data).attr("height")),parseInt(j$(data).attr("arc"))/2);
 		}else{			
-			var array = JSON.parse("[" + j$(data).attr("points") + "]");
+			var pts=j$(data).attr("points");			
+			var lastchar = pts[pts.length - 1];
+			if(lastchar==","){
+				pts=pts.substr(0,pts.length - 1); 
+			}
+			var array = JSON.parse("[" +pts+ "]");
 			let points=[];
 			points.push(new d2.Point(array[0],array[1]));
 			points.push(new d2.Point(array[2],array[3]));
@@ -7319,7 +7774,7 @@ class RoundRect extends Shape{
 		this.thickness = (parseInt(j$(data).attr("thickness")));
 		this.fill = parseInt(j$(data).attr("fill"));
 	}
-	Paint(g2, viewportWindow, scale) {
+	paint(g2, viewportWindow, scale) {
 		var rect = this.roundRect.box;
 		rect.scale(scale.getScale());
 		if (!rect.intersects(viewportWindow)) {
@@ -7371,9 +7826,11 @@ class Circle extends Shape{
 		this.selectionRectWidth=3000;
 		this.resizingPoint=null;
 		this.circle=new d2.Circle(new d2.Point(x,y),r);
+		this.rotate=0;
 	}
 clone() {
 	let copy=new Circle(this.circle.center.x,this.circle.center.y,this.circle.radius,this.thickness,this.copper.getLayerMaskID());
+	copy.rotate=this.rotate;
 	copy.fill=this.fill;
 	return copy				
 	}	
@@ -7409,10 +7866,10 @@ isControlRectClicked(x,y) {
    	});
    	return result;
     }	
-	toXML() {
+toXML() {
         return "<circle copper=\""+this.copper.getName()+"\" x=\""+(this.circle.pc.x)+"\" y=\""+(this.circle.pc.y)+"\" radius=\""+(this.circle.r)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
 	}
-	fromXML(data) {	        
+fromXML(data) {	        
         this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
         
  		let xx=parseInt(j$(data).attr("x"));
@@ -7432,14 +7889,35 @@ isControlRectClicked(x,y) {
  		 this.thickness = (parseInt(j$(data).attr("thickness")));
  		 this.fill = parseInt(j$(data).attr("fill")); 		
 	}
+	Mirror(line){
+	   this.circle.mirror(line);	
+	}
 	Move(xoffset, yoffset) {
 		this.circle.move(xoffset,yoffset);
 	}	
+	setRotation(rotate,center){
+		let alpha=rotate-this.rotate;
+		if(center==null){
+			this.circle.rotate(alpha,this.circle.center);
+		}else{
+			this.circle.rotate(alpha,center);	 	
+		}
+		this.rotate=rotate;						
+	}		
 	Rotate(rotation){
+		//fix angle
+		let alpha=this.rotate+rotation.angle;
+		if(alpha>=360){
+			alpha-=360
+		}
+		if(alpha<0){
+		 alpha+=360; 
+		}	
+		this.rotate=alpha;
 		this.circle.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	}
 	Resize(xoffset, yoffset,point) {    
-        let quadrant= utilities.getQuadrantLocation(point,this.circle.center.x,this.circle.center.y);
+        let quadrant= utilities.getQuadrantLocation(point,this.circle.center);
         let radius=this.circle.r;
         switch(quadrant){
         case utilities.QUADRANT.FIRST:case utilities.QUADRANT.FORTH: 
@@ -7466,7 +7944,7 @@ isControlRectClicked(x,y) {
          
         this.circle.r=radius;
     }	
-	Paint(g2, viewportWindow, scale) {
+	paint(g2, viewportWindow, scale) {
 		var rect = this.circle.box;
 		rect.scale(scale.getScale());
 		if (!rect.intersects(viewportWindow)) {
@@ -7508,8 +7986,8 @@ drawControlPoints(g2, viewportWindow, scale) {
 	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.circle.vertices);	
 }
 getOrderWeight(){
-	 return this.circle.r*this.circle.r; 
-}
+	return this.circle.area; 
+}	
 getResizingPoint() {
         return null;
 }
@@ -7527,12 +8005,15 @@ constructor(x,y,r,thickness,layermaskid){
 		this.selectionRectWidth=3000;
 		this.resizingPoint=null;
 		this.arc=new d2.Arc(new d2.Point(x,y),r,50,70);
+		this.rotate=0;
+		this.center=null;
+		this.temp=1;
 }
 clone() {
 		var copy = new Arc(this.arc.center.x,this.arc.center.y, this.arc.r,this.thickness,this.copper.getLayerMaskID());		
         copy.arc.startAngle = this.arc.startAngle;
         copy.arc.endAngle = this.arc.endAngle; 
-        
+        copy.rotate=this.rotate;
 		copy.fill = this.fill;
 		return copy;
 }
@@ -7540,7 +8021,7 @@ calculateShape() {
 	return this.arc.box;	
 }
 getOrderWeight(){
-    return this.arc.r*this.arc.r; 
+	return this.arc.area; 
 }
 fromXML(data){
         
@@ -7628,42 +8109,101 @@ isExtendAnglePointClicked(x,y){
         return false;
 	}
 }	
+setRotation(rotate,center){
+	let alpha=rotate-this.rotate;
+	if(center==undefined){
+		this.arc.rotate(alpha,this.arc.center);
+	}else{
+		this.arc.rotate(alpha,center);	 	
+	}
+	this.rotate=rotate;
+}
 Rotate(rotation){
+	//fix angle
+  let alpha=this.rotate+rotation.angle;
+  if(alpha>=360){
+		alpha-=360
+  }
+  if(alpha<0){
+	 alpha+=360; 
+  }	
+  this.rotate=alpha;	
   this.arc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy)); 
 }
-Mirror(A,B) {
-    super.Mirror(A,B);
-    if(A.x==B.x){
-      //***which place in regard to x origine   
-      //***tweak angles 
-        if(this.startAngle<=180){
-         this.startAngle=(180-this.startAngle);
-        }else{
-         this.startAngle=(180+(360 -this.startAngle));
-        }
-      this.extendAngle=(-1)*this.extendAngle;
-    }else{    //***top-botom mirroring
-      //***which place in regard to y origine    
-      //***tweak angles
-      this.startAngle=360-this.startAngle;
-      this.extendAngle=(-1)*this.extendAngle;
-    }
+Mirror(line) {
+  this.arc.mirror(line);
 }
 /*
  * Resize through mouse position point
  */
 Resize(xoffset, yoffset,point) {    
-    let pt=this.calculateResizingMidPoint(point.x,point.y);
-    
-    let p=new d2.Point(pt.x,pt.y);
-    let r=this.arc.center.distanceTo(p);
-
+    let pt=this.calculateResizingMidPoint(point.x,point.y);    
+    let r=this.arc.center.distanceTo(pt);
     this.arc.r=r;
+/*	
+	//old middle point on arc
+	let a1=this.arc.middle;  
+	//mid point on line
+	let m=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
+	//new middle point on arc
+	let a2=this.calculateResizingMidPoint(point.x,point.y);  //new middle
+	
+	//do they belong to the same plane in regard to m 
+	let vec = new d2.Vector(m, a2);
+	let linevec=new d2.Vector(m,a1);
+    let samePlane = d2.utils.GT(vec.dot(linevec.normalize()), 0);
+    
+    
+//which plane
+	console.log(samePlane);
+	if(!samePlane){
+		this.temp*=-1;
+		//this.arc.endAngle*=-1;	
+	}
+	if(this.temp>0){
+		let C=this.calculateResizingMidPoint(point.x,point.y);  //projection
+		let C1=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
+    
+		let y=C1.distanceTo(C);
+		let x=C1.distanceTo(this.arc.start);
+    
+		let l=(x*x)/y;
+		let lambda=(l-y)/2;
+
+		let v=new d2.Vector(C,C1);
+		let norm=v.normalize();			  
+	
+		let a=C1.x +lambda*norm.x;
+		let b=C1.y + lambda*norm.y;
+		let center=new d2.Point(a,b);
+    
+    
+		let startAngle =new d2.Vector(center,this.arc.start).slope;
+		let endAngle = new d2.Vector(center, this.arc.end).slope;
+    
+		let r = center.distanceTo(this.arc.start);
+
+    //fix angles
+		let start = 360 - startAngle;
+		let end= (360-endAngle-start);
+		if(end<0){ 
+			end=360-Math.abs(end);
+		}
+
+	
+		this.arc.center.set(center.x,center.y);
+		this.arc.r=r;
+		this.arc.startAngle=start;
+		this.arc.endAngle=end;
+	}else{
+		
+	}
+*/
 }
 Move(xoffset,yoffset){
   this.arc.move(xoffset,yoffset);	
 }
-Paint(g2, viewportWindow, scale) {
+paint(g2, viewportWindow, scale) {
 		
 		var rect = this.arc.box;
 		rect.scale(scale.getScale());
@@ -7707,10 +8247,12 @@ Paint(g2, viewportWindow, scale) {
 		if (this.isSelected()) {
 			this.drawControlPoints(g2, viewportWindow, scale);
 		}
-		
+		if (this.center!=null) {
+			utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.center]);	
+		}
 }
 drawControlPoints(g2, viewportWindow, scale) {
-	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.arc.start,this.arc.end,this.arc.middle]);	
+	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.arc.center,this.arc.start,this.arc.end,this.arc.middle]);	
 }
 setResizingPoint(pt){
 	this.resizingPoint=pt;
@@ -7719,27 +8261,174 @@ getResizingPoint() {
 	return this.resizingPoint;
 }
 calculateResizingMidPoint(x,y){
-	let a=this.arc.middle;
-	let b=new d2.Point(this.arc.center.x,this.arc.center.y);
-	//let p=this.resizingPoint;
-	let p={x,y};
+	let line=new d2.Line(this.arc.center,this.arc.middle);
+	return line.projectionPoint(new d2.Point(x,y));	
+}
+//drawMousePoint(g2,viewportWindow,scale){
+//
+//	let point=this.calculateResizingMidPoint(this.resizingPoint.x,this.resizingPoint.y);
+//    
+//	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[point]);
+//    
+//}
+
+}
+class SolidRegion extends Shape{
+	constructor(layermaskId) {
+        super( 0, 0, 0,0, 0, layermaskId);
+        this.displayName = "Solid Region";
+        this.floatingStartPoint=new d2.Point();
+        this.floatingEndPoint=new d2.Point();                 
+        this.selectionRectWidth = 3000;
+        this.polygon=new d2.Polygon();
+        this.resizingPoint;
+        this.rotate=0;
+    }
+clone(){
+	  var copy=new SolidRegion(this.copper.getLayerMaskID());
+      copy.polygon=this.polygon.clone();
+      copy.rotate=this.rotate;
+      return copy;
+}
+getOrderWeight(){
+	return this.polygon.box.area; 
+}
+alignResizingPointToGrid(targetPoint) {
+    this.owningUnit.grid.snapToGrid(targetPoint);         
+}
+calculateShape() {
+	return this.polygon.box;	
+}
+getLinePoints() {
+	   return this.polygon.points;
+}
+add(point) {
+	    this.polygon.add(point);
+}
+setResizingPoint(point) {
+	    this.resizingPoint=point;
+}
+isFloating() {
+    return (!this.floatingStartPoint.equals(this.floatingEndPoint));                
+}
+isClicked(x,y){
+	  return this.polygon.contains(x,y);
+}
+isControlRectClicked(x, y) {
+	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
+	let point = null;
+
+	this.polygon.points.some(function(wirePoint) {
+		if (rect.contains(wirePoint)) {
+					point = wirePoint;
+		  return true;
+		}else{
+		  return false;
+		}
+	});
+
+	return point;
+}
+Resize(xoffset, yoffset, clickedPoint) {
+	clickedPoint.set(clickedPoint.x + xoffset,
+								clickedPoint.y + yoffset);
+}
+reset(){
+	this.resetToPoint(this.floatingStartPoint);	
+}
+resetToPoint(p){
+    this.floatingStartPoint.set(p.x,p.y);
+    this.floatingEndPoint.set(p.x,p.y); 
+}
+Move(xoffset, yoffset) {
+	this.polygon.move(xoffset,yoffset);
+}
+Mirror(line) {
+    this.polygon.mirror(line);
+}
+setRotation(rotate,center){
+	let alpha=rotate-this.rotate;
+	let box=this.polygon.box;
+	if(center==null){
+		this.polygon.rotate(alpha,box.center);
+	}else{
+		this.polygon.rotate(alpha,center);	 	
+	}
+	this.rotate=rotate;
+}
+Rotate(rotation) {
+	//fix angle
+	let alpha=this.rotate+rotation.angle;
+	if(alpha>=360){
+		alpha-=360
+	}
+	if(alpha<0){
+	 alpha+=360; 
+	}	
+	this.rotate=alpha;
+	this.polygon.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+}
+paint(g2, viewportWindow, scale) {		
+	var rect = this.polygon.box;
+	rect.scale(scale.getScale());		
+	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
+		return;
+	}
 	
-	let atob = { x: b.x - a.x, y: b.y - a.y };
-    let atop = { x: p.x - a.x, y: p.y - a.y };
-    let len = atob.x * atob.x + atob.y * atob.y;
-    let dot = atop.x * atob.x + atop.y * atob.y;
-    let t = dot / len ;
-  
-    return new d2.Point(a.x + atob.x * t,a.y + atob.y * t);	
-}
-drawMousePoint(g2,viewportWindow,scale){
+	g2.lineWidth = 1;
+	
+	if(this.isFloating()){
+      g2.strokeStyle = this.copper.getColor();		
+	}else{
+	  g2._fill=true;
+	  if (this.selection) {
+		 g2.fillStyle = "gray";
+	  } else {
+		 g2.fillStyle = this.copper.getColor();
+	  }
+	}
 
-	let point=this.calculateResizingMidPoint(this.resizingPoint.x,this.resizingPoint.y);
-    
-	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[point]);
-    
-}
+	
 
+	let a=this.polygon.clone();	
+	if (this.isFloating()) {
+		let p = this.floatingEndPoint.clone();
+		a.add(p);	
+    }
+	a.scale(scale.getScale());
+	a.move( - viewportWindow.x, - viewportWindow.y);		
+	a.paint(g2);
+	g2._fill=false;
+    
+	if (this.isSelected()) {
+		this.drawControlPoints(g2, viewportWindow, scale);
+	}
+}
+drawControlPoints(g2, viewportWindow, scale) {
+	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.polygon.points);	
+}
+toXML() {
+	var result = "<solidregion copper=\"" + this.copper.getName() + "\">";
+	this.polygon.points.forEach(function(point) {
+		result += point.x + "," + point.y + ",";
+	});
+	result += "</solidregion>";
+	return result;
+}
+fromXML(data) {
+       if(j$(data).attr("copper")!=null){
+        this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
+       }else{
+        this.copper=core.Layer.Copper.FSilkS;
+       }	
+   	   var tokens = data.textContent.split(",");
+	   var len = Math.floor(tokens.length / 2) * 2;
+	   for (var index = 0; index < len; index += 2) {
+			var x = parseFloat(tokens[index]);
+			var y = parseFloat(tokens[index + 1]);
+			this.polygon.points.push(new d2.Point(x, y));
+		}
+}
 }
 
 class Line extends AbstractLine{
@@ -7749,13 +8438,14 @@ constructor(thickness,layermaskId) {
 clone() {
 		  var copy = new Line(this.thickness,this.copper.getLayerMaskID());
 		  copy.polyline=this.polyline.clone();
+		  copy.rotate=this.rotate;
 		  return copy;
 		}
 alignToGrid(isRequired) {
     if (isRequired) {
-        this.points.forEach(function(wirePoint){
+        this.polyline.points.forEach(function(wirePoint){
             let point = this.owningUnit.getGrid().positionOnGrid(wirePoint.x, wirePoint.y);
-              wirePoint.setLocation(point.x,point.y);
+              wirePoint.set(point.x,point.y);
         }.bind(this));
     }
     return null;
@@ -7765,7 +8455,7 @@ getOrderWeight() {
 	return 2;
 }
 
-Paint(g2, viewportWindow, scale) {		
+paint(g2, viewportWindow, scale) {		
 		var rect = this.polyline.box;
 		rect.scale(scale.getScale());		
 		if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
@@ -7810,8 +8500,8 @@ toXML() {
 	var result = "<line copper=\"" + this.copper.getName()
 								+ "\" thickness=\"" + this.thickness + "\">";
 	this.polyline.points.forEach(function(point) {
-		result += point.x + "," + point.y + ",";
-	});
+		result += utilities.roundFloat(point.x,5) + "," + utilities.roundFloat(point.y,5) + ",";
+	},this);
 	result += "</line>";
 	return result;
 }
@@ -7825,8 +8515,8 @@ fromXML(data) {
    	   var tokens = data.textContent.split(",");
 	   var len = Math.floor(tokens.length / 2) * 2;
 	   for (var index = 0; index < len; index += 2) {
-			var x = parseInt(tokens[index]);
-			var y = parseInt(tokens[index + 1]);
+			var x = parseFloat(tokens[index]);
+			var y = parseFloat(tokens[index + 1]);
 			this.polyline.points.push(new d2.Point(x, y));
 		}
 }
@@ -7857,10 +8547,14 @@ class Drill{
 	 setWidth(width){
 		 this.circle.r=width/2;
 	 }
-	 Rotate(rotation) {	    		    
-	    	this.circle.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
-	 } 
-	Paint(g2,viewportWindow,scale){
+	 rotate(alpha,origin){
+	    if(origin==null){
+	       this.circle.rotate(alpha);
+	    }else{
+	       this.circle.rotate(alpha,origin);	
+	    }		 
+	 }
+	paint(g2,viewportWindow,scale){
 	    g2._fill=true;
 	    g2.fillStyle = 'black';
 	    let c=this.circle.clone();
@@ -7958,8 +8652,8 @@ class Pad extends Shape{
 	   this.setType(PadType.THROUGH_HOLE);	   
 	   this.setDisplayName("Pad");
 	   this.text=new core.ChipText();
-	   this.text.Add(new font.FontTexture("number","1",x,y,4000));
-	   this.text.Add(new font.FontTexture("netvalue","",x,y,4000));   
+	   this.text.Add(new font.FontTexture("number","1",x,y,4000,0));
+	   this.text.Add(new font.FontTexture("netvalue","",x,y,4000,0));   
 	}
 clone(){
 	     var copy=new Pad(0,0,this.width,this.height);
@@ -7975,12 +8669,6 @@ clone(){
 	     }
 	     return copy;
 	}
-setRotation(rotate){
-	let alpha=rotate-this.rotate;	
-	this.shape.rotate(alpha);
-	this.text.setRotation(rotate,this.shape.center);
-	this.rotate=rotate;
-}
 getChipText() {
 	    return this.text;
 }
@@ -8091,6 +8779,23 @@ Mirror(line) {
 //    }
 //    this.text.Mirror(A, B);
 }
+setRotation(rotate,center){	
+	let alpha=rotate-this.rotate;	
+	if(center==null){
+	  this.shape.rotate(alpha);
+	  this.text.setRotation(rotate,this.shape.center);
+	  if(this.drill!=null){
+		this.drill.rotate(alpha);
+	  }	  	  
+	}else{		
+	  this.shape.rotate(alpha,center);
+	  this.text.setRotation(rotate,center);
+	  if(this.drill!=null){
+	    this.drill.rotate(alpha,center);
+	  }	  
+	}
+	this.rotate=rotate;
+}
 Rotate(rotation){
 	let alpha=this.rotate+rotation.angle;
 	if(alpha>=360){
@@ -8171,21 +8876,36 @@ setHeight(height){
 calculateShape() {
 	return this.shape.box;
 } 
-Paint(g2,viewportWindow,scale){
+validateClearance(source){
+    //is different layer and SMD -> no clearance
+    if ((source.copper.getLayerMaskID() & this.copper.getLayerMaskID()) == 0) {
+        //if(this.type==PadType.SMD)
+           return false; //not on the same layer
+    }	
+	return true;
+}
+drawClearence(g2,viewportWindow,scale,source){
+    if(!this.validateClearance(source)){
+        return;
+    }
+	
+	this.shape.drawClearence(g2,viewportWindow,scale,source);
+}
+paint(g2,viewportWindow,scale){
 	    switch(this.type){
 	    case PadType.THROUGH_HOLE:
-	        if(this.shape.Paint(g2, viewportWindow, scale)){
+	        if(this.shape.paint(g2, viewportWindow, scale)){
 	         if(this.drill!=null){
-	            this.drill.Paint(g2, viewportWindow, scale);
+	            this.drill.paint(g2, viewportWindow, scale);
 	         }
 	        }
 	        break;
 	    case PadType.SMD:
-	        this.shape.Paint(g2, viewportWindow, scale);
+	        this.shape.paint(g2, viewportWindow, scale);
 	        break;
 	    
 	    }
-	    this.text.Paint(g2, viewportWindow, scale);	    
+	    this.text.paint(g2, viewportWindow, scale);	    
 	 }
 
 }
@@ -8195,7 +8915,23 @@ class CircularShape{
 		this.pad=pad;
 		this.circle=new d2.Circle(new d2.Point(x,y),width/2);		
 	}
-    Paint(g2,viewportWindow,scale){
+	drawClearence(g2,viewportWindow,scale,source){
+	    let c=this.circle.clone();
+	    
+		
+		g2._fill=true;
+		g2.fillStyle = "black";	
+		
+		c.grow(source.clearance);
+		
+		
+	    c.scale(scale.getScale());		
+	    c.move(-viewportWindow.x,- viewportWindow.y);
+		c.paint(g2);
+		
+	    g2._fill=false;			
+	}	
+    paint(g2,viewportWindow,scale){
 	     var box=this.circle.box;
 	     box.scale(scale.scale);     
        //check if outside of visible window
@@ -8260,7 +8996,22 @@ class RectangularShape{
 		this.pad=pad;
 		this.rect=new d2.Rectangle(new d2.Point(x-width/2,y-height/2),width,height);			
 }
-Paint(g2,viewportWindow,scale){
+drawClearence(g2,viewportWindow,scale,source){
+    let r=this.rect.clone();
+    
+	
+	g2._fill=true;
+	g2.fillStyle = "black";	
+	
+	r.grow(source.clearance);
+	
+    r.scale(scale.getScale());		
+    r.move(-viewportWindow.x,- viewportWindow.y);
+	r.paint(g2);
+	
+    g2._fill=false;			
+}
+paint(g2,viewportWindow,scale){
 	   var box=this.rect.box;
 	   box.scale(scale.scale);     
        //check if outside of visible window
@@ -8324,7 +9075,18 @@ class OvalShape{
 	   this.pad=pad;
 	   this.obround=new d2.Obround(new d2.Point(x,y),width,height);
 	}
-Paint(g2,viewportWindow,scale){
+	drawClearence(g2,viewportWindow,scale,source){
+		let o=this.obround.clone();
+	    o.grow(source.clearance);
+
+	    g2.strokeStyle = "black";  
+
+		o.scale(scale.getScale());
+	    o.move(-viewportWindow.x,- viewportWindow.y);
+		o.paint(g2);
+		
+	}
+paint(g2,viewportWindow,scale){
 	     var box=this.obround.box;
 	     box.scale(scale.scale);     
        //check if outside of visible window
@@ -8387,8 +9149,19 @@ constructor(x,y,width,pad){
 		this.pad=pad;
 		this.hexagon=new d2.Hexagon(new d2.Point(x,y),width);		
 }	
-
-Paint(g2, viewportWindow, scale) {
+drawClearence(g2,viewportWindow,scale,source){
+	    let h=new d2.Hexagon(this.hexagon.center.clone(),(this.hexagon.width+2*source.clearance));
+	    h.rotate(this.pad.rotate);
+     
+	    g2._fill=true;		   
+		g2.fillStyle = "black";	
+	    h.scale(scale.getScale());
+        h.move(-viewportWindow.x,- viewportWindow.y);
+	    h.paint(g2);
+	    
+	    g2._fill=false;
+}
+paint(g2, viewportWindow, scale) {
 		   var box=this.hexagon.box;
 		   box.scale(scale.scale);     
 	       //check if outside of visible window
@@ -8450,6 +9223,7 @@ module.exports ={
 	RoundRect,
 	Circle,
 	Arc,
+	SolidRegion,
 	Pad,Drill,
 	FootprintShapeFactory
 }
@@ -8465,7 +9239,7 @@ var FootprintLoadView=Backbone.View.extend({
 	  initialize:function(opt){
 			j$('#FootprintLoadDialog').jqxWindow('open');
 			j$('#FootprintLoadDialog').off('close', j$.proxy(this.onclose,this)); 
-			j$('#FootprintLoadDialog').on('close', j$.proxy(this.onclose,this)); 
+			j$('#FootprintLoadDialog').on('close', j$.proxy(this.onclose,this)); 			
 			this.unitSelectionPanel=new core.UnitSelectionPanel({selectorid:'unitselectionpanel',canvasprefixid:'f',enabled:opt.enabled});
 			this.libraryview=new LibraryView({unitSelectionPanel:this.unitSelectionPanel});  
 	    	this.buttonview=new ButtonView({unitSelectionPanel:this.unitSelectionPanel});  
@@ -8551,8 +9325,11 @@ var LibraryView=Backbone.View.extend({
     },
     loadfootprint:function(data, textStatus, jqXHR){
       this.unitSelectionPanel.release();
-      footprintContainer=new FootprintContainer(true);      
+      footprintContainer=new FootprintContainer();
+      //disable 
+      core.isEventEnabled=false;
       footprintContainer.parse(data);
+      core.isEventEnabled=true;
       this.unitSelectionPanel.unitSelectionGrid.setModel(footprintContainer);
       this.unitSelectionPanel.unitSelectionGrid.build();   
       this.unitSelectionPanel.render();
@@ -8694,6 +9471,7 @@ var FootprintSaveView=Backbone.View.extend({
 	el:"#savedialogcontentslot",
 	initialize:function(opt){
 			this.footprintComponent=opt.footprintComponent; 
+			j$('#FootprintSaveDialog').jqxWindow({height: 300, width: 420});
 			j$('#FootprintSaveDialog').jqxWindow('open');
 			j$('#FootprintSaveDialog').off('close', j$.proxy(this.onclose,this)); 
 			j$('#FootprintSaveDialog').on('close', j$.proxy(this.onclose,this)); 				    	
@@ -8816,39 +9594,39 @@ var FootprintSaveView=Backbone.View.extend({
     },  
     render:function(){
 		j$(this.el).html(    	
-        "<div class=\"row voffset3\">"+                       
-        "<div class=\"col-sm-4 col-sm-offset-1\">"+         
+        "<div class=\"row voffset3 text-center\">"+                       
+        "<div class=\"col-md-6\">"+         
         "Name" +
         "</div>"+
-        "<div class=\"col-sm-6 col-sm-pull-1\">"+        
+        "<div class=\"col-md-6\">"+        
         "<input type='text' id='name' value='"+this.footprintComponent.getModel().formatedFileName+"' class='form-control input-sm\'>" +
         "</div>"+                       
         "</div>"+
         
-        "<div class=\"row voffset2\">"+                       
-        "<div class=\"col-sm-4 col-sm-offset-1\">"+         
+        "<div class=\"row voffset2 text-center\">"+                       
+        "<div class=\"col-sm-6\">"+         
         "Library" +
         "</div>"+
-        "<div class=\"col-sm-6 col-sm-pull-1\">"+        
-		"<select class=\"form-control input-sm\" id=\"savelibrarycombo\"></select>"+        
+        "<div class=\"col-sm-6\">"+        
+		"<select class=\"form-control\" id=\"savelibrarycombo\"></select>"+        
         "</div>"+                       
         "</div>"+
         
-        "<div class=\"row voffset2\">"+                       
-        "<div class=\"col-sm-4 col-sm-offset-1\">"+         
+        "<div class=\"row voffset2 text-center\">"+                       
+        "<div class=\"col-sm-6\">"+         
         "Category" +
         "</div>"+
-        "<div class=\"col-sm-6 col-sm-pull-1\">"+        
-        "<select class=\"form-control input-sm\" id=\"savecategorycombo\"></select>"+
+        "<div class=\"col-sm-6\">"+        
+        "<select class=\"form-control\" id=\"savecategorycombo\"></select>"+
         "</div>"+                       
         "</div>"+    
 
-        "<div class=\"row voffset2\">"+                       
-        "<div class=\"col-sm-8 col-sm-offset-1\">"+         
+        "<div class=\"row voffset2 text-center\">"+                       
+        "<div class=\"col-md-6\">"+         
         "Override existing unit" +
         "</div>"+
-        "<div class=\"col-sm-2 col-sm-pull-1\">"+   
-        "<input type='checkbox' id='overrideCheck'>" +
+        "<div class=\"col-md-6\">"+   
+        "<input type='checkbox' id='overrideCheck' style='width:3vw;height:3vh;'>" +
         "</div>"+                       
         "</div>"+    
         
@@ -8882,6 +9660,7 @@ var	RoundRect=require('pads/shapes').RoundRect;
 var	Circle=require('pads/shapes').Circle;
 var	Arc=require('pads/shapes').Arc;
 var	Pad=require('pads/shapes').Pad;
+var	SolidRegion=require('pads/shapes').SolidRegion;
 
 var ComponentPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
@@ -8890,11 +9669,9 @@ var ComponentPanelBuilder=BaseBuilder.extend({
     },
     events: {
         'keypress #nameid' : 'onenter',	
+       
     },
-	onclick:function(event){
-		event.preventDefault();
-		alert("Hello from me with event.");
-	},
+	
 	onenter:function(event){
 		 if(event.keyCode != 13){
 			return; 
@@ -8903,10 +9680,14 @@ var ComponentPanelBuilder=BaseBuilder.extend({
 			 this.target.getModel().setFileName(j$("#nameid").val()); 
 			 this.target.fireContainerEvent({target:null,type:events.Event.RENAME_CONTAINER});
 		 }
+		 if(event.target.id=='importid'){
+			 console.log(34);
+		 }
 		 //mycanvas.focus();
 		
 	},
 	updateui:function(){
+		console.log(this.target.getModel());
 		j$("#nameid").val(this.target.getModel().formatedFileName);
 	},
 	render:function(){
@@ -8914,9 +9695,8 @@ var ComponentPanelBuilder=BaseBuilder.extend({
 		j$(this.el).append(
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
-				"</td></tr>"+
-		"</table>");
-			
+				"</td></tr></table>"
+		);	
 		return this;
 	}
 });
@@ -9146,7 +9926,7 @@ var PadPanelBuilder=BaseBuilder.extend({
 		 this.component.Repaint(); 
     },
 	updateui:function(){
-		 j$("#rotateid").val(this.target.rotate); 
+
 		 j$('#layerid').val(this.target.copper.getName());
 		 j$('#padxid').val(this.toUnitX(this.target.getCenter().x));
 		 j$('#padyid').val(this.toUnitY(this.target.getCenter().y));
@@ -9401,6 +10181,37 @@ var ArcPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>Start&deg</td><td><input type='text' id='startangleid' value='' class='form-control input-sm\'></td></tr>"+	
 				"<tr><td style='padding:7px'>Extend&deg</td><td><input type='text' id='extendangleid' value='' class='form-control input-sm\'></td></tr>"+
 		"</table>");
+		return this;
+	}
+});
+var SolidRegionPanelBuilder=BaseBuilder.extend({
+	initialize:function(component){
+		SolidRegionPanelBuilder.__super__.initialize(component);
+		this.id="solidregionpanelbuilder";  
+    },	
+    events: {
+        'change #layerid':'onchange'
+    },
+    onchange:function(event){
+        if(event.target.id=='layerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        }              
+        this.component.Repaint(); 
+    }, 
+	updateui:function(){
+		
+	},
+	render:function(){
+		j$(this.el).empty();
+		j$(this.el).append(
+				"<table width='100%'>"+
+				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+			    "</select>" +
+				"</td></tr>"+							
+		"</table>");				
+			
 		return this;
 	}
 });
@@ -9763,6 +10574,7 @@ var FootprintsInspector=Backbone.View.extend({
 		                                         new LabelPanelBuilder(this.footprintComponent),
 		                                         new ComponentPanelBuilder(this.footprintComponent),
 		                                         new CirclePanelBuilder(this.footprintComponent),
+		                                         new SolidRegionPanelBuilder(this.footprintComponent),
 		                                         new ArcPanelBuilder(this.footprintComponent)]);
 		this.el= '#footprintsinspectorid';	
 		//select container
@@ -9874,20 +10686,27 @@ var FootprintsInspector=Backbone.View.extend({
 				this.render();				
 			}	
 		}
-		if((!(event.target instanceof Arc))&&(event.target instanceof Circle)){
+		if(event.target instanceof Circle){
 			if(this.panel.id!='circlepanelbuilder'){
 				this.panel.attributes.remove();
 				this.panel=this.collection.get('circlepanelbuilder');
 				this.panel.attributes.delegateEvents();
 				this.render();
 			}	
-		}else if(event.target instanceof Arc){
+		}if(event.target instanceof Arc){
 			if(this.panel.id!='arcpanelbuilder'){
 				this.panel.attributes.remove();
 				this.panel=this.collection.get('arcpanelbuilder');
 				this.panel.attributes.delegateEvents();
 				this.render();
 			}	
+		}if(event.target instanceof SolidRegion){
+			if(this.panel.id!='solidregionpanelbuilder'){
+				this.panel.attributes.remove();
+				this.panel=this.collection.get('solidregionpanelbuilder');
+				this.panel.attributes.delegateEvents();
+				this.render();
+			}				
 		}
 		//update panel ui values
 		this.panel.attributes.setTarget(event.target);
@@ -9949,6 +10768,7 @@ var FootprintLoadView=require('pads/views/footprintloadview');
 var FootprintSaveView=require('pads/views/footprintsaveview');
 var Footprint=require('pads/d/footprintcomponent').Footprint;
 var UnitMgr = require('core/unit').UnitMgr;
+var FootprintContainer=require('pads/d/footprintcomponent').FootprintContainer;
 
 var ToggleButtonView=Backbone.View.extend({
 
@@ -9959,13 +10779,15 @@ var ToggleButtonView=Backbone.View.extend({
 		this.collection=opt.collection;
 		this.footprintComponent=opt.footprintComponent;
 		mywebpcb.bind('libraryview:load',this.onload,this);
-		this.bind();
+		this.bind();	       
 		this.update();
 	},
 	bind:function(){
 		_.each(this.collection.models,j$.proxy(function(model,index,list) {
 				j$("#"+model.id).bind( "click",{model:model},j$.proxy(this.onclick,this));
-			}),this);	
+			}),this);
+		j$("#importfromclipboardid").click(j$.proxy(this.onimport,this));
+		
 	},
 	update:function(){
 		_.each(this.collection.models,function(model,index,list) {
@@ -9980,6 +10802,16 @@ var ToggleButtonView=Backbone.View.extend({
 		    }
 		}),this);		
 	},
+	onimport:function(event){
+		navigator.clipboard.readText().then(data =>{ 
+		      let footprintContainer=new FootprintContainer(true);
+		      //disable 
+		      core.isEventEnabled=false;
+		      footprintContainer.parse(data);
+		      core.isEventEnabled=true;
+		  	  mywebpcb.trigger('libraryview:load',footprintContainer);
+			});
+	},
 	onclick:function(event){
 	    event.preventDefault();
 	    //is this a group button
@@ -9992,15 +10824,16 @@ var ToggleButtonView=Backbone.View.extend({
 		    event.data.model.attributes.active=!event.data.model.attributes.active;
 	    }
 		this.update();
-		if(event.data.model.id=='newfootprintid'){
-			var footprint=new Footprint(core.MM_TO_COORD(50),core.MM_TO_COORD(50));
-            footprint.name="Sergio Leone";
-			this.footprintComponent.getModel().add(footprint);
-            this.footprintComponent.getModel().setActiveUnitUUID(footprint.getUUID());
-            this.footprintComponent.componentResized(); 
-            this.footprintComponent.Repaint();
-            this.footprintComponent.getModel().fireUnitEvent({target:this.footprintComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 	
-		}
+//		if(event.data.model.id=='newfootprintid'){
+			
+//			var footprint=new Footprint(core.MM_TO_COORD(50),core.MM_TO_COORD(50));
+//            footprint.name="Sergio Leone";
+//			this.footprintComponent.getModel().add(footprint);
+//            this.footprintComponent.getModel().setActiveUnitUUID(footprint.getUUID());
+//            this.footprintComponent.componentResized(); 
+//            this.footprintComponent.Repaint();
+//            this.footprintComponent.getModel().fireUnitEvent({target:this.footprintComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 	
+//		}
 		if(event.data.model.id=='saveid'){
 //		    j$.ajax({
 //		        type: 'GET',
@@ -10025,7 +10858,8 @@ var ToggleButtonView=Backbone.View.extend({
 
 		if(event.data.model.id=='loadid'){
 			 new FootprintLoadView({enabled:false}).render();			
-			 /**
+			 
+			/**
 		    j$.ajax({
 		        type: 'GET',
 		        contentType: 'application/xml',
@@ -10092,6 +10926,9 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='padid'){
 			this.footprintComponent.setMode(core.ModeEnum.PAD_MODE);
 		}
+		if(event.data.model.id=='solidregionid'){
+			this.footprintComponent.setMode(core.ModeEnum.SOLID_REGION);
+		}		
 		if(event.data.model.id=='selectionid'){
 		  //Footprint mode
 		   this.footprintComponent.setMode(core.ModeEnum.COMPONENT_MODE);
@@ -10134,8 +10971,11 @@ var ToggleButtonView=Backbone.View.extend({
 		  
 		  
 		  for(let unit of selectedModel.getUnits()){
+			  core.isEventEnabled=false;
 			  var copy=unit.clone();
-			  this.footprintComponent.getModel().add(copy);  
+			  core.isEventEnabled=true;
+			  
+			  this.footprintComponent.getModel().add(copy);  			  			  
 			  copy.notifyListeners(events.Event.ADD_SHAPE);
 		  };
 		  
