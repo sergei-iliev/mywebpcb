@@ -265,7 +265,7 @@ loadDemo=function(bc){
              //position on center
            var rect=bc.getModel().getUnit().getBoundingRect();
            bc.setScrollPosition(rect.center.x,rect.center.y);
-           bc.getModel().fireUnitEvent({target:fc.getModel().getUnit(),type: events.Event.SELECT_UNIT});
+           bc.getModel().fireUnitEvent({target:bc.getModel().getUnit(),type: events.Event.SELECT_UNIT});
    		   bc.Repaint();
    		  //set button group
    		   bc.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);	        
