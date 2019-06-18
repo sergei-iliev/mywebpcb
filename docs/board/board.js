@@ -263,7 +263,7 @@ loadDemo=function(bc){
    		  bc.getModel().setActiveUnit(0);
    		  bc.componentResized();
              //position on center
-           var rect=fc.getModel().getUnit().getBoundingRect();
+           var rect=bc.getModel().getUnit().getBoundingRect();
            bc.setScrollPosition(rect.center.x,rect.center.y);
            bc.getModel().fireUnitEvent({target:fc.getModel().getUnit(),type: events.Event.SELECT_UNIT});
    		   bc.Repaint();
