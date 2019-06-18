@@ -1,0 +1,1139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<boards identity="board" designer="" version="2.0">
+<board width="450000" height="900000">
+<units raster="2.54">MM</units>
+<name>WiFiCardReader_v3</name>
+<symbols>
+<copperarea layer="BCu" clearance="2000" net="" padconnect="DIRECT" >25400,25400,406400,25400,431800,50800,431800,889000,25400,889000,</copperarea>
+<track layer="BCu" thickness="4000" clearance="0" net="" >397696,344832,372480,344832,366080,338432,366080,330240,355840,320000,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >423168,344832,422400,344832,408832,331264,376320,331264,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >365216,305600,373696,305600,387328,319232,397312,319232,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >399104,122624,373376,122624,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >356224,387072,356224,390016,361984,395776,397312,395776,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >284160,327168,339040,327168,356416,344544,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >284928,403712,323328,403712,336768,390272,347904,390272,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >284928,353152,330880,353152,341248,363520,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >340736,403840,350336,413440,417536,413440,423168,407808,423168,395264,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >348384,369792,359424,357376,410112,357376,422400,369664,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >285440,378112,358656,378112,367360,369408,397312,369408,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >208640,581504,91520,581504,72704,562688,72704,519168,61184,507648,40000,507648,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >39680,483328,24320,483328,20480,487168,20480,765952,67968,812416,87296,812416,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >333824,78848,312320,100352,312320,198656,237568,273408,237567,604672,237567,611839,247296,621568,402560,621568,425216,598912,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >114176,366976,114176,355456,118144,351488,118144,326016,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >153600,366080,142848,355328,142848,325632,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >38912,324608,91136,324608,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >40320,187008,29568,187008,20992,195584,20992,338432,31232,348672,38400,348672,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >92672,455168,92672,483328,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >208256,454400,189184,454400,173568,438784,97536,438784,92544,443776,92544,454848,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >118016,455168,161280,455168,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >117760,482816,117760,494592,129280,506112,161152,506112,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >161280,506112,207360,506112,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >160512,454656,170496,454656,195840,480000,208128,480000,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >423808,258048,423808,293888,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >422912,294144,422912,319488,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >284800,530560,270848,516608,270848,496640,275200,492288,393984,492288,425344,523648,425344,542848,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >284864,505280,388800,505280,399872,516352,399872,542464,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >400128,568192,400128,604416,394752,609792,357888,609792,345600,597504,345600,573952,327488,555840,285056,555840,</track>
+<track layer="BCu" thickness="5000" clearance="0" net="" >333312,39936,374272,39936,422912,88576,422912,173568,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >374528,568448,374528,599168,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >271744,807168,341760,807168,366848,832256,366848,859456,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >181248,825600,245760,825600,264640,807104,271872,807104,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >40448,262656,143360,262656,159744,279040,159744,349184,188544,377984,208512,377984,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >40448,237056,132608,237056,172288,276736,172288,335488,189696,352896,208768,352896,</track>
+<track layer="BCu" thickness="6000" clearance="0" net="" >40448,211968,57344,211968,64512,204800,64512,101376,81408,84480,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >163012,838432,163012,868768,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >112452,838432,112452,869280,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >87108,812832,99908,825632,182084,825632,194116,837664,194116,850976,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >87236,838048,59844,838048,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >163652,812160,194820,812160,</track>
+<track layer="BCu" thickness="5000" clearance="0" net="" >253184,235264,241664,235264,234496,228096,234496,191744,215296,172544,</track>
+<track layer="BCu" thickness="5000" clearance="0" net="" >252928,145664,280064,145664,</track>
+<track layer="BCu" thickness="5000" clearance="0" net="" >334080,78592,334080,123392,355584,144896,</track>
+<track layer="BCu" thickness="5000" clearance="0" net="" >254464,41472,229368,41472,</track>
+<track layer="BCu" thickness="5000" clearance="0" net="" >204544,41472,229760,41472,</track>
+<track layer="BCu" thickness="5000" clearance="0" net="" >228464,43008,215664,55808,215664,172176,202752,185088,</track>
+<track layer="BCu" thickness="5000" clearance="0" net="" >202608,119296,202608,146680,</track>
+<track layer="BCu" thickness="5000" clearance="0" net="" >278896,43008,303600,43136,334576,79136,</track>
+<track layer="BCu" thickness="5000" clearance="0" net="" >252928,41472,266240,28160,322048,28160,333312,39424,</track>
+<track layer="BCu" thickness="5000" clearance="0" net="" >253696,118784,253695,145664,</track>
+<track layer="BCu" thickness="6000" clearance="0" net="" >81920,82944,123392,41472,202496,41472,</track>
+<track layer="BCu" thickness="6000" clearance="0" net="" >40576,154624,40192,155008,40192,186368,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >122624,422400,191232,422400,196928,429120,208832,429120,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >55680,211712,68736,224768,135680,224768,183296,272384,183296,332800,190976,340480,216064,340480,226304,350720,226304,436736,208768,454272,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >97152,422528,97152,439040,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >424960,568320,424960,599040,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >374048,542816,247072,542816,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >423424,233344,394432,233344,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >393888,206464,414720,206464,423296,197888,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >423168,173504,392768,173504,380928,185344,380928,244224,394496,257792,423424,257792,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >108160,188288,63872,188288,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >189440,212480,213504,212480,224256,223232,224256,231936,243200,250880,259840,250880,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >208640,276864,202112,276864,148480,223232,148480,187904,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >334144,78976,350080,78976,373248,102144,373248,175872,367616,181504,367616,250880,396800,280064,396800,293376,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >39808,483712,92416,483712,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >260864,708864,270592,708864,281600,719872,281600,797680,271856,807424,</track>
+<track layer="BCu" thickness="4000" clearance="0" net="" >261632,759040,261632,732928,261120,732416,</track>
+<label layer="FCu" clearance="0" >3.3V,273920,691520,RIGHT,2000,10000</label>
+<label layer="FCu" clearance="0" >+,243712,756800,LEFT,2000,24000</label>
+<track layer="FCu" thickness="4000" clearance="0" net="" >280320,868736,261632,850048,261632,759296,</track>
+<label layer="FCu" clearance="0" >+,393216,147008,LEFT,2000,24000</label>
+<label layer="FCu" clearance="0" >5V,417280,105792,RIGHT,2000,10000</label>
+<label layer="FCu" clearance="0" >LED2,409600,254784,RIGHT,2000,10000</label>
+<label layer="FCu" clearance="0" >LED1,409064,190272,RIGHT,2000,10000</label>
+<track layer="FCu" thickness="4000" clearance="0" net="" >284736,555968,234432,555968,221952,543488,93952,543488,77312,526848,77312,382976,93696,366592,113664,366592,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >215552,769024,215552,654848,186368,625664,130048,625664,68608,564224,68608,314112,83712,299008,180224,299008,208384,327168,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >208640,276864,246912,315136,246912,542720,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >208512,301952,197888,291328,80384,291328,59904,311808,59904,838000,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >394272,233344,375168,233344,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >393920,206464,376704,206464,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >209152,429184,237792,429184,</track>
+<label layer="FCu" clearance="0" >BUZ,42160,306560,RIGHT,2000,12000</label>
+<label layer="FCu" clearance="0" >CONF,51048,464272,RIGHT,2000,12000</label>
+<track layer="FCu" thickness="4000" clearance="0" net="" >284928,301824,294144,301824,304128,291840,304128,241664,313216,232576,335104,232576,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >283648,275456,283648,229376,308224,204800,333824,204800,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >286976,801664,286976,718592,310272,695296,350208,695296,374528,670976,374528,598912,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >390144,797824,424960,763008,424960,598784,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >366848,859264,389760,859264,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >364800,797568,390144,797568,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >271900,807252,276892,802260,320924,802260,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >271884,807412,271884,836804,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >342044,802772,342044,836180,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >194116,850592,246340,850592,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >216004,811936,246852,811936,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >194500,812160,216772,812160,</track>
+<label layer="FCu" clearance="0" >WiFi,112728,794028,LEFT,2000,15000</label>
+<track layer="FCu" thickness="6000" clearance="0" net="" >166016,131840,143232,154624,40576,154624,</track>
+<label layer="FCu" clearance="0" >+,427406,594088,LEFT,2000,24000</label>
+<track layer="FCu" thickness="6000" clearance="0" net="" >144384,84992,165888,106496,165888,132096,179968,146176,202240,146176,</track>
+<label layer="FCu" clearance="0" >12VDC,90344,192064,RIGHT,2000,10000</label>
+<label layer="FCu" clearance="0" >GND,79592,214144,RIGHT,2000,10000</label>
+<label layer="FCu" clearance="0" >D0,71912,240960,RIGHT,2000,10000</label>
+<label layer="FCu" clearance="0" >D1,72424,267200,RIGHT,2000,10000</label>
+<track layer="FCu" thickness="4000" clearance="0" net="" >112336,868848,321808,868848,342272,848384,342272,835840,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >142848,325632,183328,325632,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >347904,369664,347904,390144,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >341120,363648,341120,403584,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >356416,344512,356416,386880,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >208896,606976,224512,606976,262656,568832,292352,568832,301056,560128,301056,331776,327168,305664,365568,305664,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >284160,580608,293888,580608,309760,564736,309760,334848,324608,320000,355840,320000,</track>
+<track layer="FCu" thickness="4000" clearance="0" net="" >284672,606720,293632,606720,319488,580864,319488,342528,330752,331264,376320,331264,</track>
+<via type="" x="261632" y="759296" width="5000" drill="3000"   clearance="0" net="" /><footprint layer="FCu">
+<name>header-2x1</name>
+<units raster="0.8">MM</units>
+<reference layer="FSilkS"  ></reference>
+<value layer="FSilkS"></value>
+<shapes>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="261336" y="708992" width="15700" height="15700" arc="14700">
+<offset x="0" y="0" />
+<number>1,262360,710404,RIGHT,PLAIN,4000</number>
+<netvalue>GND,263512,704130,RIGHT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="261336" y="708992" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="261336" y="732992" width="15700" height="15700" arc="14700">
+<offset x="0" y="0" />
+<number>2,262360,734404,RIGHT,PLAIN,4000</number>
+<netvalue>3.3,263256,728002,RIGHT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="261336" y="732992" width="8000" height="8000" />
+</pad>
+<arc copper="FSilkS" type="0" x="248872" y="720896" width="25184"  thickness="2000" start="180.0" extend="180.0" fill="0" />
+<line copper="FSilkS" thickness="2000">274064,733496,274048,708304,</line>
+<line copper="FSilkS" thickness="2000">248832,733480,248832,708576,</line>
+<arc copper="FSilkS" type="0" x="248872" y="695808" width="25184"  thickness="2000" start="360.0" extend="180.0" fill="0" />
+</shapes>
+</footprint>
+<via type="" x="355584" y="320128" width="5000" drill="3000"   clearance="0" net="" /><via type="" x="375936" y="331520" width="5000" drill="3000"   clearance="0" net="" /><via type="" x="365248" y="305728" width="5000" drill="3000"   clearance="0" net="" /><footprint layer="FCu">
+<name>header-2x1</name>
+<units raster="0.8">MM</units>
+<reference layer="FSilkS"  ></reference>
+<value layer="FSilkS"></value>
+<shapes>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="399176" y="122648" width="15700" height="15700" arc="14700">
+<offset x="0" y="0" />
+<number>2,400584,123672,BOTTOM,PLAIN,4000</number>
+<netvalue>VCC,405896,124440,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="399176" y="122648" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="423176" y="122648" width="15700" height="15700" arc="14700">
+<offset x="0" y="0" />
+<number>1,424584,123672,BOTTOM,PLAIN,4000</number>
+<netvalue>GND,429704,124312,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="423176" y="122648" width="8000" height="8000" />
+</pad>
+<arc copper="FSilkS" type="0" x="386088" y="110184" width="25184"  thickness="2000" start="90.0" extend="180.0" fill="0" />
+<line copper="FSilkS" thickness="2000">398672,135376,423864,135360,</line>
+<line copper="FSilkS" thickness="2000">398688,110144,423592,110144,</line>
+<arc copper="FSilkS" type="0" x="411176" y="110184" width="25184"  thickness="2000" start="270.0" extend="180.0" fill="0" />
+</shapes>
+</footprint>
+<via type="" x="356352" y="387072" width="5000" drill="3000"   clearance="0" net="" /><via type="" x="356352" y="344512" width="5000" drill="3000"   clearance="0" net="" /><via type="" x="340928" y="403904" width="5000" drill="3000"   clearance="0" net="" /><via type="" x="341248" y="363776" width="5000" drill="3000"   clearance="0" net="" /><via type="" x="347904" y="390528" width="5000" drill="3000"   clearance="0" net="" /><via type="" x="348224" y="369792" width="5000" drill="3000"   clearance="0" net="" /><via type="" x="237696" y="429312" width="5000" drill="3000"   clearance="0" net="" /><footprint layer="FCu">
+<name>R4</name>
+<units raster="1.0">MM</units>
+<reference layer="FSilkS"  >R4,170030,217518,TOP,2000,10000</reference>
+<value layer="FSilkS">4.7k,180488,234628,BOTTOM,2000,8000</value>
+<shapes>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="189686" y="213174" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>2,190838,214070,BOTTOM,PLAIN,4000</number>
+<drill type="CIRCULAR" x="189686" y="213174" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="149686" y="213174" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>1,150582,214198,BOTTOM,PLAIN,4000</number>
+<drill type="CIRCULAR" x="149686" y="213174" width="8000" height="8000" />
+</pad>
+<rectangle copper="FSilkS" x="157382" y="206839" width="25216" height="12751" thickness="2000" fill="0" arc="8000"/>
+</shapes>
+</footprint>
+<via type="" x="183136" y="325728" width="5000" drill="3000"   clearance="0" net="" /><footprint layer="FCu">
+<name>R3</name>
+<units raster="1.0">MM</units>
+<reference layer="FSilkS"  >R3,132654,359342,TOP,2000,10000</reference>
+<value layer="FSilkS">10k,143624,374916,BOTTOM,2000,8000</value>
+<shapes>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="154358" y="367286" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>2,155510,368182,BOTTOM,PLAIN,4000</number>
+<drill type="CIRCULAR" x="154358" y="367286" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="114358" y="367286" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>1,115254,368310,BOTTOM,PLAIN,4000</number>
+<drill type="CIRCULAR" x="114358" y="367286" width="8000" height="8000" />
+</pad>
+<rectangle copper="FSilkS" x="122054" y="360951" width="25216" height="12751" thickness="2000" fill="0" arc="8000"/>
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>C11</name>
+<units raster="1.0">MM</units>
+<reference layer="FSilkS"  >C11,128730,192622,TOP,2000,10000</reference>
+<value layer="FSilkS">10n,139188,209732,BOTTOM,2000,8000</value>
+<shapes>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="148386" y="188278" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>2,149538,189174,BOTTOM,PLAIN,4000</number>
+<drill type="CIRCULAR" x="148386" y="188278" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="108386" y="188278" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>1,109282,189302,BOTTOM,PLAIN,4000</number>
+<drill type="CIRCULAR" x="108386" y="188278" width="8000" height="8000" />
+</pad>
+<rectangle copper="FSilkS" x="116082" y="181943" width="25216" height="12751" thickness="2000" fill="0" arc="8000"/>
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>header-lcd</name>
+<units raster="2.54">MM</units>
+<reference layer="FSilkS"  ></reference>
+<value layer="FSilkS"></value>
+<shapes>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="397672" y="395544" width="18000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>10,398952,398232,BOTTOM,PLAIN,4000</number>
+<netvalue>DB7,404072,397592,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="397672" y="395544" width="9000" height="9000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="397672" y="370144" width="18000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>8,399080,369120,TOP,PLAIN,4000</number>
+<netvalue>DB5,403816,368224,TOP,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="397672" y="370144" width="9000" height="9000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="397672" y="344744" width="18000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>6,399080,343720,TOP,PLAIN,4000</number>
+<netvalue>E,404264,344744,TOP,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="397672" y="344744" width="9000" height="9000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="397672" y="319344" width="18000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>4,399080,318320,TOP,PLAIN,4000</number>
+<netvalue>RS,403816,318448,TOP,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="397672" y="319344" width="9000" height="9000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="397672" y="293944" width="18000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>2,399080,292920,TOP,PLAIN,4000</number>
+<netvalue>VDD,403944,292280,TOP,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="397672" y="293944" width="9000" height="9000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="423072" y="293944" width="18000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>1,424480,292920,TOP,PLAIN,4000</number>
+<netvalue>GND,429344,292408,TOP,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="423072" y="293944" width="9000" height="9000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="423072" y="319344" width="18000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>3,424480,318320,TOP,PLAIN,4000</number>
+<netvalue>N/A,429344,317808,TOP,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="423072" y="319344" width="9000" height="9000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="423072" y="344744" width="18000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>5,424480,343720,TOP,PLAIN,4000</number>
+<netvalue>R/W,429568,343176,TOP,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="423072" y="344744" width="9000" height="9000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="423072" y="370144" width="18000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>7,424480,369120,TOP,PLAIN,4000</number>
+<netvalue>DB4,429408,368480,TOP,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="423072" y="370144" width="9000" height="9000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="423072" y="395544" width="18000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>9,424480,396568,BOTTOM,PLAIN,4000</number>
+<netvalue>DB6,429472,397848,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="423072" y="395544" width="9000" height="9000" />
+</pad>
+<arc copper="FSilkS" type="0" x="385352" y="281096" width="25184"  thickness="2000" start="90.0" extend="180.0" fill="0" />
+<arc copper="FSilkS" type="0" x="385280" y="306424" width="25312"  thickness="2000" start="90.0" extend="180.0" fill="0" />
+<line copper="FSilkS" thickness="2000">397696,281088,423384,281088,</line>
+<arc copper="FSilkS" type="0" x="385352" y="332024" width="25056"  thickness="2000" start="90.0" extend="180.0" fill="0" />
+<arc copper="FSilkS" type="0" x="385280" y="357224" width="25312"  thickness="2000" start="90.0" extend="180.0" fill="0" />
+<line copper="FSilkS" thickness="2000">398080,407744,423224,407744,</line>
+<arc copper="FSilkS" type="0" x="410440" y="281096" width="25184"  thickness="2000" start="270.0" extend="180.0" fill="0" />
+<arc copper="FSilkS" type="0" x="410440" y="306312" width="25312"  thickness="2000" start="270.0" extend="180.0" fill="0" />
+<arc copper="FSilkS" type="0" x="410568" y="331784" width="25056"  thickness="2000" start="270.0" extend="180.0" fill="0" />
+<arc copper="FSilkS" type="0" x="410440" y="357256" width="25312"  thickness="2000" start="270.0" extend="180.0" fill="0" />
+<arc copper="FSilkS" type="0" x="385352" y="382472" width="25312"  thickness="2000" start="90.0" extend="180.0" fill="0" />
+<arc copper="FSilkS" type="0" x="410440" y="382472" width="25312"  thickness="2000" start="270.0" extend="180.0" fill="0" />
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>header-2x1</name>
+<units raster="0.8">MM</units>
+<reference layer="FSilkS"  ></reference>
+<value layer="FSilkS"></value>
+<shapes>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="40048" y="483424" width="15700" height="15700" arc="14700">
+<offset x="0" y="0" />
+<number>1,41072,484836,RIGHT,PLAIN,4000</number>
+<netvalue>N0001,42736,478562,RIGHT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="40048" y="483424" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="40048" y="507424" width="15700" height="15700" arc="14700">
+<offset x="0" y="0" />
+<number>2,41072,508836,RIGHT,PLAIN,4000</number>
+<netvalue>N0002,42736,502562,RIGHT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="40048" y="507424" width="8000" height="8000" />
+</pad>
+<arc copper="FSilkS" type="0" x="27584" y="495328" width="25184"  thickness="2000" start="180.0" extend="180.0" fill="0" />
+<line copper="FSilkS" thickness="2000">52776,507928,52760,482736,</line>
+<line copper="FSilkS" thickness="2000">27544,507912,27544,483008,</line>
+<arc copper="FSilkS" type="0" x="27584" y="470240" width="25184"  thickness="2000" start="360.0" extend="180.0" fill="0" />
+</shapes>
+</footprint>
+<via type="" x="247172" y="542948" width="5000" drill="3000"   clearance="0" net="" /><via type="" x="393924" y="206532" width="5000" drill="3000"   clearance="0" net="" /><via type="" x="394308" y="233284" width="5000" drill="3000"   clearance="0" net="" /><via type="" x="374724" y="599108" width="5000" drill="3000"   clearance="0" net="" /><via type="" x="366852" y="859396" width="5000" drill="3000"   clearance="0" net="" /><via type="" x="425156" y="598980" width="5000" drill="3000"   clearance="0" net="" /><footprint layer="FCu">
+<name>header-2x1</name>
+<units raster="0.8">MM</units>
+<reference layer="FSilkS"  ></reference>
+<value layer="FSilkS"></value>
+<shapes>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="39536" y="325280" width="15700" height="15700" arc="14700">
+<offset x="0" y="0" />
+<number>1,40560,326692,RIGHT,PLAIN,4000</number>
+<netvalue>N0001,42224,320418,RIGHT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="39536" y="325280" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="39536" y="349280" width="15700" height="15700" arc="14700">
+<offset x="0" y="0" />
+<number>2,40560,350692,RIGHT,PLAIN,4000</number>
+<netvalue>N0002,42224,344418,RIGHT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="39536" y="349280" width="8000" height="8000" />
+</pad>
+<arc copper="FSilkS" type="0" x="27072" y="337184" width="25184"  thickness="2000" start="180.0" extend="180.0" fill="0" />
+<line copper="FSilkS" thickness="2000">52264,349784,52248,324592,</line>
+<line copper="FSilkS" thickness="2000">27032,349768,27032,324864,</line>
+<arc copper="FSilkS" type="0" x="27072" y="312096" width="25184"  thickness="2000" start="0.0" extend="180.0" fill="0" />
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>C9</name>
+<units raster="0.635">MM</units>
+<reference layer="FSilkS"  >C9,115495,397824,TOP,2000,10000</reference>
+<value layer="FSilkS">100nF,104415,381440,TOP,2000,10000</value>
+<shapes>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="122562" y="422736" width="15000" height="15000" arc="14700">
+<offset x="0" y="0" />
+<number>1,123714,421712,TOP,PLAIN,4000</number>
+<drill type="CIRCULAR" x="122562" y="422736" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="97162" y="422736" width="15000" height="15000" arc="14700">
+<offset x="0" y="0" />
+<number>2,97930,421840,TOP,PLAIN,4000</number>
+<drill type="CIRCULAR" x="97162" y="422736" width="8000" height="8000" />
+</pad>
+<rectangle copper="FSilkS" x="86784" y="411064" width="46320" height="23280" thickness="2000" fill="0" arc="11000"/>
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>C6</name>
+<units raster="0.635">MM</units>
+<reference layer="FSilkS"  >C6,99721,462050,BOTTOM,2000,10000</reference>
+<value layer="FSilkS">22pF,116105,468706,BOTTOM,2000,10000</value>
+<shapes>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="118374" y="455442" width="15000" height="15000" arc="14700">
+<offset x="0" y="0" />
+<number>2,120426,456338,BOTTOM,PLAIN,4000</number>
+<drill type="CIRCULAR" x="118374" y="455442" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="92974" y="455442" width="15000" height="15000" arc="14700">
+<offset x="0" y="0" />
+<number>1,94642,456466,BOTTOM,PLAIN,4000</number>
+<drill type="CIRCULAR" x="92974" y="455442" width="8000" height="8000" />
+</pad>
+<rectangle copper="FSilkS" x="82432" y="443834" width="46320" height="23280" thickness="2000" fill="0" arc="20000"/>
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>C7</name>
+<units raster="0.635">MM</units>
+<reference layer="FSilkS"  >C7,103049,489442,BOTTOM,2000,10000</reference>
+<value layer="FSilkS">22pF,118409,496610,BOTTOM,2000,10000</value>
+<shapes>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="117990" y="483730" width="15000" height="15000" arc="14700">
+<offset x="0" y="0" />
+<number>2,120042,484626,BOTTOM,PLAIN,4000</number>
+<drill type="CIRCULAR" x="117990" y="483730" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="92590" y="483730" width="15000" height="15000" arc="14700">
+<offset x="0" y="0" />
+<number>1,94258,484754,BOTTOM,PLAIN,4000</number>
+<drill type="CIRCULAR" x="92590" y="483730" width="8000" height="8000" />
+</pad>
+<rectangle copper="FSilkS" x="82048" y="472122" width="46320" height="23280" thickness="2000" fill="0" arc="20000"/>
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>DIP-2</name>
+<units raster="2.54">MM</units>
+<reference layer="FSilkS"  >Q1,153918,483346,BOTTOM,2000,12000</reference>
+<value layer="FSilkS">11.0592MHz,180460,511280,BOTTOM,2000,10000</value>
+<shapes>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="161134" y="455506" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>2,162670,456274,BOTTOM,PLAIN,4000</number>
+<drill type="CIRCULAR" x="161134" y="455506" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="161134" y="506306" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>1,161902,507330,BOTTOM,PLAIN,4000</number>
+<drill type="CIRCULAR" x="161134" y="506306" width="8000" height="8000" />
+</pad>
+<rectangle copper="FSilkS" x="141446" y="427338" width="40000" height="105000" thickness="2000" fill="0" arc="8000"/>
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>DIP-3</name>
+<units raster="1.27">MM</units>
+<reference layer="FSilkS"  >T1,99744,306228,RIGHT,2000,10000</reference>
+<value layer="FSilkS">BS170,122108,319376,RIGHT,2000,10000</value>
+<shapes>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="118008" y="325864" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>2,118968,324840,TOP,PLAIN,4000</number>
+<netvalue>Gate,124024,323176,TOP,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="118008" y="325864" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="92608" y="325864" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>1,93696,324776,TOP,PLAIN,4000</number>
+<netvalue>Drain,98624,323176,TOP,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="92608" y="325864" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="143408" y="325864" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>3,144624,324840,TOP,PLAIN,4000</number>
+<netvalue>Source,149744,322408,TOP,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="143408" y="325864" width="8000" height="8000" />
+</pad>
+<rectangle copper="FSilkS" x="96940" y="317952" width="42000" height="8048" thickness="2000" fill="0" arc="0"/>
+<arc copper="FSilkS" type="0" x="96940" y="295936" width="42000"  thickness="2000" start="180.0" extend="-180.0" fill="0" />
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>STPS2L25</name>
+<units raster="0.635">MM</units>
+<reference layer="FSilkS"  >C5,386486,818134,TOP,2000,10000</reference>
+<value layer="FSilkS">10uF,400310,810454,TOP,2000,10000</value>
+<shapes>
+<pad copper="FCu" type="SMD" shape="RECTANGULAR" x="390664" y="802656" width="16000" height="25400" arc="14700">
+<offset x="0" y="0" />
+<number>1,392200,801120,TOP,PLAIN,4000</number>
+</pad>
+<pad copper="FCu" type="SMD" shape="RECTANGULAR" x="390664" y="853456" width="16000" height="25400" arc="14700">
+<offset x="0" y="0" />
+<number>2,391688,852688,TOP,PLAIN,4000</number>
+</pad>
+<arc copper="FSilkS" type="0" x="373560" y="810952" width="34208"  thickness="2000" start="210.0" extend="120.0" fill="1" />
+<ellipse copper="FSilkS" x="373560" y="810952" width="34208" height="34208" thickness="2000" fill="0"/>
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>SOT 4-pin</name>
+<units raster="0.1">MM</units>
+<reference layer="FSilkS"  >U***,330484,767888,LEFT,2000,10000</reference>
+<value layer="FSilkS">LM1117,325364,752016,LEFT,2000,10000</value>
+<shapes>
+<pad copper="FCu" type="SMD" shape="RECTANGULAR" x="341684" y="798312" width="12000" height="16000" arc="15200">
+<offset x="0" y="0" />
+<number>2,340788,799464,LEFT,PLAIN,4000</number>
+<netvalue>Output,334644,804456,LEFT,PLAIN,4000</netvalue>
+</pad>
+<pad copper="FCu" type="SMD" shape="RECTANGULAR" x="318684" y="798312" width="12000" height="16000" arc="15200">
+<offset x="0" y="0" />
+<number>1,317532,799592,LEFT,PLAIN,4000</number>
+<netvalue>Gnd,314844,804456,LEFT,PLAIN,4000</netvalue>
+</pad>
+<pad copper="FCu" type="SMD" shape="RECTANGULAR" x="364684" y="798312" width="12000" height="16000" arc="15200">
+<offset x="0" y="0" />
+<number>3,363788,799592,LEFT,PLAIN,4000</number>
+<netvalue>Input,358796,804200,LEFT,PLAIN,4000</netvalue>
+</pad>
+<pad copper="FCu" type="SMD" shape="RECTANGULAR" x="341684" y="727312" width="32000" height="20000" arc="15200">
+<offset x="0" y="0" />
+<number>4,340788,728592,LEFT,PLAIN,4000</number>
+</pad>
+<rectangle copper="FSilkS" x="309684" y="739312" width="66000" height="36000" thickness="2000" fill="0" arc="8000"/>
+</shapes>
+</footprint>
+<via type="" x="271900" y="807284" width="5000" drill="3000"   clearance="0" net="" /><footprint layer="FCu">
+<name>STPS2L25</name>
+<units raster="0.635">MM</units>
+<reference layer="FSilkS"  >C5,317334,831554,RIGHT,2000,10000</reference>
+<value layer="FSilkS">10uF,325014,845378,RIGHT,2000,10000</value>
+<shapes>
+<pad copper="FCu" type="SMD" shape="RECTANGULAR" x="332812" y="835732" width="25400" height="16000" arc="14700">
+<offset x="0" y="0" />
+<number>1,334348,837268,RIGHT,PLAIN,4000</number>
+</pad>
+<pad copper="FCu" type="SMD" shape="RECTANGULAR" x="282012" y="835732" width="25400" height="16000" arc="14700">
+<offset x="0" y="0" />
+<number>2,282780,836756,RIGHT,PLAIN,4000</number>
+</pad>
+<arc copper="FSilkS" type="0" x="290308" y="818628" width="34208"  thickness="2000" start="120.0" extend="120.0" fill="1" />
+<ellipse copper="FSilkS" x="290308" y="818628" width="34208" height="34208" thickness="2000" fill="0"/>
+</shapes>
+</footprint>
+<via type="" x="194504" y="811972" width="5000" drill="3000"   clearance="0" net="" /><via type="" x="59844" y="837984" width="5000" drill="3000"   clearance="0" net="" /><via type="" x="194244" y="850784" width="5000" drill="3000"   clearance="0" net="" /><via type="" x="112324" y="868960" width="5000" drill="3000"   clearance="0" net="" /><via type="" x="163012" y="868768" width="5000" drill="3000"   clearance="0" net="" /><footprint layer="FCu">
+<name>WiFi</name>
+<units raster="2.54">MM</units>
+<reference layer="FSilkS"  ></reference>
+<value layer="FSilkS"></value>
+<shapes>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="87364" y="812512" width="15700" height="15700" arc="14700">
+<offset x="0" y="0" />
+<number>2,86340,813920,LEFT,PLAIN,4000</number>
+<netvalue>GND,85444,818784,LEFT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="87364" y="812512" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="112764" y="812512" width="15700" height="15700" arc="14700">
+<offset x="0" y="0" />
+<number>4,111740,813920,LEFT,PLAIN,4000</number>
+<netvalue>IO02,110460,818784,LEFT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="112764" y="812512" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="138164" y="812512" width="15700" height="15700" arc="14700">
+<offset x="0" y="0" />
+<number>5,137140,813920,LEFT,PLAIN,4000</number>
+<netvalue>IO01,135476,818784,LEFT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="138164" y="812512" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="163564" y="812512" width="15700" height="15700" arc="14700">
+<offset x="0" y="0" />
+<number>7,162540,813920,LEFT,PLAIN,4000</number>
+<netvalue>RX,162508,818624,LEFT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="163564" y="812512" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="163564" y="837912" width="15700" height="15700" arc="14700">
+<offset x="0" y="0" />
+<number>8,162540,839320,LEFT,PLAIN,4000</number>
+<netvalue>3.3,161836,844184,LEFT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="163564" y="837912" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="138164" y="837912" width="15700" height="15700" arc="14700">
+<offset x="0" y="0" />
+<number>6,137140,839320,LEFT,PLAIN,4000</number>
+<netvalue>RST,136500,844184,LEFT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="138164" y="837912" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="112764" y="837912" width="15700" height="15700" arc="14700">
+<offset x="0" y="0" />
+<number>3,111740,839320,LEFT,PLAIN,4000</number>
+<netvalue>EN,111548,844248,LEFT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="112764" y="837912" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="87364" y="837912" width="15700" height="15700" arc="14700">
+<offset x="0" y="0" />
+<number>1,86340,839320,LEFT,PLAIN,4000</number>
+<netvalue>TX,86084,844184,LEFT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="87364" y="837912" width="8000" height="8000" />
+</pad>
+<line copper="FSilkS" thickness="5000">69460,706744,69460,634040,79460,634040,79460,678072,89460,678072,89460,634040,99460,634040,99460,678072,109460,678072,109460,634040,119460,634040,119460,678072,129460,678072,129460,634040,167764,634040,</line>
+<rectangle copper="FSilkS" x="54940" y="614400" width="140000" height="240000" thickness="2000" fill="0" arc="8000"/>
+<arc copper="FSilkS" type="0" x="74516" y="800192" width="25184"  thickness="2000" start="0.0" extend="180.0" fill="0" />
+<arc copper="FSilkS" type="0" x="99844" y="800120" width="25312"  thickness="2000" start="0.0" extend="180.0" fill="0" />
+<line copper="FSilkS" thickness="2000">74572,812536,74572,838576,</line>
+<arc copper="FSilkS" type="0" x="74516" y="825280" width="25184"  thickness="2000" start="180.0" extend="180.0" fill="0" />
+<arc copper="FSilkS" type="0" x="99796" y="825152" width="25312"  thickness="2000" start="180.0" extend="180.0" fill="0" />
+<line copper="FSilkS" thickness="2000">175996,812920,175996,837824,</line>
+<arc copper="FSilkS" type="0" x="150596" y="825152" width="25312"  thickness="2000" start="180.0" extend="180.0" fill="0" />
+<arc copper="FSilkS" type="0" x="125316" y="825280" width="25184"  thickness="2000" start="180.0" extend="180.0" fill="0" />
+<arc copper="FSilkS" type="0" x="150644" y="800120" width="25312"  thickness="2000" start="0.0" extend="180.0" fill="0" />
+<arc copper="FSilkS" type="0" x="125316" y="800192" width="25184"  thickness="2000" start="0.0" extend="180.0" fill="0" />
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>D2/LED</name>
+<units raster="1.27">MM</units>
+<reference layer="FSilkS"  >R,252992,840724,RIGHT,2000,10000</reference>
+<value layer="FSilkS">2k,255040,827412,RIGHT,2000,10000</value>
+<shapes>
+<pad copper="FCu" type="SMD" shape="RECTANGULAR" x="246800" y="811372" width="15000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>1,248080,812912,RIGHT,PLAIN,4000</number>
+</pad>
+<pad copper="FCu" type="SMD" shape="RECTANGULAR" x="246800" y="849472" width="15000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>2,247824,850756,RIGHT,PLAIN,4000</number>
+</pad>
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>D2/LED</name>
+<units raster="1.27">MM</units>
+<reference layer="FSilkS"  >R,222388,802248,RIGHT,2000,10000</reference>
+<value layer="FSilkS">1k,224436,788936,RIGHT,2000,10000</value>
+<shapes>
+<pad copper="FCu" type="SMD" shape="RECTANGULAR" x="216196" y="772896" width="15000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>1,217476,774436,RIGHT,PLAIN,4000</number>
+</pad>
+<pad copper="FCu" type="SMD" shape="RECTANGULAR" x="216196" y="810996" width="15000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>2,217220,812280,RIGHT,PLAIN,4000</number>
+</pad>
+</shapes>
+</footprint>
+<via type="" x="40576" y="154560" width="6000" drill="4000"   clearance="0" net="" /><footprint layer="FCu">
+<name>ISCP</name>
+<units raster="2.54">MM</units>
+<reference layer="FSilkS"  >ISCP,410880,594368,RIGHT,2000,10000</reference>
+<value layer="FSilkS"></value>
+<shapes>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="425424" y="567968" width="18000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>5,424400,569376,LEFT,PLAIN,4000</number>
+<netvalue>+VDD,422736,574240,LEFT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="425424" y="567968" width="9000" height="9000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="400024" y="567968" width="18000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>3,399000,569376,LEFT,PLAIN,4000</number>
+<netvalue>MOSI,397336,574240,LEFT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="400024" y="567968" width="9000" height="9000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="425424" y="542568" width="18000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>6,424400,543976,LEFT,PLAIN,4000</number>
+<netvalue>MISO,422736,548840,LEFT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="425424" y="542568" width="9000" height="9000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="400024" y="542568" width="18000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>4,399000,543976,LEFT,PLAIN,4000</number>
+<netvalue>SCK,397336,548840,LEFT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="400024" y="542568" width="9000" height="9000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="374624" y="567968" width="18000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>1,373600,569376,LEFT,PLAIN,4000</number>
+<netvalue>GND,371936,574240,LEFT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="374624" y="567968" width="9000" height="9000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="374624" y="542568" width="18000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>2,373600,543976,LEFT,PLAIN,4000</number>
+<netvalue>RESET,371936,548840,LEFT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="374624" y="542568" width="9000" height="9000" />
+</pad>
+<arc copper="FSilkS" type="0" x="412808" y="529416" width="25400"  thickness="2000" start="180.0" extend="-180.0" fill="0" />
+<arc copper="FSilkS" type="0" x="387448" y="529408" width="25400"  thickness="2000" start="180.0" extend="-180.0" fill="0" />
+<arc copper="FSilkS" type="0" x="361992" y="529480" width="25400"  thickness="2000" start="180.0" extend="-180.0" fill="0" />
+<arc copper="FSilkS" type="0" x="361984" y="556220" width="25400"  thickness="2000" start="180.0" extend="180.0" fill="0" />
+<arc copper="FSilkS" type="0" x="387440" y="556292" width="25400"  thickness="2000" start="180.0" extend="180.0" fill="0" />
+<line copper="FSilkS" thickness="2000">362024,541568,362024,570040,</line>
+<arc copper="FSilkS" type="0" x="412800" y="556284" width="25400"  thickness="2000" start="180.0" extend="180.0" fill="0" />
+<line copper="FSilkS" thickness="2000">438216,541056,438216,570168,</line>
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>header-2x1</name>
+<units raster="0.8">MM</units>
+<reference layer="FSilkS"  ></reference>
+<value layer="FSilkS"></value>
+<shapes>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="423552" y="257464" width="15700" height="15700" arc="14700">
+<offset x="0" y="0" />
+<number>2,424576,258876,RIGHT,PLAIN,4000</number>
+<netvalue>GND,426240,252602,RIGHT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="423552" y="257464" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="423552" y="233464" width="15700" height="15700" arc="14700">
+<offset x="0" y="0" />
+<number>1,424576,234876,RIGHT,PLAIN,4000</number>
+<netvalue>N0001,426240,228602,RIGHT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="423552" y="233464" width="8000" height="8000" />
+</pad>
+<arc copper="FSilkS" type="0" x="411088" y="245368" width="25184"  thickness="2000" start="180.0" extend="180.0" fill="0" />
+<line copper="FSilkS" thickness="2000">436280,257968,436264,232776,</line>
+<line copper="FSilkS" thickness="2000">411048,257952,411048,233048,</line>
+<arc copper="FSilkS" type="0" x="411088" y="220280" width="25184"  thickness="2000" start="0.0" extend="180.0" fill="0" />
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>header-2x1</name>
+<units raster="0.8">MM</units>
+<reference layer="FSilkS"  ></reference>
+<value layer="FSilkS"></value>
+<shapes>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="423296" y="197504" width="15700" height="15700" arc="14700">
+<offset x="0" y="0" />
+<number>2,424320,198916,RIGHT,PLAIN,4000</number>
+<netvalue>N0002,425984,192642,RIGHT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="423296" y="197504" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="423296" y="173504" width="15700" height="15700" arc="14700">
+<offset x="0" y="0" />
+<number>1,424320,174916,RIGHT,PLAIN,4000</number>
+<netvalue>GND,424960,168386,RIGHT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="423296" y="173504" width="8000" height="8000" />
+</pad>
+<arc copper="FSilkS" type="0" x="410832" y="185408" width="25184"  thickness="2000" start="180.0" extend="180.0" fill="0" />
+<line copper="FSilkS" thickness="2000">436024,198008,436008,172816,</line>
+<line copper="FSilkS" thickness="2000">410792,197992,410792,173088,</line>
+<arc copper="FSilkS" type="0" x="410832" y="160320" width="25184"  thickness="2000" start="0.0" extend="180.0" fill="0" />
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>D2/LED</name>
+<units raster="1.27">MM</units>
+<reference layer="FSilkS"  >R,364396,226604,TOP,2000,10000</reference>
+<value layer="FSilkS">1k,351084,224556,TOP,2000,10000</value>
+<shapes>
+<pad copper="FCu" type="SMD" shape="RECTANGULAR" x="335044" y="232796" width="18000" height="15000" arc="14700">
+<offset x="0" y="0" />
+<number>1,336584,231516,TOP,PLAIN,4000</number>
+</pad>
+<pad copper="FCu" type="SMD" shape="RECTANGULAR" x="373144" y="232796" width="18000" height="15000" arc="14700">
+<offset x="0" y="0" />
+<number>2,374428,231772,TOP,PLAIN,4000</number>
+</pad>
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>D2/LED</name>
+<units raster="1.27">MM</units>
+<reference layer="FSilkS"  >R,364436,200508,TOP,2000,10000</reference>
+<value layer="FSilkS">1k,351124,198460,TOP,2000,10000</value>
+<shapes>
+<pad copper="FCu" type="SMD" shape="RECTANGULAR" x="335084" y="206700" width="18000" height="15000" arc="14700">
+<offset x="0" y="0" />
+<number>1,336624,205420,TOP,PLAIN,4000</number>
+</pad>
+<pad copper="FCu" type="SMD" shape="RECTANGULAR" x="373184" y="206700" width="18000" height="15000" arc="14700">
+<offset x="0" y="0" />
+<number>2,374468,205676,TOP,PLAIN,4000</number>
+</pad>
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>DIP</name>
+<units raster="2.54">MM</units>
+<reference layer="FSilkS"  ></reference>
+<value layer="FSilkS"></value>
+<shapes>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="284884" y="327576" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>26,285524,324888,TOP,PLAIN,4000</number>
+<netvalue>PC3(ADC3/PCINT11),290260,337624,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="284884" y="327576" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="284884" y="352976" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>25,285524,350288,TOP,PLAIN,4000</number>
+<netvalue>PC2(ADC2/PCINT10),290260,363344,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="284884" y="352976" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="284884" y="378376" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>24,285524,375688,TOP,PLAIN,4000</number>
+<netvalue>PC1(ADC1/PCINT9),290260,387144,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="284884" y="378376" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="284884" y="403776" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>23,285524,401088,TOP,PLAIN,4000</number>
+<netvalue>PC0(ADC0/PCINT8),290260,412992,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="284884" y="403776" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="284884" y="429176" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>22,285524,426488,TOP,PLAIN,4000</number>
+<netvalue>GND,290260,430840,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="284884" y="429176" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="284884" y="454576" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>21,285524,451888,TOP,PLAIN,4000</number>
+<netvalue>AREF,290260,456624,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="284884" y="454576" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="284884" y="479976" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>20,285524,477288,TOP,PLAIN,4000</number>
+<netvalue>AVCC,290260,482664,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="284884" y="479976" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="284884" y="505376" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>19,285524,502688,TOP,PLAIN,4000</number>
+<netvalue>PB5(SCK/PCINT5),290260,514016,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="284884" y="505376" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="284884" y="530776" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>18,285524,528088,TOP,PLAIN,4000</number>
+<netvalue>PB4(MISO/PCINT4),290260,540568,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="284884" y="530776" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="284884" y="556176" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>17,285524,553488,TOP,PLAIN,4000</number>
+<netvalue>PB3(MOSI/OC2A/PCINT3),290260,568080,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="284884" y="556176" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="284884" y="581576" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>16,285524,578888,TOP,PLAIN,4000</number>
+<netvalue>PB2(SS/OC1B/PCINT2),290260,592264,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="284884" y="581576" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="284884" y="606976" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>15,285524,604288,TOP,PLAIN,4000</number>
+<netvalue>PB1(OC1A/PCINT1,290260,615936,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="284884" y="606976" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="208684" y="606976" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>14,209324,604288,TOP,PLAIN,4000</number>
+<netvalue>PB0(PCINT/CLKO/ICP1) ,213548,618240,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="208684" y="606976" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="208684" y="581576" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>13,209452,579144,TOP,PLAIN,4000</number>
+<netvalue>PD7(PCINT23/AIN1),213548,591048,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="208684" y="581576" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="208684" y="556176" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>12,209452,553488,TOP,PLAIN,4000</number>
+<netvalue>PD6(PCINT/OC0A/AIN0),213548,568080,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="208684" y="556176" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="208684" y="530776" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>11,209580,528088,TOP,PLAIN,4000</number>
+<netvalue>PD5(PCINT21/OC0B/T1) ,213548,541720,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="208684" y="530776" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="208684" y="505376" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>10,209452,502816,TOP,PLAIN,4000</number>
+<netvalue>PB7(PCINT/XTAL2),213548,514656,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="208684" y="505376" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="208684" y="479976" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>9,209580,478824,TOP,PLAIN,4000</number>
+<netvalue>PB6(PCINT/XTAL1),213548,489064,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="208684" y="479976" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="208684" y="454576" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>8,209452,453296,TOP,PLAIN,4000</number>
+<netvalue>GND,213548,456304,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="208684" y="454576" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="208684" y="429176" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>7,209452,428024,TOP,PLAIN,4000</number>
+<netvalue>VCC,213548,430872,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="208684" y="429176" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="284884" y="302176" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>27,285524,299488,TOP,PLAIN,4000</number>
+<netvalue>PC4(ADC4/SDA/PCINT12),290260,313760,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="284884" y="302176" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="284884" y="276776" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>28,285524,274088,TOP,PLAIN,4000</number>
+<netvalue>PC5(ADC5/SCL/PCINT13),290260,287336,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="284884" y="276776" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="208684" y="403776" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>6,209452,402624,TOP,PLAIN,4000</number>
+<netvalue>PD4(PCINT/XCK/T0),213548,413568,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="208684" y="403776" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="208684" y="378376" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>5,209452,377096,TOP,PLAIN,4000</number>
+<netvalue>PD3(PCINT/OC2B/INT1),213548,391560,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="208684" y="378376" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="208684" y="352976" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>4,209708,351696,TOP,PLAIN,4000</number>
+<netvalue>PD2(PCINT18/INT0),213676,363472,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="208684" y="352976" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="208684" y="327576" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>3,209708,326424,TOP,PLAIN,4000</number>
+<netvalue>PD1(PCINT17/TXD),213676,317336,TOP,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="208684" y="327576" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="208684" y="302176" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>2,209580,300768,TOP,PLAIN,4000</number>
+<netvalue>PD0(PCINT16/RXD),213676,290784,TOP,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="208684" y="302176" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="208684" y="276776" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>1,209708,275368,TOP,PLAIN,4000</number>
+<netvalue>PC6(PCINT14/RESET),213676,263336,TOP,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="208684" y="276776" width="8000" height="8000" />
+</pad>
+<label layer="FSilkS">U***,238959,434224,TOP,2000,10000</label>
+<label layer="FSilkS">DIP-28,262511,429616,TOP,2000,10000</label>
+<rectangle copper="FSilkS" x="216140" y="267640" width="61760" height="347024" thickness="2000" fill="0" arc="0"/>
+<arc copper="FSilkS" type="0" x="236780" y="259832" width="16752"  thickness="2000" start="180.0" extend="180.0" fill="0" />
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>header-1x16</name>
+<units raster="2.54">MM</units>
+<reference layer="FSilkS"  ></reference>
+<value layer="FSilkS"></value>
+<shapes>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="40936" y="187072" width="18000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>1,42348,186048,TOP,PLAIN,4000</number>
+<netvalue>VCC,47338,185408,TOP,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="40936" y="187072" width="9000" height="9000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="40936" y="212472" width="18000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>2,42348,211448,TOP,PLAIN,4000</number>
+<netvalue>Gnd,47210,210680,TOP,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="40936" y="212472" width="9000" height="9000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="40936" y="237872" width="18000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>3,42348,236848,TOP,PLAIN,4000</number>
+<netvalue>D0,47594,236592,TOP,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="40936" y="237872" width="9000" height="9000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="40936" y="263272" width="18000" height="18000" arc="14700">
+<offset x="0" y="0" />
+<number>4,42348,262248,TOP,PLAIN,4000</number>
+<netvalue>D1,47722,261864,TOP,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="40936" y="263272" width="9000" height="9000" />
+</pad>
+<ellipse copper="FSilkS" x="27848" y="250592" width="25536" height="25536" thickness="2000" fill="0"/>
+<ellipse copper="FSilkS" x="27848" y="225248" width="25536" height="25536" thickness="2000" fill="0"/>
+<ellipse copper="FSilkS" x="27784" y="199712" width="25536" height="25536" thickness="2000" fill="0"/>
+<ellipse copper="FSilkS" x="27752" y="174080" width="25536" height="25536" thickness="2000" fill="0"/>
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>LM2574N</name>
+<units raster="2.54">MM</units>
+<reference layer="FSilkS"  >U2,250904,91123,RIGHT,2000,10000</reference>
+<value layer="FSilkS">LM2574N,264216,76275,RIGHT,2000,10000</value>
+<shapes>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="202928" y="42240" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>4,203824,44036,RIGHT,PLAIN,4000</number>
+<netvalue>PWR GND,198832,37248,LEFT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="202928" y="42240" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="228328" y="42240" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>3,229352,44036,RIGHT,PLAIN,4000</number>
+<netvalue>ONN/OFF,224360,37376,LEFT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="228328" y="42240" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="253728" y="42240" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>2,254752,44036,RIGHT,PLAIN,4000</number>
+<netvalue>SIG GND,249376,37376,LEFT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="253728" y="42240" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="RECTANGULAR" x="279128" y="42240" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>1,280280,44036,RIGHT,PLAIN,4000</number>
+<netvalue>FB,278360,37248,LEFT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="279128" y="42240" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="202928" y="118440" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>5,204080,120109,RIGHT,PLAIN,4000</number>
+<netvalue>VIN,200496,124840,LEFT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="202928" y="118440" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="228328" y="118440" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>6,229736,120109,RIGHT,PLAIN,4000</number>
+<drill type="CIRCULAR" x="228328" y="118440" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="253728" y="118440" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>7,254624,120109,RIGHT,PLAIN,4000</number>
+<netvalue>OUTPUT,250144,124456,LEFT,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="253728" y="118440" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="279128" y="118440" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>8,280216,120108,RIGHT,PLAIN,4000</number>
+<drill type="CIRCULAR" x="279128" y="118440" width="8000" height="8000" />
+</pad>
+<rectangle copper="FSilkS" x="189536" y="50864" width="102768" height="58480" thickness="3810" fill="0" arc="8000"/>
+<ellipse copper="FSilkS" x="278800" y="58208" width="7000" height="7000" thickness="2000" fill="0"/>
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>DIP-2</name>
+<units raster="0.635">MM</units>
+<reference layer="FSilkS"  >C8,371664,56478,LEFT,2000,10000</reference>
+<value layer="FSilkS">220uF/16,370640,71326,LEFT,2000,10000</value>
+<shapes>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="334112" y="79036" width="15000" height="15000" arc="14700">
+<offset x="0" y="0" />
+<number>1,333088,80188,LEFT,PLAIN,4000</number>
+<drill type="CIRCULAR" x="334112" y="79036" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="334112" y="40936" width="15000" height="15000" arc="14700">
+<offset x="0" y="0" />
+<number>2,333216,41704,LEFT,PLAIN,4000</number>
+<drill type="CIRCULAR" x="334112" y="40936" width="8000" height="8000" />
+</pad>
+<ellipse copper="FSilkS" x="304448" y="29086" width="60000" height="60000" thickness="6000" fill="0"/>
+<rectangle copper="FSilkS" x="331784" y="27862" width="4720" height="9328" thickness="2000" fill="1" arc="3000"/>
+<rectangle copper="FSilkS" x="331072" y="26894" width="6128" height="11120" thickness="500" fill="0" arc="1000"/>
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>DIP-2</name>
+<units raster="2.54">MM</units>
+<reference layer="FSilkS"  >L1,313788,145824,LEFT,2000,10000</reference>
+<value layer="FSilkS">330uH,304060,159392,LEFT,2000,10000</value>
+<shapes>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="355652" y="145488" width="15000" height="15000" arc="14700">
+<offset x="0" y="0" />
+<number>1,357188,146512,BOTTOM,PLAIN,4000</number>
+<drill type="CIRCULAR" x="355652" y="145488" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="279452" y="145488" width="15000" height="15000" arc="14700">
+<offset x="0" y="0" />
+<number>2,280220,146256,BOTTOM,PLAIN,4000</number>
+<drill type="CIRCULAR" x="279452" y="145488" width="8000" height="8000" />
+</pad>
+<ellipse copper="FSilkS" x="287676" y="115664" width="60000" height="60000" thickness="6000" fill="0"/>
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>DIP-2</name>
+<units raster="0.635">MM</units>
+<reference layer="FSilkS"  >D2,252996,210570,BOTTOM,2000,10000</reference>
+<value layer="FSilkS">1N5819,265348,212490,BOTTOM,2000,10000</value>
+<shapes>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="253364" y="146460" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>2,254580,147420,BOTTOM,PLAIN,4000</number>
+<netvalue>N0002,258996,149276,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="253364" y="146460" width="8000" height="8000" />
+</pad>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="253364" y="235360" width="14700" height="14700" arc="14700">
+<offset x="0" y="0" />
+<number>1,254644,236576,BOTTOM,PLAIN,4000</number>
+<netvalue>N0001,258996,238240,BOTTOM,PLAIN,2000</netvalue>
+<drill type="CIRCULAR" x="253364" y="235360" width="8000" height="8000" />
+</pad>
+<rectangle copper="FSilkS" x="243148" y="163698" width="21199" height="53968" thickness="3000" fill="0" arc="8000"/>
+<rectangle copper="FSilkS" x="245468" y="167234" width="16560" height="7216" thickness="2000" fill="1" arc="0"/>
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>DIP-2</name>
+<units raster="0.635">MM</units>
+<reference layer="FSilkS"  >C5,162304,161185,LEFT,2000,10000</reference>
+<value layer="FSilkS">10uF/25V,161024,173217,LEFT,2000,10000</value>
+<shapes>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="202576" y="146936" width="15000" height="15000" arc="14700">
+<offset x="0" y="0" />
+<number>1,201552,148604,LEFT,PLAIN,4000</number>
+<drill type="CIRCULAR" x="202576" y="146936" width="8000" height="8000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="202576" y="185036" width="15000" height="15000" arc="14700">
+<offset x="0" y="0" />
+<number>2,201680,187088,LEFT,PLAIN,4000</number>
+<drill type="CIRCULAR" x="202576" y="185036" width="8000" height="8000" />
+</pad>
+<ellipse copper="FSilkS" x="177008" y="140742" width="50000" height="50000" thickness="6000" fill="0"/>
+<rectangle copper="FSilkS" x="200248" y="178414" width="4720" height="9328" thickness="2000" fill="1" arc="3000"/>
+<rectangle copper="FSilkS" x="199536" y="177718" width="6128" height="11120" thickness="500" fill="0" arc="1000"/>
+</shapes>
+</footprint>
+<footprint layer="FCu">
+<name>12VDC</name>
+<units raster="0.5">MM</units>
+<reference layer="FSilkS"  >12VDC,32256,126954,LEFT,2000,12000</reference>
+<value layer="FSilkS"></value>
+<children>
+<label layer="FCu" clearance="0" >12VDC,18432,28384,LEFT,2000,15000</label>
+</children>
+<shapes>
+<pad copper="BCu" type="THROUGH_HOLE" shape="CIRCULAR" x="84216" y="85426" width="40000" height="40000" arc="15200">
+<offset x="0" y="0" />
+<number>1,83576,86450,LEFT,PLAIN,4000</number>
+<drill type="CIRCULAR" x="84216" y="85426" width="26000" height="26000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="114216" y="130426" width="35000" height="35000" arc="15200">
+<offset x="0" y="0" />
+<number>3,113704,131578,LEFT,PLAIN,4000</number>
+<drill type="CIRCULAR" x="114216" y="130426" width="22000" height="22000" />
+</pad>
+<pad copper="Cu" type="THROUGH_HOLE" shape="CIRCULAR" x="144216" y="85426" width="40000" height="40000" arc="15200">
+<offset x="0" y="0" />
+<number>2,143576,86194,LEFT,PLAIN,4000</number>
+<drill type="CIRCULAR" x="144216" y="85426" width="26000" height="26000" />
+</pad>
+<line copper="FSilkS" thickness="2000">144216,40426,144216,130426,9216,130426,9216,40426,144216,40426,</line>
+<line copper="FSilkS" thickness="2000">29216,40426,29216,130426,</line>
+</shapes>
+</footprint>
+</symbols>
+</board>
+
+</boards>
