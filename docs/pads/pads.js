@@ -11047,5 +11047,3 @@ module.exports =ToggleButtonView
   
 });})();require('___globals___');
 
-
-//# sourceMappingURL=pads.js.map
