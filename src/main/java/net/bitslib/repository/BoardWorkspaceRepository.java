@@ -16,6 +16,7 @@ import net.bitslib.entity.User;
 public class BoardWorkspaceRepository {
 
 	public Key<BoardWorkspace> createWorkspace(BoardWorkspace workspace) {
+		System.out.println("SAVE="+workspace);
 	  return ObjectifyService.ofy().save().entity(workspace).now();	
 	}
 

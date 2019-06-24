@@ -2,22 +2,20 @@ package net.bitslib;
 
 import javax.servlet.ServletContextListener;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.SecurityAutoConfiguration;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.env.Environment;
 
 import com.googlecode.objectify.ObjectifyFilter;
 
 import net.bitslib.objectify.ObjectifyServletContextListener;
 import net.bitslib.objectify.ProductionObjectifyServletContextListener;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
 public class BitsLibApplication {
 //	 @Autowired
 //	    Environment environment;

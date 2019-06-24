@@ -7534,6 +7534,11 @@ createShape(data){
 		circle.fromXML(data);
 		return circle;
 	}
+	if (data.tagName.toLowerCase() == 'ellipse') {
+		var circle = new Circle(0, 0, 0, 0, 0);
+		circle.fromXML(data);
+		return circle;
+	}
 	if (data.tagName.toLowerCase() == 'line') {
 		var line = new Line( 0, 0, 0, 0, 0);
 		line.fromXML(data);
@@ -7554,6 +7559,7 @@ createShape(data){
 		region.fromXML(data);		
 		return region;
 	}	
+
 }
 }	
 
@@ -7869,7 +7875,7 @@ isControlRectClicked(x,y) {
 toXML() {
         return "<circle copper=\""+this.copper.getName()+"\" x=\""+(this.circle.pc.x)+"\" y=\""+(this.circle.pc.y)+"\" radius=\""+(this.circle.r)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
 	}
-fromXML(data) {	        
+fromXML(data) {	  
         this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
         
  		let xx=parseInt(j$(data).attr("x"));

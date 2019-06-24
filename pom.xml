@@ -173,13 +173,14 @@
                 </execution>
             </executions>
 	</plugin>    
-    <!-- 
+     
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>${spring.boot.version}</version>
       </plugin>
-      --> 
+     
+    <!--   
  	<plugin>
     	 <groupId>com.google.appengine</groupId>
      	<artifactId>appengine-maven-plugin</artifactId>
@@ -189,8 +190,9 @@
          	<port>8882</port>
          	<address>0.0.0.0</address>
     	</configuration>
- 	</plugin>      
-      <!-- [START cloudplugin] 
+ 	</plugin>
+       -->
+      <!-- [START cloudplugin] -->
       <plugin>
         <groupId>com.google.cloud.tools</groupId>
         <artifactId>appengine-maven-plugin</artifactId>
@@ -200,7 +202,7 @@
           <devserver.port>8882</devserver.port>
       </configuration>
       </plugin>
-      -->
+     
       <!-- [END cloudplugin] -->
 
       <plugin>

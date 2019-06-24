@@ -61,6 +61,9 @@ public class BoardWorkspaceResource {
 		FileObject xml=boardRepository.getFileObjectById(board.getXml());
 		
 		String content=xml.toString();
+		
+		content = FootprintLibraryResource.addNode(content, "workspaceName", workspaceName);
+		content = FootprintLibraryResource.addNode(content, "projectName", projectName);
 		return ResponseEntity.ok(content);
 	}	
 	@RequestMapping(value = "/workspaces/{workspaceName}", method = RequestMethod.POST,produces={MediaType.APPLICATION_XML_VALUE})

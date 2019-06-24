@@ -242,8 +242,43 @@ var Board=require('board/d/boardcomponent').Board;
 		            height: 270,
 		            autoOpen:false
              });	
-			 
-	});
+			   //load demo board
+		      //loadDemo(bc);
+});	
+loadDemo=function(bc){
+	
+ j$.ajax({
+     type: 'GET',
+     contentType: 'application/xml',
+     url: 'demo/board.xml',
+     dataType: "xml",
+     beforeSend:function(){
+	          j$('#mywebboardid').block({message:'<h5>Loading...</h5>'});	
+	    },
+     success: function(data, textStatus, jqXHR){
+
+   //****load it    	
+   		  bc.Clear();
+   		  bc.getModel().parse(data);
+   		  bc.getModel().setActiveUnit(0);
+   		  bc.componentResized();
+             //position on center
+           var rect=bc.getModel().getUnit().getBoundingRect();
+           bc.setScrollPosition(rect.center.x,rect.center.y);
+           bc.getModel().fireUnitEvent({target:bc.getModel().getUnit(),type: events.Event.SELECT_UNIT});
+   		   bc.Repaint();
+   		  //set button group
+   		   bc.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);	        
+     },
+     
+     error: function(jqXHR, textStatus, errorThrown){
+         	alert(errorThrown+":"+jqXHR.responseText);
+     },
+     complete:function(jqXHR, textStatus){
+     	j$('#mywebboardid').unblock();
+     }	        
+ });	
+}
 })(jQuery);
 });
 
@@ -430,10 +465,10 @@ constructor() {
   	  this.formatedFileName="Boards";
   	}
 parse(xml){
-	  this.filename=(j$(xml).find("filename").text());
-	  this.libraryname=(j$(xml).find("library").text());
-	  this.categoryname=(j$(xml).find("category").text()); 	
-
+	  this.workspacename=(j$(xml).find("workspaceName").text());
+	  console.log(j$(xml).find("projectName").text());
+	   	
+	  this.setFileName(j$(xml).find("projectName").text());
 	  var that=this;
 	  
       j$(xml).find("board").each(j$.proxy(function(){
@@ -2200,7 +2235,9 @@ LibraryView=Backbone.View.extend({
 		this.loadboards(j$('#projectcombo').val());
 	},	
 	loadboards:function(workspace){
-		console.log(workspace);
+		if(workspace==null){
+			return;
+		}
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
@@ -2285,6 +2322,9 @@ var BoardSaveView=Backbone.View.extend({
 			this.workspaceview=new WorkspaceView(opt);
 			this.buttonview=new ButtonView(opt); 
 			
+	},
+	onclose:function(){
+		this.buttonview.clear();	
 	},
     render:function(){ 
     	this.buttonview.render();
@@ -11418,6 +11458,11 @@ createShape(data){
 		circle.fromXML(data);
 		return circle;
 	}
+	if (data.tagName.toLowerCase() == 'ellipse') {
+		var circle = new Circle(0, 0, 0, 0, 0);
+		circle.fromXML(data);
+		return circle;
+	}
 	if (data.tagName.toLowerCase() == 'line') {
 		var line = new Line( 0, 0, 0, 0, 0);
 		line.fromXML(data);
@@ -11438,6 +11483,7 @@ createShape(data){
 		region.fromXML(data);		
 		return region;
 	}	
+
 }
 }	
 
@@ -11753,7 +11799,7 @@ isControlRectClicked(x,y) {
 toXML() {
         return "<circle copper=\""+this.copper.getName()+"\" x=\""+(this.circle.pc.x)+"\" y=\""+(this.circle.pc.y)+"\" radius=\""+(this.circle.r)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
 	}
-fromXML(data) {	        
+fromXML(data) {	  
         this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
         
  		let xx=parseInt(j$(data).attr("x"));
