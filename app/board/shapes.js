@@ -15,6 +15,7 @@ var AbstractLine=require('core/shapes').AbstractLine;
 var FootprintShapeFactory=require('pads/shapes').FootprintShapeFactory;
 var d2=require('d2/d2');
 
+
 class BoardShapeFactory{
 	
 	createShape(data){
@@ -66,6 +67,7 @@ class BoardShapeFactory{
 		return null;
 	}
 }
+var p0;
 class PCBFootprint extends Shape{
 constructor(layermaskId){
 		super(0,0,0,0,0,layermaskId);
@@ -116,12 +118,44 @@ getOrderWeight() {
    return (r.width);
 }
 isClicked(x,y){
-
-	return this.shapes.some(function(shape) {
-	   return shape.isClicked(x,y);	
+	var r=this.getBoundingShape();
+	if(!r.contains(x,y)){
+		return false;
+	}
+	let ps=new d2.Polygon();
+	var result= this.shapes.some(function(shape) {
+	   if(!(shape instanceof Line)){ 
+		return shape.isClicked(x,y);
+	   }else{
+		ps.points.push(...shape.vertices);  //line vertices   
+		return false;
+	   }
 	});		
+	if(result){
+		return true;//click on a anything but a Line
+	}
 	
+	this.sortPolygon(ps.points);  //line only
+	return ps.contains(x,y);
 }
+getPolygonCentroid(points){
+	let x=0,y=0;
+	points.forEach(p=>{
+		x+=p.x;
+		y+=p.y;
+	});
+	return new d2.Point(x/points.length,y/points.length);
+}
+sortPolygon(points){
+	let center=this.getPolygonCentroid(points);
+	
+	points.sort((a,b)=>{
+	 let a1=(utilities.degrees(Math.atan2(a.x-center.x,a.y-center.y))+360)%360;
+	 let a2=(utilities.degrees(Math.atan2(b.x-center.x,b.y-center.y))+360)%360;
+	 return (a1-a2);
+	});
+}
+
 setSelected (selection) {
 	super.setSelected(selection);
 	this.shapes.forEach(function(shape) {		  
@@ -678,6 +712,10 @@ alignToGrid(isRequired) {
 Move(xoffset, yoffset) {
    this.outer.move(xoffset,yoffset);
    this.inner.move(xoffset,yoffset);
+}
+Rotate(rotation) {
+	this.inner.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	this.outer.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
 }
 setWidth(width){
 

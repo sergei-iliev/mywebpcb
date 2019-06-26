@@ -25,6 +25,11 @@ createShape(data){
 		circle.fromXML(data);
 		return circle;
 	}
+	if (data.tagName.toLowerCase() == 'ellipse') {
+		var circle = new Circle(0, 0, 0, 0, 0);
+		circle.fromXML(data);
+		return circle;
+	}
 	if (data.tagName.toLowerCase() == 'line') {
 		var line = new Line( 0, 0, 0, 0, 0);
 		line.fromXML(data);
@@ -45,6 +50,7 @@ createShape(data){
 		region.fromXML(data);		
 		return region;
 	}	
+
 }
 }	
 
@@ -79,6 +85,9 @@ setRotation(rotate,center){
 }
 calculateShape(){ 
   return this.texture.getBoundingShape();
+}
+get vertices(){
+	  return [];	
 }
 isClicked(x,y){
     return this.texture.isClicked(x,y);
@@ -166,6 +175,9 @@ class RoundRect extends Shape{
 				this.resizingPoint = null;
 	        }
 	}	
+	get vertices(){
+	  return this.roundRect.vertices;	
+	}
 	isClicked(x, y) {
 		if (this.roundRect.contains(new d2.Point(x, y)))
 			return true;
@@ -338,6 +350,9 @@ alignToGrid(isRequired) {
 alignResizingPointToGrid(point) {          
         this.width=this.owningUnit.getGrid().lengthOnGrid(this.width);                
 }
+get vertices(){
+	  return this.circle.vertices;	
+	}
 isClicked(x, y) {
 	if (this.circle.contains(new d2.Point(x, y)))
 		return true;
@@ -360,7 +375,7 @@ isControlRectClicked(x,y) {
 toXML() {
         return "<circle copper=\""+this.copper.getName()+"\" x=\""+(this.circle.pc.x)+"\" y=\""+(this.circle.pc.y)+"\" radius=\""+(this.circle.r)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
 	}
-fromXML(data) {	        
+fromXML(data) {	  
         this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
         
  		let xx=parseInt(j$(data).attr("x"));
@@ -551,7 +566,9 @@ setExtendAngle(extendAngle){
 setStartAngle(startAngle){        
     this.arc.startAngle=utilities.round(startAngle);
 }
-
+get vertices(){
+	  return this.arc.vertices;	
+	}
 isControlRectClicked(x,y) {
 	 if(this.isStartAnglePointClicked(x,y)){
 		    return this.arc.start;
@@ -1037,6 +1054,9 @@ class Drill{
 	 }
 	 setWidth(width){
 		 this.circle.r=width/2;
+	 }
+	 Rotate(rotation) {
+		 this.circle.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
 	 }
 	 rotate(alpha,origin){
 	    if(origin==null){

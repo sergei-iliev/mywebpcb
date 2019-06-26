@@ -117,11 +117,11 @@ Mirror(line) {
     
 
 Rotate(rotation) {
-		let point = new Point(this.getX(), this.getY());
-		point = utilities.rotate(point, rotation.originx,rotation.originy, rotation.angle);
-	
-        this.x=(point.x);
-        this.y=(point.y);
+//		let point = new Point(this.getX(), this.getY());
+//		point = utilities.rotate(point, rotation.originx,rotation.originy, rotation.angle);
+//	
+//        this.x=(point.x);
+//        this.y=(point.y);
 }	
 fromXML(data) {
 
@@ -230,6 +230,9 @@ class AbstractLine extends Shape{
 		this.rotate=0;
 		
 }
+get vertices(){
+	  return this.polyline.points;	
+	}	
 getLinePoints(){
 		return this.polyline.points;
 	}

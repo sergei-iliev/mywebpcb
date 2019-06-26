@@ -29,7 +29,7 @@ module.exports = function(d2) {
                this.pc.x + this.r,
                this.pc.y + this.r
            );
-       }
+       }       
 	   get vertices() {
 		    return this.box.vertices;	
 	   }

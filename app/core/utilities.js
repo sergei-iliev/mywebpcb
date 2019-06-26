@@ -88,13 +88,13 @@ var degrees = function(radians) {
 	  return radians * 180 / Math.PI;
 };
 
-var rotate=function(point, originX, originY, angle){
-	angle = angle * Math.PI / 180.0;
-		return {
-				x: Math.cos(angle) * (point.x-originX) - Math.sin(angle) * (point.y-originY) + originX,
-				y: Math.sin(angle) * (point.x-originX) + Math.cos(angle) * (point.y-originY) + originY
-	    };
-};
+//var rotate=function(point, originX, originY, angle){
+//	angle = angle * Math.PI / 180.0;
+//		return {
+//				x: Math.cos(angle) * (point.x-originX) - Math.sin(angle) * (point.y-originY) + originX,
+//				y: Math.sin(angle) * (point.x-originX) + Math.cos(angle) * (point.y-originY) + originY
+//	    };
+//};
 
 /*****
 *
@@ -145,32 +145,16 @@ var Max=function(p1,p2){
     return new d2.Point(Math.max(p1.x,p2.x),Math.max(p1.y,p2.y));	
 }
 //*******DELETE*************
-var roundrect=function (g2,x, y, w, h, r) {
-	if (w < 2 * r) r = w / 2;
-	if (h < 2 * r) r = h / 2;
-		g2.moveTo(x+r, y);
-		g2.arcTo(x+w, y,   x+w, y+h, r);
-		g2.arcTo(x+w, y+h, x,   y+h, r);
-		g2.arcTo(x,   y+h, x,   y,   r);
-		g2.arcTo(x,   y,   x+w, y,   r);
-};
-
-//var ellipse=function(g2,xC, yC, width, height, rotation) {
-//	var x, y, rW, rH, inc;
-//	inc = 0.01 //value by which we increment the angle in each step
-//	rW = width / 2; //horizontal radius
-//	rH = height / 2; //vertical radius
-//	x = xC + rW * Math.cos(rotation); // ...we will treat this as angle = 0
-//	y = yC + rW * Math.sin(rotation);
-//
-//	g2.moveTo(x, y); //set the starting position
-//		for (var angle = inc; angle<2*Math.PI; angle+=inc) { //increment the angle from just past zero to full circle (2 Pi radians)
-//			x = xC + rW * Math.cos(angle) * Math.cos(rotation) - rH * Math.sin(angle) * Math.sin(rotation);
-//			y = yC + rW * Math.cos(angle) * Math.sin(rotation) + rH * Math.sin(angle) * Math.cos(rotation);
-//			g2.lineTo(x, y); //draw a straight line segment. if the increment is small enough, this will be
-//								//indistinguishable from a curve in an on-screen pixel array
-//		}
+//var roundrect=function (g2,x, y, w, h, r) {
+//	if (w < 2 * r) r = w / 2;
+//	if (h < 2 * r) r = h / 2;
+//		g2.moveTo(x+r, y);
+//		g2.arcTo(x+w, y,   x+w, y+h, r);
+//		g2.arcTo(x+w, y+h, x,   y+h, r);
+//		g2.arcTo(x,   y+h, x,   y,   r);
+//		g2.arcTo(x,   y,   x+w, y,   r);
 //};
+
 
 version=(function(){
 	return {
@@ -189,11 +173,8 @@ module.exports = {
   roundFloat,
   getQuadrantLocation,  
   drawCrosshair,
-  //ellipse,
-  roundrect,
   intersectLineRectangle,
   intersectLineLine,
-  rotate,
   degrees,
   radians,
   QUADRANT,

@@ -18,11 +18,17 @@ app.get('/rest/boards/workspaces/CardReader', (req, res, next) => {
 	  res.send(
 	'<?xml version="1.0" encoding="UTF-8"?><boards>'+
 	'<name fullname="CR_v1" project="CR_v1">CR_v1</name>'+
+	'<name fullname="CR_v2" project="CR_v2">CR_v2</name>'+
 	'</boards>'
 	);
 	});
 app.get('/rest/boards/workspaces/CardReader/CR_v1', (req, res, next) => {
     fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\workspace\\boards\\CardReader\\CardReader.xml','utf8', function(err, data) {
+		res.send(data);
+  });
+});
+app.get('/rest/boards/workspaces/CardReader/CR_v2', (req, res, next) => {
+    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\workspace\\boards\\CardReader\\wifidemo.xml','utf8', function(err, data) {
 		res.send(data);
   });
 });

@@ -48,6 +48,9 @@ module.exports = function(d2) {
         get box(){
           return new d2.Box([this.start,this.end,this.middle]);      	
         }
+        get vertices() {
+            return this.box.vertices;
+        }
         contains(pt){
         	//is outside of the circle
         	if (d2.utils.GE(this.pc.distanceTo(pt), this.r)){
