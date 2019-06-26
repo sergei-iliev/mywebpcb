@@ -243,7 +243,7 @@ var Board=require('board/d/boardcomponent').Board;
 		            autoOpen:false
              });	
 			   //load demo board
-		      //loadDemo(bc);
+		      loadDemo(bc);
 });	
 loadDemo=function(bc){
 	
