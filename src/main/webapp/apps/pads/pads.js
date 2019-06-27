@@ -1979,11 +1979,11 @@ Mirror(line) {
     
 
 Rotate(rotation) {
-		let point = new Point(this.getX(), this.getY());
-		point = utilities.rotate(point, rotation.originx,rotation.originy, rotation.angle);
-	
-        this.x=(point.x);
-        this.y=(point.y);
+//		let point = new Point(this.getX(), this.getY());
+//		point = utilities.rotate(point, rotation.originx,rotation.originy, rotation.angle);
+//	
+//        this.x=(point.x);
+//        this.y=(point.y);
 }	
 fromXML(data) {
 
@@ -2092,6 +2092,9 @@ class AbstractLine extends Shape{
 		this.rotate=0;
 		
 }
+get vertices(){
+	  return this.polyline.points;	
+	}	
 getLinePoints(){
 		return this.polyline.points;
 	}
@@ -3924,13 +3927,13 @@ var degrees = function(radians) {
 	  return radians * 180 / Math.PI;
 };
 
-var rotate=function(point, originX, originY, angle){
-	angle = angle * Math.PI / 180.0;
-		return {
-				x: Math.cos(angle) * (point.x-originX) - Math.sin(angle) * (point.y-originY) + originX,
-				y: Math.sin(angle) * (point.x-originX) + Math.cos(angle) * (point.y-originY) + originY
-	    };
-};
+//var rotate=function(point, originX, originY, angle){
+//	angle = angle * Math.PI / 180.0;
+//		return {
+//				x: Math.cos(angle) * (point.x-originX) - Math.sin(angle) * (point.y-originY) + originX,
+//				y: Math.sin(angle) * (point.x-originX) + Math.cos(angle) * (point.y-originY) + originY
+//	    };
+//};
 
 /*****
 *
@@ -3981,32 +3984,16 @@ var Max=function(p1,p2){
     return new d2.Point(Math.max(p1.x,p2.x),Math.max(p1.y,p2.y));	
 }
 //*******DELETE*************
-var roundrect=function (g2,x, y, w, h, r) {
-	if (w < 2 * r) r = w / 2;
-	if (h < 2 * r) r = h / 2;
-		g2.moveTo(x+r, y);
-		g2.arcTo(x+w, y,   x+w, y+h, r);
-		g2.arcTo(x+w, y+h, x,   y+h, r);
-		g2.arcTo(x,   y+h, x,   y,   r);
-		g2.arcTo(x,   y,   x+w, y,   r);
-};
-
-//var ellipse=function(g2,xC, yC, width, height, rotation) {
-//	var x, y, rW, rH, inc;
-//	inc = 0.01 //value by which we increment the angle in each step
-//	rW = width / 2; //horizontal radius
-//	rH = height / 2; //vertical radius
-//	x = xC + rW * Math.cos(rotation); // ...we will treat this as angle = 0
-//	y = yC + rW * Math.sin(rotation);
-//
-//	g2.moveTo(x, y); //set the starting position
-//		for (var angle = inc; angle<2*Math.PI; angle+=inc) { //increment the angle from just past zero to full circle (2 Pi radians)
-//			x = xC + rW * Math.cos(angle) * Math.cos(rotation) - rH * Math.sin(angle) * Math.sin(rotation);
-//			y = yC + rW * Math.cos(angle) * Math.sin(rotation) + rH * Math.sin(angle) * Math.cos(rotation);
-//			g2.lineTo(x, y); //draw a straight line segment. if the increment is small enough, this will be
-//								//indistinguishable from a curve in an on-screen pixel array
-//		}
+//var roundrect=function (g2,x, y, w, h, r) {
+//	if (w < 2 * r) r = w / 2;
+//	if (h < 2 * r) r = h / 2;
+//		g2.moveTo(x+r, y);
+//		g2.arcTo(x+w, y,   x+w, y+h, r);
+//		g2.arcTo(x+w, y+h, x,   y+h, r);
+//		g2.arcTo(x,   y+h, x,   y,   r);
+//		g2.arcTo(x,   y,   x+w, y,   r);
 //};
+
 
 version=(function(){
 	return {
@@ -4025,11 +4012,8 @@ module.exports = {
   roundFloat,
   getQuadrantLocation,  
   drawCrosshair,
-  //ellipse,
-  roundrect,
   intersectLineRectangle,
   intersectLineLine,
-  rotate,
   degrees,
   radians,
   QUADRANT,
@@ -4194,6 +4178,9 @@ module.exports = function(d2) {
         }
         get box(){
           return new d2.Box([this.start,this.end,this.middle]);      	
+        }
+        get vertices() {
+            return this.box.vertices;
         }
         contains(pt){
         	//is outside of the circle
@@ -4429,7 +4416,7 @@ module.exports = function(d2) {
                this.pc.x + this.r,
                this.pc.y + this.r
            );
-       }
+       }       
 	   get vertices() {
 		    return this.box.vertices;	
 	   }
@@ -4809,7 +4796,9 @@ module.exports = function(d2) {
             this.p1.rotate(angle,center);
             this.p2.rotate(angle,center);            
         }
-        
+        get vertices() {
+            return [this.p1.clone(),this.p2.clone()];
+        }
 		paint(g2){			
 			g2.moveTo(this.p1.x, this.p1.y);
 			g2.lineTo(this.p2.x, this.p2.y);
@@ -5391,11 +5380,11 @@ module.exports = function(d2) {
        get box(){
          return new d2.Box(this.points);	
        }
-		get vertices() {
+	   get vertices() {
 		    return this.points;	
-		} 	   
-	   paint(g2){		
-		  g2.beginPath();
+	   } 	   
+	   paint(g2){
+		  g2.beginPath(); 
 		  g2.moveTo(this.points[0].x, this.points[0].y);
 		  
  		  this.points.forEach((point)=>{
@@ -7595,6 +7584,9 @@ setRotation(rotate,center){
 calculateShape(){ 
   return this.texture.getBoundingShape();
 }
+get vertices(){
+	  return [];	
+}
 isClicked(x,y){
     return this.texture.isClicked(x,y);
 }
@@ -7681,6 +7673,9 @@ class RoundRect extends Shape{
 				this.resizingPoint = null;
 	        }
 	}	
+	get vertices(){
+	  return this.roundRect.vertices;	
+	}
 	isClicked(x, y) {
 		if (this.roundRect.contains(new d2.Point(x, y)))
 			return true;
@@ -7853,6 +7848,9 @@ alignToGrid(isRequired) {
 alignResizingPointToGrid(point) {          
         this.width=this.owningUnit.getGrid().lengthOnGrid(this.width);                
 }
+get vertices(){
+	  return this.circle.vertices;	
+	}
 isClicked(x, y) {
 	if (this.circle.contains(new d2.Point(x, y)))
 		return true;
@@ -8066,7 +8064,9 @@ setExtendAngle(extendAngle){
 setStartAngle(startAngle){        
     this.arc.startAngle=utilities.round(startAngle);
 }
-
+get vertices(){
+	  return this.arc.vertices;	
+	}
 isControlRectClicked(x,y) {
 	 if(this.isStartAnglePointClicked(x,y)){
 		    return this.arc.start;
@@ -8552,6 +8552,9 @@ class Drill{
 	 }
 	 setWidth(width){
 		 this.circle.r=width/2;
+	 }
+	 Rotate(rotation) {
+		 this.circle.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
 	 }
 	 rotate(alpha,origin){
 	    if(origin==null){
