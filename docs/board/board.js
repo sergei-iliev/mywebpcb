@@ -1620,7 +1620,7 @@ drawClearence(g2,viewportWindow,scale,source){
    for (var i = 1; i < clip.length; i++) {
 	   g2.lineTo(clip[i].x, clip[i].y);
    } 
-   g2.fill();
+   //g2.fill();
    g2.clip();
    
    let a=this.polyline.clone();
@@ -1900,8 +1900,8 @@ fromXML(data) {
     this.outer.pc.set(x,y);
 
 
-	this.outer.r=(parseInt(j$(data).attr("width")));
-	this.inner.r = (parseInt(j$(data).attr("drill")));
+	this.outer.r=(parseInt(j$(data).attr("width")))/2;
+	this.inner.r = (parseInt(j$(data).attr("drill")))/2;
 	this.clearance=(parseInt(j$(data).attr("clearance")));
 }
 toXML() {
@@ -2973,7 +2973,7 @@ var BoardPanelBuilder=BaseBuilder.extend({
 			 this.component.getModel().fireUnitEvent({target:this.target,type:events.Event.RENAME_UNIT});
 		 }
 		 if(event.target.id=='originxid'||event.target.id=='originyid'){           
-			    this.component.getModel().getUnit().getCoordinateSystem().Reset(core.MM_TO_COORD(parseFloat(j$('#originxid').val())),core.MM_TO_COORD(parseFloat(j$('#originyid').val())));  
+			    this.component.getModel().getUnit().getCoordinateSystem().reset(core.MM_TO_COORD(parseFloat(j$('#originxid').val())),core.MM_TO_COORD(parseFloat(j$('#originyid').val())));  
 			    this.component.componentResized();     
 			    this.component.Repaint();
 		 }
@@ -3380,8 +3380,8 @@ var BoardsTree=Backbone.View.extend({
 			this.boardComponent.Repaint();
 			            
 	        //position on shape center
-            var rect=shape.getBoundingRect();            
-            this.boardComponent.setScrollPosition(rect.getCenterX(),rect.getCenterY());
+            var rect=shape.getBoundingShape();            
+            this.boardComponent.setScrollPosition(rect.center.x,rect.center.y);
              		  
 			mywebpcb.trigger('tree:select',{target:shape,type:events.Event.SELECT_SHAPE}); 	
 		}
