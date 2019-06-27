@@ -507,7 +507,7 @@ drawClearence(g2,viewportWindow,scale,source){
    for (var i = 1; i < clip.length; i++) {
 	   g2.lineTo(clip[i].x, clip[i].y);
    } 
-   g2.fill();
+   //g2.fill();
    g2.clip();
    
    let a=this.polyline.clone();
