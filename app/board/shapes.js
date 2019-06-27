@@ -787,8 +787,8 @@ fromXML(data) {
     this.outer.pc.set(x,y);
 
 
-	this.outer.r=(parseInt(j$(data).attr("width")));
-	this.inner.r = (parseInt(j$(data).attr("drill")));
+	this.outer.r=(parseInt(j$(data).attr("width")))/2;
+	this.inner.r = (parseInt(j$(data).attr("drill")))/2;
 	this.clearance=(parseInt(j$(data).attr("clearance")));
 }
 toXML() {

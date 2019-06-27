@@ -499,7 +499,7 @@ var BoardPanelBuilder=BaseBuilder.extend({
 			 this.component.getModel().fireUnitEvent({target:this.target,type:events.Event.RENAME_UNIT});
 		 }
 		 if(event.target.id=='originxid'||event.target.id=='originyid'){           
-			    this.component.getModel().getUnit().getCoordinateSystem().Reset(core.MM_TO_COORD(parseFloat(j$('#originxid').val())),core.MM_TO_COORD(parseFloat(j$('#originyid').val())));  
+			    this.component.getModel().getUnit().getCoordinateSystem().reset(core.MM_TO_COORD(parseFloat(j$('#originxid').val())),core.MM_TO_COORD(parseFloat(j$('#originyid').val())));  
 			    this.component.componentResized();     
 			    this.component.Repaint();
 		 }
@@ -906,8 +906,8 @@ var BoardsTree=Backbone.View.extend({
 			this.boardComponent.Repaint();
 			            
 	        //position on shape center
-            var rect=shape.getBoundingRect();            
-            this.boardComponent.setScrollPosition(rect.getCenterX(),rect.getCenterY());
+            var rect=shape.getBoundingShape();            
+            this.boardComponent.setScrollPosition(rect.center.x,rect.center.y);
              		  
 			mywebpcb.trigger('tree:select',{target:shape,type:events.Event.SELECT_SHAPE}); 	
 		}
