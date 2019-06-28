@@ -15,7 +15,7 @@ var LayerView=Backbone.View.extend({
     onChange:function(){
     	this.model.toggle();
     	this.boardComponent.getModel().getUnit().compositeLayer.setLayerVisible(this.model.get('value'),this.model.get('checked'));
-    	this.boardComponent.Repaint();
+    	this.boardComponent.repaint();
     },
     render:function(){
         this.$el.html('<input type="checkbox" style="width:3vw;height:3vh;" class="layer-check" value="' + this.model.get('value') + '" /> ' + this.model.get('name'));

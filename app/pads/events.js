@@ -25,12 +25,12 @@ mousePressed(event){
     
     this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
     
-	this.component.Repaint();
+	this.component.repaint();
  }
  mouseReleased(event){
 	    if(this.component.getParameter("snaptogrid")){
          this.target.alignResizingPointToGrid(this.targetPoint);
-	     this.component.Repaint();	 
+	     this.component.repaint();	 
 		}
 	    this.target.resizingPoint=null;
  }
@@ -43,7 +43,7 @@ mousePressed(event){
     this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
     this.mx = new_mx;
     this.my = new_my;
-	this.component.Repaint();
+	this.component.repaint();
  }
  mouseMove(event){
  
@@ -78,7 +78,7 @@ class ArcStartAngleEventHandle extends EventHandle{
 
 	this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:events.Event.PROPERTY_CHANGE});
 		
-	this.component.Repaint();
+	this.component.repaint();
  }
 mouseReleased(event){
 
@@ -130,7 +130,7 @@ class ArcExtendAngleEventHandler extends EventHandle{
     //***update PropertiesPanel           
 	this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:events.Event.PROPERTY_CHANGE});
 		
-	this.component.Repaint();
+	this.component.repaint();
  }
 mouseReleased(event){
 
@@ -218,7 +218,7 @@ mousePressed(event){
 	  //   this.target=null;
 	  //}		
 	  //this.component.setMode(core.ModeEnum.LINE_MODE);
-	  //this.component.Repaint();	
+	  //this.component.repaint();	
 	   this.component.popup.registerLinePopup(this.target,event);
 	  	
 		
@@ -238,7 +238,7 @@ mousePressed(event){
     }else{
        this.lineBendingProcessor.addLinePoint(new d2.Point(event.x,event.y));
     }
-	this.component.Repaint();	 
+	this.component.repaint();	 
    }
  mouseReleased(event){
 
@@ -249,13 +249,13 @@ mousePressed(event){
 	 this.target.floatingEndPoint.set(event.x,event.y); 
 	 this.target.floatingMidPoint.set(event.x,event.y);
 	 this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:events.Event.PROPERTY_CHANGE});
-	 this.component.Repaint(); 
+	 this.component.repaint(); 
    }
  dblClick(){
      this.target.reset();  
      this.target.setSelected(false);
      this.component.getEventMgr().resetEventHandle();
-     this.component.Repaint();	 
+     this.component.repaint();	 
 	 } 
 // keyPressed(event){
 //	 if(event.keyCode==27){   //ESCAPE
@@ -303,7 +303,7 @@ mousePressed(event){
       }
       
       
-	  this.component.Repaint();	   
+	  this.component.repaint();	   
 	    
 	 }
 mouseReleased(event){
@@ -315,13 +315,13 @@ mouseDragged(event){
 	 }
 mouseMove(event){
     this.target.floatingEndPoint.set(event.x,event.y);   
-    this.component.Repaint();	 
+    this.component.repaint();	 
 	 }	 
 dblClick(){
       
     this.target.setSelected(false);
     this.component.getEventMgr().resetEventHandle();
-    this.component.Repaint();	 
+    this.component.repaint();	 
 } 
 Detach() {
     this.target.reset(); 

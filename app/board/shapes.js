@@ -67,7 +67,7 @@ class BoardShapeFactory{
 		return null;
 	}
 }
-var p0;
+
 class PCBFootprint extends Shape{
 constructor(layermaskId){
 		super(0,0,0,0,0,layermaskId);
@@ -243,7 +243,7 @@ drawClearence(g2,viewportWindow,scale,source){
 	}
 	
 }
-paint(g2, viewportWindow, scale,layermask) {        
+paint(g2, viewportWindow, scale,layersmask) {        
      
 	var rect = this.getBoundingShape();		
 	rect.scale(scale.getScale());
@@ -253,28 +253,15 @@ paint(g2, viewportWindow, scale,layermask) {
 		
 	var len=this.shapes.length;
 	for(i=0;i<len;i++){
-		  this.shapes[i].paint(g2,viewportWindow,scale);  
+		  this.shapes[i].paint(g2,viewportWindow,scale,layersmask);  
 	}
     this.text.text.forEach(function(texture){
-           //if((texture.getLayermaskId()&layermask)!=0){            
-       texture.fillColor=(this.selection?'gray':'cyan');
-       texture.paint(g2,viewportWindow,scale,layermask);
-           //}
+       if((texture.layermaskId&layersmask)!=0){            
+        texture.fillColor=(this.selection?'gray':'cyan');
+        texture.paint(g2,viewportWindow,scale,layersmask);
+       }
     },this);      
-    
-    if(this.selection){
 
-//		g2.globalCompositeOperation = 'lighter';
-//		g2.beginPath();
-//		utilities.roundrect(g2, rect.x - viewportWindow.x, rect.y
-//				- viewportWindow.y, rect.width, rect.height, 3000
-//				* scale.getScale());
-//		
-//		g2.closePath();
-//		g2.fillStyle = "gray";
-//		g2.fill();
-//		g2.globalCompositeOperation = 'source-over';
-    }
  }    
 fromXML(data){
 	 this.copper=core.Layer.Copper.valueOf(j$(data).attr("layer"));
@@ -507,7 +494,6 @@ drawClearence(g2,viewportWindow,scale,source){
    for (var i = 1; i < clip.length; i++) {
 	   g2.lineTo(clip[i].x, clip[i].y);
    } 
-   //g2.fill();
    g2.clip();
    
    let a=this.polyline.clone();
@@ -520,7 +506,7 @@ drawClearence(g2,viewportWindow,scale,source){
 paint(g2, viewportWindow, scale,layersmask) {
     if((this.copper.getLayerMaskID()&layersmask)==0){
         return;
-      }
+    }
 	
 	var rect = this.polyline.box;
 	rect.scale(scale.getScale());		
@@ -648,7 +634,7 @@ drawClearence(g2, viewportWindow,scale, source) {
 	
     g2._fill=false;	
 }
-paint(g2, viewportWindow, scale) {	
+paint(g2, viewportWindow, scale,layersmask) {	
 	var rect = this.calculateShape();
 	rect.scale(scale.getScale());
 	if (!rect.intersects(viewportWindow)) {
@@ -745,7 +731,7 @@ drawClearence(g2, viewportWindow,scale, source) {
 	
     g2._fill=false;
 }
-paint(g2, viewportWindow, scale) {
+paint(g2, viewportWindow, scale,layersmask) {
 	
 	var rect = this.calculateShape();
 	rect.scale(scale.getScale());

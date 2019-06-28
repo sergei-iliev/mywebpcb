@@ -4,6 +4,7 @@ var UnitComponent = require('core/unit').UnitComponent;
 var UnitMgr = require('core/unit').UnitMgr;
 var mywebpcb=require('core/core').mywebpcb;
 var core = require('core/core');
+var utilities = require('core/utilities');
 var events=require('core/events');
 var BoardShapeFactory=require('board/shapes').BoardShapeFactory;
 var BoardEventMgr = require('board/events').BoardEventMgr;
@@ -195,7 +196,7 @@ parse(xml){
 }
 format() {
     var xml="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n"; 
-    xml+="<boards identity=\"Board\" version=\"1.0\">\r\n";      
+    xml+="<boards identity=\"Board\" version=\""+utilities.version.BOARD_VERSION+"\">\r\n";      
 	let units=this.unitsmap.values();
 	for(let i=0;i<this.unitsmap.size;i++){
       let unit=units.next().value;
@@ -265,7 +266,7 @@ setMode(_mode){
           this.eventMgr.setEventHandle("origin",null);   
           break;          
       default:
-        this.Repaint();
+        this.repaint();
     }       
 }
 
@@ -392,7 +393,7 @@ mouseDown(event){
                 (this.getEventMgr().getTargetEventHandle() instanceof events.MeasureEventHandle)) {
                  this.getModel().getUnit().ruler.resizingPoint=null;
                  this.getEventMgr().resetEventHandle();
-                 this.Repaint();
+                 this.repaint();
             }else{
                this.getEventMgr().setEventHandle("measure",this.getModel().getUnit().ruler);   
 			   this.getModel().getUnit().ruler.setX(scaledEvent.x);

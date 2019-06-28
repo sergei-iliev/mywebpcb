@@ -74,7 +74,7 @@ var CirclePanelBuilder=BaseBuilder.extend({
         if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
         }
-        this.component.Repaint(); 
+        this.component.repaint(); 
       },    
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -94,7 +94,7 @@ var CirclePanelBuilder=BaseBuilder.extend({
 	         var y=this.fromUnitY(j$('#yid').val()); 
 	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
 		 } 		 
-		 this.component.Repaint(); 		 
+		 this.component.repaint(); 		 
     },
 
 	updateui:function(){
@@ -154,7 +154,7 @@ var RectPanelBuilder=BaseBuilder.extend({
     	if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
         }
-        this.component.Repaint(); 
+        this.component.repaint(); 
       },    
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -174,7 +174,7 @@ var RectPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='roundingid'){
 			 this.target.setRounding(core.MM_TO_COORD(parseFloat(j$('#roundingid').val())));			 
 		 }
-		 this.component.Repaint(); 		 
+		 this.component.repaint(); 		 
     },
 	updateui:function(){
 		j$('#controllayerid').val(this.target.copper.getName());
@@ -221,7 +221,7 @@ var SolidRegionPanelBuilder=BaseBuilder.extend({
         if(event.target.id=='controllayerid'){
         	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
         }              
-        this.component.Repaint(); 
+        this.component.repaint(); 
     }, 
 	updateui:function(){
 		
@@ -262,7 +262,7 @@ var ArcPanelBuilder=BaseBuilder.extend({
         if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
         }
-        this.component.Repaint(); 
+        this.component.repaint(); 
     }, 
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -280,7 +280,7 @@ var ArcPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='extendangleid'){
 			   this.target.setExtendAngle(j$('#extendangleid').val());	
 		 } 	
-		 this.component.Repaint(); 	
+		 this.component.repaint(); 	
     },
 	updateui:function(){
 		j$('#controllayerid').val(this.target.copper.getName());
@@ -341,7 +341,7 @@ var CopperAreaPanelBuilder=BaseBuilder.extend({
         if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
         }
-        this.component.Repaint(); 
+        this.component.repaint(); 
     }, 
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -361,7 +361,7 @@ var CopperAreaPanelBuilder=BaseBuilder.extend({
 	         var y=this.fromUnitY(j$('#yid').val()); 
 	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
 		 } 
-		 this.component.Repaint(); 	
+		 this.component.repaint(); 	
     },
 	updateui:function(){
 		j$('#controllayerid').val(this.target.copper.getName());
@@ -435,7 +435,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 		   var texture=this.target.getChipText().getTextureByTag('value');
 		   texture.setText(j$("#valueid").val());
 		 }
-		 this.component.Repaint();   
+		 this.component.repaint();   
 	},   
 	onchange:function(event){
 	      
@@ -492,7 +492,7 @@ var BoardPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='widthid'||event.target.id=='heightid'){           
 		    this.component.getModel().getUnit().setSize(core.MM_TO_COORD(parseFloat(j$('#widthid').val())),core.MM_TO_COORD(parseFloat(j$('#heightid').val())));  
 		    this.component.componentResized();     
-		    this.component.Repaint();
+		    this.component.repaint();
 		 }
 		 if(event.target.id=='nameid'){			 
 			 this.target.unitName=j$("#nameid").val(); 
@@ -501,18 +501,18 @@ var BoardPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='originxid'||event.target.id=='originyid'){           
 			    this.component.getModel().getUnit().getCoordinateSystem().reset(core.MM_TO_COORD(parseFloat(j$('#originxid').val())),core.MM_TO_COORD(parseFloat(j$('#originyid').val())));  
 			    this.component.componentResized();     
-			    this.component.Repaint();
+			    this.component.repaint();
 		 }
 		 //mycanvas.focus();
 	},
 	onchange:function(event){
 		if(event.target.id=='gridrasterid'){
 			this.target.grid.setGridValue(parseFloat(j$("#gridrasterid").val()));
-			this.component.Repaint();
+			this.component.repaint();
 		}	
 		if(event.target.id=='sideid'){
 			this.target.setActiveSide(j$("#sideid").val());
-			this.component.Repaint();
+			this.component.repaint();
 		}		
 	},
 	updateui:function(){
@@ -580,7 +580,7 @@ var HolePanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='yid'){	            
 			 this.target.y=this.fromUnitY(j$('#yid').val());  
 	     }
-		 this.component.Repaint();  
+		 this.component.repaint();  
    },
 	updateui:function(){		
         j$('#xid').val(this.toUnitX(this.target.circle.center.x));
@@ -629,7 +629,7 @@ var ViaPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='yid'){	            
 			 this.target.y=this.fromUnitY(j$('#yid').val());  
 	     }
-		 this.component.Repaint();  
+		 this.component.repaint();  
    },
 	updateui:function(){		
         j$('#xid').val(this.toUnitX(this.target.inner.pc.x));
@@ -666,7 +666,7 @@ var LinePanelBuilder=BaseBuilder.extend({
         if(event.target.id=='controllayerid'){
         	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
         }
-        this.component.Repaint(); 
+        this.component.repaint(); 
       }, 
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -681,7 +681,7 @@ var LinePanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='yid'){	            
 			 this.target.resizingPoint.y=this.fromUnitY(j$('#yid').val());  
 	     }
-		 this.component.Repaint();  
+		 this.component.repaint();  
     },
 	updateui:function(){
 		j$('#controllayerid').val(this.target.copper.getName());
@@ -725,7 +725,7 @@ var TrackPanelBuilder=BaseBuilder.extend({
         	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
         	this.component.getModel().getUnit().reorder();
         }
-        this.component.Repaint(); 
+        this.component.repaint(); 
       }, 
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -740,7 +740,7 @@ var TrackPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='yid'){	            
 			 this.target.resizingPoint.y=this.fromUnitY(j$('#yid').val());  
 	     }
-		 this.component.Repaint();  
+		 this.component.repaint();  
     },
 	updateui:function(){
 		j$('#controllayerid').val(this.target.copper.getName());
@@ -789,7 +789,7 @@ var LabelPanelBuilder=BaseBuilder.extend({
 	  if(event.target.id=='controllayerid'){
 		  this.target.setCopper(core.Layer.Copper.valueOf(j$('#controllayerid').val()));
       }
-      this.component.Repaint(); 
+      this.component.repaint(); 
     },
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -813,7 +813,7 @@ var LabelPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='yid'){	            
 			 this.target.texture.anchorPoint.y=this.fromUnitY(j$('#yid').val());  
 	     }		 
-		 this.component.Repaint();     		    	
+		 this.component.repaint();     		    	
     },
 	updateui:function(){
 	 j$("#rotateid").val(this.target.texture.rotate); 	
@@ -888,7 +888,7 @@ var BoardsTree=Backbone.View.extend({
 			this.boardComponent.hbar.jqxScrollBar({ value:this.boardComponent.getModel().getUnit().scrollPositionXValue});
 			this.boardComponent.vbar.jqxScrollBar({ value:this.boardComponent.getModel().getUnit().scrollPositionYValue});
 			
-			this.boardComponent.Repaint();
+			this.boardComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:this.boardComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 
 		}
 		if(item.value==222){
@@ -903,7 +903,7 @@ var BoardsTree=Backbone.View.extend({
 			var shape=this.boardComponent.getModel().getUnit().getShape(item.id);
 			this.boardComponent.getModel().getUnit().setSelected(false);
 			shape.setSelected(true);			
-			this.boardComponent.Repaint();
+			this.boardComponent.repaint();
 			            
 	        //position on shape center
             var rect=shape.getBoundingShape();            

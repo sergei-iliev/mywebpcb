@@ -85,13 +85,13 @@ actionPerformed(id,context){
 		   context.target.setSelected(false);
 		   this.component.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
 	       this.component.setMode(core.ModeEnum.COMPONENT_MODE); 
-	       this.component.Repaint();
+	       this.component.repaint();
 	 }
      if (id=="addbendingpointid") {
     	 let line=context.target;
          line.insertPoint(this.x, this.y);
          
-         this.component.Repaint();
+         this.component.repaint();
          return;
     }	 
      if(id=='deletelastpointid') {
@@ -104,7 +104,7 @@ actionPerformed(id,context){
             this.component.getModel().getUnit().remove(line.uuid);
         }
 
-         this.component.Repaint();
+         this.component.repaint();
          return;
      }
      if(id=='deletebendingpointid'){
@@ -115,7 +115,7 @@ actionPerformed(id,context){
         	 this.component.getEventMgr().resetEventHandle();
         	 this.component.getModel().getUnit().remove(line.uuid);
          }
-         this.component.Repaint();
+         this.component.repaint();
          return;
      }
      if (id=="deletelineid") {
@@ -123,7 +123,7 @@ actionPerformed(id,context){
          //this.component.getModel().getUnit().registerMemento(getTarget().getState(MementoType.DELETE_MEMENTO));
          this.component.getEventMgr().resetEventHandle();
          this.component.getModel().getUnit().remove(line.uuid);
-         this.component.Repaint();                    
+         this.component.repaint();                    
    } 
 	 if(id=='topbottomid'||id=='leftrightid'){
          let shapes= this.component.getModel().getUnit().getSelectedShapes(false);         
@@ -140,7 +140,7 @@ actionPerformed(id,context){
              unitMgr.mirrorBlock(shapes,new d2.Line(new d2.Point(p.x,p.y-10),new d2.Point(p.x,p.y+10)));
          }         
          unitMgr.alignBlock(this.component.getModel().getUnit().grid,shapes);
-         this.component.Repaint();		 
+         this.component.repaint();		 
 	 }	
 	 if(id=='rotaterightid'||id=='rotateleftid'){
          let shapes= this.component.getModel().getUnit().getSelectedShapes(false);         
@@ -154,7 +154,7 @@ actionPerformed(id,context){
          unitMgr.rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(id==("rotateleftid")?1:-1)*(90.0)));
          
          unitMgr.alignBlock(this.component.getModel().getUnit().grid,shapes);
-         this.component.Repaint();		 
+         this.component.repaint();		 
 	 }
 	 if(id=='positiontocenterid'){
 	     let unit=this.component.getModel().getUnit();           
@@ -170,7 +170,7 @@ actionPerformed(id,context){
 	      
 	     //scroll to center
 	     this.component.setScrollPosition((unit.width/2), (unit.height/2));
-	     this.component.Repaint();
+	     this.component.repaint();
 	 }
 	 if(id=='deleteunit'){
          this.component.getModel().delete(this.component.getModel().getUnit().getUUID());
@@ -181,13 +181,13 @@ actionPerformed(id,context){
         	 this.component.Clear();
         	 this.component.fireContainerEvent({target:null, type:Event.DELETE_CONTAINER});
          }
-         this.component.Repaint();  
+         this.component.repaint();  
 	 }
      if (id=='deleteid') {
     	 let unit=this.component.getModel().getUnit(); 
     	 let unitMgr = UnitMgr.getInstance();        
          unitMgr.deleteBlock(unit,unit.getSelectedShapes(false));
-         this.component.Repaint();                     
+         this.component.repaint();                     
      } 
 	 if(id=='cloneid'){
 		 let unit=this.component.getModel().getUnit();  
@@ -199,7 +199,7 @@ actionPerformed(id,context){
                               r.width,r.height);
          unitMgr.alignBlock(unit.grid,shapes);
          
-         this.component.Repaint();
+         this.component.repaint();
          //***emit property event change
          if (shapes.length == 1) {            
 	       unit.fireShapeEvent({target:shapes[0],type:Event.SELECT_SHAPE});
@@ -208,7 +208,7 @@ actionPerformed(id,context){
 	 }
 	 if(id=='selectallid'){ 
 	     this.component.getModel().getUnit().setSelected(true);
-	     this.component.Repaint();  
+	     this.component.repaint();  
 	 }	
 }
 }

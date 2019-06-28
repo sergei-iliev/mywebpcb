@@ -15,7 +15,7 @@ mousePressed(event){
 	   if(super.isRightMouseButton(event)){                       
 			    this.component.getModel().getUnit().setSelected(false);
 			    this.target.setSelected(true);
-				this.component.Repaint();
+				this.component.repaint();
 				this.component.popup.registerChipPopup(this.target,event);            
 	            return;
 	   }
@@ -24,12 +24,12 @@ mousePressed(event){
                    !this.target.isSelected());
     
            this.ctrlButtonPress = true;
-           this.component.Repaint();
+           this.component.repaint();
            return;		   
 	   }
 	   this.component.getModel().getUnit().setSelected(false);
 	   this.target.setSelected(true);
-	   this.component.Repaint();	   
+	   this.component.repaint();	   
 	    
 	 }
  mouseReleased(event){
@@ -39,7 +39,7 @@ mousePressed(event){
 		this.target.alignToGrid(false || this.component.getParameter("snaptogrid"));
 				 
 		this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
-		this.component.Repaint();
+		this.component.repaint();
 	 }
 	 
 	 mouseDragged(event){
@@ -53,7 +53,7 @@ mousePressed(event){
 	    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
 	    this.mx = new_mx;
 	    this.my = new_my;
-		this.component.Repaint();
+		this.component.repaint();
 	 }
 	 mouseMove(event){
 	 
@@ -100,14 +100,14 @@ mousePressed(event){
            //this.component.getModel().getUnit().registerMemento(getTarget().getState(MementoType.MOVE_MEMENTO));    
         }            
     }
-    this.component.Repaint(); 
+    this.component.repaint(); 
 }
 mouseReleased(event){
 	
 }
 mouseMove(event){
 	this.component.lineBendingProcessor.moveLinePoint(event.x,event.y);    
-	this.component.Repaint();   	 
+	this.component.repaint();   	 
 }	
 mouseDragged(event){
 	
@@ -116,7 +116,7 @@ dblClick(){
 	this.target.reset();
     this.target.setSelected(false);
     this.component.getEventMgr().resetEventHandle();
-    this.component.Repaint();	 
+    this.component.repaint();	 
 } 
 Detach() {
     this.target.reset(); 
@@ -156,7 +156,7 @@ mousePressed(event){
       }
       
       
-	  this.component.Repaint();	   
+	  this.component.repaint();	   
 	    
 	 }
 mouseReleased(event){
@@ -168,13 +168,13 @@ mouseDragged(event){
 	 }
 mouseMove(event){
     this.target.floatingEndPoint.set(event.x,event.y);   
-    this.component.Repaint();	 
+    this.component.repaint();	 
 	 }	 
 dblClick(){
       
     this.target.setSelected(false);
     this.component.getEventMgr().resetEventHandle();
-    this.component.Repaint();	 
+    this.component.repaint();	 
 } 
 Detach() {
     this.target.reset(); 

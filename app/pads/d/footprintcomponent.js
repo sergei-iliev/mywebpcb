@@ -188,7 +188,7 @@ setMode(_mode){
 	            this.getEventMgr().setEventHandle("origin",null);   
 	            break;          
 	        default:
-	          this.Repaint();
+	          this.repaint();
 	      }       
 } 
 
@@ -303,7 +303,7 @@ mouseDown(event){
                     (this.getEventMgr().getTargetEventHandle() instanceof events.MeasureEventHandle)) {
                      this.getModel().getUnit().ruler.resizingPoint=null;
                      this.getEventMgr().resetEventHandle();
-                     this.Repaint();
+                     this.repaint();
                 }else{
                    this.getEventMgr().setEventHandle("measure",this.getModel().getUnit().ruler);   
 				   this.getModel().getUnit().ruler.setX(scaledEvent.x);

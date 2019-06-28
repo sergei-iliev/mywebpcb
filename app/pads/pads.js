@@ -63,7 +63,7 @@ var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
 			 fc.getModel().fireUnitEvent({target:fc.getModel().getUnit(),type:events.Event.SELECT_UNIT});
 				
 			 fc.componentResized();
-			 fc.Repaint();
+			 fc.repaint();
 			
 			//init load dialog
 				j$('#FootprintLoadDialog').jqxWindow({
@@ -107,7 +107,7 @@ var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
 	              var rect=fc.getModel().getUnit().getBoundingRect();
 	              fc.setScrollPosition(rect.center.x,rect.center.y);
 	              fc.getModel().fireUnitEvent({target:fc.getModel().getUnit(),type: events.Event.SELECT_UNIT});
-	      		  fc.Repaint();
+	      		  fc.repaint();
 	      		  //set button group
 	      		  fc.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);	        
 	        },

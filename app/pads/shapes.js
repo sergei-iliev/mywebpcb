@@ -128,10 +128,10 @@ fromXML(data){
         }
         this.texture.fromXML(data);  
 }    
-paint(g2, viewportWindow, scale) {
-        //if((this.getCopper().getLayerMaskID()&layermask)==0){
-        //    return;
-        //}
+paint(g2, viewportWindow, scale,layersmask) {
+      if((this.copper.getLayerMaskID()&layersmask)==0){
+        return;
+      }
 		var rect = this.texture.getBoundingShape();
 			rect.scale(scale.getScale());
 			if (!rect.intersects(viewportWindow)) {
@@ -277,7 +277,10 @@ class RoundRect extends Shape{
 		this.thickness = (parseInt(j$(data).attr("thickness")));
 		this.fill = parseInt(j$(data).attr("fill"));
 	}
-	paint(g2, viewportWindow, scale) {
+	paint(g2, viewportWindow, scale,layersmask) {
+	    if((this.copper.getLayerMaskID()&layersmask)==0){
+	        return;
+	    }		
 		var rect = this.roundRect.box;
 		rect.scale(scale.getScale());
 		if (!rect.intersects(viewportWindow)) {
@@ -450,7 +453,10 @@ fromXML(data) {
          
         this.circle.r=radius;
     }	
-	paint(g2, viewportWindow, scale) {
+	paint(g2, viewportWindow, scale,layersmask) {
+	    if((this.copper.getLayerMaskID()&layersmask)==0){
+	        return;
+	    }		
 		var rect = this.circle.box;
 		rect.scale(scale.getScale());
 		if (!rect.intersects(viewportWindow)) {
@@ -711,8 +717,10 @@ Resize(xoffset, yoffset,point) {
 Move(xoffset,yoffset){
   this.arc.move(xoffset,yoffset);	
 }
-paint(g2, viewportWindow, scale) {
-		
+paint(g2, viewportWindow, scale,layersmask) {
+    if((this.copper.getLayerMaskID()&layersmask)==0){
+        return;
+      }
 		var rect = this.arc.box;
 		rect.scale(scale.getScale());
 		if (!rect.intersects(viewportWindow)) {
@@ -876,7 +884,10 @@ Rotate(rotation) {
 	this.rotate=alpha;
 	this.polygon.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
 }
-paint(g2, viewportWindow, scale) {		
+paint(g2, viewportWindow, scale,layersmask) {		
+    if((this.copper.getLayerMaskID()&layersmask)==0){
+        return;
+    }
 	var rect = this.polygon.box;
 	rect.scale(scale.getScale());		
 	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
@@ -963,7 +974,10 @@ getOrderWeight() {
 	return 2;
 }
 
-paint(g2, viewportWindow, scale) {		
+paint(g2, viewportWindow, scale,layersmask) {		
+    if((this.copper.getLayerMaskID()&layersmask)==0){
+        return;
+    }	
 		var rect = this.polyline.box;
 		rect.scale(scale.getScale());		
 		if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
@@ -1402,8 +1416,11 @@ drawClearence(g2,viewportWindow,scale,source){
 	
 	this.shape.drawClearence(g2,viewportWindow,scale,source);
 }
-paint(g2,viewportWindow,scale){
-	    switch(this.type){
+paint(g2,viewportWindow,scale,layersmask){
+//    if((this.copper.getLayerMaskID()&layersmask)==0){
+//        return;
+//    }	
+	switch(this.type){
 	    case PadType.THROUGH_HOLE:
 	        if(this.shape.paint(g2, viewportWindow, scale)){
 	         if(this.drill!=null){

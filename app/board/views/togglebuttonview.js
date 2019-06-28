@@ -72,7 +72,7 @@ var ToggleButtonView=Backbone.View.extend({
 			this.boardComponent.getModel().add(board);
             this.boardComponent.getModel().setActiveUnitUUID(board.getUUID());
             this.boardComponent.componentResized(); 
-            this.boardComponent.Repaint();
+            this.boardComponent.repaint();
             this.boardComponent.getModel().fireUnitEvent({target:this.boardComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 	
 		}
 		if(event.data.model.id=='saveid'){
@@ -152,7 +152,7 @@ var ToggleButtonView=Backbone.View.extend({
             UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(event.data.model.id==("rotateleftid")?1:-1)*(90.0)));
             UnitMgr.getInstance().alignBlock(this.boardComponent.getModel().getUnit().grid,shapes);  
             
-            this.boardComponent.Repaint();
+            this.boardComponent.repaint();
 		}
 		if(event.data.model.id=='zoominid'){
 			this.boardComponent.ZoomIn(parseInt(this.boardComponent.width/2),parseInt(this.boardComponent.height/2));
@@ -215,7 +215,7 @@ var ToggleButtonView=Backbone.View.extend({
           this.boardComponent.setScrollPosition(rect.center.x,rect.center.y);
           this.boardComponent.fireContainerEvent({target:null,type: events.Event.RENAME_CONTAINER});
           this.boardComponent.getModel().fireUnitEvent({target:this.boardComponent.getModel().getUnit(),type: events.Event.SELECT_UNIT});
-		  this.boardComponent.Repaint();
+		  this.boardComponent.repaint();
 		  //set button group
 		  this.boardComponent.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
 

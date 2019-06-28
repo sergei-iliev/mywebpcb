@@ -42,7 +42,7 @@ class EventHandle{
 				 this.component.getModel().getUnit().getSelectedShapes().forEach(function(shape) {
 					 this.component.getModel().getUnit().remove(shape.getUUID());	
 		           }.bind(this));  
-				 this.component.Repaint();
+				 this.component.repaint();
 			 }
 			 if (this.component.getEventMgr().getTargetEventHandle() != null&&event.keyCode==27) {	
 			   this.component.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
@@ -71,7 +71,7 @@ class MoveEventHandle extends EventHandle{
 	 mousePressed(event){	
 	    this.component.getModel().getUnit().setSelected(false);
 	    this.target.setSelected(true);
-		this.component.Repaint();
+		this.component.repaint();
 		if(super.isRightMouseButton(event)){
             if (this.target["getLinePoints"]!=undefined){
             	this.component.popup.registerLineSelectPopup(this.target,event);
@@ -95,7 +95,7 @@ class MoveEventHandle extends EventHandle{
 		this.target.alignToGrid(false || this.component.getParameter("snaptogrid"));
 				 
 		this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
-		this.component.Repaint();
+		this.component.repaint();
 	 }
 	 
 	 mouseDragged(event){
@@ -109,7 +109,7 @@ class MoveEventHandle extends EventHandle{
 	    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
 	    this.mx = new_mx;
 	    this.my = new_my;
-		this.component.Repaint();
+		this.component.repaint();
 	 }
 	 mouseMove(event){
 	 
@@ -138,12 +138,12 @@ class ResizeEventHandle extends EventHandle{
 	    
 	    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
 	    
-		this.component.Repaint();
+		this.component.repaint();
 	 }
 	 mouseReleased(event){
 		    if(this.component.getParameter("snaptogrid")){
 	         this.target.alignResizingPointToGrid(this.targetPoint);
-		     this.component.Repaint();	 
+		     this.component.repaint();	 
 			}
 			
 	 }
@@ -154,7 +154,7 @@ class ResizeEventHandle extends EventHandle{
 	    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
 	    this.mx = new_mx;
 	    this.my = new_my;
-		this.component.Repaint();
+		this.component.repaint();
 	 }
 	 mouseMove(event){
 	 
@@ -186,7 +186,7 @@ mouseDragged(event){
    
    this.mx = event.windowx;
    this.my = event.windowy;
-   this.component.Repaint();  
+   this.component.repaint();  
 		 }
 mouseMove(event){
 		 
@@ -204,7 +204,7 @@ class UnitEventHandle extends EventHandle{
 	 }
 	 mousePressed(event){
 		this.component.getModel().getUnit().setSelected(false);
-		this.component.Repaint();
+		this.component.repaint();
 			
 		if(super.isRightMouseButton(event)){
 			this.component.popup.registerUnitPopup(this.target,event);
@@ -220,7 +220,7 @@ class UnitEventHandle extends EventHandle{
 		 }
 		 this.selectionBox.move(this.component.viewportWindow.x,this.component.viewportWindow.y);
 		 this.component.getModel().getUnit().setSelectedInRect(this.component.getModel().getUnit().getScalableTransformation().getInverseRect(this.selectionBox));
-	     this.component.Repaint();
+	     this.component.repaint();
 	 }
 	 mouseDragged(event){
 		 if(super.isRightMouseButton(event)){
@@ -233,7 +233,7 @@ class UnitEventHandle extends EventHandle{
 		  let y=this.my - (h < 0 ? Math.abs(h) : 0);
 		
 	      this.selectionBox.setRect(x,y,Math.abs(w),Math.abs(h));	
-	      this.component.Repaint();
+	      this.component.repaint();
 		  
 		  this.component.ctx.globalCompositeOperation='lighter';
 	      this.component.ctx.beginPath();
@@ -286,7 +286,7 @@ mouseMove(event){
 
 	        this.mx = new_mx;
 	        this.my = new_my;     
-	        this.component.Repaint();   		 
+	        this.component.repaint();   		 
 		 }
 
 }
@@ -312,7 +312,7 @@ class CursorEventHandle extends EventHandle{
 	         shape.setSelected(true);
 	         shape.alignToGrid();
 	         this.component.getModel().getUnit().fireShapeEvent({target:shape,type:Event.SELECT_SHAPE});
-	         this.component.Repaint();	            
+	         this.component.repaint();	            
 	 }
 	 mouseReleased(event){
 
@@ -329,7 +329,7 @@ class CursorEventHandle extends EventHandle{
 
 		    this.mx = new_mx;
 		    this.my = new_my;
-			this.component.Repaint(); 
+			this.component.repaint(); 
 	 }
 }
 
@@ -355,7 +355,7 @@ class BlockEventHandle extends EventHandle{
 		  this.component.getModel().getUnit().setSelectedShape(this.target.uuid,
 	                   !this.target.isSelected());
 	      this.ctrlButtonPress = true;
-	      this.component.Repaint();
+	      this.component.repaint();
 	      return;		   
 		}		
 		this.mx=event.x;
@@ -366,7 +366,7 @@ class BlockEventHandle extends EventHandle{
 		  return;
 		}
 		UnitMgr.getInstance().alignBlock(this.component.getModel().getUnit().grid, this.selectedShapes);
-		this.component.Repaint();
+		this.component.repaint();
 	 }
 	 mouseDragged(event){
 		if(super.isRightMouseButton(event)){
@@ -379,7 +379,7 @@ class BlockEventHandle extends EventHandle{
 		
 	    this.mx = new_mx;
 	    this.my = new_my;
-		this.component.Repaint();
+		this.component.repaint();
 	   
 	 }
 	 mouseMove(event){
@@ -402,7 +402,7 @@ mousePressed(event){
 	this.my=event.y;
 
 	this.texture= this.target.getChipText().getClickedTexture(event.x,event.y);  
-	this.component.Repaint();
+	this.component.repaint();
 	
 }
 mouseReleased(event){
@@ -417,7 +417,7 @@ mouseDragged(event){
 		
 	    this.mx = new_mx;
 	    this.my = new_my;
-		this.component.Repaint();       
+		this.component.repaint();       
 }
 mouseMove(event){
 
@@ -453,7 +453,7 @@ mouseMove(e) {
         this.mx = new_mx;
         this.my = new_my;
         
-        this.component.Repaint();
+        this.component.repaint();
     }	
 }
 

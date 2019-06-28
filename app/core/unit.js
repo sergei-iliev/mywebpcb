@@ -754,7 +754,7 @@ mouseWheelMoved(event){
 ZoomIn(x,y){
     if(this.getModel().getUnit().getScalableTransformation().ScaleOut()){
         this.viewportWindow.scalein(x,y, this.getModel().getUnit().getScalableTransformation());
-        this.Repaint();         
+        this.repaint();         
     }else{
         return false;
     } 
@@ -772,7 +772,7 @@ ZoomIn(x,y){
 ZoomOut(x,y){
     if(this.getModel().getUnit().getScalableTransformation().ScaleIn()){
             this.viewportWindow.scaleout(x,y, this.getModel().getUnit().getScalableTransformation());
-            this.Repaint();                       
+            this.repaint();                       
     }else{
             return false;
     }
@@ -790,12 +790,12 @@ ZoomOut(x,y){
 }
 vStateChanged(event){
     this.viewportWindow.y= parseInt(event.currentValue);
-    this.Repaint();
+    this.repaint();
 	
   }
 hStateChanged(event){
     this.viewportWindow.x= parseInt(event.currentValue);
-    this.Repaint();
+    this.repaint();
   }
 screenResized(e){	  
 	  var container = j$('#mycanvasframe');	  
@@ -808,7 +808,7 @@ screenResized(e){
 	  //set canvas width
 	  this.canvas.attr('width',this.width);
 	  this.componentResized();
-	  this.Repaint();
+	  this.repaint();
 	}
 componentResized(){
     if(this.getModel().getUnit()==null){
@@ -833,13 +833,13 @@ setContainerCursor(_cursor) {
 getContainerCursor() {
     return this.cursor;
 }
-Repaint(){
+repaint(){
 	  if(this.getModel().getUnit()!=null){
       this.ctx.fillStyle = "black";
       this.ctx.fillRect(0, 0, this.width, this.height); 
 	  this.getModel().getUnit().paint(this.ctx,this.viewportWindow);
       if (this.cursor != null) {
-      	this.cursor.paint(this.ctx,this.viewportWindow, this.getModel().getUnit().getScalableTransformation());
+      	this.cursor.paint(this.ctx,this.viewportWindow, this.getModel().getUnit().getScalableTransformation(),core.Layer.Copper.All.getLayerMaskID());
 
       }
 	  }else{

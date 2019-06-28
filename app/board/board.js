@@ -66,7 +66,7 @@ var Board=require('board/d/boardcomponent').Board;
 			 bc.getModel().fireUnitEvent({target:bc.getModel().getUnit(),type:events.Event.SELECT_UNIT});
 				
 			 bc.componentResized();
-			 bc.Repaint();
+			 bc.repaint();
 			 
 			//init footprint load dialog
 				j$('#FootprintLoadDialog').jqxWindow({
@@ -93,7 +93,7 @@ var Board=require('board/d/boardcomponent').Board;
 		            autoOpen:false
              });	
 			   //load demo board
-		      loadDemo(bc);
+		      //loadDemo(bc);
 });	
 loadDemo=function(bc){
 	
@@ -116,7 +116,7 @@ loadDemo=function(bc){
            var rect=bc.getModel().getUnit().getBoundingRect();
            bc.setScrollPosition(rect.center.x,rect.center.y);
            bc.getModel().fireUnitEvent({target:bc.getModel().getUnit(),type: events.Event.SELECT_UNIT});
-   		   bc.Repaint();
+   		   bc.repaint();
    		  //set button group
    		   bc.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);	        
      },

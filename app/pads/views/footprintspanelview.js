@@ -74,7 +74,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='widthid'||event.target.id=='heightid'){           
 		    this.component.getModel().getUnit().setSize(core.MM_TO_COORD(parseFloat(j$('#widthid').val())),core.MM_TO_COORD(parseFloat(j$('#heightid').val())));  
 		    this.component.componentResized();     
-		    this.component.Repaint();
+		    this.component.repaint();
 		 }
 		 if(event.target.id=='nameid'){
 			 this.target.unitName=j$("#nameid").val(); 
@@ -84,7 +84,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 			 if(this.component.getModel().getUnit().getCoordinateSystem()!=null){
 			    this.component.getModel().getUnit().getCoordinateSystem().reset(core.MM_TO_COORD(parseFloat(j$('#originxid').val())),core.MM_TO_COORD(parseFloat(j$('#originyid').val())));  
 			    this.component.componentResized();     
-			    this.component.Repaint();
+			    this.component.repaint();
 			 }
 		 }
 		 //mycanvas.focus();
@@ -93,7 +93,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 	onchange:function(event){
 		if(event.target.id=='gridrasterid'){
 			this.target.grid.setGridValue(parseFloat(j$("#gridrasterid").val()));
-			this.component.Repaint();
+			this.component.repaint();
 		}		
 		if(event.target.id=='referenceid'){
 			var texture=UnitMgr.getInstance().getTextureByTag(this.target,'reference');
@@ -105,7 +105,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 				return;
 			label=this.target.getShape(j$("#referenceid").val());
 			label.getChipText().get(0).tag='reference';
-			this.component.Repaint();
+			this.component.repaint();
 		}
 		if(event.target.id=='valueid'){
 			var texture=UnitMgr.getInstance().getTextureByTag(this.target,'value');
@@ -117,7 +117,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 				return;
 			label=this.target.getShape(j$("#valueid").val());
 			label.getChipText().get(0).tag='value';
-			this.component.Repaint();
+			this.component.repaint();
 		}
 	},
 	updateui:function(){
@@ -229,7 +229,7 @@ var PadPanelBuilder=BaseBuilder.extend({
         	this.updateui();
         }
         
-       this.component.Repaint(); 
+       this.component.repaint(); 
       },
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -274,7 +274,7 @@ var PadPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='offsetyid'){ 
 			 this.target.offset.y=(core.MM_TO_COORD(parseFloat(j$('#offsetyid').val())));   
 		 }
-		 this.component.Repaint(); 
+		 this.component.repaint(); 
     },
 	updateui:function(){
 
@@ -396,7 +396,7 @@ var RectPanelBuilder=BaseBuilder.extend({
     	if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
         }
-        this.component.Repaint(); 
+        this.component.repaint(); 
       },    
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -419,7 +419,7 @@ var RectPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='roundingid'){
 			 this.target.setRounding(core.MM_TO_COORD(parseFloat(j$('#roundingid').val())));			 
 		 }
-		 this.component.Repaint(); 		 
+		 this.component.repaint(); 		 
     },
 	updateui:function(){
 		j$('#layerid').val(this.target.copper.getName());
@@ -478,7 +478,7 @@ var ArcPanelBuilder=BaseBuilder.extend({
         if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
         }        
-        this.component.Repaint(); 
+        this.component.repaint(); 
     }, 
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -496,7 +496,7 @@ var ArcPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='extendangleid'){
 			   this.target.setExtendAngle(j$('#extendangleid').val());	
 		 } 	
-		 this.component.Repaint(); 	
+		 this.component.repaint(); 	
     },
 	updateui:function(){
 		j$('#layerid').val(this.target.copper.getName());
@@ -547,7 +547,7 @@ var SolidRegionPanelBuilder=BaseBuilder.extend({
         if(event.target.id=='layerid'){
         	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
         }              
-        this.component.Repaint(); 
+        this.component.repaint(); 
     }, 
 	updateui:function(){
 		
@@ -586,7 +586,7 @@ var CirclePanelBuilder=BaseBuilder.extend({
         if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
         }
-        this.component.Repaint(); 
+        this.component.repaint(); 
       },    
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -606,7 +606,7 @@ var CirclePanelBuilder=BaseBuilder.extend({
 	         var y=this.fromUnitY(j$('#yid').val()); 
 	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
 		 } 		 
-		 this.component.Repaint(); 		 
+		 this.component.repaint(); 		 
     },
 
 	updateui:function(){
@@ -659,7 +659,7 @@ var LinePanelBuilder=BaseBuilder.extend({
         if(event.target.id=='layerid'){
         	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
         }
-        this.component.Repaint(); 
+        this.component.repaint(); 
       }, 
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -674,7 +674,7 @@ var LinePanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='yid'){	            
 			 this.target.resizingPoint.y=this.fromUnitY(j$('#yid').val());  
 	     }
-		 this.component.Repaint();  
+		 this.component.repaint();  
     },
 	updateui:function(){
 		j$('#layerid').val(this.target.copper.getName());
@@ -719,7 +719,7 @@ var LabelPanelBuilder=BaseBuilder.extend({
 	  if(event.target.id=='layerid'){
 		  this.target.setCopper(core.Layer.Copper.valueOf(j$('#layerid').val()));
       }
-      this.component.Repaint(); 
+      this.component.repaint(); 
     },
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -743,7 +743,7 @@ var LabelPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='yid'){	            
 			 this.target.texture.anchorPoint.y=this.fromUnitY(j$('#yid').val());  
 	     }		 
-		 this.component.Repaint();     		    	
+		 this.component.repaint();     		    	
     },
 	updateui:function(){
 	 j$("#rotateid").val(this.target.texture.rotate); 	
@@ -819,7 +819,7 @@ var FootprintsTree=Backbone.View.extend({
 			this.footprintComponent.hbar.jqxScrollBar({ value:this.footprintComponent.getModel().getUnit().scrollPositionXValue});
 			this.footprintComponent.vbar.jqxScrollBar({ value:this.footprintComponent.getModel().getUnit().scrollPositionYValue});
 			
-			this.footprintComponent.Repaint();
+			this.footprintComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:this.footprintComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 
 		}
 		if(item.value==222){
@@ -834,7 +834,7 @@ var FootprintsTree=Backbone.View.extend({
 			var shape=this.footprintComponent.getModel().getUnit().getShape(item.id);
 			this.footprintComponent.getModel().getUnit().setSelected(false);
 			shape.setSelected(true);
-			this.footprintComponent.Repaint();
+			this.footprintComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:shape,type:events.Event.SELECT_SHAPE}); 	
 		}
 	

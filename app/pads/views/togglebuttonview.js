@@ -182,7 +182,7 @@ var ToggleButtonView=Backbone.View.extend({
             UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(event.data.model.id==("rotateleftid")?1:-1)*(90.0)));   
             UnitMgr.getInstance().alignBlock(this.footprintComponent.getModel().getUnit().grid,shapes);  
             
-            this.footprintComponent.Repaint();
+            this.footprintComponent.repaint();
 		}
 		if(event.data.model.id=='zoominid'){
 			this.footprintComponent.ZoomIn(parseInt(this.footprintComponent.width/2),parseInt(this.footprintComponent.height/2));
@@ -230,7 +230,7 @@ var ToggleButtonView=Backbone.View.extend({
           this.footprintComponent.setScrollPosition(rect.center.x,rect.center.y);
           this.footprintComponent.fireContainerEvent({target:null,type: events.Event.RENAME_CONTAINER});
           this.footprintComponent.getModel().fireUnitEvent({target:this.footprintComponent.getModel().getUnit(),type: events.Event.SELECT_UNIT});
-		  this.footprintComponent.Repaint();
+		  this.footprintComponent.repaint();
 		  //set button group
 		  this.footprintComponent.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
 		  
