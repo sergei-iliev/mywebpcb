@@ -25,6 +25,16 @@
 <div class="panel panel-default">
    <div class="panel-body">
       <div class="row">
+       <div class="col-lg-12 d-flex align-items-center justify-content-center">
+       <div class="jumbotron">
+  			<h1 class="display-4">Create Design Innovate</h1>
+  			<p class="lead">Free and open-source schematic capture and pcb design online tool.</p>
+  			<hr class="my-4">
+  			<p>Deploy in your own premises for maximum security</p>  			
+		</div>
+		</div>
+      </div>
+      <div class="row">
         <div class="col-lg-3 d-flex align-items-center justify-content-center">
           <div class=" mx-auto mb-5 mb-lg-0 mb-lg-3">
             <div class="media-middle">
@@ -73,12 +83,21 @@
       </div>
  </div>
 </div>
-<footer class="footer text-center">
+<footer class="footer" style="background-color:#f5f5f5;margin-top:300px;">
 <div class="container">
       <div class="row">
-           
+       <div class="col-lg-3">
+       </div>
+       <div class="col-lg-6 text-center">
+           <span>myNetPCB is free, open source and always will be.</span>
+       </div>
+       <div class="col-lg-3">
+
+       </div>       
       </div>
 </div>
+<div class="footer-copyright text-center">
+<p class="text-muted">&copy; 2019 Copyright: Zelenite Eood</p></div>
 </footer>
 </body>
 </html>

@@ -1180,7 +1180,7 @@ class BoardShapeFactory{
 		return null;
 	}
 }
-var p0;
+
 class PCBFootprint extends Shape{
 constructor(layermaskId){
 		super(0,0,0,0,0,layermaskId);
