@@ -89,7 +89,7 @@ clone(){
         copy.value=this.value;
         copy.displayName=this.displayName;
         this.shapes.forEach(function(shape){ 
-          copy.shapes.push(shape.clone());  
+          copy.add(shape.clone());  
         });
         return copy;        
     }
