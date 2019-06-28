@@ -21,11 +21,11 @@ var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
 			//enable tooltips
 			j$('[data-toggle="tooltip"]').tooltip();
 
-			var fc=new FootprintComponent('jqxScrollBar','jqxVerticalScrollBar','mycanvas','popup-menu');
+			var fc=new FootprintComponent('jqxHorizontalScrollBar','jqxVerticalScrollBar','mycanvas','popup-menu');
 			
 			//create ui
 			var toggleButtonCollection=new togglebutton.ToggleButtonCollection(
-			[new togglebutton.ToggleButtonModel({id:'newfootprintid'}),
+			[new togglebutton.ToggleButtonModel({id:'mainmenuid'}),
 			 new togglebutton.ToggleButtonModel({id:'printfootrpintid'}),
 			 new togglebutton.ToggleButtonModel({id:'saveid'}),
 			 new togglebutton.ToggleButtonModel({id:'loadid'}),
@@ -40,10 +40,11 @@ var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
 			 new togglebutton.ToggleButtonModel({id:'ellipseid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'arcid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'lineid',group:'lefttogglegroup'}),
+			 new togglebutton.ToggleButtonModel({id:'solidregionid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'padid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'labelid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'anchorid'}),
-			 new togglebutton.ToggleButtonModel({id:'originid',group:'lefttogglegroup'}),
+			 new togglebutton.ToggleButtonModel({id:'originid'}),
 			 new togglebutton.ToggleButtonModel({id:'measureid',group:'lefttogglegroup'})
 			]
 			);
@@ -62,7 +63,7 @@ var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
 			 fc.getModel().fireUnitEvent({target:fc.getModel().getUnit(),type:events.Event.SELECT_UNIT});
 				
 			 fc.componentResized();
-			 fc.Repaint();
+			 fc.repaint();
 			
 			//init load dialog
 				j$('#FootprintLoadDialog').jqxWindow({
@@ -81,8 +82,44 @@ var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
 		            height: 270,
 		            autoOpen:false
                 });	
-
-			
-			  
+				
+		   //load demo footprint
+			    	//loadDemo(fc);
 	});	
+	loadDemo=function(fc){
+		
+	    j$.ajax({
+	        type: 'GET',
+	        contentType: 'application/xml',
+	        url: 'demo/pads.xml',
+	        dataType: "xml",
+	        beforeSend:function(){
+		          j$('#mywebpadsid').block({message:'<h5>Loading...</h5>'});	
+		    },
+	        success: function(data, textStatus, jqXHR){
+
+	      //****load it    	
+	      		  fc.Clear();
+	      		  fc.getModel().parse(data);
+	      		  fc.getModel().setActiveUnit(0);
+	      		  fc.componentResized();
+	                //position on center
+	              var rect=fc.getModel().getUnit().getBoundingRect();
+	              fc.setScrollPosition(rect.center.x,rect.center.y);
+	              fc.getModel().fireUnitEvent({target:fc.getModel().getUnit(),type: events.Event.SELECT_UNIT});
+	      		  fc.repaint();
+	      		  //set button group
+	      		  fc.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);	        
+	        },
+	        
+	        error: function(jqXHR, textStatus, errorThrown){
+	            	alert(errorThrown+":"+jqXHR.responseText);
+	        },
+	        complete:function(jqXHR, textStatus){
+	        	j$('#mywebpadsid').unblock();
+	        }	        
+	    });	
+	}
+	
+	
 })(jQuery);

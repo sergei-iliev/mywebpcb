@@ -1,10 +1,15 @@
 var mywebpcb=require('core/core').mywebpcb;
 var core=require('core/core');
+var shape=require('core/shapes');
 var events=require('core/events');
 var FootprintLoadView=require('pads/views/footprintloadview');
 var BoardMgr = require('board/d/boardcomponent').BoardMgr;
+var BoardContainer = require('board/d/boardcomponent').BoardContainer;
 var UnitMgr = require('core/unit').UnitMgr;
 var BoardLoadView=require('board/views/boardloadview');
+var BoardSaveView=require('board/views/boardsaveview');
+var LayersPanelView=require('board/views/layerspanelview');
+
 
 var ToggleButtonView=Backbone.View.extend({
 
@@ -15,7 +20,7 @@ var ToggleButtonView=Backbone.View.extend({
 		this.collection=opt.collection;
 		this.boardComponent=opt.boardComponent;
 		mywebpcb.bind('libraryview:load',this.onfootprintload,this);
-		mywebpcb.bind('workspaceview:load',this.onload,this);
+		mywebpcb.bind('workspaceview:load',this.onboardload,this);
 		this.bind();
 		this.update();
 	},
@@ -23,6 +28,7 @@ var ToggleButtonView=Backbone.View.extend({
 		_.each(this.collection.models,j$.proxy(function(model,index,list) {
 			    j$("#"+model.id).bind( "click",{model:model},j$.proxy(this.onclick,this));
 			}),this);	
+		j$("#importfromclipboardid").click(j$.proxy(this.onimport,this));
 	},
 	update:function(){
 		_.each(this.collection.models,function(model,index,list) {
@@ -37,6 +43,17 @@ var ToggleButtonView=Backbone.View.extend({
 		    }
 		}),this);		
 	},
+	onimport:function(event){
+		navigator.clipboard.readText().then(data =>{ 
+		      let boardContainer=new BoardContainer(true);
+		      let xml=(j$.parseXML(data));		    	  
+		      //disable 
+		      core.isEventEnabled=false;
+		      boardContainer.parse(xml);
+		      core.isEventEnabled=true;
+		  	  mywebpcb.trigger('workspaceview:load',boardContainer);
+			});
+	},	
 	onclick:function(event){
 	    event.preventDefault();
 	    //is this a group button
@@ -55,11 +72,11 @@ var ToggleButtonView=Backbone.View.extend({
 			this.boardComponent.getModel().add(board);
             this.boardComponent.getModel().setActiveUnitUUID(board.getUUID());
             this.boardComponent.componentResized(); 
-            this.boardComponent.Repaint();
+            this.boardComponent.repaint();
             this.boardComponent.getModel().fireUnitEvent({target:this.boardComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 	
 		}
 		if(event.data.model.id=='saveid'){
-			new mywebpcb.board.views.BoardSaveView({boardComponent:this.boardComponent}).render();			
+			new BoardSaveView({model:this.boardComponent.model}).render();			
 		}
 
 		if(event.data.model.id=='loadid'){
@@ -72,6 +89,9 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='lineid'){
 		    this.boardComponent.setMode(core.ModeEnum.LINE_MODE);
 		}
+		if(event.data.model.id=='solidregionid'){
+			this.boardComponent.setMode(core.ModeEnum.SOLID_REGION);
+		}		
 		if(event.data.model.id=='trackid'){
 		  //Track mode
 		   this.boardComponent.setMode(core.ModeEnum.TRACK_MODE);
@@ -109,7 +129,14 @@ var ToggleButtonView=Backbone.View.extend({
 			this.boardComponent.setMode(core.ModeEnum.MEASUMENT_MODE);
 		}		
 		if(event.data.model.id=='originid'){			 
-		   this.boardComponent.setMode(core.ModeEnum.ORIGIN_SHIFT_MODE);
+			event.data.model.setActive(!event.data.model.isActive());
+			if(event.data.model.isActive()){
+			  this.boardComponent.getModel().getUnit().coordinateSystem=new shape.CoordinateSystem(this.boardComponent.getModel().getUnit());
+			  this.boardComponent.setMode(core.ModeEnum.ORIGIN_SHIFT_MODE);
+			}else{
+			  this.boardComponent.getModel().getUnit().coordinateSystem=null;
+			  this.boardComponent.setMode(core.ModeEnum.COMPONENT_MODE);
+			}
 		}
 		if(event.data.model.id=='copperareaid'){
 		    this.boardComponent.setMode(core.ModeEnum.COPPERAREA_MODE);
@@ -121,10 +148,11 @@ var ToggleButtonView=Backbone.View.extend({
             }  
 			//shapes= this.boardComponent.getModel().getUnit().getSelectedShapes();
 			var r=this.boardComponent.getModel().getUnit().getShapesRect(shapes);
-            UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.getCenterX(),r.getCenterY(),(event.data.model.id==("rotateleftid")?-1:1)*(90.0)));   
+               
+            UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(event.data.model.id==("rotateleftid")?1:-1)*(90.0)));
             UnitMgr.getInstance().alignBlock(this.boardComponent.getModel().getUnit().grid,shapes);  
             
-            this.boardComponent.Repaint();
+            this.boardComponent.repaint();
 		}
 		if(event.data.model.id=='zoominid'){
 			this.boardComponent.ZoomIn(parseInt(this.boardComponent.width/2),parseInt(this.boardComponent.height/2));
@@ -139,7 +167,10 @@ var ToggleButtonView=Backbone.View.extend({
 			
             this.boardComponent.setScrollPosition(parseInt(this.boardComponent.getModel().getUnit().width/2),
             		parseInt(this.boardComponent.getModel().getUnit().height/2));
-		}			
+		}	
+		if(event.data.model.id=='layerid'){
+			new LayersPanelView(this.boardComponent);		
+		}		
 	},
 	onfootprintload:function(selectedModel){
 		  let scaledEvent=this.boardComponent.getScaledEvent(selectedModel.event);
@@ -148,8 +179,8 @@ var ToggleButtonView=Backbone.View.extend({
 		  var pcbfootprint=BoardMgr.getInstance().createPCBFootprint(selectedModel.getUnit());
 		  
           //            //***set chip cursor
-          pcbfootprint.Move(-1 * pcbfootprint.getBoundingShape().getCenterX(),
-                         -1 * pcbfootprint.getBoundingShape().getCenterY());
+          pcbfootprint.Move(-1 * pcbfootprint.getBoundingShape().center.x,
+                         -1 * pcbfootprint.getBoundingShape().center.y);
           
           //pcbfootprint.Move(scaledEvent.x,
           //        scaledEvent.y);
@@ -160,12 +191,14 @@ var ToggleButtonView=Backbone.View.extend({
           this.boardComponent.mouseMove(selectedModel.event);
           //this.boardComponent.Repaint();
 	},
-	onload:function(selectedModel){
+	onboardload:function(selectedModel){
 		  this.boardComponent.Clear();
 		  this.boardComponent.setMode(core.ModeEnum.COMPONENT_MODE);
 		  
 		  for(let unit of selectedModel.getUnits()){
-			  var copy=unit.clone();			  
+			  core.isEventEnabled=false;
+			  var copy=unit.clone();	
+			  core.isEventEnabled=true;
 			  this.boardComponent.getModel().add(copy);  
 			  copy.notifyListeners(events.Event.ADD_SHAPE);
 		  };
@@ -179,10 +212,10 @@ var ToggleButtonView=Backbone.View.extend({
 
 	        //position on center
           var rect=this.boardComponent.getModel().getUnit().getBoundingRect();
-          this.boardComponent.setScrollPosition(rect.getCenterX(),rect.getCenterY());
+          this.boardComponent.setScrollPosition(rect.center.x,rect.center.y);
           this.boardComponent.fireContainerEvent({target:null,type: events.Event.RENAME_CONTAINER});
           this.boardComponent.getModel().fireUnitEvent({target:this.boardComponent.getModel().getUnit(),type: events.Event.SELECT_UNIT});
-		  this.boardComponent.Repaint();
+		  this.boardComponent.repaint();
 		  //set button group
 		  this.boardComponent.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
 

@@ -4,6 +4,7 @@ var UnitComponent = require('core/unit').UnitComponent;
 var UnitMgr = require('core/unit').UnitMgr;
 var mywebpcb=require('core/core').mywebpcb;
 var core = require('core/core');
+var utilities = require('core/utilities');
 var events=require('core/events');
 var BoardShapeFactory=require('board/shapes').BoardShapeFactory;
 var BoardEventMgr = require('board/events').BoardEventMgr;
@@ -19,9 +20,14 @@ var PCBLine=require('board/shapes').PCBLine;
 var PCBRoundRect=require('board/shapes').PCBRoundRect;
 var PCBCopperArea=require('board/shapes').PCBCopperArea;
 var PCBTrack=require('board/shapes').PCBTrack;
+var PCBSolidRegion=require('board/shapes').PCBSolidRegion;
+var SolidRegionEventHandle=require('pads/events').SolidRegionEventHandle;
+var d2=require('d2/d2');
 
 var LineEventHandle=require('pads/events').LineEventHandle;
 var CopperAreaEventHandle=require('board/events').CopperAreaEventHandle;
+var TrackEventHandle=require('board/events').TrackEventHandle;
+var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').DefaultLineBendingProcessor;
 
 var shapes=require('pads/shapes');
 //**********************UnitMgr***************************************
@@ -51,7 +57,7 @@ class manager{
 	               
 	               
 	    }
-        pcbfootprint.setDisplayName(footprint.name);
+ 	    pcbfootprint.setDisplayName(footprint.unitName);
         pcbfootprint.units=footprint.getGrid().getGridUnits();
         pcbfootprint.value=footprint.getGrid().getGridValue();
  	    return pcbfootprint; 	          
@@ -87,10 +93,40 @@ clone(){
 	 copy.silent=false;
 	 return copy;
 	}
+add(shape){
+    if (this.shapes.length == 0) {
+        super.add(shape);
+    } else {
+    	let len=this.shapes.length;
+    	shape.owningUnit=this;
+    	for(i=0;i<len;i++){                      
+            if (this.shapes[i].getDrawingOrder() >= shape.getDrawingOrder()) {             
+                this.shapes.splice(i, 0,shape);           	    
+        	    this.fireShapeEvent({target:shape,type:events.Event.ADD_SHAPE});
+                return;
+            }
+    	}
+        super.add(shape);
+    }
+}
+reorder(){
+    this.shapes.sort(function(a,b){
+		if (a.getDrawingOrder() > b.getDrawingOrder()) {  
+			return 1;
+		}else if(a.getDrawingOrder() < b.getDrawingOrder()){
+			return -1;
+		}else
+			return 0;
+	});
+}
+setActiveSide(side) {
+    this.compositeLayer.activeSide=side;
+    this.reorder();
+}
 paint(g2, viewportWindow){
 	   let len=this.shapes.length;
  	   for(let i=0;i<len;i++){
- 		   this.shapes[i].Paint(g2,viewportWindow,this.scalableTransformation);  
+ 		   this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation,this.compositeLayer.getLayerMaskID());  
  	   }
  	   this.shapes.forEach(function(shape){
  	    if (shape instanceof PCBTrack || shape instanceof PCBCopperArea) {
@@ -98,13 +134,17 @@ paint(g2, viewportWindow){
         }
  	   },this);
  	   //grid
-        this.grid.paint(g2,viewportWindow,this.scalableTransformation);
+       this.grid.paint(g2,viewportWindow,this.scalableTransformation);
         //coordinate system
-        this.coordinateSystem.Paint(g2, viewportWindow,this.scalableTransformation);
-		//ruler
-		this.ruler.Paint(g2, viewportWindow,this.scalableTransformation);
+       if(this.coordinateSystem!=null){
+         this.coordinateSystem.paint(g2, viewportWindow,this.scalableTransformation);
+       }	
+         //ruler
+	   this.ruler.paint(g2, viewportWindow,this.scalableTransformation);
         //frame
-        this.frame.paint(g2, viewportWindow,this.scalableTransformation);
+       if(this.frame!=null){
+	     this.frame.paint(g2, viewportWindow,this.scalableTransformation);
+       }
 }
 parse(data){
 	this.unitName=j$(data).find("name").first().text();
@@ -118,29 +158,55 @@ parse(data){
        }	  
    	});	
 }
+format(){   
+	   var xml="<board width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
+	   xml+="<name>"+this.unitName+"</name>\r\n";
+	   xml+="<units raster=\"" + this.grid.getGridValue() + "\">MM</units>\r\n";
+	   
+	   xml+="<symbols>\r\n";
+	   this.shapes.forEach(s=>{
+		  xml+=s.toXML()+"\r\n";
+	   });
+	   xml+="</symbols>\r\n";   
+	   xml+="</board>";
+	   return xml;
+	}	
+
+
 }
 
 class BoardContainer extends UnitContainer{
-constructor(silent) {
-      super(silent);
-  	  this.fileName="Boards";
+constructor() {
+      super();
+  	  this.formatedFileName="Boards";
   	}
 parse(xml){
-	  this.filename=(j$(xml).find("filename").text());
-	  this.libraryname=(j$(xml).find("library").text());
-	  this.categoryname=(j$(xml).find("category").text()); 	
-
+	  this.workspacename=(j$(xml).find("workspaceName").text());
+	  console.log(j$(xml).find("projectName").text());
+	   	
+	  this.setFileName(j$(xml).find("projectName").text());
 	  var that=this;
+	  
       j$(xml).find("board").each(j$.proxy(function(){
     	var board=new Board(j$(this).attr("width"),j$(this).attr("height"));
-    	//silent mode
-    	board.silent=that.silent;
     	//need to have a current unit 
         that.add(board);
         board.parse(this);
     }),that);	
 }
-
+format() {
+    var xml="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n"; 
+    xml+="<boards identity=\"Board\" version=\""+utilities.version.BOARD_VERSION+"\">\r\n";      
+	let units=this.unitsmap.values();
+	for(let i=0;i<this.unitsmap.size;i++){
+      let unit=units.next().value;
+      xml+=unit.format();
+	  xml+="\r\n";
+	}    	    	
+    xml+="</boards>";
+    console.log(xml);
+    return xml;
+}
 
 }
 
@@ -151,18 +217,21 @@ constructor(hbar,vbar,canvas,popup) {
 	this.eventMgr=new BoardEventMgr(this); 
 	this.model=new BoardContainer();
 	this.popup=new BoardContextMenu(this,popup);
-      
+    this.lineBendingProcessor=new DefaultLineBendingProcessor();  
 }
 setMode(_mode){
 	  this.mode=_mode;
 	  let shape=null;
       if (this.cursor != null) {
-          this.cursor.Clear();
+          this.cursor.clear();
           this.cursor = null;
       }
       this.eventMgr.resetEventHandle();
       
       switch (this.mode) {
+		case core.ModeEnum.SOLID_REGION:
+         	break;
+      	
       case core.ModeEnum.HOLE_MODE:          
           shape = new PCBHole();
           this.setContainerCursor(shape);
@@ -197,7 +266,7 @@ setMode(_mode){
           this.eventMgr.setEventHandle("origin",null);   
           break;          
       default:
-        this.Repaint();
+        this.repaint();
     }       
 }
 
@@ -226,12 +295,12 @@ mouseDown(event){
                 * 2.Control rect/reshape point
                 * 3.selected shapes comes before control points
                 */	 
-         		
-          if(this.getModel().getUnit().getCoordinateSystem().isClicked(scaledEvent.x, scaledEvent.y)){
+    	  if(this.getModel().getUnit().getCoordinateSystem()!=null){ 		
+           if(this.getModel().getUnit().getCoordinateSystem().isClicked(scaledEvent.x, scaledEvent.y)){
               this.getEventMgr().setEventHandle("origin",null); 
         	  break;
-          }  
-    		
+           }  
+    	  }
     	  var shape=this.getModel().getUnit().isControlRectClicked(scaledEvent.x, scaledEvent.y);
 		  if(shape!=null){
               if(shape instanceof PCBArc){
@@ -246,7 +315,8 @@ mouseDown(event){
                   }
                  }else{
 						this.getEventMgr().setEventHandle("resize",shape); 
-                 }
+                 }                            
+              
 		  }else{
 		     shape = this.getModel().getUnit().getClickedShape(scaledEvent.x, scaledEvent.y, true);
 		     
@@ -268,15 +338,27 @@ mouseDown(event){
     		
             //***is this a new wire
             if ((this.getEventMgr().getTargetEventHandle() == null) ||
-                !(this.getEventMgr().getTargetEventHandle() instanceof LineEventHandle)) {
+                !(this.getEventMgr().getTargetEventHandle() instanceof TrackEventHandle)) {
                	if(event.which!=1){
             		return;
             	}
                 shape = new PCBTrack(core.MM_TO_COORD(0.4),core.Layer.LAYER_FRONT);
                 this.getModel().getUnit().add(shape);                
-            	this.getEventMgr().setEventHandle("line", shape);
+            	this.getEventMgr().setEventHandle("track", shape);
             }
 	    break;
+    	case core.ModeEnum.SOLID_REGION:
+            //is this a new copper area
+            if ((this.getEventMgr().targetEventHandle == null) ||
+                !(this.getEventMgr().targetEventHandle instanceof SolidRegionEventHandle)) {
+            	if(event.which!=1){
+            		return;
+            	}
+                shape =new PCBSolidRegion(core.Layer.LAYER_FRONT);
+                this.getModel().getUnit().add(shape);
+                this.getEventMgr().setEventHandle("solidregion", shape);
+            }     		
+    		break;	    
         case  core.ModeEnum.COPPERAREA_MODE:
             //is this a new copper area
             if ((this.getEventMgr().targetEventHandle == null) ||
@@ -311,7 +393,7 @@ mouseDown(event){
                 (this.getEventMgr().getTargetEventHandle() instanceof events.MeasureEventHandle)) {
                  this.getModel().getUnit().ruler.resizingPoint=null;
                  this.getEventMgr().resetEventHandle();
-                 this.Repaint();
+                 this.repaint();
             }else{
                this.getEventMgr().setEventHandle("measure",this.getModel().getUnit().ruler);   
 			   this.getModel().getUnit().ruler.setX(scaledEvent.x);

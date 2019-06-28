@@ -1,10 +1,11 @@
 var core=require('core/core');
 var utilities =require('core/utilities');
-var Shape=require('core/core').Shape;
+var Shape=require('core/shapes').Shape;
 var AbstractLine=require('core/shapes').AbstractLine;
-var ResizeableShape=require('core/core').ResizeableShape;
-var glyph=require('core/text/glyph');
-var font=require('core/text/font');
+var glyph=require('core/text/d2glyph');
+var font=require('core/text/d2font');
+var d2=require('d2/d2');
+
 
 class FootprintShapeFactory{
 	
@@ -18,6 +19,11 @@ createShape(data){
 		var roundRect = new RoundRect(0, 0, 0, 0, 0,0, core.Layer.SILKSCREEN_LAYER_FRONT);
 		roundRect.fromXML(data);
 		return roundRect;
+	}
+	if (data.tagName.toLowerCase() == 'circle') {
+		var circle = new Circle(0, 0, 0, 0, 0);
+		circle.fromXML(data);
+		return circle;
 	}
 	if (data.tagName.toLowerCase() == 'ellipse') {
 		var circle = new Circle(0, 0, 0, 0, 0);
@@ -39,6 +45,12 @@ createShape(data){
 		label.fromXML(data);		
 		return label;
 	}
+	if (data.tagName.toLowerCase() == 'solidregion') {
+		var region = new SolidRegion(0);
+		region.fromXML(data);		
+		return region;
+	}	
+
 }
 }	
 
@@ -55,11 +67,33 @@ clone(){
         copy.copper=this.copper;
 		return copy;
     }
+setCopper(copper){
+	this.copper= copper;
+	//mirror horizontally
+	let line=new d2.Line(this.texture.anchorPoint,new d2.Point(this.texture.anchorPoint.x,this.texture.anchorPoint.y+100));
+	
+	let side=core.Layer.Side.resolve(this.copper.getLayerMaskID());
+	
+	this.texture.mirror(side==core.Layer.Side.BOTTOM,line);
+}
+setRotation(rotate,center){	
+	if(center==undefined){
+		  this.texture.setRotation(rotate,this.getCenter());
+	}else{
+		  this.texture.setRotation(rotate,center);	
+	}
+}
 calculateShape(){ 
   return this.texture.getBoundingShape();
 }
-getCenter() {
-    return new core.Point(this.texture.getBoundingShape().getCenterX(),this.texture.getBoundingShape().getCenterY());
+get vertices(){
+	  return [];	
+}
+isClicked(x,y){
+    return this.texture.isClicked(x,y);
+}
+getCenter(){
+   return this.texture.getBoundingShape().center;
 }
 getTexture(){
   return this.texture;    
@@ -70,11 +104,11 @@ setSelected(selected) {
 isSelected() {
    return this.texture.isSelected;
 }
-Rotate(rotation) {
-  this.texture.Rotate(rotation);
+Rotate(rotation) {	
+	this.texture.Rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	
 }
-Mirror(A,B) {
-  this.texture.Mirror(A,B);
+Mirror(line) {
+
 }
 Move(xoffset,yoffset) {
   this.texture.Move(xoffset, yoffset);
@@ -94,126 +128,221 @@ fromXML(data){
         }
         this.texture.fromXML(data);  
 }    
-Paint(g2, viewportWindow, scale) {
-        //if((this.getCopper().getLayerMaskID()&layermask)==0){
-        //    return;
-        //}
-        let scaledRect = this.texture.getBoundingShape().getScaledRect(scale);
-        if(!scaledRect.intersects(viewportWindow)){
-          return;   
-        }
+paint(g2, viewportWindow, scale,layersmask) {
+      if((this.copper.getLayerMaskID()&layersmask)==0){
+        return;
+      }
+		var rect = this.texture.getBoundingShape();
+			rect.scale(scale.getScale());
+			if (!rect.intersects(viewportWindow)) {
+				return;
+			}
 
 		if (this.selection) {
 			this.texture.fillColor = "gray";
 		} else {
 			this.texture.fillColor = this.copper.getColor();
 		}
-		this.texture.Paint(g2, viewportWindow, scale,this.copper.getLayerMaskID());
+		this.texture.paint(g2, viewportWindow, scale,this.copper.getLayerMaskID());
     }
 }	
-class RoundRect extends ResizeableShape{
-	constructor(x, y, width, height, arc,thickness,layermaskid) {
+class RoundRect extends Shape{
+	constructor(x, y, width, height,arc,thickness,layermaskid) {
 		super(x, y, width, height, thickness,layermaskid);
-		this.setDisplayName("Rect");
-		this.arc = arc;
+		this.setDisplayName("Rect");		
 		this.selectionRectWidth=3000;
-		this.roundRect = new core.Rectangle(0, 0, 0, 0);
+		this.resizingPoint = null;
+		this.rotate=0;
+		this.roundRect=new d2.RoundRectangle(new d2.Point(x,y),width,height,arc);		
 	}
 	clone() {
-		var copy = new RoundRect(this.getX(), this
-				.getY(), this.getWidth(), this.getHeight(), this.arc,
-				this.thickness,this.copper.getLayerMaskID());
-		copy.roundRect = new core.Rectangle(this.roundRect.x,
-				this.roundRect.y, this.roundRect.width, this.roundRect.height);
-		copy.fill = this.fill;
-		copy.arc=this.arc;
+		var copy = new RoundRect(0,0,0,0,0,this.thickness,this.copper.getLayerMaskID());
+		copy.roundRect = this.roundRect.clone();
+		copy.rotate=this.rotate;
+		copy.fill = this.fill;		
 		return copy;
 	}
 	calculateShape() {
-		return new core.Rectangle(this.getX(), this.getY(), this
-				.getWidth(), this.getHeight());
-
+		return this.roundRect.box;		
+	}
+	getCenter() {
+		let box=this.roundRect.box;
+	    return new d2.Point(box.center.x,box.center.y);
+	}
+	setSelected (selection) {
+		super.setSelected(selection);
+			if (!selection) {
+				this.resizingPoint = null;
+	        }
+	}	
+	get vertices(){
+	  return this.roundRect.vertices;	
 	}
 	isClicked(x, y) {
-		this.roundRect.setRect(this.getX(), this.getY(), this.getWidth(), this
-				.getHeight());
-		if (this.roundRect.contains(x, y))
+		if (this.roundRect.contains(new d2.Point(x, y)))
 			return true;
 		else
 			return false;
 	}
+	isControlRectClicked(x,y){
+	   	let pt=new d2.Point(x,y);
+	   	let result=null
+		this.roundRect.vertices.some(v=>{
+	   		if(d2.utils.LE(pt.distanceTo(v),this.selectionRectWidth/2)){
+	   		  	result=v;
+	   			return true;
+	   		}else{
+	   			return false;
+	   		}
+	   	});
+	   	return result;
+	}	
+	setRotation(rotate,center){
+		let alpha=rotate-this.rotate;
+		let box=this.roundRect.box;
+		if(center==undefined){
+		  this.roundRect.rotate(alpha,box.center);
+		}else{
+		  this.roundRect.rotate(alpha,center);	 	
+		}
+		this.rotate=rotate;
+	}
+	setRounding(rounding){	  
+	  this.roundRect.setRounding(rounding);
+	}
+	setResizingPoint(pt){
+		this.resizingPoint=pt;
+	}
+	getResizingPoint() {
+		return this.resizingPoint;
+	}
+	Move(xoffset, yoffset) {
+		this.roundRect.move(xoffset,yoffset);
+	}
+	Mirror(line){
+		this.roundRect.mirror(line);
+	}
+	Rotate(rotation){	
+		//fix angle
+		let alpha=this.rotate+rotation.angle;
+		if(alpha>=360){
+			alpha-=360
+		}
+		if(alpha<0){
+		 alpha+=360; 
+		}	
+		this.rotate=alpha;		
+		this.roundRect.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	}
+	Resize(xoffset, yoffset,clickedPoint){
+		this.roundRect.resize(xoffset, yoffset,clickedPoint);
+	}
+	getOrderWeight(){
+		return this.roundRect.area; 
+	}	
 	toXML() {
-		return "<rectangle copper=\"" + this.copper.getName() + "\" x=\""
-				+ this.upperLeft.x + "\" y=\"" + this.upperLeft.y
-				+ "\" width=\"" + this.getWidth() + "\" height=\""
-				+ this.getHeight() + "\" thickness=\"" + this.thickness
-				+ "\" fill=\"" + this.fill + "\" arc=\"" + this.arc
-				+ "\"/>";
+		let points="";
+		this.roundRect.points.forEach(function(point) {
+			points += utilities.roundFloat(point.x,5) + "," + utilities.roundFloat(point.y,5) + ",";
+		},this);
+		return "<rectangle copper=\"" + this.copper.getName()
+		        +"\" thickness=\"" + this.thickness
+				+ "\" fill=\"" + this.fill + "\" arc=\"" + this.roundRect.rounding
+				+"\" points=\"" + points
+				+ "\"></rectangle>";
 	}
 	fromXML(data) {
+
 		if(j$(data)[0].hasAttribute("copper")){
 		  this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
 		}
-		this.setX(parseInt(j$(data).attr("x")));
-		this.setY(parseInt(j$(data).attr("y")));
-		this.setWidth(parseInt(j$(data).attr("width")));
-		this.setHeight(parseInt(j$(data).attr("height")));
-		this.arc = (parseInt(j$(data).attr("arc")));
+		if(j$(data).attr("width")!=undefined){
+		  this.roundRect.setRect(parseInt(j$(data).attr("x")),parseInt(j$(data).attr("y")),parseInt(j$(data).attr("width")),parseInt(j$(data).attr("height")),parseInt(j$(data).attr("arc"))/2);
+		}else{			
+			var pts=j$(data).attr("points");			
+			var lastchar = pts[pts.length - 1];
+			if(lastchar==","){
+				pts=pts.substr(0,pts.length - 1); 
+			}
+			var array = JSON.parse("[" +pts+ "]");
+			let points=[];
+			points.push(new d2.Point(array[0],array[1]));
+			points.push(new d2.Point(array[2],array[3]));
+			points.push(new d2.Point(array[4],array[5]));
+			points.push(new d2.Point(array[6],array[7]));
+			this.roundRect.rounding=parseInt(j$(data).attr("arc"));
+			this.roundRect.setPoints(points);
+		}
+		
 		this.thickness = (parseInt(j$(data).attr("thickness")));
 		this.fill = parseInt(j$(data).attr("fill"));
 	}
-	Paint(g2, viewportWindow, scale) {
-		var rect = this.getBoundingShape().getScaledRect(scale);
+	paint(g2, viewportWindow, scale,layersmask) {
+	    if((this.copper.getLayerMaskID()&layersmask)==0){
+	        return;
+	    }		
+		var rect = this.roundRect.box;
+		rect.scale(scale.getScale());
 		if (!rect.intersects(viewportWindow)) {
 			return;
 		}
-		g2.globalCompositeOperation = 'lighter';
-		g2.beginPath();
-		utilities.roundrect(g2, rect.x - viewportWindow.x, rect.y
-				- viewportWindow.y, rect.width, rect.height, this.arc
-				* scale.getScale());
-		g2.closePath();
+		
 		g2.lineWidth = this.thickness * scale.getScale();
+
 		if (this.fill == core.Fill.EMPTY) {
+			g2.globalCompositeOperation = 'lighter';
 			if (this.selection) {
 				g2.strokeStyle = "gray";
 			} else {
 				g2.strokeStyle = this.copper.getColor();
 			}
-
-			g2.stroke();
+			g2.globalCompositeOperation = 'source-over';
 		} else {
+			g2._fill=true;
 			if (this.selection) {
 				g2.fillStyle = "gray";
 			} else {
 				g2.fillStyle = this.copper.getColor();
-			}
-			g2.fill();
+			}			
 		}
-
-		g2.globalCompositeOperation = 'source-over';
+		let r=this.roundRect.clone();	
+		r.scale(scale.getScale());
+        r.move(-viewportWindow.x,- viewportWindow.y);
+		r.paint(g2);
+		
+		g2._fill=false;
+		
+		
 
 		if (this.isSelected()) {
-			this.drawControlShape(g2, viewportWindow, scale);
+			this.drawControlPoints(g2, viewportWindow, scale);
 		}
 	}
 
+drawControlPoints(g2, viewportWindow, scale){
+	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.roundRect.vertices); 		
+	}	
 }
 
 class Circle extends Shape{
 	constructor(x,y,r,thickness,layermaskId) {
-		super(x, y, r, r, thickness,
+		super(0, 0, 0, 0, thickness,
 				layermaskId);
 		this.setDisplayName("Circle");
 		this.selectionRectWidth=3000;
+		this.resizingPoint=null;
+		this.circle=new d2.Circle(new d2.Point(x,y),r);
+		this.rotate=0;
 	}
-	clone() {
-		var copy =new Circle(this.x,this.y,this.width,this.thickness,this.copper.getLayerMaskID());
-		return copy;
+clone() {
+	let copy=new Circle(this.circle.center.x,this.circle.center.y,this.circle.radius,this.thickness,this.copper.getLayerMaskID());
+	copy.rotate=this.rotate;
+	copy.fill=this.fill;
+	return copy				
 	}	
 calculateShape(){    
-	return new core.Rectangle(this.getX()-this.getWidth(),this.getY()-this.getWidth(),2*this.getWidth(),2*this.getWidth());
-}
+	 return this.circle.box;	 
+    }
 alignToGrid(isRequired) {
         if(isRequired){
           return super.alignToGrid(isRequired);
@@ -224,68 +353,118 @@ alignToGrid(isRequired) {
 alignResizingPointToGrid(point) {          
         this.width=this.owningUnit.getGrid().lengthOnGrid(this.width);                
 }
-isControlRectClicked(xx,yy) {
-            let rect=new core.Rectangle();
-			rect.setRect((this.x-this.width) - this.selectionRectWidth / 2, (this.y-this.width) - this.selectionRectWidth / 2,
-                         this.selectionRectWidth, this.selectionRectWidth);
-            if (rect.contains(xx,yy)) {
-                return new core.Point((this.x-this.width),(this.y-this.width));
-            }
-            rect.setRect((this.x+this.width) - this.selectionRectWidth / 2, (this.y-this.width) - this.selectionRectWidth / 2,
-                         this.selectionRectWidth, this.selectionRectWidth);
-            if (rect.contains(xx,yy)){
-                return new core.Point((this.x+this.width),(this.y-this.width));
-            }
-            rect.setRect((this.x-this.width) - this.selectionRectWidth / 2, (this.y+this.width) - this.selectionRectWidth / 2,
-                         this.selectionRectWidth, this.selectionRectWidth);
-            if (rect.contains(xx,yy)){
-                return new core.Point((this.x-this.width),(this.y+this.width));
-            }
-
-            rect.setRect((this.x+this.width) - this.selectionRectWidth / 2, (this.y+this.width) - this.selectionRectWidth / 2,
-                         this.selectionRectWidth, this.selectionRectWidth);
-            if (rect.contains(xx,yy)){
-                return new core.Point((this.x+this.width),(this.y+this.width));
-            }
-
-        return null;
-    }	
-	toXML() {
-        return "<ellipse copper=\""+this.copper.getName()+"\" x=\""+(this.x-this.width)+"\" y=\""+(this.y-this.width)+"\" width=\""+(2*this.width)+"\" height=\""+(2*this.width)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
+get vertices(){
+	  return this.circle.vertices;	
 	}
-	fromXML(data) {	
-        if(j$(data).attr("copper")!=null){
-            this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
-         }else{
-            this.copper=core.Layer.Copper.FSilkS;
-         }
+isClicked(x, y) {
+	if (this.circle.contains(new d2.Point(x, y)))
+		return true;
+	else
+		return false;
+	}
+isControlRectClicked(x,y) {
+   	let pt=new d2.Point(x,y);
+   	let result=null
+	this.circle.vertices.some(v=>{
+   		if(d2.utils.LE(pt.distanceTo(v),this.selectionRectWidth/2)){
+   		  	result=v;
+   			return true;
+   		}else{
+   			return false;
+   		}
+   	});
+   	return result;
+    }	
+toXML() {
+        return "<circle copper=\""+this.copper.getName()+"\" x=\""+(this.circle.pc.x)+"\" y=\""+(this.circle.pc.y)+"\" radius=\""+(this.circle.r)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
+	}
+fromXML(data) {	  
+        this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
+        
  		let xx=parseInt(j$(data).attr("x"));
  		let yy=parseInt(j$(data).attr("y"));
  		
- 		let diameter=parseInt(parseInt(j$(data).attr("width")));
-         //center x
-         this.setX(xx+(parseInt(diameter/2)));
-         //center y
-         this.setY(yy+(parseInt(diameter/2)));
-         //radius
-         this.setWidth(parseInt(diameter/2));
-         this.setHeight(parseInt(diameter/2));
-
+ 		if(j$(data).attr("width")!=undefined){
+ 			let diameter=parseInt(parseInt(j$(data).attr("width")));
+ 	        this.circle.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
+ 	        this.circle.r=parseInt(diameter/2); 			
+ 		}else{
+ 			let radius=parseInt(parseInt(j$(data).attr("radius")));
+ 	        this.circle.pc.set(xx,yy);
+ 	        this.circle.r=radius; 			 		
+ 		}
+ 		 
+         
  		 this.thickness = (parseInt(j$(data).attr("thickness")));
- 		 this.fill = parseInt(j$(data).attr("fill"));
+ 		 this.fill = parseInt(j$(data).attr("fill")); 		
 	}
-	Paint(g2, viewportWindow, scale) {
-		let rect = this.getBoundingShape().getScaledRect(scale);
+	Mirror(line){
+	   this.circle.mirror(line);	
+	}
+	Move(xoffset, yoffset) {
+		this.circle.move(xoffset,yoffset);
+	}	
+	setRotation(rotate,center){
+		let alpha=rotate-this.rotate;
+		if(center==null){
+			this.circle.rotate(alpha,this.circle.center);
+		}else{
+			this.circle.rotate(alpha,center);	 	
+		}
+		this.rotate=rotate;						
+	}		
+	Rotate(rotation){
+		//fix angle
+		let alpha=this.rotate+rotation.angle;
+		if(alpha>=360){
+			alpha-=360
+		}
+		if(alpha<0){
+		 alpha+=360; 
+		}	
+		this.rotate=alpha;
+		this.circle.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	}
+	Resize(xoffset, yoffset,point) {    
+        let quadrant= utilities.getQuadrantLocation(point,this.circle.center);
+        let radius=this.circle.r;
+        switch(quadrant){
+        case utilities.QUADRANT.FIRST:case utilities.QUADRANT.FORTH: 
+            //uright
+             if(xoffset<0){
+               //grows             
+                radius+=Math.abs(xoffset);
+             }else{
+               //shrinks
+                radius-=Math.abs(xoffset);
+             }             
+            break;
+        case utilities.QUADRANT.SECOND:case utilities.QUADRANT.THIRD:
+            //uleft
+             if(xoffset<0){
+               //shrinks             
+                radius-=Math.abs(xoffset);
+             }else{
+               //grows
+                radius+=Math.abs(xoffset);
+             }             
+            break;        
+        }
+         
+        this.circle.r=radius;
+    }	
+	paint(g2, viewportWindow, scale,layersmask) {
+	    if((this.copper.getLayerMaskID()&layersmask)==0){
+	        return;
+	    }		
+		var rect = this.circle.box;
+		rect.scale(scale.getScale());
 		if (!rect.intersects(viewportWindow)) {
 			return;
 		}
 
 		// ****3 http://scienceprimer.com/draw-oval-html5-canvas
 		g2.globalCompositeOperation = 'lighter';
-		g2.beginPath(); // clear the canvas context
-		g2.arc(rect.getCenterX() - viewportWindow.x,rect.getCenterY() - viewportWindow.y,rect.width/2,0,2*Math.PI);
-		
-		g2.closePath();
 		g2.lineWidth = this.thickness * scale.getScale();
 
 		if (this.fill == core.Fill.EMPTY) {
@@ -294,67 +473,33 @@ isControlRectClicked(xx,yy) {
 			} else {
 				g2.strokeStyle = this.copper.getColor();
 			}
-
-			g2.stroke();
 		} else {
+			g2._fill=true;
 			if (this.selection) {
 				g2.fillStyle = "gray";
 			} else {
 				g2.fillStyle = this.copper.getColor();
-			}
-			g2.fill();
+			}			
 		}
 
-		g2.globalCompositeOperation = 'source-over';
+		let c=this.circle.clone();
+		c.scale(scale.getScale());
+        c.move(-viewportWindow.x,- viewportWindow.y);
+		c.paint(g2);
+		g2._fill=false;
 
+		g2.globalCompositeOperation = 'source-over';
+		
 		if (this.isSelected()) {
-			this.drawControlShape(g2, viewportWindow, scale);
+			this.drawControlPoints(g2, viewportWindow, scale);
   } 
  }
-drawControlShape(g2, viewportWindow, scale) {
-
-        let line=new core.Line();
-
-        g2.strokeStyle='blue';
-		g2.lineWidth = 1;
-        
-        //top
-            line.setLine((this.getX()-this.getWidth()) - this.selectionRectWidth,this.getY()-this.getWidth(), (this.getX()-this.getWidth()) + this.selectionRectWidth, this.getY()-this.getWidth());
-            line.draw(g2, viewportWindow, scale);
-
-            line.setLine((this.getX()-this.getWidth()), this.getY()-this.getWidth() - this.selectionRectWidth, (this.getX()-this.getWidth()), this.getY()-this.getWidth() + this.selectionRectWidth);
-            line.draw(g2, viewportWindow, scale);
-        
-            line.setLine((this.getX()+this.getWidth()) - this.selectionRectWidth, this.getY()-this.getWidth(), (this.getX()+this.getWidth()) + this.selectionRectWidth, this.getY()-this.getWidth());
-            line.draw( g2, viewportWindow, scale);
-
-            line.setLine((this.getX()+this.getWidth()), this.getY()-this.getWidth() - this.selectionRectWidth, (this.getX()+this.getWidth()), this.getY()-this.getWidth() + this.selectionRectWidth);
-            line.draw(g2, viewportWindow, scale);
-        //bottom
-            line.setLine((this.getX()-this.getWidth()) - this.selectionRectWidth, this.getY()+this.getWidth(), (this.getX()-this.getWidth()) + this.selectionRectWidth, this.getY()+this.getWidth());
-            line.draw(g2, viewportWindow, scale);
-
-            line.setLine((this.getX()-this.getWidth()), this.getY()+this.getWidth() - this.selectionRectWidth, (this.getX()-this.getWidth()), this.getY()+this.getWidth() + this.selectionRectWidth);
-            line.draw(g2, viewportWindow, scale);
-        
-            line.setLine((this.getX()+this.getWidth()) - this.selectionRectWidth, this.getY()+this.getWidth(), (this.getX()+this.getWidth()) + this.selectionRectWidth, this.getY()+this.getWidth());
-            line.draw( g2, viewportWindow, scale);
-
-            line.setLine((this.getX()+this.getWidth()), this.getY()+this.getWidth() - this.selectionRectWidth, (this.getX()+this.getWidth()), this.getY()+this.getWidth() + this.selectionRectWidth);
-            line.draw(g2, viewportWindow, scale);
-      
-//center
-//            line.setLine((this.getX()) - this.selectionRectWidth, this.getY(), (this.getX()) + this.selectionRectWidth, this.getY());
-//            line.draw( g2, viewportWindow, scale);
-//
-//            line.setLine((this.getX()), this.getY() - this.selectionRectWidth, this.getX(), this.getY() + this.selectionRectWidth);
-//            line.draw( g2, viewportWindow, scale);
-
-       
+drawControlPoints(g2, viewportWindow, scale) {
+	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.circle.vertices);	
 }
 getOrderWeight(){
-      return ((2*this.width)*(2*this.width)); 
-}
+	return this.circle.area; 
+}	
 getResizingPoint() {
         return null;
 }
@@ -362,747 +507,523 @@ getResizingPoint() {
 setResizingPoint(point) {
 
 }
-Resize(xoffset, yoffset,point) {    
-        let quadrant= utilities.getQuadrantLocation(point,this.x,this.y);
-        switch(quadrant){
-        case utilities.QUADRANT.FIRST:case utilities.QUADRANT.FORTH: 
-            //uright
-             if(xoffset<0){
-               //grows             
-                this.width+=Math.abs(xoffset);
-             }else{
-               //shrinks
-                this.width-=Math.abs(xoffset);
-             }             
-            break;
-        case utilities.QUADRANT.SECOND:case utilities.QUADRANT.THIRD:
-            //uleft
-             if(xoffset<0){
-               //shrinks             
-                this.width-=Math.abs(xoffset);
-             }else{
-               //grows
-                this.width+=Math.abs(xoffset);
-             }             
-            break;        
-        }
 
-    }	
 }
-class Arc extends Circle{
+
+class Arc extends Shape{
 constructor(x,y,r,thickness,layermaskid){	
-        super(x, y, r,thickness,layermaskid);  
-        this.startAngle=30;
-        this.extendAngle=50;
+        super(0, 0, 0,0,thickness,layermaskid);  
 		this.setDisplayName("Arc");
+		this.selectionRectWidth=3000;
 		this.resizingPoint=null;
+		this.arc=new d2.Arc(new d2.Point(x,y),r,50,70);
+		this.rotate=0;
+		this.center=null;
+		this.temp=1;
 }
 clone() {
-		var copy = new Arc(this.x, this.y, this.width,
-						this.thickness,this.copper.getLayerMaskID());
-		copy.startAngle = this.startAngle;
-		copy.extendAngle = this.extendAngle;
+		var copy = new Arc(this.arc.center.x,this.arc.center.y, this.arc.r,this.thickness,this.copper.getLayerMaskID());		
+        copy.arc.startAngle = this.arc.startAngle;
+        copy.arc.endAngle = this.arc.endAngle; 
+        copy.rotate=this.rotate;
 		copy.fill = this.fill;
 		return copy;
 }
+calculateShape() {
+	return this.arc.box;	
+}
+getOrderWeight(){
+	return this.arc.area; 
+}
 fromXML(data){
-        if(j$(data).attr("copper")!=null){
-           this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
-        }else{
-           this.copper=core.Layer.Copper.FSilkS;
-        }
+        
+        this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));        
 		let xx=parseInt(j$(data).attr("x"));
 		let yy=parseInt(j$(data).attr("y"));
 		
-		let diameter=parseInt(parseInt(j$(data).attr("width")));
-        //center x
-        this.setX(xx+(parseInt(diameter/2)));
-        //center y
-        this.setY(yy+(parseInt(diameter/2)));
-        //radius
-        this.setWidth(parseInt(diameter/2));
-        this.setHeight(parseInt(diameter/2));  
+ 		if(j$(data).attr("width")!=undefined){
+ 			let diameter=parseInt(parseInt(j$(data).attr("width")));
+ 	        this.arc.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
+ 	        this.arc.r=parseInt(diameter/2); 			
+ 		}else{
+ 			let radius=parseInt(parseInt(j$(data).attr("radius")));
+ 	        this.arc.pc.set(xx,yy);
+ 	        this.arc.r=radius; 			 		
+ 		}
+		let diameter=parseInt(parseInt(j$(data).attr("width"))); 
 		
-		
-		this.startAngle = parseInt(j$(data).attr("start"));
-		this.extendAngle = parseInt(j$(data).attr("extend"));
-		
-		this.thickness = (parseInt(j$(data).attr("thickness")));				
+        //this.arc.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
+        //this.arc.r = parseInt(diameter/2);
+        
+		this.arc.startAngle = parseInt(j$(data).attr("start"));
+        this.arc.endAngle = parseInt(j$(data).attr("extend"));        
+		this.thickness = (parseInt(j$(data).attr("thickness")));
+		this.fill = (parseInt(j$(data).attr("fill"))||0);
 }
 toXML() {
-    return '<arc copper="'+this.copper.getName()+'"  x="'+(this.x-this.width)+'" y="'+(this.y-this.width)+'" width="'+(2*this.width)+'"  thickness="'+this.thickness+'" start="'+this.startAngle+'" extend="'+this.extendAngle+'" />';
+    return '<arc copper="'+this.copper.getName()+'"  x="'+(this.arc.pc.x)+'" y="'+(this.arc.pc.y)+'" radius="'+(this.arc.r)+'"  thickness="'+this.thickness+'" start="'+this.arc.startAngle+'" extend="'+this.arc.endAngle+'" fill="'+this.fill+'" />';
+}
+setRadius(r){
+	this.arc.r=r;	
 }
 setExtendAngle(extendAngle){
-    this.extendAngle=utilities.round(extendAngle);
+    this.arc.endAngle=utilities.round(extendAngle);
 }
 setStartAngle(startAngle){        
-    this.startAngle=utilities.round(startAngle);
+    this.arc.startAngle=utilities.round(startAngle);
 }
+get vertices(){
+	  return this.arc.vertices;	
+	}
 isControlRectClicked(x,y) {
-   let result= super.isControlRectClicked(x, y);
-   if(result==null){
 	 if(this.isStartAnglePointClicked(x,y)){
-	    return this.getStartPoint();
-	 }
+		    return this.arc.start;
+		 }
 	 if(this.isExtendAnglePointClicked(x,y)){
-	    return this.getEndPoint();
-	 }
+		    return this.arc.end;
+		 }
 	 if(this.isMidPointClicked(x,y)){
-	    return this.getMidPoint();	 
-	 }
-     return null;	 
-   }else{
-     return result;
-   }
-   
-}
+		    return this.arc.middle;	 
+		 }
+	     return null;
+	}
+isClicked(x, y) {
+	if (this.arc.contains(new d2.Point(x, y)))
+		return true;
+	else
+		return false;
+	}
 isMidPointClicked(x,y){
-	let rect=new core.Rectangle();
-
-    let p=this.getMidPoint();
-    rect.setRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
+    let p=this.arc.middle;
+    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
                  this.selectionRectWidth, this.selectionRectWidth);
-    if (rect.contains(x,y)) {
+    if (box.contains({x,y})) {
         return true;
     }else{                   
         return false;
 	}	
 }
-isStartAnglePointClicked(x,y){
-			let rect=new core.Rectangle();
-
-            let p=this.getStartPoint();
-            rect.setRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
-                         this.selectionRectWidth, this.selectionRectWidth);
-            if (rect.contains(x,y)) {
-                return true;
-            }else{                   
-                return false;
-			}
+isStartAnglePointClicked(x,y){	
+    let p=this.arc.start;
+    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
+                 this.selectionRectWidth, this.selectionRectWidth);
+    if (box.contains({x,y})) {
+        return true;
+    }else{                   
+        return false;
+	}
 }
 isExtendAnglePointClicked(x,y){
-			let rect=new core.Rectangle();
-            
-            let  p=this.getEndPoint();
-            rect.setRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
-                         this.selectionRectWidth, this.selectionRectWidth);
-            if (rect.contains(x,y)) {
-                return true;
-            }else{                   
-                return false;
-			}
+    let p=this.arc.end;
+    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
+                 this.selectionRectWidth, this.selectionRectWidth);
+    if (box.contains({x,y})) {
+        return true;
+    }else{                   
+        return false;
+	}
 }	
-convert(start,extend){
-		
-		let s = 360 - start;
-		let e=0;
-		if(extend>0){
-		 e = 360 - (start+extend); 
-		}else{
-		 if(start>Math.abs(extend)){  	
-		   e = s+Math.abs(extend); 
-		 }else{
-           e = Math.abs(extend+start);   		 
-		 }		 
-		}
-		return new core.Point(s,e);
-}
-recalculateArc(isClockwise){
-	let resizingMidPoint=this.calculateResizingMidPoint();
-	this.drawRadius();
-
-}
-calculateResizingMidPoint(){
-	let a=this.getMidPoint();
-	let b=new core.Point(this.x,this.y);
-	let p=this.resizingPoint;
-	
-	let atob = { x: b.x - a.x, y: b.y - a.y };
-    let atop = { x: p.x - a.x, y: p.y - a.y };
-    let len = atob.x * atob.x + atob.y * atob.y;
-    let dot = atop.x * atob.x + atop.y * atob.y;
-    let t = dot / len ;
-  
-    return new core.Point(a.x + atob.x * t,a.y + atob.y * t);	
-}
-
-drawMousePoint(g2,viewportWindow,scale){
-
-	let point=this.calculateResizingMidPoint();
-    
-	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[point]);
-    
-    //this.drawRadius(g2,viewportWindow,scale);
-}
-
-distance(p1,p2){
-	   let dx=(p1.x-p2.x);
-	   let dy=(p1.y-p2.y);
-	   return Math.sqrt(dx*dx + dy*dy);	
-}
-/*
- * draw current radius static
- */
-drawRadius(){
-   let a=this.getStartPoint();
-   let b=this.getEndPoint();
-  
-   let P=new core.Point((a.x+b.x)/2,(a.y+b.y)/2);
-   
-   
-   //distance
-   let m=this.distance(a,P);
-   let q=this.distance(a,b);
-  
-   let midP=this.getMidPoint();
-   let A=this.distance(midP,P);
-
-   //radius
-   let R=((m*m)+(A*A))/(2*A);
-   
-   
-   //calculate centeX and centerY
-   let basex = Math.sqrt(Math.pow(R,2)-Math.pow(m,2))*((a.y-b.y)/q); //calculate once
-   let basey = Math.sqrt(Math.pow(R,2)-Math.pow(m,2))*((b.x-a.x)/q); //calculate once   
-   
-   let cX=basex+P.x;
-   let cY=basey+P.y;
-   let C1=new core.Point(cX,cY);
-   
-   
-    cX=P.x-basex;
-    cY=P.y-basey;
-    let C2=new core.Point(cX,cY);
-    
-     
-    
-  
-    //which of the 2 points is correct
-    let dist1=Math.round(this.distance(midP,C1));
-    let dist2=Math.round(this.distance(midP,C2));
-    
-
-    if(Math.round(R)==dist1){
-    	//utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[C1]);
-    	let startAngle = (180/Math.PI*Math.atan2(a.y-C1.y, a.x-C1.x));    	    	
-    	
-    	if(-180<startAngle&&startAngle<0){
-    		startAngle=Math.abs(startAngle);
-    	}else if(0<startAngle&&startAngle<=180){
-    		startAngle=360-startAngle;
-    	}
-    	
-    	let endAngle =  (180/Math.PI*Math.atan2(b.y-C1.y, b.x-C1.x));
-    	
-    	console.log(startAngle+' -------------- '+endAngle);
-    	
-    }else{
-    	//utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[C2]);
-    	let startAngle = (180/Math.PI*Math.atan2(a.y-C2.y, a.x-C2.x));
-    	if(-180<startAngle&&startAngle<0){
-    		startAngle=Math.abs(startAngle);
-    	}else{
-    		startAngle=360-startAngle;
-    	}
-    	let endAngle =  (180/Math.PI*Math.atan2(b.y-C2.y, b.x-C2.x));
-    	console.log(endAngle);
-    	if(-180<endAngle&&endAngle<0){
-    		endAngle=Math.abs(endAngle);
-    	}else{
-    		endAngle=(360-endAngle);
-    	}
-    	
-    	
-    	
-    	console.log(startAngle+' ++++++ '+endAngle);
-    	
-
-    }
-    
-    
+setRotation(rotate,center){
+	let alpha=rotate-this.rotate;
+	if(center==undefined){
+		this.arc.rotate(alpha,this.arc.center);
+	}else{
+		this.arc.rotate(alpha,center);	 	
+	}
+	this.rotate=rotate;
 }
 Rotate(rotation){
-   super.Rotate(rotation);
-   if(rotation.angle>0) {        //right                               
-       if((this.startAngle-90)<0){
-          this.startAngle=360-(90-this.startAngle); 
-       }else{
-          this.startAngle+=-90;   
-       }                                 
-   }else{                          //left                                
-       if((this.startAngle+90)>360){
-         this.startAngle=90-(360-this.startAngle);
-       }else{
-         this.startAngle+=90; 
-       }             
-   } 
+	//fix angle
+  let alpha=this.rotate+rotation.angle;
+  if(alpha>=360){
+		alpha-=360
+  }
+  if(alpha<0){
+	 alpha+=360; 
+  }	
+  this.rotate=alpha;	
+  this.arc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy)); 
 }
-Mirror(A,B) {
-    super.Mirror(A,B);
-    if(A.x==B.x){
-      //***which place in regard to x origine   
-      //***tweak angles 
-        if(this.startAngle<=180){
-         this.startAngle=(180-this.startAngle);
-        }else{
-         this.startAngle=(180+(360 -this.startAngle));
-        }
-      this.extendAngle=(-1)*this.extendAngle;
-    }else{    //***top-botom mirroring
-      //***which place in regard to y origine    
-      //***tweak angles
-      this.startAngle=360-this.startAngle;
-      this.extendAngle=(-1)*this.extendAngle;
-    }
+Mirror(line) {
+  this.arc.mirror(line);
 }
-Paint(g2, viewportWindow, scale) {
+/*
+ * Resize through mouse position point
+ */
+Resize(xoffset, yoffset,point) {    
+    let pt=this.calculateResizingMidPoint(point.x,point.y);    
+    let r=this.arc.center.distanceTo(pt);
+    this.arc.r=r;
+/*	
+	//old middle point on arc
+	let a1=this.arc.middle;  
+	//mid point on line
+	let m=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
+	//new middle point on arc
+	let a2=this.calculateResizingMidPoint(point.x,point.y);  //new middle
+	
+	//do they belong to the same plane in regard to m 
+	let vec = new d2.Vector(m, a2);
+	let linevec=new d2.Vector(m,a1);
+    let samePlane = d2.utils.GT(vec.dot(linevec.normalize()), 0);
+    
+    
+//which plane
+	console.log(samePlane);
+	if(!samePlane){
+		this.temp*=-1;
+		//this.arc.endAngle*=-1;	
+	}
+	if(this.temp>0){
+		let C=this.calculateResizingMidPoint(point.x,point.y);  //projection
+		let C1=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
+    
+		let y=C1.distanceTo(C);
+		let x=C1.distanceTo(this.arc.start);
+    
+		let l=(x*x)/y;
+		let lambda=(l-y)/2;
+
+		let v=new d2.Vector(C,C1);
+		let norm=v.normalize();			  
+	
+		let a=C1.x +lambda*norm.x;
+		let b=C1.y + lambda*norm.y;
+		let center=new d2.Point(a,b);
+    
+    
+		let startAngle =new d2.Vector(center,this.arc.start).slope;
+		let endAngle = new d2.Vector(center, this.arc.end).slope;
+    
+		let r = center.distanceTo(this.arc.start);
+
+    //fix angles
+		let start = 360 - startAngle;
+		let end= (360-endAngle-start);
+		if(end<0){ 
+			end=360-Math.abs(end);
+		}
+
+	
+		this.arc.center.set(center.x,center.y);
+		this.arc.r=r;
+		this.arc.startAngle=start;
+		this.arc.endAngle=end;
+	}else{
 		
-		var rect = this.getBoundingShape().getScaledRect(scale);
+	}
+*/
+}
+Move(xoffset,yoffset){
+  this.arc.move(xoffset,yoffset);	
+}
+paint(g2, viewportWindow, scale,layersmask) {
+    if((this.copper.getLayerMaskID()&layersmask)==0){
+        return;
+      }
+		var rect = this.arc.box;
+		rect.scale(scale.getScale());
 		if (!rect.intersects(viewportWindow)) {
 			return;
 		}
-		// ****3 http://scienceprimer.com/draw-oval-html5-canvas
+
 		g2.globalCompositeOperation = 'lighter';
 		g2.beginPath(); // clear the canvas context
 		g2.lineCap = 'round';
-		/*
-		convert to API angles
-		*/
-		let angles=this.convert(this.startAngle,this.extendAngle);
-		
-		g2.arc(rect.getCenterX() - viewportWindow.x, rect.getCenterY()
-						- viewportWindow.y, rect.width / 2, utilities
-						.radians(angles.x), utilities
-						.radians(angles.y), this.extendAngle>0);
+
 						
 		g2.lineWidth = this.thickness * scale.getScale();
-
+        		
+		
 		if (this.fill == core.Fill.EMPTY) {
 			if (this.selection) {
 					g2.strokeStyle = "gray";
 			} else {
 					g2.strokeStyle = this.copper.getColor();
 			}
-
-				g2.stroke();
+			g2._fill=false;
 		} else {
 			if (this.selection) {
 				g2.fillStyle = "gray";
 			} else {
 				g2.fillStyle = this.copper.getColor();
 			}
-				g2.fill();
+			g2._fill=true;
 		}
 
-				g2.globalCompositeOperation = 'source-over';
+		let a=this.arc.clone();
+		a.scale(scale.getScale());
+		a.move( - viewportWindow.x, - viewportWindow.y);		
+		a.paint(g2);
+
+		g2._fill=undefined;
+		
+		g2.globalCompositeOperation = 'source-over';
 
 		if (this.isSelected()) {
-			this.drawControlShape(g2, viewportWindow, scale);
-			this.drawArcPoints(g2, viewportWindow, scale);
+			this.drawControlPoints(g2, viewportWindow, scale);
 		}
-		
-
-        if(this.resizingPoint!=null){
-		   this.drawMousePoint(g2,viewportWindow,scale);
-        }
+		if (this.center!=null) {
+			utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.center]);	
+		}
 }
-
-//find the point between start and end point
-getMidPoint(){
-    let r=this.getWidth();  
-    let x = r * Math.cos(-Math.PI/180*(this.startAngle+(this.extendAngle/2))) + this.getX();
-    let y = r * Math.sin(-Math.PI/180*(this.startAngle+(this.extendAngle/2))) + this.getY();
-    return new core.Point(x,y);
+drawControlPoints(g2, viewportWindow, scale) {
+	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.arc.center,this.arc.start,this.arc.end,this.arc.middle]);	
 }
-
-getStartPoint() {
-        let r=this.getWidth();                
-        let x = r * Math.cos(-Math.PI/180*(this.startAngle)) + this.getX();
-        let y = r * Math.sin(-Math.PI/180*(this.startAngle)) + this.getY();
-        return new core.Point(x,y);
+setResizingPoint(pt){
+	this.resizingPoint=pt;
 }
-getEndPoint() {
-        let r=this.getWidth();  
-        let x = r * Math.cos(-Math.PI/180*(this.startAngle+this.extendAngle)) + this.getX();
-        let y = r * Math.sin(-Math.PI/180*(this.startAngle+this.extendAngle)) + this.getY();
-        return new core.Point(x,y);
+getResizingPoint() {
+	return this.resizingPoint;
 }
-drawArcPoints(g2, viewportWindow, scale){
-        let start=this.getStartPoint();
-        let end=this.getEndPoint();
-		let mid=this.getMidPoint();
-		
-        let line=new core.Line();
-        line.setLine(start.x - this.selectionRectWidth, start.y, start.x + this.selectionRectWidth, start.y);
-        line.draw(g2, viewportWindow, scale);		
-		
-        line.setLine(start.x, start.y- this.selectionRectWidth, start.x , start.y+ this.selectionRectWidth);
-        line.draw(g2, viewportWindow, scale);		
-		
-        line.setLine(end.x - this.selectionRectWidth, end.y, end.x + this.selectionRectWidth, end.y);
-        line.draw(g2, viewportWindow, scale);		
-		
-        line.setLine(end.x, end.y- this.selectionRectWidth, end.x , end.y+ this.selectionRectWidth);
-        line.draw(g2, viewportWindow, scale);    
-        
-        line.setLine(mid.x - this.selectionRectWidth, mid.y, mid.x + this.selectionRectWidth, mid.y);
-        line.draw(g2, viewportWindow, scale);		
-		
-        line.setLine(mid.x, mid.y- this.selectionRectWidth, mid.x , mid.y+ this.selectionRectWidth);
-        line.draw(g2, viewportWindow, scale);    
+calculateResizingMidPoint(x,y){
+	let line=new d2.Line(this.arc.center,this.arc.middle);
+	return line.projectionPoint(new d2.Point(x,y));	
+}
+//drawMousePoint(g2,viewportWindow,scale){
+//
+//	let point=this.calculateResizingMidPoint(this.resizingPoint.x,this.resizingPoint.y);
+//    
+//	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[point]);
+//    
+//}
 
+}
+class SolidRegion extends Shape{
+	constructor(layermaskId) {
+        super( 0, 0, 0,0, 0, layermaskId);
+        this.displayName = "Solid Region";
+        this.floatingStartPoint=new d2.Point();
+        this.floatingEndPoint=new d2.Point();                 
+        this.selectionRectWidth = 3000;
+        this.polygon=new d2.Polygon();
+        this.resizingPoint;
+        this.rotate=0;
     }
+clone(){
+	  var copy=new SolidRegion(this.copper.getLayerMaskID());
+      copy.polygon=this.polygon.clone();
+      copy.rotate=this.rotate;
+      return copy;
+}
+getOrderWeight(){
+	return this.polygon.box.area; 
+}
+alignResizingPointToGrid(targetPoint) {
+    this.owningUnit.grid.snapToGrid(targetPoint);         
+}
+calculateShape() {
+	return this.polygon.box;	
+}
+getLinePoints() {
+	   return this.polygon.points;
+}
+add(point) {
+	    this.polygon.add(point);
+}
+setResizingPoint(point) {
+	    this.resizingPoint=point;
+}
+isFloating() {
+    return (!this.floatingStartPoint.equals(this.floatingEndPoint));                
+}
+isClicked(x,y){
+	  return this.polygon.contains(x,y);
+}
+isControlRectClicked(x, y) {
+	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
+	let point = null;
 
+	this.polygon.points.some(function(wirePoint) {
+		if (rect.contains(wirePoint)) {
+					point = wirePoint;
+		  return true;
+		}else{
+		  return false;
+		}
+	});
+
+	return point;
+}
+Resize(xoffset, yoffset, clickedPoint) {
+	clickedPoint.set(clickedPoint.x + xoffset,
+								clickedPoint.y + yoffset);
+}
+reset(){
+	this.resetToPoint(this.floatingStartPoint);	
+}
+resetToPoint(p){
+    this.floatingStartPoint.set(p.x,p.y);
+    this.floatingEndPoint.set(p.x,p.y); 
+}
+Move(xoffset, yoffset) {
+	this.polygon.move(xoffset,yoffset);
+}
+Mirror(line) {
+    this.polygon.mirror(line);
+}
+setRotation(rotate,center){
+	let alpha=rotate-this.rotate;
+	let box=this.polygon.box;
+	if(center==null){
+		this.polygon.rotate(alpha,box.center);
+	}else{
+		this.polygon.rotate(alpha,center);	 	
+	}
+	this.rotate=rotate;
+}
+Rotate(rotation) {
+	//fix angle
+	let alpha=this.rotate+rotation.angle;
+	if(alpha>=360){
+		alpha-=360
+	}
+	if(alpha<0){
+	 alpha+=360; 
+	}	
+	this.rotate=alpha;
+	this.polygon.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+}
+paint(g2, viewportWindow, scale,layersmask) {		
+    if((this.copper.getLayerMaskID()&layersmask)==0){
+        return;
+    }
+	var rect = this.polygon.box;
+	rect.scale(scale.getScale());		
+	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
+		return;
+	}
+	
+	g2.lineWidth = 1;
+	
+	if(this.isFloating()){
+      g2.strokeStyle = this.copper.getColor();		
+	}else{
+	  g2._fill=true;
+	  if (this.selection) {
+		 g2.fillStyle = "gray";
+	  } else {
+		 g2.fillStyle = this.copper.getColor();
+	  }
+	}
+
+	
+
+	let a=this.polygon.clone();	
+	if (this.isFloating()) {
+		let p = this.floatingEndPoint.clone();
+		a.add(p);	
+    }
+	a.scale(scale.getScale());
+	a.move( - viewportWindow.x, - viewportWindow.y);		
+	a.paint(g2);
+	g2._fill=false;
+    
+	if (this.isSelected()) {
+		this.drawControlPoints(g2, viewportWindow, scale);
+	}
+}
+drawControlPoints(g2, viewportWindow, scale) {
+	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.polygon.points);	
+}
+toXML() {
+	var result = "<solidregion copper=\"" + this.copper.getName() + "\">";
+	this.polygon.points.forEach(function(point) {
+		result += point.x + "," + point.y + ",";
+	});
+	result += "</solidregion>";
+	return result;
+}
+fromXML(data) {
+       if(j$(data).attr("copper")!=null){
+        this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
+       }else{
+        this.copper=core.Layer.Copper.FSilkS;
+       }	
+   	   var tokens = data.textContent.split(",");
+	   var len = Math.floor(tokens.length / 2) * 2;
+	   for (var index = 0; index < len; index += 2) {
+			var x = parseFloat(tokens[index]);
+			var y = parseFloat(tokens[index + 1]);
+			this.polygon.points.push(new d2.Point(x, y));
+		}
+}
 }
 
 class Line extends AbstractLine{
 constructor(thickness,layermaskId) {
-			super(thickness,layermaskId);
-			this.selectionRectWidth = 3000;
-			this.setDisplayName("Line");			
-			this.points = [];
-			this.floatingStartPoint = new core.Point(0, 0); // ***the
-																				// last
-																				// wire
-																				// point
-			this.floatingMidPoint = new core.Point(0, 0); // ***mid
-																			// 90
-																			// degree
-																			// forming
-			this.floatingEndPoint = new core.Point(0, 0);
+			super(thickness,layermaskId);	
 }
-//getLinePoints(){
-//	return this.points;
-//}
-//Clear(){
-//	this.points=null;
-//}
 clone() {
-		var copy = new Line(this.thickness,this.copper.getLayerMaskID());
-			for (var index = 0; index < this.points.length; index++) {
-						copy.points.push(new core.Point(this.points[index].x,this.points[index].y));
-			}
-		return copy;
-
+		  var copy = new Line(this.thickness,this.copper.getLayerMaskID());
+		  copy.polyline=this.polyline.clone();
+		  copy.rotate=this.rotate;
+		  return copy;
 		}
 alignToGrid(isRequired) {
     if (isRequired) {
-        this.points.forEach(function(wirePoint){
+        this.polyline.points.forEach(function(wirePoint){
             let point = this.owningUnit.getGrid().positionOnGrid(wirePoint.x, wirePoint.y);
-              wirePoint.setLocation(point.x,point.y);
+              wirePoint.set(point.x,point.y);
         }.bind(this));
     }
     return null;
 }
-//alignResizingPointToGrid(targetPoint) {
-//     this.owningUnit.grid.snapToGrid(targetPoint);         
-//}
-//isClicked(x, y) {
-//	  var result = false;
-//		// build testing rect
-//	  var rect = new core.Rectangle(x
-//								- (this.thickness / 2), y
-//								- (this.thickness / 2), this.thickness,
-//								this.thickness);
-//	  var r1 = new core.Point(rect.getMinX(), rect.getMinY());
-//	  var r2 = new core.Point(rect.getMaxX(), rect.getMaxY());
-//
-//	  // ***make lines and iterate one by one
-//	  var prevPoint = this.points[0];
-//
-//	  this.points.some(function(wirePoint) {
-//							// skip first point
-//							{
-//								if (utilities.intersectLineRectangle(
-//										prevPoint, wirePoint, r1, r2)) {
-//									result = true;
-//									return true;
-//								}
-//								prevPoint = wirePoint;
-//							}
-//
-//						});
-//
-// 	return result;
-//}
 
-//getResizingPoint() {
-//	return this.resizingPoint;
-//}
 getOrderWeight() {
 	return 2;
 }
-//setResizingPoint(point) {
-//  this.resizingPoint = point;
-//}
-//resetToPoint(point) {
-//	this.floatingStartPoint.setLocationPoint(point);
-//	this.floatingMidPoint.setLocationPoint(point);
-//	this.floatingEndPoint.setLocationPoint(point);
-//}
-//reset() {
-//	this.resetToPoint(this.floatingStartPoint);
-//}
-//reverse(x,y) {
-//    let p=this.isBendingPointClicked(x, y);
-//    if (this.points[0].x == p.x &&
-//        this.points[0].y == p.y) {
-//    	this.points.reverse(); 
-//    }       
-//}
-//Resize(xoffset, yoffset, clickedPoint) {
-//	clickedPoint.setLocation(clickedPoint.x + xoffset,
-//								clickedPoint.y + yoffset);
-//}
-//
-//insertPoint( x, y) {
-//    
-//    let flag = false;
-//    let point = this.owningUnit.grid.positionOnGrid(x, y);
-//
-//    var rect = new core.Rectangle(x - this.owningUnit.grid.getGridPointToPoint(),
-//                      y - this.owningUnit.grid.getGridPointToPoint() ,
-//                      2*this.owningUnit.grid.getGridPointToPoint(),
-//                      2*this.owningUnit.grid.getGridPointToPoint());
-//
-//    let line = new core.Line();
-//
-//
-//    let tmp = new core.Point(point.x, point.y);
-//    let midium = new core.Point();
-//
-//    //***add point to the end;
-//    this.points.push(point);
-//
-//    let prev = this.points[0];
-//    this.points.forEach(function(next){
-//        if(prev!=next){
-//    	 if (!flag) {
-//            //***find where the point is - 2 points between the new one
-//            line.setLine(prev.x,prev.y, next.x,next.y);
-//            if (line.intersectRect(rect))
-//                flag = true;
-//         } else {
-//            midium.setLocationPoint(tmp); //midium.setPin(tmp.getPin());
-//            tmp.setLocationPoint(prev); //tmp.setPin(prev.getPin());
-//            prev.setLocationPoint(midium); //prev.setPin(midium.getPin());
-//         }
-//        }
-//        prev = next;
-//    });
-//    if (flag)
-//        prev.setLocationPoint(tmp); //prev.setPin(tmp.getPin());
-//}
-//removePoint(x, y) {
-//    let point = this.isBendingPointClicked(x, y);
-//    if (point != null) {
-//    	
-//    	var tempArr = this.points.filter(function(item) { 
-//    	    return item !== point;
-//    	});
-//        
-//    	this.points=tempArr;
-//    }
-//}
-//deleteLastPoint() {
-//	if (this.points.length == 0)
-//		return;
-//
-//	this.points.pop();
-//
-//						// ***reset floating start point
-//	if (this.points.length > 0)
-//					this.floatingStartPoint
-//									.setLocation(this.points[this.points.length - 1]);
-//}
-//isEndPoint(x,y){
-//    if (this.points.length< 2) {
-//        return false;
-//    }
-//
-//    let point = this.isBendingPointClicked(x, y);
-//    if (point == null) {
-//        return false;
-//    }
-//    //***head point
-//    if (this.points[0].x == point.x && this.points[0].y == point.y) {
-//        return true;
-//    }
-//    //***tail point
-//    if ((this.points[this.points.length - 1].x == point.x )&& (this.points[this.points.length - 1].y == point.y)) {
-//        return true;
-//    }
-//    return false;	
-//}
-//isInRect(r) {
-//	var result = true;
-//	this.points.some(function(wirePoint) {
-//			if (!r.contains(wirePoint.x, wirePoint.y)) {
-//				result = false;
-//				return true;
-//			}else{
-//			  return false;
-//			}
-//	});
-//	return result;
-//}
-//setSelected(selection) {
-//     super.setSelected(selection);
-//     if (!selection) {
-//        this.resizingPoint = null;
-//     }
-//}
-//isBendingPointClicked( x,  y) {
-//	var rect = new core.Rectangle(x
-//			- this.selectionRectWidth / 2, y - this.selectionRectWidth
-//			/ 2, this.selectionRectWidth, this.selectionRectWidth);
-//
-//    let point = null;
-//
-//	this.points.some(function(wirePoint) {
-//		if (rect.contains(wirePoint.x, wirePoint.y)) {
-//					point = wirePoint;
-//		  return true;
-//		}else{
-//		  return false;
-//		}
-//	});
-//
-//	return point;
-//}
-//isControlRectClicked(x, y) {
-//	var rect = new core.Rectangle(x
-//								- this.selectionRectWidth / 2, y - this.selectionRectWidth
-//								/ 2, this.selectionRectWidth, this.selectionRectWidth);
-//	let point = null;
-//
-//	this.points.some(function(wirePoint) {
-//		if (rect.contains(wirePoint.x, wirePoint.y)) {
-//					point = wirePoint;
-//		  return true;
-//		}else{
-//		  return false;
-//		}
-//	});
-//
-//	return point;
-//}
-//Move(xoffset, yoffset) {
-//	this.points.forEach(function(wirePoint) {
-//		wirePoint.setLocation(wirePoint.x + xoffset,
-//									wirePoint.y + yoffset);
-//	});
-//}
-//Mirror(A,B) {
-//	this.points.forEach(function(wirePoint) {
-//		wirePoint.setLocationPoint(utilities.mirrorPoint(A,B, wirePoint));
-//	});
-//}
-//Rotate(rotation) {
-//	this.points.forEach(function(wirePoint) {
-//				var p = utilities.rotate(wirePoint,
-//									rotation.originx, rotation.originy,
-//									rotation.angle);
-//				wirePoint.setLocation(p.x, p.y);
-//	});
-//}
-//calculateShape() {
-//	var rect = new core.Rectangle();
-//	var x1 = Number.MAX_VALUE, y1 = Number.MAX_VALUE,
-//								x2 = Number.MIN_VALUE, y2 = Number.MIN_VALUE;
-//
-//	this.points.forEach(function(point) {
-//							x1 = Math.min(x1, point.x);
-//							y1 = Math.min(y1, point.y);
-//							x2 = Math.max(x2, point.x);
-//							y2 = Math.max(y2, point.y);
-//	});
-//
-//	rect.setRect(x1, y1, (x2 - x1) == 0 ? 1 : x2 - x1, y2
-//								- y1 == 0 ? 1 : y2 - y1);
-//
-//						return rect;
-//}
-//drawControlShape(g2, viewportWindow,scalableTransformation) {
-//	var line=new core.Line();
-//	g2.lineWidth=1; 
-//						
-//	this.points.forEach(function(wirePoint) {
-//		if (this.resizingPoint != null
-//									&& this.resizingPoint.equals(wirePoint))
-//			g2.strokeStyle  = 'yellow';
-//		else
-//			g2.strokeStyle  = 'blue';
-//
-//		line.setLine(wirePoint.x - this.selectionRectWidth,
-//									wirePoint.y, wirePoint.x
-//											+ this.selectionRectWidth, wirePoint.y);
-//	    line.draw(g2, viewportWindow,
-//									scalableTransformation);
-//
-//	    line.setLine(wirePoint.x, wirePoint.y
-//									- this.selectionRectWidth, wirePoint.x,
-//									wirePoint.y + this.selectionRectWidth);
-//		line.draw(g2, viewportWindow,
-//									scalableTransformation);
-//	}.bind(this));
-//}
-//isFloating() {
-//	return (!(this.floatingStartPoint
-//								.equals(this.floatingEndPoint) && this.floatingStartPoint
-//								.equals(this.floatingMidPoint)));
-//}
-Paint(g2, viewportWindow, scale) {
-		var rect = this.getBoundingShape().getScaledRect(scale);
-		if (!this.isFloating()
-								&& (!rect.intersects(viewportWindow))) {
+
+paint(g2, viewportWindow, scale,layersmask) {		
+    if((this.copper.getLayerMaskID()&layersmask)==0){
+        return;
+    }	
+		var rect = this.polyline.box;
+		rect.scale(scale.getScale());		
+		if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
 			return;
 		}
-						// scale points
-		let dst = [];
-		this.points.forEach(function(wirePoint) {
-			dst.push(wirePoint.getScaledPoint(scale));
-		});
-
+				
 		g2.globalCompositeOperation = 'lighter';
-		g2.beginPath();
 		g2.lineCap = 'round';
 		g2.lineJoin = 'round';
-		g2.moveTo(dst[0].x - viewportWindow.x, dst[0].y
-								- viewportWindow.y);
-		for (var i = 1; i < dst.length; i++) {
-							g2.lineTo(dst[i].x - viewportWindow.x, dst[i].y
-									- viewportWindow.y);
-		}
+		
 
 		g2.lineWidth = this.thickness * scale.getScale();
 
-		// draw floating point
-		if (this.isFloating()) {
-				let p = this.floatingEndPoint.getScaledPoint(scale);
-					g2.lineTo(p.x - viewportWindow.x, p.y
-									- viewportWindow.y);
-		}
 
 		if (this.selection)
 			g2.strokeStyle = "gray";
 		else
 			g2.strokeStyle = this.copper.getColor();
 
-		g2.stroke();
+		let a=this.polyline.clone();
+		a.scale(scale.getScale());
+		a.move( - viewportWindow.x, - viewportWindow.y);		
+		a.paint(g2);
+		
+		// draw floating point
+		if (this.isFloating()) {
+				let p = this.floatingEndPoint.clone();
+				p.scale(scale.getScale());
+				p.move( - viewportWindow.x, - viewportWindow.y);
+					g2.lineTo(p.x, p.y);									
+					g2.stroke();					
+		}
+		
 		g2.globalCompositeOperation = 'source-over';
-
 		if (this.selection) {
-			this.drawControlShape(g2, viewportWindow, scale);
+			this.drawControlPoints(g2, viewportWindow, scale);
 		}
 
 }
+
 toXML() {
 	var result = "<line copper=\"" + this.copper.getName()
 								+ "\" thickness=\"" + this.thickness + "\">";
-	this.points.forEach(function(point) {
-		result += point.x + "," + point.y + ",";
-	});
+	this.polyline.points.forEach(function(point) {
+		result += utilities.roundFloat(point.x,5) + "," + utilities.roundFloat(point.y,5) + ",";
+	},this);
 	result += "</line>";
 	return result;
 }
@@ -1116,60 +1037,64 @@ fromXML(data) {
    	   var tokens = data.textContent.split(",");
 	   var len = Math.floor(tokens.length / 2) * 2;
 	   for (var index = 0; index < len; index += 2) {
-			var x = parseInt(tokens[index]);
-			var y = parseInt(tokens[index + 1]);
-			this.points.push(new core.Point(x, y));
+			var x = parseFloat(tokens[index]);
+			var y = parseFloat(tokens[index + 1]);
+			this.polyline.points.push(new d2.Point(x, y));
 		}
 }
 }
 
 
-class Drill extends Shape{
-	 constructor(width,height) {
-		super(0,0,width,height,-1);
+class Drill{
+	 constructor(x,y,width) {
+	    this.circle=new d2.Circle(new d2.Point(x,y),width/2);
+	 }
+	 clone(){
+		 let copy= new Drill(0);
+		 copy.circle.pc.x=this.circle.pc.x;
+		 copy.circle.pc.y=this.circle.pc.y;
+		 copy.circle.r=this.circle.r;
+		 return copy;
 	 }
 	 setLocation(x,y){
-	   this.x=x;
-	   this.y=y;
+        this.circle.pc.x=x;
+        this.circle.pc.y=y;
 	 }
-	Move( xoffset, yoffset) {
-	      this.x+=xoffset;
-	      this.y+=yoffset;
-	    }
-	Rotate(rotation) {
-	    	var a=new core.Point(this.x,this.y);
-	    	var p=utilities.rotate(a, rotation.originx, rotation.originy, rotation.angle);
-	        this.setX(p.x);
-	        this.setY(p.y);
-	        var w=this.getWidth();
-	        this.setWidth(this.getHeight());
-	        this.setHeight(w);        
-	 } 
-    Mirror(A,B) {
-        let source=new core.Point(this.x,this.y);
-        utilities.mirrorPoint(A,B, source); 
-        this.setX(source.x);
-        this.setY(source.y);
-    }	
-	calculateShape() {
-		 return new core.Rectangle((this.getX()-this.getWidth()/2),(this.getY()-this.getWidth()/2),this.getWidth(),this.getWidth());
-	}
-	Paint(g2,viewportWindow,scale){
-		var rect=this.getBoundingShape().getScaledRect(scale);
-	    g2.beginPath(); //clear the canvas context
-		g2.arc((rect.x+(rect.width/2))-viewportWindow.x, (rect.y+(rect.width/2))-viewportWindow.y, rect.width/2, 0, 2 * Math.PI, false);
-	    g2.closePath();
+	 Move( xoffset, yoffset) {
+		this.circle.move(xoffset,yoffset);
+	 }
+	 getWidth(){
+		 return 2*this.circle.r;
+	 }
+	 setWidth(width){
+		 this.circle.r=width/2;
+	 }
+	 Rotate(rotation) {
+		 this.circle.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	 }
+	 rotate(alpha,origin){
+	    if(origin==null){
+	       this.circle.rotate(alpha);
+	    }else{
+	       this.circle.rotate(alpha,origin);	
+	    }		 
+	 }
+	paint(g2,viewportWindow,scale){
+	    g2._fill=true;
 	    g2.fillStyle = 'black';
-	    g2.fill();
+	    let c=this.circle.clone();
+		c.scale(scale.getScale());
+        c.move(-viewportWindow.x,- viewportWindow.y);
+		c.paint(g2);
+		
+		g2._fill=false;
 	}
 	toXML(){
-	    return "<drill type=\"CIRCULAR\" x=\""+this.getX()+"\" y=\""+this.getY()+"\" width=\""+this.getWidth()+"\" height=\""+this.getHeight()+"\" />";	
+	    return "<drill type=\"CIRCULAR\" x=\""+this.circle.pc.x+"\" y=\""+this.circle.pc.y+"\" width=\""+2*this.circle.radius+"\" />";	
 	}
 	fromXML(data){ 
-	   this.setX(parseInt(j$(data).attr("x")));
-	   this.setY(parseInt(j$(data).attr("y")));
-	   this.setWidth(parseInt(j$(data).attr("width")));
-	   this.setHeight(parseInt(j$(data).attr("height")));
+	   this.setLocation(parseInt(j$(data).attr("x")),parseInt(j$(data).attr("y")));
+	   this.setWidth(parseInt(j$(data).attr("width")));  	   
 	}
 }
 
@@ -1242,42 +1167,42 @@ PadType={
 	   }
 };
 
-class Pad extends core.Shape{
+class Pad extends Shape{
 	constructor(x,y,width,height) {
-	   super(x, y, width, height, -1, core.Layer.LAYER_BACK);
-	   this.arc=width;
+	   super(0, 0, width, height, -1, core.Layer.LAYER_BACK);
 	   this.drill=null;
-	   this.setType(PadType.THROUGH_HOLE);
-	   this.setShape(PadShape.CIRCULAR);
-	   this.offset=new core.Point(0,0);
+	   this.rotate=0;
+	   this.offset=new d2.Point(0,0);
+	   this.shape=new CircularShape(0,0,width,this);
+	   this.setType(PadType.THROUGH_HOLE);	   
 	   this.setDisplayName("Pad");
-	   
 	   this.text=new core.ChipText();
-	   this.text.Add(new font.FontTexture("number","",x,y,new core.Alignment(core.AlignEnum.LEFT),4000));
-	   this.text.Add(new font.FontTexture("netvalue","",x,y,new core.Alignment(core.AlignEnum.LEFT),4000));   
+	   this.text.Add(new font.FontTexture("number","1",x,y,4000,0));
+	   this.text.Add(new font.FontTexture("netvalue","",x,y,4000,0));   
 	}
 clone(){
-	     var copy=new Pad(this.x,this.y,this.width,this.height);
+	     var copy=new Pad(0,0,this.width,this.height);
 	     copy.setType(this.type);
-		 copy.setX(this.getX());
-		 copy.setY(this.getY());
-	     copy.setWidth(this.getWidth());
-	     copy.setHeight(this.getHeight());
-	     copy.arc=this.arc;     
-	     copy.setShape(this.getShape());
+	     copy.width=this.width;
+	     copy.height=this.height;
+	     copy.rotate=this.rotate;
+	     copy.shape=this.shape.copy(copy);
 	     copy.copper=this.copper;
 	     copy.text=this.text.clone();
 	     if(this.drill!=null){
-	    	 copy.drill=new Drill(this.drill.width,this.drill.height);
-	    	 copy.drill.setLocation(this.drill.x,this.drill.y);
+	    	 copy.drill=this.drill.clone();
 	     }
 	     return copy;
 	}
 getChipText() {
 	    return this.text;
 }
+getCenter(){
+	return this.shape.center;
+}
 toXML(){
-	    var xml="<pad copper=\""+this.copper.getName()+"\" type=\"" +PadType.format(this.type) + "\" shape=\""+PadShape.format(this.getShape())+"\" x=\""+this.getX()+"\" y=\""+this.getY()+"\" width=\""+this.getWidth()+"\" height=\""+this.getHeight()+"\" arc=\""+this.arc+"\">\r\n";
+	    var xml="<pad copper=\""+this.copper.getName()+"\" type=\"" +PadType.format(this.type) + "\" shape=\""+PadShape.format(this.getShape())+"\" x=\""+this.shape.center.x+"\" y=\""+this.shape.center.y+"\" width=\""+this.getWidth()+"\" height=\""+this.getHeight()+"\" rt=\""+this.rotate+"\">\r\n";
+	        //xml+=this.shape.toXML()+"\r\n";
 	        xml+="<offset x=\""+this.offset.x+"\" y=\""+this.offset.y+"\" />\r\n";
 	    
 	        if (!this.text.getTextureByTag("number").isEmpty())
@@ -1297,12 +1222,16 @@ toXML(){
 fromXML(data){   
 		      this.copper=core.Layer.Copper.valueOf(j$(data).attr("copper"));
 		      this.setType(PadType.parse(j$(data).attr("type")));
-			  this.setX(parseInt(j$(data).attr("x")));
-			  this.setY(parseInt(j$(data).attr("y")));
-		      this.setWidth(parseInt(j$(data).attr("width")));
-		      this.setHeight(parseInt(j$(data).attr("height")));
-		      this.arc=(parseInt(j$(data).attr("arc")));
-		      this.setShape(PadShape.parse(j$(data).attr("shape")));
+		      
+			  let x=(parseInt(j$(data).attr("x")));
+			  let y=(parseInt(j$(data).attr("y")));
+		      this.width=(parseInt(j$(data).attr("width")));
+		      this.height=(parseInt(j$(data).attr("height")));
+		      
+		      if(j$(data).attr("rt")!=undefined)
+		        this.rotate=(parseInt(j$(data).attr("rt")));
+		      
+		      this.setShape(x,y,PadShape.parse(j$(data).attr("shape")));
 			  
 		      var offset=(j$(data).find("offset"));
 		      this.offset.x=(parseInt(j$(offset).attr("x")));
@@ -1311,7 +1240,7 @@ fromXML(data){
 		      if(this.drill!=null){
 		          this.drill.fromXML(j$(data).find("drill"));
 		      }   
-		      
+
 		      var number=(j$(data).find("number").text()); 
 			  var netvalue=(j$(data).find("netvalue").text());
 			  if(number==''){
@@ -1327,33 +1256,37 @@ fromXML(data){
 		     
 	}
 getPinsRect() {
-	     return new core.Rectangle(this.x, this.y, 0,0);
+	     return d2.Box.fromRect(this.shape.center.x, this.shape.center.y, 0,0);
 	}
 alignToGrid(isRequired){
-	     var point=this.owningUnit.getGrid().positionOnGrid(this.x,this.y);
-	     this.Move(point.x - this.x,point.y - this.y);
+	     var center=this.shape.center;
+	     var point=this.owningUnit.getGrid().positionOnGrid(center.x,center.y);
+	     this.Move(point.x - center.x,point.y - center.y);
 	     return null;     
 	}	
 getOrderWeight(){
 	     return 2; 
 	}
 isClicked(x,y){
-	    let rect=super.getBoundingShape();
-	    if(rect.contains(x,y))
+	    if(this.shape.contains(new d2.Point(x,y)))
 	     return true;
 	    else
 	     return false;  
 	 }
 isInRect(r) {
 		 let rect=super.getBoundingShape();
-	     if(r.contains(rect.getCenterX(),rect.getCenterY()))
+	     if(r.contains(rect.center))
 	         return true;
 	        else
 	         return false; 
-	}	
+	}
+setSelected (selection) {
+	super.setSelected(selection);
+	this.text.setSelected(selection);
+}
 Move(xoffset, yoffset){
-	   this.x+=xoffset;
-	   this.y+=yoffset;
+	   this.shape.move(xoffset, yoffset);
+	   
 	   if(this.drill!=null){
 	     this.drill.Move(xoffset, yoffset);
 	   }
@@ -1361,36 +1294,55 @@ Move(xoffset, yoffset){
 	   
 	}
 
-Mirror(A,B) {
-    let source = new core.Point(this.x,this.y);
-    utilities.mirrorPoint(A, B, source);
-    this.setX(source.x);
-    this.setY(source.y);
-    if (this.drill != null) {
-        this.drill.Mirror(A, B);
-    }
-    this.text.Mirror(A, B);
+Mirror(line) {
+//    let source = new d2.Point(this.x,this.y);
+//    utilities.mirrorPoint(A, B, source);
+//    this.setX(source.x);
+//    this.setY(source.y);
+//    if (this.drill != null) {
+//        this.drill.Mirror(A, B);
+//    }
+//    this.text.Mirror(A, B);
+}
+setRotation(rotate,center){	
+	let alpha=rotate-this.rotate;	
+	if(center==null){
+	  this.shape.rotate(alpha);
+	  this.text.setRotation(rotate,this.shape.center);
+	  if(this.drill!=null){
+		this.drill.rotate(alpha);
+	  }	  	  
+	}else{		
+	  this.shape.rotate(alpha,center);
+	  this.text.setRotation(rotate,center);
+	  if(this.drill!=null){
+	    this.drill.rotate(alpha,center);
+	  }	  
+	}
+	this.rotate=rotate;
 }
 Rotate(rotation){
-		var a=new core.Point(this.getX(),this.getY());
-		var p=utilities.rotate(a, rotation.originx, rotation.originy, rotation.angle);
-	    this.setX(p.x);
-	    this.setY(p.y);
-	    let w=this.getWidth();
-	    this.setWidth(this.getHeight());
-	    this.setHeight(w);
-	    if(this.drill!=null){
-	       this.drill.Rotate(rotation);
-	    }
-	    this.text.Rotate(rotation);		
+	let alpha=this.rotate+rotation.angle;
+	if(alpha>=360){
+		alpha-=360
+	}
+	 if(alpha<0){
+		 alpha+=360; 
+	 }
+	this.shape.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	
+    if(this.drill!=null){
+     this.drill.Rotate(rotation);
+    }	
+	this.text.setRotation(alpha,new d2.Point(rotation.originx,rotation.originy));
+	this.rotate=alpha;
+	
 	}
 setType(type) {
 	        this.type = type;
 	        switch(type){
 	        case PadType.THROUGH_HOLE:
 	            if(this.drill==null){
-	                this.drill=new Drill(this.owningUnit,20,20);
-	                this.drill.setLocation(this.x,this.y);
+	            	this.drill=new Drill(this.shape.center.x,this.shape.center.y,core.MM_TO_COORD(0.8));		               	                
 	            }
 	            break;
 	        case PadType.SMD:
@@ -1398,21 +1350,35 @@ setType(type) {
 	            break;
 			}
 }
-setShape(shape){
+setShape(...args){
+	    let shape,x,y; 
+	    if(args.length==1){
+	      x=this.shape.center.x;
+	      y=this.shape.center.y;
+	      shape=args[0];
+	    }else{
+		  x=args[0];
+		  y=args[1];
+		  shape=args[2];	      	
+	    }
 	    switch(shape){
 	    case PadShape.CIRCULAR:
-	        this.shape=new CircularShape(this);
+	        this.shape=new CircularShape(x,y,this.width,this);
 	    break;
 	     case PadShape.OVAL: 
-	        this.shape=new OvalShape(this);
+	        this.shape=new OvalShape(x,y,this.width,this.height,this);
 	        break;
 	    case PadShape.RECTANGULAR:
-	        this.shape=new RectangularShape(this);
+	        this.shape=new RectangularShape(x,y,this.width,this.height,this);
 	        break;
 	    case PadShape.POLYGON:
-		    this.shape = new PolygonShape(this);
+		    this.shape = new PolygonShape(x,y,this.width,this);
 	        break;
-	    }    	
+	    } 
+	    //restore rotation
+	    if(this.rotate!=0){
+		  this.shape.rotate(this.rotate);
+	    }
 }
 getShape(){
 		if(this.shape instanceof CircularShape)
@@ -1425,198 +1391,358 @@ getShape(){
 	        return PadShape.POLYGON;		
 }    
 setWidth(width){
+	        this.width=width;
 	        this.shape.setWidth(width);    
 	    }
 setHeight(height){
+	        this.height=height;
 	        this.shape.setHeight(height);
 	    }
 calculateShape() {
-	        return new core.Rectangle((this.getX()-this.getWidth()/2)-this.offset.x,(this.getY()-this.getHeight()/2)-this.offset.y,this.getWidth(),this.getHeight());
-	    } 
-setLocation( x,  y) {
-		 throw new IllegalStateException("Doubt that setLocation will be invoked");
-	}    
-Paint(g2,viewportWindow,scale){
-	    switch(this.type){
+	return this.shape.box;
+} 
+validateClearance(source){
+    //is different layer and SMD -> no clearance
+    if ((source.copper.getLayerMaskID() & this.copper.getLayerMaskID()) == 0) {
+        //if(this.type==PadType.SMD)
+           return false; //not on the same layer
+    }	
+	return true;
+}
+drawClearence(g2,viewportWindow,scale,source){
+    if(!this.validateClearance(source)){
+        return;
+    }
+	
+	this.shape.drawClearence(g2,viewportWindow,scale,source);
+}
+paint(g2,viewportWindow,scale,layersmask){
+//    if((this.copper.getLayerMaskID()&layersmask)==0){
+//        return;
+//    }	
+	switch(this.type){
 	    case PadType.THROUGH_HOLE:
-	        if(this.shape.Paint(g2, viewportWindow, scale)){
+	        if(this.shape.paint(g2, viewportWindow, scale)){
 	         if(this.drill!=null){
-	            this.drill.Paint(g2, viewportWindow, scale);
+	            this.drill.paint(g2, viewportWindow, scale);
 	         }
 	        }
 	        break;
 	    case PadType.SMD:
-	        this.shape.Paint(g2, viewportWindow, scale);
+	        this.shape.paint(g2, viewportWindow, scale);
 	        break;
 	    
 	    }
-	    this.text.Paint(g2, viewportWindow, scale);
+	    this.text.paint(g2, viewportWindow, scale);	    
 	 }
 
 }
 	//----------CircularShape-------------------
 class CircularShape{
-	constructor(pad){
+	constructor(x,y,width,pad){
 		this.pad=pad;
-		this.setWidth(this.pad.getWidth());
+		this.circle=new d2.Circle(new d2.Point(x,y),width/2);		
 	}
-    Paint(g2,viewportWindow,scale){
-		var rect=this.pad.getBoundingShape().getScaledRect(scale);
-	    //check if outside of visible window
-	    if(!rect.intersects(viewportWindow)){
-	    	return false;
-	    }
+	drawClearence(g2,viewportWindow,scale,source){
+	    let c=this.circle.clone();
+	    
 		
-	    g2.beginPath(); //clear the canvas context
-		g2.arc((rect.x+(rect.width/2))-viewportWindow.x, (rect.y+(rect.width/2))-viewportWindow.y, rect.width/2, 0, 2 * Math.PI, false);
-		g2.closePath();
+		g2._fill=true;
+		g2.fillStyle = "black";	
+		
+		c.grow(source.clearance);
+		
+		
+	    c.scale(scale.getScale());		
+	    c.move(-viewportWindow.x,- viewportWindow.y);
+		c.paint(g2);
+		
+	    g2._fill=false;			
+	}	
+    paint(g2,viewportWindow,scale){
+	     var box=this.circle.box;
+	     box.scale(scale.scale);     
+       //check if outside of visible window
+	     var window=new d2.Box(0,0,0,0);
+	     window.setRect(viewportWindow.x,viewportWindow.y,viewportWindow.width,viewportWindow.height);
+         if(!box.intersects(window)){
+           return false;
+         }
+	    
+	    
 		if(this.pad.isSelected())
 	        g2.fillStyle = "gray";  
 	    else{
 	        g2.fillStyle = this.pad.copper.getColor();
 	    }
-	    g2.fill();
-
-	    return true;
+	    g2._fill=true;
+		
+	    let c=this.circle.clone();
+		c.scale(scale.getScale());
+        c.move(-viewportWindow.x,- viewportWindow.y);
+		c.paint(g2);
+		
+		g2._fill=false;
+		
+		return true;
+	}
+    copy(pad){
+  	  let _copy=new CircularShape(0,0,0,pad);
+  	  _copy.circle=this.circle.clone();	  
+  	  return _copy;  
+  	} 
+    rotate(alpha,origin){
+    	if(origin==null){
+    	  this.circle.rotate(alpha);
+    	}else{
+    	  this.circle.rotate(alpha,origin);	
+    	}
+    }    
+    contains(pt){
+    	return this.circle.contains(pt);
+    }
+	move(xoffset, yoffset) {
+		this.circle.move(xoffset,yoffset);
+	}	
+	get box(){
+		return this.circle.box;
+	}
+	get center(){
+		return this.circle.center;	
 	}
     setWidth(width) {
-	   this.pad.width=width;
-	   this.setHeight(width);
+	   this.circle.r=width/2;
 	}
-    setHeight(height) {
-	    this.pad.height=height;           
-	}
-}	
-//------------OvalShape-----------------------
-class OvalShape{
-	constructor(pad){
-	   this.pad=pad;
-	}
-Paint(g2,viewportWindow,scale){
-		  var rect=this.pad.getBoundingShape().getScaledRect(scale);
-	      //check if outside of visible window
-	      if(!rect.intersects(viewportWindow)){
-	        return false;
-	      }
-		  g2.beginPath(); //clear the canvas context
-		  utilities.roundrect(g2,rect.x-viewportWindow.x, rect.y-viewportWindow.y, rect.width, rect.height,this.pad.arc*scale.getScale());
-	      g2.closePath();
-	      if(this.pad.isSelected())
-	        g2.fillStyle = "gray";  
-	      else{
-	        g2.fillStyle = this.pad.copper.getColor();
-	      }
-	      g2.fill();
+    setHeight(height){
+	
+    }
 
-	      return true;
-}
-setWidth(width) {
-	    this.pad.width=width;
-	    if(width<this.pad.height){
-	      this.pad.arc=width;
-	    }else{
-	      this.pad.arc=this.pad.height;  
-	    }
-}
-setHeight(height) {
-	    this.pad.height=height;
-	    if(height<this.pad.width){
-	      this.pad.arc=height;
-	    }else{
-	      this.pad.arc=this.pad.width;  
-	    }
-}
 }
 //------------RectangularShape----------------
 class RectangularShape{
-	constructor(pad){
+	constructor(x,y,width,height,pad){
 		this.pad=pad;
+		this.rect=new d2.Rectangle(new d2.Point(x-width/2,y-height/2),width,height);			
 }
-Paint(g2,viewportWindow,scale){
-		var rect=this.pad.getBoundingShape().getScaledRect(scale);
-	    //check if outside of visible window
-	    if(!rect.intersects(viewportWindow)){
-	        return false;
-	    }
-	    g2.beginPath();
-	    utilities.roundrect(g2,rect.x-viewportWindow.x, rect.y-viewportWindow.y, rect.width, rect.height,0);
-	    g2.closePath();
+drawClearence(g2,viewportWindow,scale,source){
+    let r=this.rect.clone();
+    
+	
+	g2._fill=true;
+	g2.fillStyle = "black";	
+	
+	r.grow(source.clearance);
+	
+    r.scale(scale.getScale());		
+    r.move(-viewportWindow.x,- viewportWindow.y);
+	r.paint(g2);
+	
+    g2._fill=false;			
+}
+paint(g2,viewportWindow,scale){
+	   var box=this.rect.box;
+	   box.scale(scale.scale);     
+       //check if outside of visible window
+	   var window=new d2.Box(0,0,0,0);
+	   window.setRect(viewportWindow.x,viewportWindow.y,viewportWindow.width,viewportWindow.height);
+       if(!box.intersects(window)){
+         return false;
+       }
+       
 	    if(this.pad.isSelected())
 	      g2.fillStyle = "gray";  
 	    else{
 	      g2.fillStyle = this.pad.copper.getColor();
 	    }
-	    g2.fill();
-
+	    g2._fill=true;
+        let r=this.rect.clone();
+		r.scale(scale.getScale());
+        r.move(-viewportWindow.x,- viewportWindow.y);
+		r.paint(g2);
+	    
+		g2._fill=false;
 	    return true;
 }
+copy(pad){
+  let _copy=new RectangularShape(0,0,0,0,pad);
+  _copy.rect=this.rect.clone();	  
+  return _copy;  
+}
+contains(pt){
+	return this.rect.contains(pt);
+}
+rotate(alpha,origin){
+	if(origin==null){
+		  this.rect.rotate(alpha);
+	}else{
+		  this.rect.rotate(alpha,origin);	
+	}
+	
+}
+move(xoffset, yoffset) {
+	this.rect.move(xoffset,yoffset);
+}
+get box(){
+	return this.rect.box;
+}
+get center(){
+	return this.rect.box.center;	
+}
 setWidth(width) {
-		   this.pad.width=width;
+		   this.rect.setSize(this.pad.width,this.pad.height);
+		   this.rect.rotate(this.pad.rotate);
 }
 setHeight(height) {
-		    this.pad.height=height;           
+		   this.rect.setSize(this.pad.width,this.pad.height);
+		   this.rect.rotate(this.pad.rotate);
 }
 }
+//------------OvalShape-----------------------
+class OvalShape{
+	constructor(x,y,width,height,pad){
+	   this.pad=pad;
+	   this.obround=new d2.Obround(new d2.Point(x,y),width,height);
+	}
+	drawClearence(g2,viewportWindow,scale,source){
+		let o=this.obround.clone();
+	    o.grow(source.clearance);
+
+	    g2.strokeStyle = "black";  
+
+		o.scale(scale.getScale());
+	    o.move(-viewportWindow.x,- viewportWindow.y);
+		o.paint(g2);
+		
+	}
+paint(g2,viewportWindow,scale){
+	     var box=this.obround.box;
+	     box.scale(scale.scale);     
+       //check if outside of visible window
+	     var window=new d2.Box(0,0,0,0);
+	     window.setRect(viewportWindow.x,viewportWindow.y,viewportWindow.width,viewportWindow.height);
+         if(!box.intersects(window)){
+           return false;
+         }
+         
+	     g2.lineWidth = this.obround.width * scale.getScale();
+	     if(this.pad.isSelected())
+	        g2.strokeStyle = "gray";  
+	     else{
+	        g2.strokeStyle = this.pad.copper.getColor();
+	     }
+	      
+		   let o=this.obround.clone();
+		   o.scale(scale.getScale());
+	       o.move(-viewportWindow.x,- viewportWindow.y);
+		   o.paint(g2);
+
+	      return true;
+}
+copy(pad){
+	  let _copy=new OvalShape(0,0,0,0,pad);
+	  _copy.obround=this.obround.clone();	  
+	  return _copy;  
+	}
+rotate(alpha,origin){
+	if(origin==null){
+	  this.obround.rotate(alpha);
+	}else{
+	  this.obround.rotate(alpha,origin);	
+	}
+}
+contains(pt){
+	return this.obround.contains(pt);
+}
+move(xoffset, yoffset) {
+	this.obround.move(xoffset,yoffset);
+}
+get box(){
+	return this.obround.box;
+}
+get center(){
+	return this.obround.center;	
+}
+setWidth(width) {	    
+	    this.obround.setWidth(width);
+}
+setHeight(height) {	    
+	    this.obround.setHeight(height);
+	    this.obround.rotate(this.pad.rotate);
+}
+}
+
 //--------------PolygonShape-------------------------
 class PolygonShape{
-constructor(pad){
+constructor(x,y,width,pad){
 		this.pad=pad;
-		this.polygon=[];		
-		this.initPoints(this.pad.width / 2);
+		this.hexagon=new d2.Hexagon(new d2.Point(x,y),width);		
 }	
-initPoints(r) {
-           
-            let da = (2 * Math.PI) / 6;
-            let lim = (2 * Math.PI) - (da / 2);
-
-            
-            var point=new core.Point(r * Math.cos(0), r * Math.sin(0));            
-            this.polygon.push(point);
-			for (let a = da; a < lim; a += da) {
-                point=new core.Point(r * Math.cos(a),r * Math.sin(a));
-                this.polygon.push(point);
-			}                       
+drawClearence(g2,viewportWindow,scale,source){
+	    let h=new d2.Hexagon(this.hexagon.center.clone(),(this.hexagon.width+2*source.clearance));
+	    h.rotate(this.pad.rotate);
+     
+	    g2._fill=true;		   
+		g2.fillStyle = "black";	
+	    h.scale(scale.getScale());
+        h.move(-viewportWindow.x,- viewportWindow.y);
+	    h.paint(g2);
+	    
+	    g2._fill=false;
 }
-Paint(g2, viewportWindow, scale) {
-		   var rect=this.pad.getBoundingShape().getScaledRect(scale);
+paint(g2, viewportWindow, scale) {
+		   var box=this.hexagon.box;
+		   box.scale(scale.scale);     
 	       //check if outside of visible window
-	       if(!rect.intersects(viewportWindow)){
+		   var window=new d2.Box(0,0,0,0);
+		   window.setRect(viewportWindow.x,viewportWindow.y,viewportWindow.width,viewportWindow.height);
+	       if(!box.intersects(window)){
 	         return false;
 	       }
-
-		   						// scale points
-		   let dst = [];
-		   let tmp =new core.Point();
-		   this.polygon.forEach(function(point) {
-			  tmp.setLocation(point.x+this.pad.x,point.y+this.pad.y);
-			  dst.push(tmp.getScaledPoint(scale));
-		   }.bind(this));
-           
-	       g2.beginPath();
-		   g2.moveTo((dst[0].x) - viewportWindow.x, (dst[0].y)
-								- viewportWindow.y);
-		   for (var i = 1; i < dst.length; i++) {
-							g2.lineTo(dst[i].x - viewportWindow.x, dst[i].y
-									- viewportWindow.y);
-		   }
-	       
-		   g2.closePath();
 	       if(this.pad.isSelected()){
 	         g2.fillStyle = "gray";  
 		   }else{
 	         g2.fillStyle = this.pad.copper.getColor();
 	       }
-	       g2.fill();
+	        
+		   g2._fill=true;		   
+	       let p=this.hexagon.clone();
+		   p.scale(scale.getScale());
+	       p.move(-viewportWindow.x,- viewportWindow.y);
+		   p.paint(g2);
+		    
+		   g2._fill=false;
             
            return true;
 }
+copy(pad){
+	  let _copy=new PolygonShape(0,0,0,pad);
+	  _copy.hexagon=this.hexagon.clone();	  
+	  return _copy;  
+	}
+contains(pt){
+		return this.hexagon.contains(pt);
+	}
+rotate(alpha,origin){
+	if(origin==null){
+	  this.hexagon.rotate(alpha);
+	}else{
+	  this.hexagon.rotate(alpha,origin);	
+	}
+}
+get box(){
+	return this.hexagon.box;
+}
+get center(){
+	return this.hexagon.center;	
+}
+move(xoffset, yoffset) {
+		this.hexagon.move(xoffset,yoffset);
+	}
 setWidth(width) {
-            this.pad.width=width;
-            this.pad.height=width;
-            this.initPoints(this.pad.width / 2);
+        this.hexagon.setWidth(width);
 }
 setHeight(height) {
-            //this.pad.height=height;
+            
 }	
 }
 module.exports ={
@@ -1625,6 +1751,7 @@ module.exports ={
 	RoundRect,
 	Circle,
 	Arc,
+	SolidRegion,
 	Pad,Drill,
 	FootprintShapeFactory
 }

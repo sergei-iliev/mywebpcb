@@ -10,13 +10,16 @@ var RoundRect=require('pads/shapes').RoundRect;
 var Circle=require('pads/shapes').Circle;
 var Arc=require('pads/shapes').Arc;
 var Pad=require('pads/shapes').Pad;
+var SolidRegion=require('pads/shapes').SolidRegion;
 var FootprintShapeFactory=require('pads/shapes').FootprintShapeFactory;
 var Drill=require('pads/shapes').Drill;
 var GlyphLabel=require('pads/shapes').GlyphLabel;
 var Line=require('pads/shapes').Line;
 var LineEventHandle=require('pads/events').LineEventHandle;
+var SolidRegionEventHandle=require('pads/events').SolidRegionEventHandle;
 var FootprintContextMenu=require('pads/popup/footprintpopup').FootprintContextMenu;
-var GlyphManager=require('core/text/glyph').GlyphManager;
+var GlyphManager=require('core/text/d2glyph').GlyphManager;
+var d2=require('d2/d2');
 
 class Footprint extends Unit{
 constructor(width,height) {
@@ -25,7 +28,7 @@ constructor(width,height) {
 	}
 clone(){
 	  var copy=new Footprint(this.width,this.height);
-	  copy.silent=true;
+	  //copy.silent=true;
 	  copy.unitName=this.unitName;
 	  copy.grid=this.grid.clone();
       var len=this.shapes.length;
@@ -33,7 +36,7 @@ clone(){
            var clone=this.shapes[i].clone();
 	       copy.add(clone);
 	  }
-	  copy.silent=false;
+	  //copy.silent=false;
 	  return copy;
 	}	
 parse(data){
@@ -56,7 +59,7 @@ parse(data){
 	 	   }
 	 	   var that=this;
 	 	   j$(data).find('shapes').children().each(function(){
-               var shape=that.shapeFactory.createShape(this);			   
+               var shape=that.shapeFactory.createShape(this);
                that.add(shape);
 	 	   });
 
@@ -64,7 +67,7 @@ parse(data){
 	}	
 format(){   
    var xml="<footprint width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
-   xml+="<name>"+this.name+"</name>\r\n";
+   xml+="<name>"+this.unitName+"</name>\r\n";
    //***reference
    var text=UnitMgr.getInstance().getLabelByTag(this,'reference');
    if(text!=null){
@@ -82,8 +85,10 @@ format(){
    xml+="<units raster=\""+this.grid.getGridValue()+"\">MM</units>\r\n"; 
    xml+="<shapes>\r\n";
    this.shapes.forEach(function(shape) {
-	   xml+=shape.toXML();
-	   xml+='\r\n';
+	   if(!((shape instanceof GlyphLabel)&&(shape.texture.tag=='reference'||shape.texture.tag=='value'))){
+		   xml+=shape.toXML();
+		   xml+='\r\n';   
+	   }
    });
    xml+="</shapes>\r\n";   
    xml+="</footprint>";
@@ -92,23 +97,23 @@ format(){
 }
 
 class FootprintContainer extends UnitContainer{
-    constructor(silent) {
-       super(silent);
+    constructor() {
+       super();
        this.formatedFileName="Footprints"
 	}
 
     parse(xml){
-    	  this.formatedFileName=(j$(xml).find("filename").text());
+    	  this.setFileName(j$(xml).find("filename").text());
     	  this.libraryname=(j$(xml).find("library").text());
     	  this.categoryname=(j$(xml).find("category").text());    	  
     	  
     	  var that=this;
 	      j$(xml).find("footprint").each(j$.proxy(function(){
 	    	var footprint=new Footprint(j$(this).attr("width"),j$(this).attr("height"));
-	    	footprint.name=j$(this).find("name").text();
+	    	    footprint.unitName=j$(this).find("name").text();
 	    	//silent mode
-	    	footprint.silent=that.silent;
-	    	//need to have a current unit 
+	    	//footprint.silent=that.silent;
+	    	//need to have a current unit
             that.add(footprint);
             footprint.parse(this);
 	    }),that);	
@@ -124,7 +129,6 @@ class FootprintContainer extends UnitContainer{
   	    }    	    	
         xml+="</footprints>";
         
-        console.log(xml);
         return xml;
     }
 	
@@ -144,20 +148,21 @@ setMode(_mode){
 	this.mode=_mode;
 	let shape=null;
 	 if (this.cursor != null) {
-	     this.cursor.Clear();
+	     this.cursor.clear();
 	     this.cursor = null;
 	 }
 	 this.eventMgr.resetEventHandle();
 	        
 	 switch (this.mode) {
+     		case core.ModeEnum.SOLID_REGION:
+         	break;	 
 	        case core.ModeEnum.PAD_MODE:
-	            shape=new Pad(0,0,core.MM_TO_COORD(1.52),core.MM_TO_COORD(1.52));
-	            shape.drill=new Drill(core.MM_TO_COORD(0.8),core.MM_TO_COORD(0.8));			                        
+	            shape=new Pad(0,0,core.MM_TO_COORD(1.52),core.MM_TO_COORD(2.52));	            	            		                        
 	            this.setContainerCursor(shape);               
 	            this.getEventMgr().setEventHandle("cursor",shape);  
 	          break;
 	        case  core.ModeEnum.RECT_MODE:
-	            shape=new RoundRect(0,0,core.MM_TO_COORD(7),core.MM_TO_COORD(7),core.MM_TO_COORD(0.8),core.MM_TO_COORD(0.2),core.Layer.SILKSCREEN_LAYER_FRONT);
+	            shape=new RoundRect(0,0,core.MM_TO_COORD(7),core.MM_TO_COORD(7),core.MM_TO_COORD(0.8),core.MM_TO_COORD(0.2),core.Layer.SILKSCREEN_LAYER_FRONT);	            
 	            this.setContainerCursor(shape);               
 	            this.getEventMgr().setEventHandle("cursor",shape); 
 	          break;
@@ -183,7 +188,7 @@ setMode(_mode){
 	            this.getEventMgr().setEventHandle("origin",null);   
 	            break;          
 	        default:
-	          this.Repaint();
+	          this.repaint();
 	      }       
 } 
 
@@ -226,10 +231,12 @@ mouseDown(event){
     }else{
     	switch (this.getMode()){
     	case  core.ModeEnum.COMPONENT_MODE:
-          if(this.getModel().getUnit().getCoordinateSystem().isClicked(scaledEvent.x, scaledEvent.y)){
+         if(this.getModel().getUnit().getCoordinateSystem()!=null){ 
+    	  if(this.getModel().getUnit().getCoordinateSystem().isClicked(scaledEvent.x, scaledEvent.y)){
               this.getEventMgr().setEventHandle("origin",null); 
         	  break;
-          }  
+          } 
+         }
     		
     	  var shape=this.getModel().getUnit().isControlRectClicked(scaledEvent.x, scaledEvent.y);
 		  if(shape!=null){
@@ -263,6 +270,18 @@ mouseDown(event){
 		     }
 		  }
 		  break;
+    	case core.ModeEnum.SOLID_REGION:
+            //is this a new copper area
+            if ((this.getEventMgr().targetEventHandle == null) ||
+                !(this.getEventMgr().targetEventHandle instanceof SolidRegionEventHandle)) {
+            	if(event.which!=1){
+            		return;
+            	}
+                shape =new SolidRegion(core.Layer.LAYER_FRONT);
+                this.getModel().getUnit().add(shape);
+                this.getEventMgr().setEventHandle("solidregion", shape);
+            }     		
+    		break;
     	case core.ModeEnum.LINE_MODE:
             //***is this a new wire
             if ((this.getEventMgr().getTargetEventHandle() == null) ||
@@ -284,7 +303,7 @@ mouseDown(event){
                     (this.getEventMgr().getTargetEventHandle() instanceof events.MeasureEventHandle)) {
                      this.getModel().getUnit().ruler.resizingPoint=null;
                      this.getEventMgr().resetEventHandle();
-                     this.Repaint();
+                     this.repaint();
                 }else{
                    this.getEventMgr().setEventHandle("measure",this.getModel().getUnit().ruler);   
 				   this.getModel().getUnit().ruler.setX(scaledEvent.x);

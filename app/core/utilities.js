@@ -1,4 +1,5 @@
 var core=require('core/core');
+var d2=require('d2/d2');
 
     /*
      * Find out in which quadrant is a point B, in regard to a point origine A
@@ -15,8 +16,15 @@ var QUADRANT=(function(){
         FORTH:4
 	}
 })();
+var roundDouble=function(number){
+	return Math.round(number*10000)/10000 ;
+}
 var round=function(angle){
 	return Math.round(angle*100.0)/100.0;
+}
+
+var roundFloat=function(value, decimals) {
+	return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
 }
 var mirrorPoint=function(A,B,sourcePoint){
         let x = sourcePoint.x, y = sourcePoint.y;
@@ -38,19 +46,18 @@ var mirrorPoint=function(A,B,sourcePoint){
         sourcePoint.setLocation(x, y);
         return sourcePoint;	
 }
-var getQuadrantLocation=function(origin,x,y) {
-        if (x >= origin.x && y <= origin.y)
+var getQuadrantLocation=function(origin,point) {
+        if (point.x >= origin.x && point.y <= origin.y)
             return QUADRANT.FIRST;
-        else if (x <= origin.x && y <= origin.y)
+        else if (point.x <= origin.x && point.y <= origin.y)
             return QUADRANT.SECOND;
-        else if (x <= origin.x && y >= origin.y)
+        else if (point.x <= origin.x && point.y >= origin.y)
             return QUADRANT.THIRD;
         else
             return QUADRANT.FORTH;
 }
-	
 var drawCrosshair=function(g2,viewportWindow,scale,resizingPoint,length,points){
-        let line = new core.Line();
+        let line = new d2.Segment(0,0,0,0);
         
 		g2.lineWidth = 1;
 
@@ -60,11 +67,15 @@ var drawCrosshair=function(g2,viewportWindow,scale,resizingPoint,length,points){
             else
                 g2.strokeStyle='blue';
 			
-            line.setLine(point.x - length, point.y, point.x + length, point.y);
-            line.draw(g2, viewportWindow, scale);
+            line.set(point.x - length, point.y, point.x + length, point.y);
+            line.scale(scale.getScale());
+            line.move(-viewportWindow.x,-viewportWindow.y);
+            line.paint(g2);
 
-            line.setLine(point.x, point.y - length, point.x, point.y + length);            
-			line.draw(g2,viewportWindow,scale);
+            line.set(point.x, point.y - length, point.x, point.y + length);            
+            line.scale(scale.getScale());
+            line.move(-viewportWindow.x,-viewportWindow.y);
+            line.paint(g2);
         });	
 
 }
@@ -77,13 +88,13 @@ var degrees = function(radians) {
 	  return radians * 180 / Math.PI;
 };
 
-var rotate=function(point, originX, originY, angle){
-	angle = angle * Math.PI / 180.0;
-		return {
-				x: Math.cos(angle) * (point.x-originX) - Math.sin(angle) * (point.y-originY) + originX,
-				y: Math.sin(angle) * (point.x-originX) + Math.cos(angle) * (point.y-originY) + originY
-	    };
-};
+//var rotate=function(point, originX, originY, angle){
+//	angle = angle * Math.PI / 180.0;
+//		return {
+//				x: Math.cos(angle) * (point.x-originX) - Math.sin(angle) * (point.y-originY) + originX,
+//				y: Math.sin(angle) * (point.x-originX) + Math.cos(angle) * (point.y-originY) + originY
+//	    };
+//};
 
 /*****
 *
@@ -115,10 +126,10 @@ var intersectLineLine = function(a1, a2, b1, b2) {
 *
 *****/
 var intersectLineRectangle = function(a1, a2, r1, r2) {
-    var min        = r1.min(r2);
-    var max        = r1.max(r2);
-    var topRight   = new core.Point( max.x, min.y );
-    var bottomLeft = new core.Point( min.x, max.y );
+    var min        = Min(r1,r2);
+    var max        = Max(r1,r2);
+    var topRight   = new d2.Point( max.x, min.y );
+    var bottomLeft = new d2.Point( min.x, max.y );
     
     var inter1 = intersectLineLine(min, topRight, a1, a2);
     var inter2 = intersectLineLine(topRight, max, a1, a2);
@@ -127,104 +138,30 @@ var intersectLineRectangle = function(a1, a2, r1, r2) {
     
     return inter1||inter2||inter3||inter4;
 };
+var Min=function(p1,p2){
+	return new d2.Point(Math.min(p1.x,p2.x),Math.min(p1.y,p2.y));	
+}
+var Max=function(p1,p2){
+    return new d2.Point(Math.max(p1.x,p2.x),Math.max(p1.y,p2.y));	
+}
+//*******DELETE*************
+//var roundrect=function (g2,x, y, w, h, r) {
+//	if (w < 2 * r) r = w / 2;
+//	if (h < 2 * r) r = h / 2;
+//		g2.moveTo(x+r, y);
+//		g2.arcTo(x+w, y,   x+w, y+h, r);
+//		g2.arcTo(x+w, y+h, x,   y+h, r);
+//		g2.arcTo(x,   y+h, x,   y,   r);
+//		g2.arcTo(x,   y,   x+w, y,   r);
+//};
 
-var roundrect=function (g2,x, y, w, h, r) {
-	if (w < 2 * r) r = w / 2;
-	if (h < 2 * r) r = h / 2;
-		g2.moveTo(x+r, y);
-		g2.arcTo(x+w, y,   x+w, y+h, r);
-		g2.arcTo(x+w, y+h, x,   y+h, r);
-		g2.arcTo(x,   y+h, x,   y,   r);
-		g2.arcTo(x,   y,   x+w, y,   r);
-};
-
-var ellipse=function(g2,xC, yC, width, height, rotation) {
-	var x, y, rW, rH, inc;
-	inc = 0.01 //value by which we increment the angle in each step
-	rW = width / 2; //horizontal radius
-	rH = height / 2; //vertical radius
-	x = xC + rW * Math.cos(rotation); // ...we will treat this as angle = 0
-	y = yC + rW * Math.sin(rotation);
-
-	g2.moveTo(x, y); //set the starting position
-		for (var angle = inc; angle<2*Math.PI; angle+=inc) { //increment the angle from just past zero to full circle (2 Pi radians)
-			x = xC + rW * Math.cos(angle) * Math.cos(rotation) - rH * Math.sin(angle) * Math.sin(rotation);
-			y = yC + rW * Math.cos(angle) * Math.sin(rotation) + rH * Math.sin(angle) * Math.cos(rotation);
-			g2.lineTo(x, y); //draw a straight line segment. if the increment is small enough, this will be
-								//indistinguishable from a curve in an on-screen pixel array
-		}
-};
-
-var textHeight=function(text, font) {
-
-    var fontDraw = document.createElement("canvas");
-
-    var height = 100;
-    var width = 100;
-
-    // here we expect that font size will be less canvas geometry
-    fontDraw.setAttribute("height", height);
-    fontDraw.setAttribute("width", width);
-
-    var ctx = fontDraw.getContext('2d');
-    // black is default
-    ctx.fillRect(0, 0, width, height);
-    ctx.textBaseline = 'top';
-    ctx.fillStyle = 'white';
-    ctx.font = font;
-    ctx.fillText(text/*'Eg'*/, 0, 0);
-
-    var pixels = ctx.getImageData(0, 0, width, height).data;
-
-    // row numbers where we first find letter end where it ends 
-    var start = -1;
-    var end = -1;
-
-    for (var row = 0; row < height; row++) {
-        for (var column = 0; column < width; column++) {
-
-            var index = (row * width + column) * 4;
-
-            // if pixel is not white (background color)
-            if (pixels[index] == 0) {
-                // we havent met white (font color) pixel
-                // on the row and the letters was detected
-                if (column == width - 1 && start != -1) {
-                    end = row;
-                    row = height;
-                    break;
-                }
-                continue;
-            }
-            else {
-                // we find top of letter
-                if (start == -1) {
-                    start = row;
-                }
-                // ..letters body
-                break;
-            }
-
-        }
-
-    }
-   /*
-    document.body.appendChild(fontDraw);
-    fontDraw.style.pixelLeft = 400;
-    fontDraw.style.pixelTop = 400;
-    fontDraw.style.position = "absolute";
-   */
-
-    return end - start;
-
-};
 
 version=(function(){
 	return {
-		MYWEBPCB_VERSION:"2.1",
-	    SYMBOL_VERSION:"2.0",
+		MYWEBPCB_VERSION:"3.0",
+	    SYMBOL_VERSION:"1.0",
         CIRCUIT_VERSION:"1.2",     
-        FOOTPRINT_VERSION:"1.0", 
+        FOOTPRINT_VERSION:"3.0", 
         BOARD_VERSION:"2.0" 
 	};
 })();
@@ -232,14 +169,12 @@ version=(function(){
 module.exports = {
   version,
   round,
-  getQuadrantLocation,
-  textHeight,
+  roundDouble,
+  roundFloat,
+  getQuadrantLocation,  
   drawCrosshair,
-  //ellipse,
-  roundrect,
   intersectLineRectangle,
   intersectLineLine,
-  rotate,
   degrees,
   radians,
   QUADRANT,

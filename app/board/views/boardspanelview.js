@@ -15,6 +15,7 @@ var PCBLine=require('board/shapes').PCBLine;
 var PCBRoundRect=require('board/shapes').PCBRoundRect;
 var PCBCopperArea=require('board/shapes').PCBCopperArea;
 var PCBHole=require('board/shapes').PCBHole;
+var	PCBSolidRegion=require('board/shapes').PCBSolidRegion;
 
 var ComponentPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
@@ -64,16 +65,16 @@ var CirclePanelBuilder=BaseBuilder.extend({
         'keypress #thicknessid' : 'onenter',        
         'keypress #radiusid' : 'onenter',
         'change #fillid': 'onchange',
-        'change #layerid':'onchange',
+        'change #controllayerid':'onchange',
     },
     onchange:function(event){
-        if(event.target.id=='layerid'){
-        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        if(event.target.id=='controllayerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
         }
         if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
         }
-        this.component.Repaint(); 
+        this.component.repaint(); 
       },    
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -83,7 +84,7 @@ var CirclePanelBuilder=BaseBuilder.extend({
 			this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
 		 } 
 		 if(event.target.id=='radiusid'){
-		   this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#radiusid').val())));			 
+			 this.target.circle.r=(core.MM_TO_COORD(parseFloat(j$('#radiusid').val())));			 
 		 } 
 		 if(event.target.id=='xid'){			 
 	         var x=this.fromUnitX(j$('#xid').val()); 
@@ -93,17 +94,17 @@ var CirclePanelBuilder=BaseBuilder.extend({
 	         var y=this.fromUnitY(j$('#yid').val()); 
 	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
 		 } 		 
-		 this.component.Repaint(); 		 
+		 this.component.repaint(); 		 
     },
 
 	updateui:function(){
-		j$('#layerid').val(this.target.copper.getName());
+		j$('#controllayerid').val(this.target.copper.getName());
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
         j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
         j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
         j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
 		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
-		j$("#radiusid").val(core.COORD_TO_MM(this.target.getWidth()));    
+		j$("#radiusid").val(core.COORD_TO_MM(this.target.circle.radius));   
 		j$("#fillid").val(this.target.fill);		
 	},
 	render:function(){
@@ -111,7 +112,7 @@ var CirclePanelBuilder=BaseBuilder.extend({
 		j$(this.el).append(
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
 				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
 			    "</select>" +
 				"</td></tr>"+				
@@ -144,16 +145,16 @@ var RectPanelBuilder=BaseBuilder.extend({
         'keypress #heightid' : 'onenter',
         'keypress #roundingid' : 'onenter',
         'change #fillid': 'onchange',
-        'change #layerid': 'onchange',
+        'change #controllayerid': 'onchange',
     },
     onchange:function(event){
-        if(event.target.id=='layerid'){
-        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        if(event.target.id=='controllayerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
         }
     	if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
         }
-        this.component.Repaint(); 
+        this.component.repaint(); 
       },    
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -162,12 +163,6 @@ var RectPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='thicknessid'){
 			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
 		 } 
-		 if(event.target.id=='widthid'){
-		   this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#widthid').val())));			 
-		 } 
-		 if(event.target.id=='heightid'){
-			   this.target.setHeight(core.MM_TO_COORD(parseFloat(j$('#heightid').val())));			 
-		 } 	
 		 if(event.target.id=='xid'){			 
 	         var x=this.fromUnitX(j$('#xid').val()); 
 	         this.target.Resize(x-this.target.resizingPoint.x, 0, this.target.resizingPoint);			   
@@ -177,20 +172,18 @@ var RectPanelBuilder=BaseBuilder.extend({
 	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
 		 } 	
 		 if(event.target.id=='roundingid'){
-			 this.target.arc=core.MM_TO_COORD(parseFloat(j$('#roundingid').val()));			 
-			 }
-		 this.component.Repaint(); 		 
+			 this.target.setRounding(core.MM_TO_COORD(parseFloat(j$('#roundingid').val())));			 
+		 }
+		 this.component.repaint(); 		 
     },
 	updateui:function(){
-		j$('#layerid').val(this.target.copper.getName());
+		j$('#controllayerid').val(this.target.copper.getName());
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
         j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
         j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
         j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
-		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
-		j$("#widthid").val(core.COORD_TO_MM(this.target.getWidth()));    
-		j$("#heightid").val(core.COORD_TO_MM(this.target.getHeight()));
-		j$("#roundingid").val(core.COORD_TO_MM(this.target.arc));
+		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));	
+		j$("#roundingid").val(core.COORD_TO_MM(this.target.roundRect.rounding));
 		j$("#fillid").val(this.target.fill);
 	},
 	render:function(){
@@ -198,7 +191,7 @@ var RectPanelBuilder=BaseBuilder.extend({
 		j$(this.el).append(
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
 				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
 			    "</select>" +
 				"</td></tr>"+				
@@ -210,10 +203,39 @@ var RectPanelBuilder=BaseBuilder.extend({
 				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
 			    "</select>" +
 				"</td></tr>"+
-				"<tr><td style='padding:7px'>Width</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='heightid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Rounding</td><td><input type='text' id='roundingid' value='' class='form-control input-sm\'></td></tr>"+						        
 		"</table>");
+			
+		return this;
+	}
+});
+var SolidRegionPanelBuilder=BaseBuilder.extend({
+	initialize:function(component){
+		SolidRegionPanelBuilder.__super__.initialize(component);
+		this.id="solidregionpanelbuilder";  
+    },	
+    events: {
+        'change #controllayerid':'onchange'
+    },
+    onchange:function(event){
+        if(event.target.id=='controllayerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
+        }              
+        this.component.repaint(); 
+    }, 
+	updateui:function(){
+		
+	},
+	render:function(){
+		j$(this.el).empty();
+		j$(this.el).append(
+				"<table width='100%'>"+
+				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
+				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+			    "</select>" +
+				"</td></tr>"+							
+		"</table>");				
 			
 		return this;
 	}
@@ -231,16 +253,16 @@ var ArcPanelBuilder=BaseBuilder.extend({
         'keypress #startangleid' : 'onenter',
         'keypress #extendangleid' : 'onenter',
         'change #fillid': 'onchange', 
-        'change #layerid':'onchange',
+        'change #controllayerid':'onchange',
     },
     onchange:function(event){
-        if(event.target.id=='layerid'){
-        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        if(event.target.id=='controllayerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
         }
         if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
         }
-        this.component.Repaint(); 
+        this.component.repaint(); 
     }, 
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -250,26 +272,26 @@ var ArcPanelBuilder=BaseBuilder.extend({
 			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
 		 } 
 		 if(event.target.id=='widthid'){
-			   this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#widthid').val())));			 
+			   this.target.setRadius(core.MM_TO_COORD(parseFloat(j$('#widthid').val())));			 
 		 } 
 		 if(event.target.id=='startangleid'){
-			   this.target.startAngle=utilities.round(j$('#startangleid').val());			 
+			   this.target.setStartAngle(j$('#startangleid').val());			 
 		 } 
 		 if(event.target.id=='extendangleid'){
-			   this.target.extendAngle=utilities.round(j$('#extendangleid').val());	
+			   this.target.setExtendAngle(j$('#extendangleid').val());	
 		 } 	
-		 this.component.Repaint(); 	
+		 this.component.repaint(); 	
     },
 	updateui:function(){
-		j$('#layerid').val(this.target.copper.getName());
-		j$("#startangleid").val(this.target.startAngle);    
-		j$("#extendangleid").val(this.target.extendAngle);		
+		j$('#controllayerid').val(this.target.copper.getName());
+		j$("#startangleid").val(this.target.arc.startAngle);    
+		j$("#extendangleid").val(this.target.arc.endAngle);		
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
         j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
         j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:(this.target.resizingPoint.x)));
         j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:(this.target.resizingPoint.y))); 
 		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
-		j$("#widthid").val(core.COORD_TO_MM(this.target.getWidth()));
+		j$("#widthid").val(core.COORD_TO_MM(this.target.arc.r));
 		j$("#fillid").val(this.target.fill);
 	},
 	render:function(){
@@ -278,7 +300,7 @@ var ArcPanelBuilder=BaseBuilder.extend({
 		j$(this.el).append(
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
 				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
 			    "</select>" +
 				"</td></tr>"+				
@@ -308,17 +330,18 @@ var CopperAreaPanelBuilder=BaseBuilder.extend({
         'keypress #clearanceid' : 'onenter',
         'keypress #netid' : 'onenter',
         'change #fillid': 'onchange', 
-        'change #layerid':'onchange',
+        'change #controllayerid':'onchange',
         'change #paddconnectionid': 'onchange',
     },
     onchange:function(event){
-        if(event.target.id=='layerid'){
-        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        if(event.target.id=='controllayerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
+            this.component.getModel().getUnit().reorder();
         }
         if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
         }
-        this.component.Repaint(); 
+        this.component.repaint(); 
     }, 
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -328,7 +351,7 @@ var CopperAreaPanelBuilder=BaseBuilder.extend({
 			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
 		 } 
 		 if(event.target.id=='clearanceid'){
-			   this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#widthid').val())));			 
+			   this.target.clearance=(core.MM_TO_COORD(parseFloat(j$('#clearanceid').val())));			 
 		 } 
 		 if(event.target.id=='xid'){			 
 	         var x=this.fromUnitX(j$('#xid').val()); 
@@ -338,17 +361,17 @@ var CopperAreaPanelBuilder=BaseBuilder.extend({
 	         var y=this.fromUnitY(j$('#yid').val()); 
 	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
 		 } 
-		 this.component.Repaint(); 	
+		 this.component.repaint(); 	
     },
 	updateui:function(){
-		j$('#layerid').val(this.target.copper.getName());
+		j$('#controllayerid').val(this.target.copper.getName());
 		//j$("#startangleid").val(this.target.startAngle);    
 		//j$("#extendangleid").val(this.target.extendAngle);		
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
         j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
         j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:(this.target.resizingPoint.x)));
         j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:(this.target.resizingPoint.y))); 
-		//j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
+		j$('#clearanceid').val(core.COORD_TO_MM(this.target.clearance));
 		//j$("#widthid").val(core.COORD_TO_MM(this.target.getWidth()));
 		j$("#fillid").val(this.target.fill);
 	},
@@ -358,8 +381,8 @@ var CopperAreaPanelBuilder=BaseBuilder.extend({
 		j$(this.el).append(
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"layerid\">"+
-				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
+				this.fillComboBox([{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'}])+
 			    "</select>" +
 				"</td></tr>"+				
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
@@ -387,19 +410,19 @@ var FootprintPanelBuilder=BaseBuilder.extend({
       this.id="footprintpanelbuilder";
     },
     events: {
+        'keypress #rotateid' : 'onenter',
         'keypress #nameid' : 'onenter',   
         'keypress #valueid' : 'onenter',	
         'keypress #referenceid' : 'onenter',	
-        'change #rorientationid': 'onchange',
-        'change #ralignmentid': 'onchange',
-        'change #vorientationid': 'onchange',
-        'change #valignmentid': 'onchange',
         
     },
 	onenter:function(event){
 		 if(event.keyCode != 13){
 			return; 
 	     }
+		  if(event.target.id=='rotateid'){
+		      this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val()))); 
+		  }	
 		 if(event.target.id=='nameid'){
 			 this.target.displayName=j$("#nameid").val(); 
 			 this.component.getModel().fireUnitEvent({target:this.target,type:events.Event.RENAME_UNIT});		   
@@ -412,79 +435,36 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 		   var texture=this.target.getChipText().getTextureByTag('value');
 		   texture.setText(j$("#valueid").val());
 		 }
-		 this.component.Repaint();   
+		 this.component.repaint();   
 	},   
 	onchange:function(event){
-	      if(event.target.id=='rorientationid'){
-	    	  var texture=core.UnitMgr.getInstance().getTextureByTag(this.target,'reference');	    	  
-	    	  texture.getAlignment().setOrientation(parseInt((j$('#rorientationid :selected').val())));
-	    	  //update 
-	    	  this.validateAlignmentComboText('ralignmentid',texture);
-	    	  this.component.Repaint(); 
-	      }
-	      if(event.target.id=='ralignmentid'){
-	    	  var texture=core.UnitMgr.getInstance().getTextureByTag(this.target,'reference');	    	  
-	    	  texture.getAlignment().set(parseInt((j$('#ralignmentid :selected').val()))); 
-	    	  this.component.Repaint(); 
-	      }		
-	      if(event.target.id=='vorientationid'){
-	    	  var texture=core.UnitMgr.getInstance().getTextureByTag(this.target,'value');	    	  
-	    	  texture.getAlignment().setOrientation(parseInt((j$('#vorientationid :selected').val())));
-	    	  //update 
-	    	  this.validateAlignmentComboText('valignmentid',texture);
-	    	  this.component.Repaint(); 
-	      }
-	      if(event.target.id=='valignmentid'){
-	    	  var texture=core.UnitMgr.getInstance().getTextureByTag(this.target,'value');	    	  
-	    	  texture.getAlignment().set(parseInt((j$('#valignmentid :selected').val()))); 
-	    	  this.component.Repaint(); 
-	      }		      
+	      
 	},	
 	updateui:function(){
 		   j$("#nameid").val(this.target.displayName);
 		   
+		   j$("#rotateid").val(this.target.rotate); 	
+		   
 		   var texture=this.target.getChipText().getTextureByTag('reference');
 		   j$("#referenceid").val(texture==null?"":texture.text);
-			 //set orientation
-		   j$('#rorientationid').val(texture.getAlignment().getOrientation());
-			 //set alignment
-		   this.validateAlignmentComboText('ralignmentid',texture);
+
 			 
 		   texture=this.target.getChipText().getTextureByTag('value');
 		   j$("#valueid").val(texture==null?"":texture.text);
-			 //set orientation
-		   j$('#vorientationid').val(texture.getAlignment().getOrientation());
-			 //set alignment
-		   this.validateAlignmentComboText('valignmentid',texture);
 	},
 	render:function(){	
 		j$(this.el).empty();
 		j$(this.el).append(
 		"<table width='100%'>"+
+		"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
+		"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
+	    this.fillComboBox([{id:'1',value:'TOP',selected:true},{id:'2',value:'BOTTOM'}])+
+	    "</select>" +
+		"</td></tr>"+
 		"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
 		"<tr><td style='width:50%;padding:7px'>Reference</td><td><input type='text' id='referenceid' value='' class='form-control input-sm\'></td></tr>"+
-		"<tr><td style='padding:7px'>Orientation</td><td>" +
-		"<select class=\"form-control input-sm\" id=\"rorientationid\">"+
-		this.fillComboBox([{id:0,value:'HORIZONTAL',selected:true},{id:1,value:'VERTICAL'}])+
-	    "</select>" +
-		"</td></tr>"+
-		"<tr><td style='padding:7px'>Alignment</td><td>" +
-		"<select class=\"form-control input-sm\" id=\"ralignmentid\">"+
-		this.fillComboBox([{id:0,value:'LEFT',selected:true},{id:1,value:'RIGHT'}])+
-	    "</select>" +
-		"</td></tr>"+		
 		"<tr><td style='width:50%;padding:7px'>Value</td><td><input type='text' id='valueid' value='' class='form-control input-sm\'></td></tr>"+
-		"<tr><td style='padding:7px'>Orientation</td><td>" +
-		"<select class=\"form-control input-sm\" id=\"vorientationid\">"+
-		this.fillComboBox([{id:0,value:'HORIZONTAL',selected:true},{id:1,value:'VERTICAL'}])+
-	    "</select>" +
-		"</td></tr>"+
-		"<tr><td style='padding:7px'>Alignment</td><td>" +
-		"<select class=\"form-control input-sm\" id=\"valignmentid\">"+
-		this.fillComboBox([{id:0,value:'LEFT',selected:true},{id:1,value:'RIGHT'}])+
-	    "</select>" +
-		"</td></tr>"+
-
+		"<tr><td style='width:50%;padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+						
 		"</table>");
 			
 		return this;
@@ -501,6 +481,7 @@ var BoardPanelBuilder=BaseBuilder.extend({
         'keypress #widthid':'onenter',
         'keypress #heightid':'onenter',
         'change #gridrasterid': 'onchange',
+        'change #sideid': 'onchange',
         'keypress #originxid':'onenter',
         'keypress #originyid':'onenter',
     },
@@ -511,38 +492,50 @@ var BoardPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='widthid'||event.target.id=='heightid'){           
 		    this.component.getModel().getUnit().setSize(core.MM_TO_COORD(parseFloat(j$('#widthid').val())),core.MM_TO_COORD(parseFloat(j$('#heightid').val())));  
 		    this.component.componentResized();     
-		    this.component.Repaint();
+		    this.component.repaint();
 		 }
 		 if(event.target.id=='nameid'){			 
 			 this.target.unitName=j$("#nameid").val(); 
 			 this.component.getModel().fireUnitEvent({target:this.target,type:events.Event.RENAME_UNIT});
 		 }
 		 if(event.target.id=='originxid'||event.target.id=='originyid'){           
-			    this.component.getModel().getUnit().getCoordinateSystem().Reset(core.MM_TO_COORD(parseFloat(j$('#originxid').val())),core.MM_TO_COORD(parseFloat(j$('#originyid').val())));  
+			    this.component.getModel().getUnit().getCoordinateSystem().reset(core.MM_TO_COORD(parseFloat(j$('#originxid').val())),core.MM_TO_COORD(parseFloat(j$('#originyid').val())));  
 			    this.component.componentResized();     
-			    this.component.Repaint();
+			    this.component.repaint();
 		 }
 		 //mycanvas.focus();
 	},
 	onchange:function(event){
 		if(event.target.id=='gridrasterid'){
 			this.target.grid.setGridValue(parseFloat(j$("#gridrasterid").val()));
-			this.component.Repaint();
+			this.component.repaint();
+		}	
+		if(event.target.id=='sideid'){
+			this.target.setActiveSide(j$("#sideid").val());
+			this.component.repaint();
 		}		
 	},
 	updateui:function(){
 	   j$("#nameid").val(this.target.unitName);
 	   j$("#widthid").val(core.COORD_TO_MM( this.target.width));    
 	   j$("#heightid").val(core.COORD_TO_MM(this.target.height));
-	   j$("#gridrasterid").val(this.target.grid.getGridValue());
-	   j$("#originxid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getX()));    
-	   j$("#originyid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getY()));	   
+	   j$("#gridrasterid").val(this.target.grid.getGridValue());	 
+	   j$("#sideid").val(this.target.compositeLayer.activeSide);
+	   if(this.component.getModel().getUnit().coordinateSystem!=null){
+		     j$("#originxid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getX()));    
+		     j$("#originyid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getY()));
+	   }	   
 	},
 	render:function(){
 		j$(this.el).empty();
 		j$(this.el).append(
-				"<table width='100%'>"+
-				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<table width='100%'>"+			
+				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Side</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"sideid\">"+
+			    this.fillComboBox([{id:1,value:'TOP',selected:true},{id:2,value:'BOTTOM'}])+
+			    "</select>" +
+				"</td></tr>"+					
 				"<tr><td style='padding:7px'>Width</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='heightid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Units</td><td>" +
@@ -552,7 +545,7 @@ var BoardPanelBuilder=BaseBuilder.extend({
 				"</td></tr>"+
 				"<tr><td style='padding:7px'>Grid</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"gridrasterid\">"+
-			    this.fillComboBox(core.gridraster)+
+			    this.fillComboBox(core.GridRaster)+
 			    "</select>" +
 				"</td></tr>"+
 				"<tr><td style='width:50%;padding:7px'>Origin X</td><td><input type='text' id='originxid' value='' class='form-control input-sm\'></td></tr>"+
@@ -578,7 +571,7 @@ var HolePanelBuilder=BaseBuilder.extend({
 				return; 
 		     }
 		 if(event.target.id=='drillsizeid'){
-			 this.target.width=core.MM_TO_COORD(parseFloat(j$('#drillsizeid').val())); 
+			 this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#drillsizeid').val()))); 
 		 }     
 
 		 if(event.target.id=='xid'){	            
@@ -587,12 +580,13 @@ var HolePanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='yid'){	            
 			 this.target.y=this.fromUnitY(j$('#yid').val());  
 	     }
-		 this.component.Repaint();  
+		 this.component.repaint();  
    },
 	updateui:function(){		
-        j$('#xid').val(this.toUnitX(this.target.x));
-        j$('#yid').val(this.toUnitY(this.target.y)); 
-        j$('#drillsizeid').val(core.COORD_TO_MM(this.target.width));
+        j$('#xid').val(this.toUnitX(this.target.circle.center.x));
+        j$('#yid').val(this.toUnitY(this.target.circle.center.y)); 
+        j$('#drillsizeid').val(core.COORD_TO_MM(2*this.target.circle.r));
+        
 	},
 	render:function(){
 		j$(this.el).empty();
@@ -622,11 +616,11 @@ var ViaPanelBuilder=BaseBuilder.extend({
 				return; 
 		     }
 		 if(event.target.id=='drillsizeid'){
-			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#drillsizeid').val())); 
+			 this.target.inner.r=core.MM_TO_COORD(parseFloat(j$('#drillsizeid').val())/2); 
 		 }   
 		 if(event.target.id=='viasizeid'){
 			 
-			 this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#viasizeid').val()))); 
+			 this.target.outer.r=core.MM_TO_COORD(parseFloat(j$('#viasizeid').val())/2); 
 		 }   
 
 		 if(event.target.id=='xid'){	            
@@ -635,13 +629,13 @@ var ViaPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='yid'){	            
 			 this.target.y=this.fromUnitY(j$('#yid').val());  
 	     }
-		 this.component.Repaint();  
+		 this.component.repaint();  
    },
 	updateui:function(){		
-        j$('#xid').val(this.toUnitX(this.target.x));
-        j$('#yid').val(this.toUnitY(this.target.y)); 
-        j$('#drillsizeid').val(core.COORD_TO_MM(this.target.thickness));
-        j$('#viasizeid').val(core.COORD_TO_MM(this.target.width));
+        j$('#xid').val(this.toUnitX(this.target.inner.pc.x));
+        j$('#yid').val(this.toUnitY(this.target.inner.pc.y)); 
+        j$('#drillsizeid').val(core.COORD_TO_MM(2*this.target.inner.r));
+        j$('#viasizeid').val(core.COORD_TO_MM(2*this.target.outer.r));
 	},
 	render:function(){
 		j$(this.el).empty();
@@ -666,13 +660,13 @@ var LinePanelBuilder=BaseBuilder.extend({
         'keypress #xid' : 'onenter',	
         'keypress #yid' : 'onenter',	
         'keypress #thicknessid' : 'onenter',
-        'change #layerid':'onchange',
+        'change #controllayerid':'onchange',
     },
     onchange:function(event){
-        if(event.target.id=='layerid'){
-        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        if(event.target.id=='controllayerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
         }
-        this.component.Repaint(); 
+        this.component.repaint(); 
       }, 
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -687,10 +681,10 @@ var LinePanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='yid'){	            
 			 this.target.resizingPoint.y=this.fromUnitY(j$('#yid').val());  
 	     }
-		 this.component.Repaint();  
+		 this.component.repaint();  
     },
 	updateui:function(){
-		j$('#layerid').val(this.target.copper.getName());
+		j$('#controllayerid').val(this.target.copper.getName());
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
         j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
         j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
@@ -702,7 +696,7 @@ var LinePanelBuilder=BaseBuilder.extend({
 		j$(this.el).append(
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
 				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
 			    "</select>" +
 				"</td></tr>"+				
@@ -724,13 +718,14 @@ var TrackPanelBuilder=BaseBuilder.extend({
         'keypress #xid' : 'onenter',	
         'keypress #yid' : 'onenter',	
         'keypress #thicknessid' : 'onenter',
-        'change #layerid':'onchange',
+        'change #controllayerid':'onchange',
     },
     onchange:function(event){
-        if(event.target.id=='layerid'){
-        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        if(event.target.id=='controllayerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
+        	this.component.getModel().getUnit().reorder();
         }
-        this.component.Repaint(); 
+        this.component.repaint(); 
       }, 
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -745,10 +740,10 @@ var TrackPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='yid'){	            
 			 this.target.resizingPoint.y=this.fromUnitY(j$('#yid').val());  
 	     }
-		 this.component.Repaint();  
+		 this.component.repaint();  
     },
 	updateui:function(){
-		j$('#layerid').val(this.target.copper.getName());
+		j$('#controllayerid').val(this.target.copper.getName());
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
         j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
         j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
@@ -760,7 +755,7 @@ var TrackPanelBuilder=BaseBuilder.extend({
 		j$(this.el).append(
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
 				this.fillComboBox([{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'}])+
 			    "</select>" +
 				"</td></tr>"+				
@@ -785,30 +780,24 @@ var LabelPanelBuilder=BaseBuilder.extend({
         'keypress #xid' : 'onenter',	
         'keypress #yid' : 'onenter',
         'keypress #textid' : 'onenter',	
+        'keypress #rotateid' : 'onenter',
         'keypress #sizeid' : 'onenter',	
         'keypress #thicknessid' : 'onenter',	
-		'change #orientationid': 'onchange',
-        'change #alignmentid': 'onchange',
-		'change #layerid':'onchange',
+		'change #controllayerid':'onchange',
     },
-    onchange:function(event){
-      if(event.target.id=='orientationid'){
-    	  this.target.texture.setOrientation(parseInt((j$('#orientationid :selected').val())));
-    	  //update 
-    	  this.validateAlignmentComboText('alignmentid',this.target.texture); 
+    onchange:function(event){      
+	  if(event.target.id=='controllayerid'){
+		  this.target.setCopper(core.Layer.Copper.valueOf(j$('#controllayerid').val()));
       }
-      if(event.target.id=='alignmentid'){
-    	  this.target.texture.setAlignment(parseInt((j$('#alignmentid :selected').val()))); 
-      }
-	  if(event.target.id=='layerid'){
-      	  this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
-      }
-      this.component.Repaint(); 
+      this.component.repaint(); 
     },
     onenter:function(event){
 		 if(event.keyCode != 13){
 				return; 
 		 }
+		  if(event.target.id=='rotateid'){
+		      this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val()))); 
+		  }			 
 		 if(event.target.id=='textid'){
 			 this.target.texture.setText(j$('#textid').val());			  
 		 }
@@ -824,46 +813,32 @@ var LabelPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='yid'){	            
 			 this.target.texture.anchorPoint.y=this.fromUnitY(j$('#yid').val());  
 	     }		 
-		 this.component.Repaint();     		    	
+		 this.component.repaint();     		    	
     },
 	updateui:function(){
-	j$('#layerid').val(this.target.copper.getName());	
+	 j$("#rotateid").val(this.target.texture.rotate); 	
+	 j$('#controllayerid').val(this.target.copper.getName());	
 	 j$('#textid').val(this.target.texture.text);	
 	 j$('#xid').val(this.toUnitX(this.target.texture.anchorPoint.x));
 	 j$('#yid').val(this.toUnitY(this.target.texture.anchorPoint.y));	 
 	 j$('#sizeid').val(core.COORD_TO_MM(this.target.texture.size));
 	 j$('#thicknessid').val(core.COORD_TO_MM(this.target.texture.thickness));
-	 //set orientation
-	 j$('#orientationid').val(this.target.texture.alignment.getOrientation());
-	 //set alignment
-	 this.validateAlignmentComboText('alignmentid',this.target.texture);
-
-
 	},
 	render:function(){
 		j$(this.el).empty();
 		j$(this.el).append(
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
 				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
 			    "</select>" +
 				"</td></tr>"+
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Text</td><td><input type='text' id='textid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='sizeid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Orientation</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"orientationid\">"+
-				this.fillComboBox([{id:0,value:'HORIZONTAL',selected:true},{id:1,value:'VERTICAL'}])+
-			    "</select>" +
-				"</td></tr>"+
-				"<tr><td style='padding:7px'>Alignment</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"alignmentid\">"+
-				this.fillComboBox([{id:0,value:'LEFT',selected:true},{id:1,value:'RIGHT'}])+
-			    "</select>" +
-				"</td></tr>"+
 		        "</table>");
 			
 		return this;
@@ -913,7 +888,7 @@ var BoardsTree=Backbone.View.extend({
 			this.boardComponent.hbar.jqxScrollBar({ value:this.boardComponent.getModel().getUnit().scrollPositionXValue});
 			this.boardComponent.vbar.jqxScrollBar({ value:this.boardComponent.getModel().getUnit().scrollPositionYValue});
 			
-			this.boardComponent.Repaint();
+			this.boardComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:this.boardComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 
 		}
 		if(item.value==222){
@@ -928,11 +903,11 @@ var BoardsTree=Backbone.View.extend({
 			var shape=this.boardComponent.getModel().getUnit().getShape(item.id);
 			this.boardComponent.getModel().getUnit().setSelected(false);
 			shape.setSelected(true);			
-			this.boardComponent.Repaint();
+			this.boardComponent.repaint();
 			            
 	        //position on shape center
-            var rect=shape.getBoundingRect();            
-            this.boardComponent.setScrollPosition(rect.getCenterX(),rect.getCenterY());
+            var rect=shape.getBoundingShape();            
+            this.boardComponent.setScrollPosition(rect.center.x,rect.center.y);
              		  
 			mywebpcb.trigger('tree:select',{target:shape,type:events.Event.SELECT_SHAPE}); 	
 		}
@@ -1027,6 +1002,7 @@ var BoardsInspector=Backbone.View.extend({
 		                                         new LinePanelBuilder(this.boardComponent),
 		                                         new RectPanelBuilder(this.boardComponent),
 		                                         new HolePanelBuilder(this.boardComponent),
+		                                         new SolidRegionPanelBuilder(this.boardComponent),
 		                                         new CopperAreaPanelBuilder(this.boardComponent)
 		                                         ]);
 		this.el= '#boardsinspectorid';	
@@ -1178,7 +1154,15 @@ var BoardsInspector=Backbone.View.extend({
 				this.panel.attributes.delegateEvents();
 				this.render();
 			}
-		}	
+		}
+		if(event.target instanceof PCBSolidRegion){
+			if(this.panel.id!='solidregionpanelbuilder'){
+				this.panel.attributes.remove();
+				this.panel=this.collection.get('solidregionpanelbuilder');
+				this.panel.attributes.delegateEvents();
+				this.render();
+			}				
+		}
 		if((event.target instanceof PCBTrack)){
 			if(this.panel.id!='trackpanelbuilder'){
 				this.panel.attributes.remove();

@@ -1,10 +1,12 @@
 var mywebpcb=require('core/core').mywebpcb;
 var core=require('core/core');
+var shape=require('core/shapes');
 var events=require('core/events');
 var FootprintLoadView=require('pads/views/footprintloadview');
 var FootprintSaveView=require('pads/views/footprintsaveview');
 var Footprint=require('pads/d/footprintcomponent').Footprint;
 var UnitMgr = require('core/unit').UnitMgr;
+var FootprintContainer=require('pads/d/footprintcomponent').FootprintContainer;
 
 var ToggleButtonView=Backbone.View.extend({
 
@@ -15,13 +17,15 @@ var ToggleButtonView=Backbone.View.extend({
 		this.collection=opt.collection;
 		this.footprintComponent=opt.footprintComponent;
 		mywebpcb.bind('libraryview:load',this.onload,this);
-		this.bind();
+		this.bind();	       
 		this.update();
 	},
 	bind:function(){
 		_.each(this.collection.models,j$.proxy(function(model,index,list) {
 				j$("#"+model.id).bind( "click",{model:model},j$.proxy(this.onclick,this));
-			}),this);	
+			}),this);
+		j$("#importfromclipboardid").click(j$.proxy(this.onimport,this));
+		
 	},
 	update:function(){
 		_.each(this.collection.models,function(model,index,list) {
@@ -36,6 +40,16 @@ var ToggleButtonView=Backbone.View.extend({
 		    }
 		}),this);		
 	},
+	onimport:function(event){
+		navigator.clipboard.readText().then(data =>{ 
+		      let footprintContainer=new FootprintContainer(true);
+		      //disable 
+		      core.isEventEnabled=false;
+		      footprintContainer.parse(data);
+		      core.isEventEnabled=true;
+		  	  mywebpcb.trigger('libraryview:load',footprintContainer);
+			});
+	},
 	onclick:function(event){
 	    event.preventDefault();
 	    //is this a group button
@@ -48,15 +62,16 @@ var ToggleButtonView=Backbone.View.extend({
 		    event.data.model.attributes.active=!event.data.model.attributes.active;
 	    }
 		this.update();
-		if(event.data.model.id=='newfootprintid'){
-			var footprint=new Footprint(core.MM_TO_COORD(50),core.MM_TO_COORD(50));
-            footprint.name="Sergio Leone";
-			this.footprintComponent.getModel().add(footprint);
-            this.footprintComponent.getModel().setActiveUnitUUID(footprint.getUUID());
-            this.footprintComponent.componentResized(); 
-            this.footprintComponent.Repaint();
-            this.footprintComponent.getModel().fireUnitEvent({target:this.footprintComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 	
-		}
+//		if(event.data.model.id=='newfootprintid'){
+			
+//			var footprint=new Footprint(core.MM_TO_COORD(50),core.MM_TO_COORD(50));
+//            footprint.name="Sergio Leone";
+//			this.footprintComponent.getModel().add(footprint);
+//            this.footprintComponent.getModel().setActiveUnitUUID(footprint.getUUID());
+//            this.footprintComponent.componentResized(); 
+//            this.footprintComponent.Repaint();
+//            this.footprintComponent.getModel().fireUnitEvent({target:this.footprintComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 	
+//		}
 		if(event.data.model.id=='saveid'){
 //		    j$.ajax({
 //		        type: 'GET',
@@ -75,12 +90,14 @@ var ToggleButtonView=Backbone.View.extend({
 //		        	j$('#mywebpadsid').unblock();
 //		        }
 //		    });
+			console.log(this.footprintComponent.getModel().format());
 			new FootprintSaveView({footprintComponent:this.footprintComponent}).render();			
 		}
 
 		if(event.data.model.id=='loadid'){
 			 new FootprintLoadView({enabled:false}).render();			
-			 /**
+			 
+			/**
 		    j$.ajax({
 		        type: 'GET',
 		        contentType: 'application/xml',
@@ -117,7 +134,18 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='anchorid'){
 			event.data.model.setActive(!event.data.model.isActive());  
 			this.footprintComponent.setParameter("snaptogrid",event.data.model.isActive());
-		}		
+		}
+		if(event.data.model.id=='originid'){	
+			event.data.model.setActive(!event.data.model.isActive());
+			if(event.data.model.isActive()){
+			  this.footprintComponent.getModel().getUnit().coordinateSystem=new shape.CoordinateSystem(this.footprintComponent.getModel().getUnit());
+			  this.footprintComponent.setMode(core.ModeEnum.ORIGIN_SHIFT_MODE);
+			}else{
+			  this.footprintComponent.getModel().getUnit().coordinateSystem=null;
+			  this.footprintComponent.setMode(core.ModeEnum.COMPONENT_MODE);
+			}
+						
+		}
 		if(event.data.model.id=='measureid'){ 
 			this.footprintComponent.setMode(core.ModeEnum.MEASUMENT_MODE);
 		}
@@ -136,12 +164,12 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='padid'){
 			this.footprintComponent.setMode(core.ModeEnum.PAD_MODE);
 		}
+		if(event.data.model.id=='solidregionid'){
+			this.footprintComponent.setMode(core.ModeEnum.SOLID_REGION);
+		}		
 		if(event.data.model.id=='selectionid'){
 		  //Footprint mode
 		   this.footprintComponent.setMode(core.ModeEnum.COMPONENT_MODE);
-		}
-		if(event.data.model.id=='originid'){			 
-		   this.footprintComponent.setMode(core.ModeEnum.ORIGIN_SHIFT_MODE);
 		}		
 		if((event.data.model.id=='rotateleftid')||(event.data.model.id=='rotaterightid')){
             shapes= this.footprintComponent.getModel().getUnit().shapes;
@@ -151,10 +179,10 @@ var ToggleButtonView=Backbone.View.extend({
 			//shapes= this.footprintComponent.getModel().getUnit().getSelectedShapes();
 			var r=this.footprintComponent.getModel().getUnit().getShapesRect(shapes);
             
-            UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.getCenterX(),r.getCenterY(),(event.data.model.id==("rotateleftid")?-1:1)*(90.0)));   
+            UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(event.data.model.id==("rotateleftid")?1:-1)*(90.0)));   
             UnitMgr.getInstance().alignBlock(this.footprintComponent.getModel().getUnit().grid,shapes);  
             
-            this.footprintComponent.Repaint();
+            this.footprintComponent.repaint();
 		}
 		if(event.data.model.id=='zoominid'){
 			this.footprintComponent.ZoomIn(parseInt(this.footprintComponent.width/2),parseInt(this.footprintComponent.height/2));
@@ -181,8 +209,11 @@ var ToggleButtonView=Backbone.View.extend({
 		  
 		  
 		  for(let unit of selectedModel.getUnits()){
+			  core.isEventEnabled=false;
 			  var copy=unit.clone();
-			  this.footprintComponent.getModel().add(copy);  
+			  core.isEventEnabled=true;
+			  
+			  this.footprintComponent.getModel().add(copy);  			  			  
 			  copy.notifyListeners(events.Event.ADD_SHAPE);
 		  };
 		  
@@ -196,18 +227,18 @@ var ToggleButtonView=Backbone.View.extend({
 		  this.footprintComponent.componentResized();
         //position on center
           let rect=this.footprintComponent.getModel().getUnit().getBoundingRect();
-          this.footprintComponent.setScrollPosition(rect.getCenterX(),rect.getCenterY());
+          this.footprintComponent.setScrollPosition(rect.center.x,rect.center.y);
           this.footprintComponent.fireContainerEvent({target:null,type: events.Event.RENAME_CONTAINER});
           this.footprintComponent.getModel().fireUnitEvent({target:this.footprintComponent.getModel().getUnit(),type: events.Event.SELECT_UNIT});
-		  this.footprintComponent.Repaint();
+		  this.footprintComponent.repaint();
 		  //set button group
 		  this.footprintComponent.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
 		  
 	        //position all to symbol center
 		  for(let unit of this.footprintComponent.getModel().getUnits()){			   
 	            let r=unit.getBoundingRect();
-	            var x=unit.getScalableTransformation().getScale()*r.getX()-(this.footprintComponent.viewportWindow.width-unit.getScalableTransformation().getScale()*r.getWidth())/2;
-	            var y=unit.getScalableTransformation().getScale()*r.getY()-(this.footprintComponent.viewportWindow.height-unit.getScalableTransformation().getScale()*r.getHeight())/2;;
+	            var x=unit.getScalableTransformation().getScale()*r.x-(this.footprintComponent.viewportWindow.width-unit.getScalableTransformation().getScale()*r.width)/2;
+	            var y=unit.getScalableTransformation().getScale()*r.y-(this.footprintComponent.viewportWindow.height-unit.getScalableTransformation().getScale()*r.height)/2;;
 	            unit.setScrollPositionValue(x,y);            			  
 		  }		
 

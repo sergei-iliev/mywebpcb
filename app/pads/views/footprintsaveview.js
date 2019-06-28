@@ -7,6 +7,7 @@ var FootprintSaveView=Backbone.View.extend({
 	el:"#savedialogcontentslot",
 	initialize:function(opt){
 			this.footprintComponent=opt.footprintComponent; 
+			j$('#FootprintSaveDialog').jqxWindow({height: 300, width: 420});
 			j$('#FootprintSaveDialog').jqxWindow('open');
 			j$('#FootprintSaveDialog').off('close', j$.proxy(this.onclose,this)); 
 			j$('#FootprintSaveDialog').on('close', j$.proxy(this.onclose,this)); 				    	
@@ -93,7 +94,6 @@ var FootprintSaveView=Backbone.View.extend({
   	  this.unbind();
     },		  
     onsave:function(){
-    	console.log(j$('#savelibrarycombo').val());
     	let library=j$('#savelibrarycombo').val()!=''?j$('#savelibrarycombo').val():'null';
     	let category=j$('#savecategorycombo').val()!=''?j$('#savecategorycombo').val():'null'
 	    let name=j$('#name').val()!=''?j$('#name').val():'null'
@@ -130,39 +130,39 @@ var FootprintSaveView=Backbone.View.extend({
     },  
     render:function(){
 		j$(this.el).html(    	
-        "<div class=\"row voffset3\">"+                       
-        "<div class=\"col-sm-4 col-sm-offset-1\">"+         
+        "<div class=\"row voffset3 text-center\">"+                       
+        "<div class=\"col-md-6\">"+         
         "Name" +
         "</div>"+
-        "<div class=\"col-sm-6 col-sm-pull-1\">"+        
+        "<div class=\"col-md-6\">"+        
         "<input type='text' id='name' value='"+this.footprintComponent.getModel().formatedFileName+"' class='form-control input-sm\'>" +
         "</div>"+                       
         "</div>"+
         
-        "<div class=\"row voffset2\">"+                       
-        "<div class=\"col-sm-4 col-sm-offset-1\">"+         
+        "<div class=\"row voffset2 text-center\">"+                       
+        "<div class=\"col-sm-6\">"+         
         "Library" +
         "</div>"+
-        "<div class=\"col-sm-6 col-sm-pull-1\">"+        
-		"<select class=\"form-control input-sm\" id=\"savelibrarycombo\"></select>"+        
+        "<div class=\"col-sm-6\">"+        
+		"<select class=\"form-control\" id=\"savelibrarycombo\"></select>"+        
         "</div>"+                       
         "</div>"+
         
-        "<div class=\"row voffset2\">"+                       
-        "<div class=\"col-sm-4 col-sm-offset-1\">"+         
+        "<div class=\"row voffset2 text-center\">"+                       
+        "<div class=\"col-sm-6\">"+         
         "Category" +
         "</div>"+
-        "<div class=\"col-sm-6 col-sm-pull-1\">"+        
-        "<select class=\"form-control input-sm\" id=\"savecategorycombo\"></select>"+
+        "<div class=\"col-sm-6\">"+        
+        "<select class=\"form-control\" id=\"savecategorycombo\"></select>"+
         "</div>"+                       
         "</div>"+    
 
-        "<div class=\"row voffset2\">"+                       
-        "<div class=\"col-sm-8 col-sm-offset-1\">"+         
+        "<div class=\"row voffset2 text-center\">"+                       
+        "<div class=\"col-md-6\">"+         
         "Override existing unit" +
         "</div>"+
-        "<div class=\"col-sm-2 col-sm-pull-1\">"+   
-        "<input type='checkbox' id='overrideCheck'>" +
+        "<div class=\"col-md-6\">"+   
+        "<input type='checkbox' id='overrideCheck' style='width:3vw;height:3vh;'>" +
         "</div>"+                       
         "</div>"+    
         

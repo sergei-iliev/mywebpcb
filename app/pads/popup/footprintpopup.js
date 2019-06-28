@@ -5,6 +5,16 @@ class FootprintContextMenu extends ContextMenu{
 constructor(component,placeholderid){
 		super(component,placeholderid);	
 	}	
+registerPadPopup(target,event){
+	var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
+	  items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
+	  items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
+	  items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
+	  items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
+	  items+="</table></div>";
+	  this.setContent(items,{target:target});	
+	  this.open(event);	
+	}
 registerUnitPopup(target,event){	          	            
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
 	    items+="<tr id='selectallid' ><td style='padding: 0.4em;'>Select All</td></tr>";

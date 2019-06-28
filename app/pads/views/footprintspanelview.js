@@ -11,6 +11,7 @@ var	RoundRect=require('pads/shapes').RoundRect;
 var	Circle=require('pads/shapes').Circle;
 var	Arc=require('pads/shapes').Arc;
 var	Pad=require('pads/shapes').Pad;
+var	SolidRegion=require('pads/shapes').SolidRegion;
 
 var ComponentPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
@@ -19,11 +20,9 @@ var ComponentPanelBuilder=BaseBuilder.extend({
     },
     events: {
         'keypress #nameid' : 'onenter',	
+       
     },
-	onclick:function(event){
-		event.preventDefault();
-		alert("Hello from me with event.");
-	},
+	
 	onenter:function(event){
 		 if(event.keyCode != 13){
 			return; 
@@ -32,10 +31,14 @@ var ComponentPanelBuilder=BaseBuilder.extend({
 			 this.target.getModel().setFileName(j$("#nameid").val()); 
 			 this.target.fireContainerEvent({target:null,type:events.Event.RENAME_CONTAINER});
 		 }
+		 if(event.target.id=='importid'){
+			 console.log(34);
+		 }
 		 //mycanvas.focus();
 		
 	},
 	updateui:function(){
+		console.log(this.target.getModel());
 		j$("#nameid").val(this.target.getModel().formatedFileName);
 	},
 	render:function(){
@@ -43,9 +46,8 @@ var ComponentPanelBuilder=BaseBuilder.extend({
 		j$(this.el).append(
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
-				"</td></tr>"+
-		"</table>");
-			
+				"</td></tr></table>"
+		);	
 		return this;
 	}
 });
@@ -72,16 +74,18 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='widthid'||event.target.id=='heightid'){           
 		    this.component.getModel().getUnit().setSize(core.MM_TO_COORD(parseFloat(j$('#widthid').val())),core.MM_TO_COORD(parseFloat(j$('#heightid').val())));  
 		    this.component.componentResized();     
-		    this.component.Repaint();
+		    this.component.repaint();
 		 }
 		 if(event.target.id=='nameid'){
 			 this.target.unitName=j$("#nameid").val(); 
 			 this.component.getModel().fireUnitEvent({target:this.target,type:events.Event.RENAME_UNIT});
 		 }
-		 if(event.target.id=='originxid'||event.target.id=='originyid'){           
-			    this.component.getModel().getUnit().getCoordinateSystem().Reset(core.MM_TO_COORD(parseFloat(j$('#originxid').val())),core.MM_TO_COORD(parseFloat(j$('#originyid').val())));  
+		 if(event.target.id=='originxid'||event.target.id=='originyid'){   
+			 if(this.component.getModel().getUnit().getCoordinateSystem()!=null){
+			    this.component.getModel().getUnit().getCoordinateSystem().reset(core.MM_TO_COORD(parseFloat(j$('#originxid').val())),core.MM_TO_COORD(parseFloat(j$('#originyid').val())));  
 			    this.component.componentResized();     
-			    this.component.Repaint();
+			    this.component.repaint();
+			 }
 		 }
 		 //mycanvas.focus();
 		
@@ -89,7 +93,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 	onchange:function(event){
 		if(event.target.id=='gridrasterid'){
 			this.target.grid.setGridValue(parseFloat(j$("#gridrasterid").val()));
-			this.component.Repaint();
+			this.component.repaint();
 		}		
 		if(event.target.id=='referenceid'){
 			var texture=UnitMgr.getInstance().getTextureByTag(this.target,'reference');
@@ -101,7 +105,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 				return;
 			label=this.target.getShape(j$("#referenceid").val());
 			label.getChipText().get(0).tag='reference';
-			this.component.Repaint();
+			this.component.repaint();
 		}
 		if(event.target.id=='valueid'){
 			var texture=UnitMgr.getInstance().getTextureByTag(this.target,'value');
@@ -113,7 +117,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 				return;
 			label=this.target.getShape(j$("#valueid").val());
 			label.getChipText().get(0).tag='value';
-			this.component.Repaint();
+			this.component.repaint();
 		}
 	},
 	updateui:function(){
@@ -121,8 +125,10 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 	   j$("#widthid").val(core.COORD_TO_MM( this.target.width));    
 	   j$("#heightid").val(core.COORD_TO_MM(this.target.height));
 	   j$("#gridrasterid").val(this.target.grid.getGridValue());
-	   j$("#originxid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getX()));    
-	   j$("#originyid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getY()));	   
+	   if(this.component.getModel().getUnit().coordinateSystem!=null){
+	     j$("#originxid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getX()));    
+	     j$("#originyid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getY()));
+	   }
 	   //reference
 	   var labels=this.target.getShapes(GlyphLabel);
 	   var hash=[];
@@ -162,7 +168,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 				"</td></tr>"+
 				"<tr><td style='padding:7px'>Grid</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"gridrasterid\">"+
-			    this.fillComboBox(core.gridraster)+
+			    this.fillComboBox(core.GridRaster)+
 			    "</select>" +
 				"</td></tr>"+
 				"<tr><td style='padding:7px'>Reference</td><td>" +
@@ -194,6 +200,7 @@ var PadPanelBuilder=BaseBuilder.extend({
         'keypress #padyid' : 'onenter',
         'keypress #padwidthid' : 'onenter',
         'keypress #padheightid' : 'onenter',
+        'keypress #rotateid' : 'onenter',
         'keypress #numberid' : 'onenter',	
         'keypress #numbersizeid' : 'onenter',
         'keypress #numberxid' : 'onenter',	
@@ -208,10 +215,6 @@ var PadPanelBuilder=BaseBuilder.extend({
         'change #layerid': 'onchange',
         'change #typeid': 'onchange', 
         'change #shapeid': 'onchange', 
-        'change #numberorientationid': 'onchange',
-        'change #numberalignmentid': 'onchange',
-        'change #netvalueorientationid': 'onchange',
-        'change #netvaluealignmentid': 'onchange',
     },
     onchange:function(event){
         if(event.target.id=='layerid'){
@@ -226,59 +229,41 @@ var PadPanelBuilder=BaseBuilder.extend({
         	this.updateui();
         }
         
-        if(event.target.id=='numberorientationid'){
-      	  this.target.getChipText().get(0).setOrientation(parseInt((j$('#numberorientationid :selected').val())));
-      	  //update 
-      	  this.validateAlignmentComboText('numberalignmentid',this.target.getChipText().get(0));
-        }
-        if(event.target.id=='numberalignmentid'){
-      	  this.target.getChipText().get(0).setAlignment(parseInt((j$('#numberalignmentid :selected').val()))); 
-        }
-        
-        if(event.target.id=='netvalueorientationid'){
-        	  this.target.getChipText().get(1).setOrientation(parseInt((j$('#netvalueorientationid :selected').val())));
-        	  //update 
-        	  this.validateAlignmentComboText('netvaluealignmentid',this.target.getChipText().get(1));
-        }
-        if(event.target.id=='netvaluealignmentid'){
-        	  this.target.getChipText().get(1).setAlignment(parseInt((j$('#netvaluealignmentid :selected').val()))); 
-        }
-       this.component.Repaint(); 
+       this.component.repaint(); 
       },
     onenter:function(event){
 		 if(event.keyCode != 13){
 				return; 
 		 }
 	     if(event.target.id=='padwidthid'){
+	    	console.log(1); 
 	        this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#padwidthid').val()))); 
 	     }
 	     if(event.target.id=='padheightid'){
 	    	this.target.setHeight(core.MM_TO_COORD(parseFloat(j$('#padheightid').val()))); 
 	     }
+	     if(event.target.id=='rotateid'){
+		        this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val()))); 
+		     }	     
 		 if(event.target.id=='numberid'){ 
 			 this.target.getChipText().getTextureByTag("number").setText(j$('#numberid').val());			   
 		 }
 		 if(event.target.id=='numbersizeid'){ 
-			 this.target.getChipText().getTextureByTag("number").fontSize=core.MM_TO_COORD(parseFloat(j$('#numbersizeid').val()));  
+			 this.target.getChipText().getTextureByTag("number").setSize(core.MM_TO_COORD(parseFloat(j$('#numbersizeid').val())));  
 		 }
-		 if(event.target.id=='numberxid'){ 
-			 this.target.getChipText().getTextureByTag("number").anchorPoint.x=this.fromUnitX(parseFloat(j$('#numberxid').val()));
-		 }
-		 if(event.target.id=='numberyid'){ 
-			 this.target.getChipText().getTextureByTag("number").anchorPoint.y=this.fromUnitY(parseFloat(j$('#numberyid').val()));  
+		 if(event.target.id=='numberxid'||event.target.id=='numberyid'){ 
+			 this.target.getChipText().getTextureByTag("number").setLocation(this.fromUnitX(parseFloat(j$('#numberxid').val())),this.fromUnitY(parseFloat(j$('#numberyid').val())));
+			 
 		 }
 		 //--------netvalue-------
 		 if(event.target.id=='netvalueid'){ 
 			 this.target.getChipText().getTextureByTag("netvalue").setText(j$('#netvalueid').val()); 
 		 }
 		 if(event.target.id=='netvaluesizeid'){ 
-			 this.target.getChipText().getTextureByTag("netvalue").fontSize=core.MM_TO_COORD(parseFloat(j$('#netvaluesizeid').val())); 
+			 this.target.getChipText().getTextureByTag("netvalue").setSize(core.MM_TO_COORD(parseFloat(j$('#netvaluesizeid').val()))); 
 		 }
-		 if(event.target.id=='netvaluexid'){ 
-			 this.target.getChipText().getTextureByTag("netvalue").anchorPoint.x=this.fromUnitX(parseFloat(j$('#netvaluexid').val())); 
-		 }
-		 if(event.target.id=='netvalueyid'){ 
-			 this.target.getChipText().getTextureByTag("netvalue").anchorPoint.y=this.fromUnitY(parseFloat(j$('#netvalueyid').val()));
+		 if(event.target.id=='netvaluexid'||event.target.id=='netvalueyid'){ 
+			 this.target.getChipText().getTextureByTag("netvalue").setLocation(this.fromUnitX(parseFloat(j$('#netvaluexid').val())),this.fromUnitY(parseFloat(j$('#netvalueyid').val()))); 
 		 }
 		 if(event.target.id=='drillwidthid'){ 
 			 this.target.drill.setWidth(core.MM_TO_COORD(parseFloat(j$('#drillwidthid').val())));   
@@ -289,14 +274,16 @@ var PadPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='offsetyid'){ 
 			 this.target.offset.y=(core.MM_TO_COORD(parseFloat(j$('#offsetyid').val())));   
 		 }
-		 this.component.Repaint(); 
+		 this.component.repaint(); 
     },
 	updateui:function(){
+
 		 j$('#layerid').val(this.target.copper.getName());
-		 j$('#padxid').val(this.toUnitX(this.target.x));
-		 j$('#padyid').val(this.toUnitY(this.target.y));
+		 j$('#padxid').val(this.toUnitX(this.target.getCenter().x));
+		 j$('#padyid').val(this.toUnitY(this.target.getCenter().y));
+		 j$("#rotateid").val(this.target.rotate);  
 		 j$('#padwidthid').val(core.COORD_TO_MM(this.target.width));
-	        if(this.target.getShape()==PadShape.CIRCULAR){
+	        if(this.target.getShape()==PadShape.CIRCULAR||this.target.getShape()==PadShape.POLYGON){
 	        	j$('#padheightid').prop('disabled',true);
 	        	j$('#padheightid').val('');
 	        }else{
@@ -306,39 +293,28 @@ var PadPanelBuilder=BaseBuilder.extend({
 	        j$('#typeid').val(this.target.type);  
 	        j$('#shapeid').val(this.target.getShape());  
 	        //-------number---------
-	        j$('#numberid').val(this.target.getChipText().getTextureByTag("number").text); 
-	        j$('#numbersizeid').val(core.COORD_TO_MM(this.target.getChipText().getTextureByTag("number").fontSize)); 
+	        j$('#numberid').val(this.target.getChipText().getTextureByTag("number").shape.text); 
+	        j$('#numbersizeid').val(core.COORD_TO_MM(this.target.getChipText().getTextureByTag("number").shape.fontSize)); 
 	        
 	        if(this.target.getChipText().getTextureByTag("number").isEmpty()){
 	            j$('#numberxid').val('');
 				j$('#numberyid').val('');
 	        }else{ 
-	         j$('#numberxid').val(this.toUnitX(this.target.getChipText().getTextureByTag("number").anchorPoint.x));
-			 j$('#numberyid').val(this.toUnitY(this.target.getChipText().getTextureByTag("number").anchorPoint.y));
-	        }	       
-	        
-	   	    //set orientation
-	   	    j$('#numberorientationid').val(this.target.getChipText().get(0).getAlignment().getOrientation());
-	   	    //set alignment
-	   	    this.validateAlignmentComboText('numberalignmentid',this.target.getChipText().get(0));
+	         j$('#numberxid').val(this.toUnitX(this.target.getChipText().getTextureByTag("number").shape.anchorPoint.x));
+			 j$('#numberyid').val(this.toUnitY(this.target.getChipText().getTextureByTag("number").shape.anchorPoint.y));
+	        }	       	        
 
 	        //-------netvalue--------
-	        j$('#netvalueid').val(this.target.getChipText().getTextureByTag("netvalue").text); 
-	        j$('#netvaluesizeid').val(core.COORD_TO_MM(this.target.getChipText().getTextureByTag("netvalue").fontSize)); 
+	        j$('#netvalueid').val(this.target.getChipText().getTextureByTag("netvalue").shape.text); 
+	        j$('#netvaluesizeid').val(core.COORD_TO_MM(this.target.getChipText().getTextureByTag("netvalue").shape.fontSize)); 
 	        
 	        if(this.target.getChipText().getTextureByTag("netvalue").isEmpty()){
 	            j$('#netvaluexid').val('');
 				j$('#netvalueyid').val('');
 	        }else{ 
-	         j$('#netvaluexid').val(this.toUnitX(this.target.getChipText().getTextureByTag("netvalue").anchorPoint.x));
-			 j$('#netvalueyid').val(this.toUnitY(this.target.getChipText().getTextureByTag("netvalue").anchorPoint.y));
+	         j$('#netvaluexid').val(this.toUnitX(this.target.getChipText().getTextureByTag("netvalue").shape.anchorPoint.x));
+			 j$('#netvalueyid').val(this.toUnitY(this.target.getChipText().getTextureByTag("netvalue").shape.anchorPoint.y));
 	        }
-	        
-	       
-	   	    //set orientation
-	   	    j$('#netvalueorientationid').val(this.target.getChipText().get(1).getAlignment().getOrientation());
-	   	    //set alignment
-	   	    this.validateAlignmentComboText('netvaluealignmentid',this.target.getChipText().get(1));
 	        
 	        //-----drill and offset------
 	        j$('#drillwidthid').val(core.COORD_TO_MM(this.target.drill==null?0:this.target.drill.getWidth()));
@@ -367,7 +343,8 @@ var PadPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>X</td><td><input type='text' id='padxid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='padyid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Width</td><td><input type='text' id='padwidthid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='padheightid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='padheightid' value='' class='form-control input-sm\'></td></tr>"+							
+				"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='width:50%;padding:7px'>Pad Type</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"typeid\">"+
 				this.fillComboBox([{id:0,value:'THROUGH_HOLE',selected:true},{id:1,value:'SMD'},{id:2,value:'CONNECTOR'}])+
@@ -386,30 +363,12 @@ var PadPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='numbersizeid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>X</td><td><input type='text' id='numberxid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='numberyid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Orientation</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"numberorientationid\">"+
-				this.fillComboBox([{id:0,value:'HORIZONTAL',selected:true},{id:1,value:'VERTICAL'}])+
-			    "</select>" +
-				"</td></tr>"+
-				"<tr><td style='padding:7px'>Alignment</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"numberalignmentid\">"+
-				this.fillComboBox([{id:0,value:'LEFT',selected:true},{id:1,value:'RIGHT'}])+
-			    "</select>" +
-				"</td></tr>"+					        
+				        
 				"<tr><td style='padding:7px'>Net name</td><td><input type='text' id='netvalueid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='netvaluesizeid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>X</td><td><input type='text' id='netvaluexid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='netvalueyid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Orientation</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"netvalueorientationid\">"+
-				this.fillComboBox([{id:0,value:'HORIZONTAL',selected:true},{id:1,value:'VERTICAL'}])+
-			    "</select>" +
-				"</td></tr>"+	
-				"<tr><td style='padding:7px'>Alignment</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"netvaluealignmentid\">"+
-				this.fillComboBox([{id:0,value:'LEFT',selected:true},{id:1,value:'RIGHT'}])+
-			    "</select>" +
-				"</td></tr>"+					        
+				        
 		
 		"</table>");
 			
@@ -419,15 +378,13 @@ var PadPanelBuilder=BaseBuilder.extend({
 var RectPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
 		RectPanelBuilder.__super__.initialize(component);
-		this.id="rectpanelbuilder";
-		//app.bind('itemlinkimpl:oncklick', $.proxy(this.onitemclick,this));    
+		this.id="rectpanelbuilder"; 
     },	
     events: {
         'keypress #xid' : 'onenter',	
         'keypress #yid' : 'onenter',
         'keypress #thicknessid' : 'onenter',
-        'keypress #widthid' : 'onenter',
-        'keypress #heightid' : 'onenter',
+        'keypress #rotateid' : 'onenter',        
         'keypress #roundingid' : 'onenter',
         'change #fillid': 'onchange',
         'change #layerid': 'onchange',
@@ -439,7 +396,7 @@ var RectPanelBuilder=BaseBuilder.extend({
     	if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
         }
-        this.component.Repaint(); 
+        this.component.repaint(); 
       },    
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -447,12 +404,9 @@ var RectPanelBuilder=BaseBuilder.extend({
 		 }
 		 if(event.target.id=='thicknessid'){
 			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
-		 } 
-		 if(event.target.id=='widthid'){
-		   this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#widthid').val())));			 
-		 } 
-		 if(event.target.id=='heightid'){
-			   this.target.setHeight(core.MM_TO_COORD(parseFloat(j$('#heightid').val())));			 
+		 } 	 
+		 if(event.target.id=='rotateid'){
+			   this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val())));			 
 		 } 	
 		 if(event.target.id=='xid'){			 
 	         var x=this.fromUnitX(j$('#xid').val()); 
@@ -463,20 +417,19 @@ var RectPanelBuilder=BaseBuilder.extend({
 	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
 		 } 	
 		 if(event.target.id=='roundingid'){
-			 this.target.arc=core.MM_TO_COORD(parseFloat(j$('#roundingid').val()));			 
-			 }
-		 this.component.Repaint(); 		 
+			 this.target.setRounding(core.MM_TO_COORD(parseFloat(j$('#roundingid').val())));			 
+		 }
+		 this.component.repaint(); 		 
     },
 	updateui:function(){
 		j$('#layerid').val(this.target.copper.getName());
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
         j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
-        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
-        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
+        j$('#xid').val(utilities.roundDouble(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x)));
+        j$('#yid').val(utilities.roundDouble(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y))); 
 		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
-		j$("#widthid").val(core.COORD_TO_MM(this.target.getWidth()));    
-		j$("#heightid").val(core.COORD_TO_MM(this.target.getHeight()));
-		j$("#roundingid").val(core.COORD_TO_MM(this.target.arc));
+		//j$("#rotateid").val(this.target.rotate);    
+		j$("#roundingid").val(core.COORD_TO_MM(this.target.roundRect.rounding));
 		j$("#fillid").val(this.target.fill);
 	},
 	render:function(){
@@ -496,8 +449,7 @@ var RectPanelBuilder=BaseBuilder.extend({
 				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
 			    "</select>" +
 				"</td></tr>"+
-				"<tr><td style='padding:7px'>Width</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='heightid' value='' class='form-control input-sm\'></td></tr>"+				
+				//"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Rounding</td><td><input type='text' id='roundingid' value='' class='form-control input-sm\'></td></tr>"+						        
 		"</table>");
 			
@@ -525,8 +477,8 @@ var ArcPanelBuilder=BaseBuilder.extend({
         }
         if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
-        }
-        this.component.Repaint(); 
+        }        
+        this.component.repaint(); 
     }, 
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -536,26 +488,26 @@ var ArcPanelBuilder=BaseBuilder.extend({
 			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
 		 } 
 		 if(event.target.id=='widthid'){
-			   this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#widthid').val())));			 
+			   this.target.setRadius(core.MM_TO_COORD(parseFloat(j$('#widthid').val())));			 
 		 } 
 		 if(event.target.id=='startangleid'){
-			   this.target.startAngle=utilities.round(j$('#startangleid').val());			 
+			   this.target.setStartAngle(j$('#startangleid').val());			 
 		 } 
 		 if(event.target.id=='extendangleid'){
-			   this.target.extendAngle=utilities.round(j$('#extendangleid').val());	
+			   this.target.setExtendAngle(j$('#extendangleid').val());	
 		 } 	
-		 this.component.Repaint(); 	
+		 this.component.repaint(); 	
     },
 	updateui:function(){
 		j$('#layerid').val(this.target.copper.getName());
-		j$("#startangleid").val(this.target.startAngle);    
-		j$("#extendangleid").val(this.target.extendAngle);		
+		j$("#startangleid").val(this.target.arc.startAngle);    
+		j$("#extendangleid").val(this.target.arc.endAngle);		
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
         j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
         j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:(this.target.resizingPoint.x)));
         j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:(this.target.resizingPoint.y))); 
 		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
-		j$("#widthid").val(core.COORD_TO_MM(this.target.getWidth()));
+		j$("#widthid").val(core.COORD_TO_MM(this.target.arc.r));
 		j$("#fillid").val(this.target.fill);
 	},
 	render:function(){
@@ -570,16 +522,47 @@ var ArcPanelBuilder=BaseBuilder.extend({
 				"</td></tr>"+				
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+			
 				"<tr><td style='padding:7px'>Fill</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"fillid\">"+
 				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
 			    "</select>" +
-				"</td></tr>"+
+				"</td></tr>"+				
 				"<tr><td style='padding:7px'>Radius</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Start&deg</td><td><input type='text' id='startangleid' value='' class='form-control input-sm\'></td></tr>"+	
 				"<tr><td style='padding:7px'>Extend&deg</td><td><input type='text' id='extendangleid' value='' class='form-control input-sm\'></td></tr>"+
 		"</table>");
+		return this;
+	}
+});
+var SolidRegionPanelBuilder=BaseBuilder.extend({
+	initialize:function(component){
+		SolidRegionPanelBuilder.__super__.initialize(component);
+		this.id="solidregionpanelbuilder";  
+    },	
+    events: {
+        'change #layerid':'onchange'
+    },
+    onchange:function(event){
+        if(event.target.id=='layerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        }              
+        this.component.repaint(); 
+    }, 
+	updateui:function(){
+		
+	},
+	render:function(){
+		j$(this.el).empty();
+		j$(this.el).append(
+				"<table width='100%'>"+
+				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+			    "</select>" +
+				"</td></tr>"+							
+		"</table>");				
+			
 		return this;
 	}
 });
@@ -603,7 +586,7 @@ var CirclePanelBuilder=BaseBuilder.extend({
         if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
         }
-        this.component.Repaint(); 
+        this.component.repaint(); 
       },    
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -613,7 +596,7 @@ var CirclePanelBuilder=BaseBuilder.extend({
 			this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
 		 } 
 		 if(event.target.id=='radiusid'){
-		   this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#radiusid').val())));			 
+		   this.target.circle.r=(core.MM_TO_COORD(parseFloat(j$('#radiusid').val())));			 
 		 } 
 		 if(event.target.id=='xid'){			 
 	         var x=this.fromUnitX(j$('#xid').val()); 
@@ -623,7 +606,7 @@ var CirclePanelBuilder=BaseBuilder.extend({
 	         var y=this.fromUnitY(j$('#yid').val()); 
 	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
 		 } 		 
-		 this.component.Repaint(); 		 
+		 this.component.repaint(); 		 
     },
 
 	updateui:function(){
@@ -633,7 +616,7 @@ var CirclePanelBuilder=BaseBuilder.extend({
         j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
         j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
 		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
-		j$("#radiusid").val(core.COORD_TO_MM(this.target.getWidth()));    
+		j$("#radiusid").val(core.COORD_TO_MM(this.target.circle.radius));    
 		j$("#fillid").val(this.target.fill);		
 	},
 	render:function(){
@@ -676,7 +659,7 @@ var LinePanelBuilder=BaseBuilder.extend({
         if(event.target.id=='layerid'){
         	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
         }
-        this.component.Repaint(); 
+        this.component.repaint(); 
       }, 
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -691,7 +674,7 @@ var LinePanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='yid'){	            
 			 this.target.resizingPoint.y=this.fromUnitY(j$('#yid').val());  
 	     }
-		 this.component.Repaint();  
+		 this.component.repaint();  
     },
 	updateui:function(){
 		j$('#layerid').val(this.target.copper.getName());
@@ -727,30 +710,24 @@ var LabelPanelBuilder=BaseBuilder.extend({
         'keypress #xid' : 'onenter',	
         'keypress #yid' : 'onenter',
         'keypress #textid' : 'onenter',	
+        'keypress #rotateid' : 'onenter',
         'keypress #sizeid' : 'onenter',	
         'keypress #thicknessid' : 'onenter',	
-		'change #orientationid': 'onchange',
-        'change #alignmentid': 'onchange',
 		'change #layerid':'onchange',
     },
-    onchange:function(event){
-      if(event.target.id=='orientationid'){
-    	  this.target.texture.setOrientation(parseInt((j$('#orientationid :selected').val())));
-    	  //update 
-    	  this.validateAlignmentComboText('alignmentid',this.target.texture); 
-      }
-      if(event.target.id=='alignmentid'){
-    	  this.target.texture.setAlignment(parseInt((j$('#alignmentid :selected').val()))); 
-      }
+    onchange:function(event){      
 	  if(event.target.id=='layerid'){
-      	  this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+		  this.target.setCopper(core.Layer.Copper.valueOf(j$('#layerid').val()));
       }
-      this.component.Repaint(); 
+      this.component.repaint(); 
     },
     onenter:function(event){
 		 if(event.keyCode != 13){
 				return; 
 		 }
+		  if(event.target.id=='rotateid'){
+		      this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val()))); 
+		  }			 
 		 if(event.target.id=='textid'){
 			 this.target.texture.setText(j$('#textid').val());			  
 		 }
@@ -766,21 +743,16 @@ var LabelPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='yid'){	            
 			 this.target.texture.anchorPoint.y=this.fromUnitY(j$('#yid').val());  
 	     }		 
-		 this.component.Repaint();     		    	
+		 this.component.repaint();     		    	
     },
 	updateui:function(){
-	j$('#layerid').val(this.target.copper.getName());	
+	 j$("#rotateid").val(this.target.texture.rotate); 	
+	 j$('#layerid').val(this.target.copper.getName());	
 	 j$('#textid').val(this.target.texture.text);	
 	 j$('#xid').val(this.toUnitX(this.target.texture.anchorPoint.x));
 	 j$('#yid').val(this.toUnitY(this.target.texture.anchorPoint.y));	 
 	 j$('#sizeid').val(core.COORD_TO_MM(this.target.texture.size));
 	 j$('#thicknessid').val(core.COORD_TO_MM(this.target.texture.thickness));
-	 //set orientation
-	 j$('#orientationid').val(this.target.texture.alignment.getOrientation());
-	 //set alignment
-	 this.validateAlignmentComboText('alignmentid',this.target.texture);
-
-
 	},
 	render:function(){
 		j$(this.el).empty();
@@ -794,18 +766,9 @@ var LabelPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Text</td><td><input type='text' id='textid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='sizeid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Orientation</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"orientationid\">"+
-				this.fillComboBox([{id:0,value:'HORIZONTAL',selected:true},{id:1,value:'VERTICAL'}])+
-			    "</select>" +
-				"</td></tr>"+
-				"<tr><td style='padding:7px'>Alignment</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"alignmentid\">"+
-				this.fillComboBox([{id:0,value:'LEFT',selected:true},{id:1,value:'RIGHT'}])+
-			    "</select>" +
-				"</td></tr>"+
 		        "</table>");
 			
 		return this;
@@ -856,7 +819,7 @@ var FootprintsTree=Backbone.View.extend({
 			this.footprintComponent.hbar.jqxScrollBar({ value:this.footprintComponent.getModel().getUnit().scrollPositionXValue});
 			this.footprintComponent.vbar.jqxScrollBar({ value:this.footprintComponent.getModel().getUnit().scrollPositionYValue});
 			
-			this.footprintComponent.Repaint();
+			this.footprintComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:this.footprintComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 
 		}
 		if(item.value==222){
@@ -871,7 +834,7 @@ var FootprintsTree=Backbone.View.extend({
 			var shape=this.footprintComponent.getModel().getUnit().getShape(item.id);
 			this.footprintComponent.getModel().getUnit().setSelected(false);
 			shape.setSelected(true);
-			this.footprintComponent.Repaint();
+			this.footprintComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:shape,type:events.Event.SELECT_SHAPE}); 	
 		}
 	
@@ -910,7 +873,7 @@ var FootprintsTree=Backbone.View.extend({
  	   if(event.type==events.Event.RENAME_UNIT){
            var selectedItem = this.$tree.jqxTree('selectedItem');
            if (selectedItem != null) {
-        	   this.$tree.jqxTree('updateItem', { label: event.target.name }, selectedItem.element);
+        	   this.$tree.jqxTree('updateItem', { label: event.target.unitName }, selectedItem.element);
         	   this.$tree.jqxTree('render');
            }  
  	   }
@@ -962,6 +925,7 @@ var FootprintsInspector=Backbone.View.extend({
 		                                         new LabelPanelBuilder(this.footprintComponent),
 		                                         new ComponentPanelBuilder(this.footprintComponent),
 		                                         new CirclePanelBuilder(this.footprintComponent),
+		                                         new SolidRegionPanelBuilder(this.footprintComponent),
 		                                         new ArcPanelBuilder(this.footprintComponent)]);
 		this.el= '#footprintsinspectorid';	
 		//select container
@@ -1073,20 +1037,27 @@ var FootprintsInspector=Backbone.View.extend({
 				this.render();				
 			}	
 		}
-		if((!(event.target instanceof Arc))&&(event.target instanceof Circle)){
+		if(event.target instanceof Circle){
 			if(this.panel.id!='circlepanelbuilder'){
 				this.panel.attributes.remove();
 				this.panel=this.collection.get('circlepanelbuilder');
 				this.panel.attributes.delegateEvents();
 				this.render();
 			}	
-		}else if(event.target instanceof Arc){
+		}if(event.target instanceof Arc){
 			if(this.panel.id!='arcpanelbuilder'){
 				this.panel.attributes.remove();
 				this.panel=this.collection.get('arcpanelbuilder');
 				this.panel.attributes.delegateEvents();
 				this.render();
 			}	
+		}if(event.target instanceof SolidRegion){
+			if(this.panel.id!='solidregionpanelbuilder'){
+				this.panel.attributes.remove();
+				this.panel=this.collection.get('solidregionpanelbuilder');
+				this.panel.attributes.delegateEvents();
+				this.render();
+			}				
 		}
 		//update panel ui values
 		this.panel.attributes.setTarget(event.target);

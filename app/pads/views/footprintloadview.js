@@ -6,7 +6,7 @@ var FootprintLoadView=Backbone.View.extend({
 	  initialize:function(opt){
 			j$('#FootprintLoadDialog').jqxWindow('open');
 			j$('#FootprintLoadDialog').off('close', j$.proxy(this.onclose,this)); 
-			j$('#FootprintLoadDialog').on('close', j$.proxy(this.onclose,this)); 
+			j$('#FootprintLoadDialog').on('close', j$.proxy(this.onclose,this)); 			
 			this.unitSelectionPanel=new core.UnitSelectionPanel({selectorid:'unitselectionpanel',canvasprefixid:'f',enabled:opt.enabled});
 			this.libraryview=new LibraryView({unitSelectionPanel:this.unitSelectionPanel});  
 	    	this.buttonview=new ButtonView({unitSelectionPanel:this.unitSelectionPanel});  
@@ -92,8 +92,11 @@ var LibraryView=Backbone.View.extend({
     },
     loadfootprint:function(data, textStatus, jqXHR){
       this.unitSelectionPanel.release();
-      footprintContainer=new FootprintContainer(true);      
+      footprintContainer=new FootprintContainer();
+      //disable 
+      core.isEventEnabled=false;
       footprintContainer.parse(data);
+      core.isEventEnabled=true;
       this.unitSelectionPanel.unitSelectionGrid.setModel(footprintContainer);
       this.unitSelectionPanel.unitSelectionGrid.build();   
       this.unitSelectionPanel.render();

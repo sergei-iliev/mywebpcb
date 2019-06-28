@@ -1,7 +1,10 @@
 .panel-body{
 	background:#efefef;
+	padding:8px;
 }
-
+.btn-default.active {
+  background-color:#c4c4c4;
+}
 .btn-default {
   background-color: #efefef;
 }
@@ -12,30 +15,13 @@ border-color: #ccc;
 .btn.verticaloffset{
 	margin-bottom:5px;
 }
-.tooltip.top .tooltip-inner {
-    background-color:green;
-  }
-.tooltip.top .tooltip-arrow {
-          border-top-color:green;
-       }
-.tooltip.right .tooltip-inner {
-    background-color:green;
-  }
-.tooltip.right .tooltip-arrow {
-          border-right-color: green;
-       }
-.tooltip.bottom .tooltip-inner {
-    background-color:green;
-  }
-.tooltip.bottom .tooltip-arrow {
-          border-bottom-color: green;
-       }  
-.tooltip.left .tooltip-inner {
-    background-color:green;
-  }
-.tooltip.left .tooltip-arrow {
-          border-left-color:green;
-       } 
+.tooltip-inner {
+    background-color: #007bff;
+}
+
+.bs-tooltip-bottom .arrow::before {
+    border-bottom-color: #007bff;
+}
 .nopadding {
    padding: 0 !important;
    margin: 0 !important;

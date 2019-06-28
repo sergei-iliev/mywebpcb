@@ -34,19 +34,21 @@ var Board=require('board/d/boardcomponent').Board;
 			 new togglebutton.ToggleButtonModel({id:'rotaterightid'}),
 			 new togglebutton.ToggleButtonModel({id:'grabid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'tocenterid'}),
+			 new togglebutton.ToggleButtonModel({id:'layerid'}),
 			 new togglebutton.ToggleButtonModel({active:true,id:'selectionid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'loadfootprintid'}),
 			 new togglebutton.ToggleButtonModel({id:'ellipseid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'arcid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'lineid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'rectid',group:'lefttogglegroup'}),
+			 new togglebutton.ToggleButtonModel({id:'solidregionid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'trackid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'holeid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'viaid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'labelid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'copperareaid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'anchorid'}),
-			 new togglebutton.ToggleButtonModel({id:'originid',group:'lefttogglegroup'}),
+			 new togglebutton.ToggleButtonModel({id:'originid'}),
 			 new togglebutton.ToggleButtonModel({id:'measureid',group:'lefttogglegroup'})
 			 ]);
 		
@@ -64,7 +66,7 @@ var Board=require('board/d/boardcomponent').Board;
 			 bc.getModel().fireUnitEvent({target:bc.getModel().getUnit(),type:events.Event.SELECT_UNIT});
 				
 			 bc.componentResized();
-			 bc.Repaint();
+			 bc.repaint();
 			 
 			//init footprint load dialog
 				j$('#FootprintLoadDialog').jqxWindow({
@@ -81,6 +83,50 @@ var Board=require('board/d/boardcomponent').Board;
 		            width: 520,
 		            height: 400,
 		            autoOpen:false
-             });				
-	});
+             });
+			  //init save dialog
+			 j$('#BoardSaveDialog').jqxWindow({
+				    resizable: false,
+				    position: 'center',
+		            width: 350,
+		            height: 270,
+		            autoOpen:false
+             });	
+			   //load demo board
+		      //loadDemo(bc);
+});	
+loadDemo=function(bc){
+	
+ j$.ajax({
+     type: 'GET',
+     contentType: 'application/xml',
+     url: 'demo/board.xml',
+     dataType: "xml",
+     beforeSend:function(){
+	          j$('#mywebboardid').block({message:'<h5>Loading...</h5>'});	
+	    },
+     success: function(data, textStatus, jqXHR){
+
+   //****load it    	
+   		  bc.Clear();
+   		  bc.getModel().parse(data);
+   		  bc.getModel().setActiveUnit(0);
+   		  bc.componentResized();
+             //position on center
+           var rect=bc.getModel().getUnit().getBoundingRect();
+           bc.setScrollPosition(rect.center.x,rect.center.y);
+           bc.getModel().fireUnitEvent({target:bc.getModel().getUnit(),type: events.Event.SELECT_UNIT});
+   		   bc.repaint();
+   		  //set button group
+   		   bc.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);	        
+     },
+     
+     error: function(jqXHR, textStatus, errorThrown){
+         	alert(errorThrown+":"+jqXHR.responseText);
+     },
+     complete:function(jqXHR, textStatus){
+     	j$('#mywebboardid').unblock();
+     }	        
+ });	
+}
 })(jQuery);

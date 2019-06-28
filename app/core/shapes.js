@@ -1,29 +1,243 @@
 var core=require('core/core');
 var utilities =require('core/utilities');
-var Shape=require('core/core').Shape;
+var d2=require('d2/d2');
+var font = require('core/text/d2font');
 
+class Shape{
+	constructor(x, y, width, height, thickness,
+			layermask) {
+		this.owningUnit=null;
+		this.uuid = core.UUID();
+		this.x = x;
+		this.y = y;
+		this.width = width;
+		this.height = height;
+		this.thickness = thickness;
+		this.selection = false;
+		this.displayName = "noname";
+		this.fill = Fill.EMPTY;
+		this.fillColor;		 
+		this.copper = core.Layer.Copper.resolve(layermask);
+	}
+getCenter(){
+	return new d2.Point(this.x,this.y);
+}	
+setDisplayName(displayName) {
+		this.displayName = displayName;
+	}
+clear() {
+    this.owningUnit=null;
+	}
+clone() {
+	copy=new Shape(this.x,this.y,this.width,this.height,this.layermask);
+	copy.fill=this.fill;	
+	return copy;
+	}
+alignToGrid(isRequired) {
+        let point=this.owningUnit.getGrid().positionOnGrid(this.getX(), this.getY());
+        this.setX(point.x);
+        this.setY(point.y);      
+        return null;
+}
+setX(x) {
+		this.x = x;
+	}
+getX() {
+		return this.x;
+	}
+setY(y) {
+		this.y = y;
+	}
+getY() {
+		return this.y;
+	}
+setWidth(width) {
+		this.width = width;
+	}
+getWidth() {
+		return this.width;
+	}
+setHeight (height) {
+		this.height = height;
+	}
+getHeight() {
+		return this.height;
+	}
+getDrawingOrder() {
+    return 100;
+}
+getOrderWeight() {
+		return (this.getWidth() * this.getHeight());
+	}
+getUUID() {
+		return this.uuid;
+	}
+calculateShape() {
+
+	}
+isVisibleOnLayers(layermasks){
+    if((this.copper.getLayerMaskID()&layermasks)!=0){
+        return true;
+    }else{
+        return false;
+    }
+}
+isInRect(r){
+	let rect=this.getBoundingShape();
+        if(r.contains(rect.center))
+            return true;
+           else
+            return false; 		
+	}
+isClicked(x,y) {
+        let r=this.getBoundingShape();
+        if(r.contains(x,y))
+         return true;
+        else
+         return false;           
+    }
+getBoundingShape() {
+	return this.calculateShape();
+	}
+setSelected (selection) {
+		this.selection = selection;
+	}
+isSelected() {
+		return this.selection;
+	}
+
+Move(xoffset,yoffset) {
+      this.setX(this.getX() + xoffset);
+      this.setY(this.getY() + yoffset);    
+}
+
+Mirror(line) {
+
+}
+    
+
+Rotate(rotation) {
+//		let point = new Point(this.getX(), this.getY());
+//		point = utilities.rotate(point, rotation.originx,rotation.originy, rotation.angle);
+//	
+//        this.x=(point.x);
+//        this.y=(point.y);
+}	
+fromXML(data) {
+
+	}
+
+} 
+
+/**********************Ruler**********************************/
+class Ruler extends Shape{
+constructor () {
+	super(0, 0, 0, 0, 0, 0);
+    this.text=new font.FontTexture('label','',0,0,core.MM_TO_COORD(1),0);
+    this.text.constSize=true;
+    this.text.fillColor='white';        
+	this.resizingPoint=null;
+}
+Resize( xOffset, yOffset) {
+    this.resizingPoint.set(this.resizingPoint.x+xOffset,this.resizingPoint.y+yOffset);
+    this.text.shape.anchorPoint.set(this.resizingPoint.x, this.resizingPoint.y);
+}	
+paint( g2,  viewportWindow,  scale) {        
+		if(this.resizingPoint==null){
+            return;
+        }
+        this.text.setText(parseFloat(core.COORD_TO_MM(this.resizingPoint.distanceTo(new d2.Point(this.x,this.y)))).toFixed(4)+' MM');
+                
+        this.text.paint(g2, viewportWindow, scale);
+        let line=new d2.Segment(this.x,this.y,this.resizingPoint.x,this.resizingPoint.y);
+
+        g2.strokeStyle  = 'white';
+		g2.lineWidth=1; 
+        
+        line.scale(scale.getScale());
+        line.move(-viewportWindow.x,-viewportWindow.y);
+        line.paint(g2);
+		
+    }	
+}
+/**********************Coordinate System**********************************/
+class CoordinateSystem extends Shape {
+	constructor (owningUnit) {
+		super(0, 0, 0, 0, 0, 0);
+		this.owningUnit=owningUnit;
+        this.selectionRectWidth=3000;		
+	}
+alignToGrid(isRequired) {
+    if(isRequired){
+           return super.alignToGrid(isRequired);
+    }else{
+          return null;
+    }
+}
+calculateShape() {
+    return d2.Box.fromRect(this.x-this.selectionRectWidth/2,this.y-this.selectionRectWidth/2,this.selectionRectWidth,this.selectionRectWidth);
+}
+reset(x, y) {
+		if (x < 0) {
+			x = 0;
+		} else if (x > this.owningUnit.getWidth()) {
+			x = this.owningUnit.getWidth();
+		}
+		if (y < 0) {
+			y = 0;
+		} else if (y > this.owningUnit.getWidth()) {
+			y = this.owningUnit.getWidth();
+		}
+		this.x=x;
+		this.y=y;
+}
+
+paint(g2, viewportWindow, scale) {
+		var line = new d2.Segment(0,0,0,0);		
+
+		g2.strokeStyle  = 'blue';
+		g2.lineWidth=1; 
+	
+
+		line.set(0, this.y, this.owningUnit.getWidth(),
+				this.y);
+		line.scale(scale.getScale());
+		line.move(-viewportWindow.x,- viewportWindow.y);
+	    line.paint(g2);
+	    
+	
+		line.set(this.x, 0, this.x, this.owningUnit.getHeight());
+		line.scale(scale.getScale());
+		line.move(-viewportWindow.x,- viewportWindow.y);		
+		line.paint(g2);
+	}
+}
 class AbstractLine extends Shape{
 	constructor(thickness,layermaskId) {
 		super(0, 0, 0, 0, thickness,layermaskId);
 		this.selectionRectWidth = 3000;
 		this.setDisplayName("Line");			
-		this.points = [];
-		this.floatingStartPoint = new core.Point(0, 0); // ***the
+		this.polyline=new d2.Polyline();
+		this.floatingStartPoint = new d2.Point(); // ***the
 																			// last
 																			// wire
 																			// point
-		this.floatingMidPoint = new core.Point(0, 0); // ***mid
+		this.floatingMidPoint = new d2.Point(); // ***mid
 																		// 90
 																		// degree
 																		// forming
-		this.floatingEndPoint = new core.Point(0, 0);
+		this.floatingEndPoint = new d2.Point();
+		this.rotate=0;
 		
 }
+get vertices(){
+	  return this.polyline.points;	
+	}	
 getLinePoints(){
-		return this.points;
+		return this.polyline.points;
 	}
 Clear(){
-		this.points=null;
+		this.polyline.points=null;		
 	}
 alignResizingPointToGrid(targetPoint) {
     this.owningUnit.grid.snapToGrid(targetPoint);         
@@ -31,17 +245,17 @@ alignResizingPointToGrid(targetPoint) {
 isClicked(x, y) {
 	  var result = false;
 		// build testing rect
-	  var rect = new core.Rectangle(x
+	  var rect = d2.Box.fromRect(x
 								- (this.thickness / 2), y
 								- (this.thickness / 2), this.thickness,
 								this.thickness);
-	  var r1 = new core.Point(rect.getMinX(), rect.getMinY());
-	  var r2 = new core.Point(rect.getMaxX(), rect.getMaxY());
+	  var r1 = rect.min;
+	  var r2 = rect.max;
 
 	  // ***make lines and iterate one by one
-	  var prevPoint = this.points[0];
+	  var prevPoint = this.polyline.points[0];
 
-	  this.points.some(function(wirePoint) {
+	  this.polyline.points.some(function(wirePoint) {
 							// skip first point
 							{
 								if (utilities.intersectLineRectangle(
@@ -56,10 +270,13 @@ isClicked(x, y) {
 
 	return result;
 }
+addPoint(point) {
+    this.polyline.add(point);
+}
 resetToPoint(point) {
-	this.floatingStartPoint.setLocationPoint(point);
-	this.floatingMidPoint.setLocationPoint(point);
-	this.floatingEndPoint.setLocationPoint(point);
+	this.floatingStartPoint.set(point);
+	this.floatingMidPoint.set(point);
+	this.floatingEndPoint.set(point);
 }
 reset() {
 	this.resetToPoint(this.floatingStartPoint);
@@ -72,10 +289,13 @@ reverse(x,y) {
     }       
 }
 Resize(xoffset, yoffset, clickedPoint) {
-	clickedPoint.setLocation(clickedPoint.x + xoffset,
+	clickedPoint.set(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);
 }
-
+shiftFloatingPoints(){
+    this.floatingStartPoint.set(this.polyline.points[this.polyline.points.length-1].x, this.polyline.points[this.polyline.points.length-1].y);
+    this.floatingMidPoint.set(this.floatingEndPoint.x, this.floatingEndPoint.y); 	
+}
 insertPoint( x, y) {
     
     let flag = false;
@@ -157,8 +377,8 @@ isEndPoint(x,y){
 }
 isInRect(r) {
 	var result = true;
-	this.points.some(function(wirePoint) {
-			if (!r.contains(wirePoint.x, wirePoint.y)) {
+	this.polyline.points.some(function(wirePoint) {
+			if (!r.contains(wirePoint)) {
 				result = false;
 				return true;
 			}else{
@@ -192,13 +412,11 @@ isBendingPointClicked( x,  y) {
 	return point;
 }
 isControlRectClicked(x, y) {
-	var rect = new core.Rectangle(x
-								- this.selectionRectWidth / 2, y - this.selectionRectWidth
-								/ 2, this.selectionRectWidth, this.selectionRectWidth);
+	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
 	let point = null;
 
-	this.points.some(function(wirePoint) {
-		if (rect.contains(wirePoint.x, wirePoint.y)) {
+	this.polyline.points.some(function(wirePoint) {
+		if (rect.contains(wirePoint)) {
 					point = wirePoint;
 		  return true;
 		}else{
@@ -210,46 +428,41 @@ isControlRectClicked(x, y) {
 }
 
 Move(xoffset, yoffset) {
-	this.points.forEach(function(wirePoint) {
-		wirePoint.setLocation(wirePoint.x + xoffset,
-									wirePoint.y + yoffset);
-	});
+	this.polyline.move(xoffset,yoffset);
 }
-Mirror(A,B) {
-	this.points.forEach(function(wirePoint) {
-		wirePoint.setLocationPoint(utilities.mirrorPoint(A,B, wirePoint));
-	});
+Mirror(line) {
+    this.polyline.mirror(line);
+}
+setRotation(rotate,center){
+	let alpha=rotate-this.rotate;
+	let box=this.polyline.box;
+	if(center==undefined){
+		this.polyline.rotate(alpha,box.center);
+	}else{
+		this.polyline.rotate(alpha,center);	 	
+	}
+	this.rotate=rotate;
 }
 Rotate(rotation) {
-	this.points.forEach(function(wirePoint) {
-				var p = utilities.rotate(wirePoint,
-									rotation.originx, rotation.originy,
-									rotation.angle);
-				wirePoint.setLocation(p.x, p.y);
-	});
+	//fix angle
+	let alpha=this.rotate+rotation.angle;
+	if(alpha>=360){
+	  alpha-=360
+	}
+	if(alpha<0){
+	 alpha+=360; 
+	}	
+	this.rotate=alpha;	
+	this.polyline.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
 }
 calculateShape() {
-	var rect = new core.Rectangle();
-	var x1 = Number.MAX_VALUE, y1 = Number.MAX_VALUE,
-								x2 = Number.MIN_VALUE, y2 = Number.MIN_VALUE;
-
-	this.points.forEach(function(point) {
-							x1 = Math.min(x1, point.x);
-							y1 = Math.min(y1, point.y);
-							x2 = Math.max(x2, point.x);
-							y2 = Math.max(y2, point.y);
-	});
-
-	rect.setRect(x1, y1, (x2 - x1) == 0 ? 1 : x2 - x1, y2
-								- y1 == 0 ? 1 : y2 - y1);
-
-						return rect;
+	return this.polyline.box;
 }
 
-drawControlShape(g2, viewportWindow,scalableTransformation) {
-	utilities.drawCrosshair(g2, viewportWindow,scalableTransformation,this.resizingPoint,this.selectionRectWidth,this.points);
-}
 
+drawControlPoints(g2, viewportWindow, scale) {
+	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.polyline.points);	
+}
 isFloating() {
 	return (!(this.floatingStartPoint
 								.equals(this.floatingEndPoint) && this.floatingStartPoint
@@ -267,5 +480,8 @@ setResizingPoint(point) {
 
 }
 module.exports ={
+		Shape,
+		CoordinateSystem,
+		Ruler,
 		AbstractLine
 }

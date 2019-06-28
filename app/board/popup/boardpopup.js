@@ -1,10 +1,22 @@
 var ContextMenu = require('core/popup/contextmenu').ContextMenu;
 var core=require('core/core');
+var LineSlopBendingProcessor=require('core/line/linebendingprocessor').LineSlopBendingProcessor;
+var SlopLineBendingProcessor=require('core/line/linebendingprocessor').SlopLineBendingProcessor;
+var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').DefaultLineBendingProcessor;
 
 class BoardContextMenu extends ContextMenu{
 constructor(component,placeholderid){
 		super(component,placeholderid);	
 	}
+registerTrackPopup(target,event){
+	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
+	    items+="<tr id='lineslopebendid' ><td style='padding: 0.4em;'>Line Slope Bending</td></tr>";
+	    items+="<tr id='slopelinebendid' ><td style='padding: 0.4em;'>Slope Line Bending</td></tr>";
+	    items+="<tr id='defaultbendid'><td style='padding: 0.4em;'>Default Bending</td></tr>";	  
+	    items+="</table></div>";
+	    this.setContent(items,{target:target});	    
+	    this.open(event);		
+}
 registerChipPopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
 	    items+="<tr id='selectallid' ><td style='padding: 0.4em;'>Edit Footprint</td></tr>";
@@ -77,7 +89,19 @@ actionPerformed(id,context){
         this.component.setMode(core.ModeEnum.LINE_MODE);         
         this.component.resumeLine(context.target,"line", {x:this.x, y:this.y,which:3});
     }  	
-	
+    let line =this.component.lineBendingProcessor.line;
+	if(id=='lineslopebendid'){		
+		this.component.lineBendingProcessor=new LineSlopBendingProcessor();
+		this.component.lineBendingProcessor.initialize(line);
+	}
+	if(id=='slopelinebendid'){
+		this.component.lineBendingProcessor=new SlopLineBendingProcessor();
+		this.component.lineBendingProcessor.initialize(line);
+	}
+	if(id=='defaultbendid'){
+		this.component.lineBendingProcessor=new DefaultLineBendingProcessor();
+		this.component.lineBendingProcessor.initialize(line);
+	}	
    super.actionPerformed(id,context);
    
 }

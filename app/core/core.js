@@ -1,123 +1,9 @@
+var d2=require('d2/d2');
+
 var mywebpcb = mywebpcb || {};
 
 var SELECT_RECT_WIDTH = 3000; 
-
-AlignEnum={
-  LEFT:0,
-  RIGHT:1,
-  TOP:2,
-  BOTTOM:3,
-  parse:function(align){
-	  switch(align){
-	  case 'LEFT':
-		     return this.LEFT;
-	  case 'RIGHT':
-			 return this.RIGHT; 
-	  case 'TOP':
-			 return this.TOP;
-	  case 'BOTTOM':
-			 return this.BOTTOM;			 
-	  default:
-		  throw new TypeError('Unrecognized align type:'+align+' to parse');  
-	  } 	  
-  },
-  format:function(align){
-	 switch(align){
-	 case 0:return 'LEFT';
-	 case 1:return 'RIGHT';
-	 case 2:return 'TOP';
-	 case 3:return 'BOTTOM';
-	 } 
-  }
-}
-
-OrientEnum={
-  HORIZONTAL:0,
-  VERTICAL:1
-};
  
-var Alignment=function(_alignment){
-  var alignment=_alignment;
-  
-  return {
-      getOrientation:function(){
-	     if(alignment==AlignEnum.LEFT||alignment==AlignEnum.RIGHT){
-		    return OrientEnum.HORIZONTAL;
-		 }else{
-		    return OrientEnum.VERTICAL;
-		 }
-	  },
-	  setOrientation:function(orientation){
-		  if(this.getOrientation()==orientation){
-			  return;
-		  }
-		  switch(orientation){
-		  case OrientEnum.HORIZONTAL:
-	            if (alignment == AlignEnum.BOTTOM)
-	                alignment = AlignEnum.LEFT;
-	            else
-	                alignment = AlignEnum.RIGHT;
-	            break;			  
-			  break;
-		  case OrientEnum.VERTICAL:
-	            if (alignment == AlignEnum.RIGHT)
-	                alignment = AlignEnum.TOP;
-	            else
-	                alignment = AlignEnum.BOTTOM;
-	            break;
-			  break;
-		  }
-	  },
-	  get:function(){
-	    return alignment;
-	  },
-	  set:function(_alignment){
-		alignment=_alignment;  
-	  },
-	  Mirror:function(isHorizontal){
-          if(isHorizontal){
-              if(alignment==AlignEnum.LEFT)
-                alignment= AlignEnum.RIGHT;
-              else if(alignment==AlignEnum.RIGHT)
-            	  alignment= AlignEnum.LEFT;                          	  
-           }else{
-              if(alignment==AlignEnum.BOTTOM)
-            	  alignment= AlignEnum.TOP;
-              else if(alignment==AlignEnum.TOP)
-            	  alignment= AlignEnum.BOTTOM;              
-           } 		  
-	  },
-	  Rotate:function(isClockwise){
-           if(alignment==AlignEnum.LEFT){
-              if(isClockwise){
-			    alignment= AlignEnum.TOP;
-              }else{
-			    alignment=AlignEnum.BOTTOM;
-              }           
-              }else if(alignment==AlignEnum.RIGHT){
-                if(isClockwise){
-				alignment=AlignEnum.BOTTOM;
-                }else{
-				alignment=AlignEnum.TOP;         
-                }
-               
-              }else if(alignment==AlignEnum.TOP){
-                if(isClockwise){ 
-				  alignment=AlignEnum.RIGHT;
-                }else{
-				alignment=AlignEnum.LEFT;          
-                }               
-               }else if(alignment==AlignEnum.BOTTOM){
-                if(isClockwise){
-				  alignment=AlignEnum.LEFT;
-                }else{
-				alignment=AlignEnum.RIGHT;
-				   }
-               }else
-                  throw  "Wrong alignment"; 	  
-	  }
-  };
-}; 
 var  UUID=(function(){
 	 var count=0;
 	 return function(){
@@ -125,7 +11,7 @@ var  UUID=(function(){
 	 }
 })();
 
-gridraster=[{id:2.54,value:2.54},{id:1.27,value:1.27},{id:0.635,value:0.635},{id:0.508,value:0.508},{id:0.254,value:0.254},{id:0.127,value:0.127},{id:0.0635,value:0.0635},{id:0.0508,value:0.0508},{id:0.0254,value:0.0254},{id:0.0127,value:0.0127},{id:5.0,value:5.0},{id:2.5,value:2.5},{id:1.0,value:1.0},{id:0.5,value:0.5},{id:0.25,value:0.25},{id:0.8,value:0.8},{id:0.2,value:0.2},{id:0.1,value:0.1},{id:0.05,value:0.05},{id:0.025,value:0.025},{id:0.01,value:0.01}];
+GridRaster=[{id:2.54,value:2.54},{id:1.27,value:1.27},{id:0.635,value:0.635},{id:0.508,value:0.508},{id:0.254,value:0.254},{id:0.127,value:0.127},{id:0.0635,value:0.0635},{id:0.0508,value:0.0508},{id:0.0254,value:0.0254},{id:0.0127,value:0.0127},{id:5.0,value:5.0},{id:2.5,value:2.5},{id:1.0,value:1.0},{id:0.5,value:0.5},{id:0.25,value:0.25},{id:0.8,value:0.8},{id:0.2,value:0.2},{id:0.1,value:0.1},{id:0.05,value:0.05},{id:0.025,value:0.025},{id:0.01,value:0.01}];
 
 Fill = {
 		EMPTY : 0,
@@ -169,6 +55,7 @@ var ModeEnum=(function(){
 		   COPPERAREA_MODE:13,
 		   VIA_MODE:14,
 		   HOLE_MODE:15,
+		   SOLID_REGION_MODE:16,
 	}
 })();
 
@@ -420,8 +307,10 @@ var Layer=(function(){
 	            }	            
 	            if(layermask==(Layer.LAYER_BACK|Layer.LAYER_FRONT)){
 	                return Layer.Copper.Cu;
-	            }            
-	            else{
+	            } 
+	            if (layermask == Layer.LAYER_ALL) {
+	                return Layer.Copper.All;
+	            }else{
 	                return Layer.Copper.None;
 	            }	            	            
 	        },
@@ -442,201 +331,27 @@ var Layer=(function(){
 	};
 })();
 
+var isEventEnabled=true;
+
 class CompositeLayer{
   constructor() {
-	     this.compositelayer=Layer.Copper.All;
-	     this.activeside=Layer.Side.TOP;
+	     this.compositelayer=Layer.LAYER_ALL;
+	     this.activeSide=Layer.Side.TOP;
   }
 isLayerVisible(mask) {
-	     return (compositelayer & mask)!=0;          
+	     return (this.compositelayer & mask)!=0;          
   } 
-	  
+getLayerMaskID() {
+    return this.compositelayer;
 }
-
-class Point{
- constructor(x,y) {
-    this.x=x;
-	this.y=y;
- }
- setLocationPoint(p){
-   this.x=p.x;
-   this.y=p.y;	 
- }
- setLocation(x,y){
-   this.x=parseInt(x);
-   this.y=parseInt(y);
- }
- min(point){
-   return new Point(Math.min(this.x,point.x),Math.min(this.y,point.y));
- }
- max(point){
-   return new Point(Math.max(this.x,point.x),Math.max(this.y,point.y));
- }
- equals(point){
-   return (this.x==point.x&&this.y==point.y);
- }
- distance(x1,y1){
-	 let a = x1 - this.x;
-     let b = y1 - this.y
-  return Math.sqrt( a*a + b*b );
- }
- getScaledPoint(scalableTransformation){
-	let x=this.x*scalableTransformation.getScale(); 
-	let y=this.y*scalableTransformation.getScale(); 
-	return new Point(x,y);
-}
-}
-
-class Rectangle{
- constructor(x,y,width,height) {
-     this.setRect(x,y,width,height);
- }
-getCenterX(){
-  return parseInt(this.x+this.width/2);
-}
-getCenterY(){
-  return parseInt(this.y+this.height/2);
-} 
-getX(){
-  return this.x;
-}
-getY(){
-  return this.y;
-}
-getWidth(){
-  return this.width;
-}
-getHeight(){
-  return this.height; 
-}
-getP1(){
-  return new Point(this.x,this.y);  	
-}
-getP2(){
-  return new Point(this.x+this.width,this.y+this.height);  	
-}
-getMinX(){
-  return this.x;
-}
-getMinY(){
-  return this.y;
-}
-getMaxX(){
-  return this.x+this.width;
-}
-getMaxY(){
-  return this.y+this.height;
-}
-setRect(x,y,width,height){
-    this.x=x;
-	this.y=y;
-	this.width=width;
-	this.height=height;
-}
-contains(x,y){
-  if(this.getMinX()<=x&&x<=this.getMaxX()){
-    if(this.getMinY()<=y&&y<=this.getMaxY())
-	  return true;
-  }
-  return false;
-}
-intersects(r){
-    // calculate the left common area coordinate:
-    let left = Math.max( this.x, r.x );
-    // calculate the right common area coordinate:
-    let right  = Math.min( this.x +this.width, r.x + r.width );
-    // calculate the upper common area coordinate:
-    let top    = Math.max( this.y,r.y );
-    // calculate the lower common area coordinate:
-    let bottom = Math.min( this.y +this.height, r.y + r.height );
-
-    // if a common area exists, it must have a positive (null accepted) size
-    if( left <= right && top <= bottom )
-        return true;
-    else
-        return false;	
-}
-
-getScaledRect(scalableTransformation){
- let x=this.getMinX()*scalableTransformation.getScale(); 
- let y=this.getMinY()*scalableTransformation.getScale(); 
- let xx=this.getMaxX()*scalableTransformation.getScale(); 
- let yy=this.getMaxY()*scalableTransformation.getScale(); 
- return new Rectangle(x,y,xx-x,yy-y);
-}
- toString(){
-   return "{"+this.x+","+this.y+","+this.width+","+this.height+"}";
- }
-}
-
-class Line{
-constructor(x1,y1,x2,y2) {
-    this.setLine(x1,y1,x2,y2); 
-}
-setLine(x1,y1,x2,y2){
-  this.x1=x1;
-  this.y1=y1;
-  this.x2=x2;
-  this.y2=y2; 
-}
-/*
- * Line segment given as 2 points
- */
-intersectLine(b1, b2) {    
-    
-    var ua_t = (b2.x - b1.x) * (this.y1 - b1.y) - (b2.y - b1.y) * (this.x1 - b1.x);
-    var ub_t = (this.x2 -this.x1) * (this.y1 - b1.y) - (this.y2 - this.y1) * (this.x1 - b1.x);
-    var u_b  = (b2.y - b1.y) * (this.x2 - this.x1) - (b2.x - b1.x) * (this.y2 - this.y1);
-
-    if ( u_b != 0 ) {
-        var ua = ua_t / u_b;
-        var ub = ub_t / u_b;
-
-        if ( 0 <= ua && ua <= 1 && 0 <= ub && ub <= 1 ) {
-             return true;
-        } else {
-             return false;
-        }
-    } else {
-        if ( ua_t == 0 || ub_t == 0 ) {
-            return true;   //"Coincident"
-        } else {
-            return false;
-        }
+setLayerVisible(mask,flag) {
+    if(flag){
+        this.compositelayer |= mask;     
+    }else{
+        this.compositelayer &= ~mask;
     }
 }
-intersectRect(r) {
-    var min        = r.getP1();
-    var max        = r.getP2();
-    var topRight   = new Point(max.x, min.y );
-    var bottomLeft = new Point(min.x, max.y );
-	
-    var inter1 = this.intersectLine(min, topRight);
-    var inter2 = this.intersectLine(topRight, max);
-    var inter3 = this.intersectLine(max, bottomLeft);
-    var inter4 = this.intersectLine(bottomLeft, min);
-    return inter1||inter2||inter3||inter4;
-}
-getP1(){
-  return new Point(this.x1,this.y1);
-}
-
-getP2(){
-  return new Point(this.x2,this.y2);	
-}
-
-getScaledTrack(scalableTransformation){
-  return new Line(this.x1*scalableTransformation.getScale(),this.y1*scalableTransformation.getScale(),this.x2*scalableTransformation.getScale(),this.y2*scalableTransformation.getScale());
-}
-
-draw(g2, viewportWindow, scale){
-    let line=this.getScaledTrack(scale);
-    line.setLine(line.x1-viewportWindow.x, line.y1-viewportWindow.y, line.x2-viewportWindow.x, line.y2-viewportWindow.y);  
-    g2.beginPath();
-    g2.moveTo(line.x1, line.y1);
-    g2.lineTo(line.x2, line.y2);
-    g2.stroke();   
-}	
+	  
 }
 
 var AffineTransform=(function(){
@@ -710,7 +425,7 @@ class ScalableTransformation{
              s*=2;
            }
        }
-	  return new Point(x*s,y*s);
+	  return new d2.Point(x*s,y*s);
 }
   getInverseRect(r){
        let s=1.0;
@@ -719,7 +434,7 @@ class ScalableTransformation{
              s*=2;
            }
        }
-	  return new Rectangle(r.x*s,r.y*s,r.width*s,r.height*s);
+	  return d2.Box.fromRect(r.x*s,r.y*s,r.width*s,r.height*s);
   }  
   calculateTransformation(){
        let x=1.0;
@@ -733,43 +448,43 @@ class ScalableTransformation{
 }
 
 class ViewportWindow{
- constructor(x,y,width,height){
-   this.x=x;
-   this.y=y;
-   this.width=width;
-   this.height=height;
- }
- getX(){
-   return this.x;
- }
- getY(){
-   return this.y;
- }
- getWidth(){
-   return this.width;
- }
- getHeight(){
-   return this.height;
- }
- setSize(width,height){
-     this.width=width;
-     this.height=height;	 
- }
- scalein( xx, yy,scalableTransformation){ 
-    let a=this.x*scalableTransformation.getInverseScaleRatio();
-	let b=this.y*scalableTransformation.getInverseScaleRatio();
-    this.x=parseInt(a)+xx;
-    this.y=parseInt(b)+yy;   
- }
- scaleout( xx, yy,scalableTransformation){ 
-    let a=(this.x-xx)*scalableTransformation.getScaleRatio();
-	let b=(this.y-yy)*scalableTransformation.getScaleRatio();
-    this.x=parseInt(a);
-    this.y=parseInt(b); 
- }
- toString(){
-   return "{"+this.x+","+this.y+","+this.width+","+this.height+"}";
- }
+	 constructor(x,y,width,height){
+	   this.x=x;
+	   this.y=y;
+	   this.width=width;
+	   this.height=height;
+	 }
+	 getX(){
+	   return this.x;
+	 }
+	 getY(){
+	   return this.y;
+	 }
+	 getWidth(){
+	   return this.width;
+	 }
+	 getHeight(){
+	   return this.height;
+	 }
+	 setSize(width,height){
+	     this.width=width;
+	     this.height=height;	 
+	 }
+	 scalein( xx, yy,scalableTransformation){ 
+	    let a=this.x*scalableTransformation.getInverseScaleRatio();
+		let b=this.y*scalableTransformation.getInverseScaleRatio();
+	    this.x=parseInt(a)+xx;
+	    this.y=parseInt(b)+yy;   
+	 }
+	 scaleout( xx, yy,scalableTransformation){ 
+	    let a=(this.x-xx)*scalableTransformation.getScaleRatio();
+		let b=(this.y-yy)*scalableTransformation.getScaleRatio();
+	    this.x=parseInt(a);
+	    this.y=parseInt(b); 
+	 }
+	 toString(){
+	   return "{"+this.x+","+this.y+","+this.width+","+this.height+"}";
+	 }
 }
 
     //must be 10000 for printing
@@ -852,7 +567,9 @@ paint(g2,viewportWindow,scalableTransformation){
  
         //scale out the visible static rectangle to the real schema size to see which point fall in to be rendered.
         //scale back to origine
-    let r=new Rectangle(parseInt(viewportWindow.x/scalableTransformation.getScale()),parseInt(viewportWindow.y/scalableTransformation.getScale()),parseInt(viewportWindow.getWidth()/scalableTransformation.getScale()),parseInt(viewportWindow.getHeight()/scalableTransformation.getScale()));
+    let r=d2.Box.fromRect(parseInt(viewportWindow.x/scalableTransformation.getScale()),parseInt(viewportWindow.y/scalableTransformation.getScale()),parseInt(viewportWindow.getWidth()/scalableTransformation.getScale()),parseInt(viewportWindow.getHeight()/scalableTransformation.getScale()));
+
+    
     let position=this.positionOnGrid(r.x,r.y);
 	
 	
@@ -860,39 +577,37 @@ paint(g2,viewportWindow,scalableTransformation){
         return;
     }
 		
-	let point=new Point();  
-	for (let h =position.y; h <= position.y+r.getHeight(); h += this.gridPointToPoint) {
-            for (w =position.x; w <=position.x+r.getWidth(); w += this.gridPointToPoint) {
-                 point.setLocation(w, h); 
-                 let scaledPoint=point.getScaledPoint(scalableTransformation);                
-                 scaledPoint.setLocation(scaledPoint.x-viewportWindow.x,scaledPoint.y-viewportWindow.y);
+	let point=new d2.Point();  
+	for (let h =position.y; h <= position.y+r.height; h += this.gridPointToPoint) {
+            for (w =position.x; w <=position.x+r.width; w += this.gridPointToPoint) {
+                 point.set(w, h); 
+                 //let scaledPoint=point.clone();
+                 point.scale(scalableTransformation.scale);
+                	 
+                 point.set(point.x-viewportWindow.x,point.y-viewportWindow.y);
                  //***no need to draw outside of visible rectangle
-                 if(scaledPoint.x>viewportWindow.getWidth()||scaledPoint.y>viewportWindow.getHeight()){                   
-                   continue;  
-                 }   
+                 //if(point.x>viewportWindow.getWidth()||point.y>viewportWindow.getHeight()){                   
+                 //  continue;  
+                 //}   
                 
 				 
 				 g2.beginPath();
-				 g2.fillRect(scaledPoint.x, scaledPoint.y,2,2);
+				 g2.fillRect(point.x, point.y,2,2);
 				 g2.fillStyle = 'white';
-				 g2.fill();
-
-                 //g2.beginPath();
-                 //g2.moveTo(scaledPoint.x, scaledPoint.y);
-                 //g2.lineTo(scaledPoint.x, scaledPoint.y);
-                 //g2.lineWidth = 1;
-                 //g2.strokeStyle = 'white';
-                 //g2.stroke();                                        
+				 g2.fill();                                       
             }
 	}
    
  }
 isGridDrawable(point,scalableTransformation){
-        var scaledPoint=point.getScaledPoint(scalableTransformation);  
-        var x=scaledPoint.x;
-        point.x=point.x+this.gridPointToPoint;
-        scaledPoint=point.getScaledPoint(scalableTransformation);
-        return  (parseInt(Math.round(scaledPoint.x-x)))>this.pixelToPixelLimit;    
+        let x=point.x*scalableTransformation.scale;    
+	    let xx=(point.x+this.gridPointToPoint)*scalableTransformation.scale;
+	    return  (parseInt(Math.round(xx-x)))>this.pixelToPixelLimit;
+	    //var scaledPoint=point.getScaledPoint(scalableTransformation);  
+        //var x=scaledPoint.x;
+        //point.x=point.x+this.gridPointToPoint;
+        //scaledPoint=point.getScaledPoint(scalableTransformation);
+        //return  (parseInt(Math.round(scaledPoint.x-x)))>this.pixelToPixelLimit;    
     }
 positionOnGrid( x,  y) {        
         let ftmp     =  x / this.gridPointToPoint;
@@ -900,7 +615,7 @@ positionOnGrid( x,  y) {
 
         ftmp     = y / this.gridPointToPoint;
         let yy = ( parseInt( Math.round( ftmp )) ) * this.gridPointToPoint;
-        return new Point(xx,yy);        
+        return new d2.Point(xx,yy);        
     } 
 lengthOnGrid(length){
         let  ftmp     =  length / this.gridPointToPoint;
@@ -908,7 +623,7 @@ lengthOnGrid(length){
         return xx;	
 }
 snapToGrid(p){        
-   p.setLocation(this.lengthOnGrid(p.x), this.lengthOnGrid(p.y));
+   p.set(this.lengthOnGrid(p.x), this.lengthOnGrid(p.y));
 } 
 }
 
@@ -936,14 +651,19 @@ Mirror( A, B) {
 		 texture.Mirror(A,B); 
 	  });         
 }
-Rotate(rotation) {
+setRotation(alpha,pt){
+	  this.text.forEach(function(texture){
+			 texture.setRotation(alpha,pt); 
+		  }); 	
+}
+Rotate(rotate,pt) {
 		  this.text.forEach(function(texture){
-		     texture.Rotate(rotation); 
+		     texture.Rotate(rotate,pt); 
 		   });         
 		 }		 
-Paint( g2,  viewportWindow,  scale) {
+paint( g2,  viewportWindow,  scale) {
 	  this.text.forEach(function(texture){
-		  texture.Paint(g2,viewportWindow,scale); 
+		  texture.paint(g2,viewportWindow,scale); 
 	   }); 
 	  }
 setLocation( x,  y) {
@@ -1013,7 +733,7 @@ getBoundingRect() {
 }
 setSelected(isSelected) {
 	 this.text.forEach(function(texture){
-		 texture.setSelected(isSelected); 	 
+		 texture.selection=isSelected; 	 
 	 });
 }
 isSelected() {
@@ -1035,7 +755,7 @@ Clear() {
  
 class UnitFrame{
 constructor(width,height) {
-	      this.rectangle=new Rectangle(0,0,0,0);
+	      this.rectangle=new d2.Box(0,0,0,0);
 	      this.offset=0;
 	      this.setSize(width,height);   
 }
@@ -1046,14 +766,16 @@ setSize(width,height) {
  }	  
  
 paint(g2, viewportWindow, scale) {
-	  var rect=this.rectangle.getScaledRect(scale);
+	  var rect=this.rectangle.clone();	  
+	  rect.scale(scale.scale);
+	  
       if(!rect.intersects(viewportWindow)){
-    	  return;   
+      	  return;   
       }
       g2.beginPath();
       g2.lineWidth="1";
       g2.strokeStyle = "white";
-      g2.rect(rect.x-viewportWindow.x, rect.y-viewportWindow.y, rect.width, rect.height);
+      g2.rect(rect.x-viewportWindow.x, rect.y-viewportWindow.y, rect.width, rect.height);      
       g2.stroke(); 
 }
 setOffset(offset) {
@@ -1065,499 +787,6 @@ getOffset(){
  }	  
 }
 
-class Shape{
-	constructor(x, y, width, height, thickness,
-			layermask) {
-		this.owningUnit=null;
-		this.uuid = UUID();
-		this.x = x;
-		this.y = y;
-		this.width = width;
-		this.height = height;
-		this.thickness = thickness;
-		this.selection = false;
-		this.displayName = "noname";
-		this.fill = Fill.EMPTY;
-		this.fillColor;		 
-		this.copper = Layer.Copper.resolve(layermask);
-	}
-getCenter(){
-	return new Point(this.x,this.y);
-}	
-setDisplayName(displayName) {
-		this.displayName = displayName;
-	}
-Clear() {
-    this.owningUnit=null;
-	}
-clone() {
-	copy=new Shape(this.x,this.y,this.width,this.height,this.layermask);
-	copy.fill=this.fill;	
-	return copy;
-	}
-alignToGrid(isRequired) {
-        let point=this.owningUnit.getGrid().positionOnGrid(this.getX(), this.getY());
-        this.setX(point.x);
-        this.setY(point.y);      
-        return null;
-}
-getCenter(){
-	return new Point(this.x,this.y);
-}
-setX(x) {
-		this.x = x;
-	}
-getX() {
-		return this.x;
-	}
-setY(y) {
-		this.y = y;
-	}
-getY() {
-		return this.y;
-	}
-setWidth(width) {
-		this.width = width;
-	}
-getWidth() {
-		return this.width;
-	}
-setHeight (height) {
-		this.height = height;
-	}
-getHeight() {
-		return this.height;
-	}
-getOrderWeight() {
-		return (this.getWidth() * this.getHeight());
-	}
-getUUID() {
-		return this.uuid;
-	}
-calculateShape() {
-
-	}
-isInRect(r){
-	let rect=this.getBoundingShape();
-        if(r.contains(rect.getCenterX(),rect.getCenterY()))
-            return true;
-           else
-            return false; 		
-	}
-isClicked(x,y) {
-        let r=this.getBoundingShape();
-        if(r.contains(x,y))
-         return true;
-        else
-         return false;           
-    }
-getBoundingShape() {
-	return this.calculateShape();
-	}
-setSelected (selection) {
-		this.selection = selection;
-	}
-isSelected() {
-		return this.selection;
-	}
-
-Move(xoffset,yoffset) {
-      this.setX(this.getX() + xoffset);
-      this.setY(this.getY() + yoffset);    
-}
-
-Mirror(A,B) {
-        let point = new Point(this.x,this.y);
-        utilities.mirrorPoint(A,B, point);
-        this.setX(point.x);
-        this.setY(point.y);
-}
-    
-
-Rotate(rotation) {
-		let point = new Point(this.getX(), this.getY());
-		point = utilities.rotate(point, rotation.originx,rotation.originy, rotation.angle);
-	
-        this.x=(point.x);
-        this.y=(point.y);
-}	
-fromXML(data) {
-
-	}
-
-} 
-
-
-class ResizeableShape extends Shape{
-constructor (x, y, width, height, thickness,
-	layermask) {
-	super(x, y, width, height, thickness, layermask);
-	this.upperLeft = new Point();
-	this.upperRight = new Point();
-	this.bottomLeft = new Point();
-	this.bottomRight = new Point();
-	this.resizingPoint = null;
-	this.init(x, y, width, height);
-}
-
-init(x, y, width, height) {
-	this.upperLeft.setLocation(x, y);
-	this.upperRight.setLocation(x + width, y);
-	this.bottomLeft.setLocation(x, y + height);
-	this.bottomRight.setLocation(x + width, y + height);
-}
-alignToGrid(isRequired) {
-    if(isRequired){
-          return super.alignToGrid(isRequired);
-    }else{
-         return null;
-    }
-}
-getResizingPoint() {
-	return this.resizingPoint;
-}
-setResizingPoint(point) {
-	this.resizingPoint = point;
-}
-isControlRectClicked(x, y) {
-	var rect = new Rectangle(0, 0, 0, 0);
-	rect.setRect(this.upperLeft.x - SELECT_RECT_WIDTH / 2, this.upperLeft.y
-		- SELECT_RECT_WIDTH / 2, SELECT_RECT_WIDTH, SELECT_RECT_WIDTH);
-	if (rect.contains(x, y)) {
-		return this.upperLeft;
-	}
-	rect.setRect(this.upperRight.x - SELECT_RECT_WIDTH / 2,
-		this.upperRight.y - SELECT_RECT_WIDTH / 2, SELECT_RECT_WIDTH,
-		SELECT_RECT_WIDTH);
-	if (rect.contains(x, y))
-		return this.upperRight;
-
-	rect.setRect(this.bottomLeft.x - SELECT_RECT_WIDTH / 2,
-		this.bottomLeft.y - SELECT_RECT_WIDTH / 2, SELECT_RECT_WIDTH,
-		SELECT_RECT_WIDTH);
-	if (rect.contains(x, y))
-		return this.bottomLeft;
-
-	rect.setRect(this.bottomRight.x - SELECT_RECT_WIDTH / 2,
-		this.bottomRight.y - SELECT_RECT_WIDTH / 2, SELECT_RECT_WIDTH,
-		SELECT_RECT_WIDTH);
-	if (rect.contains(x, y))
-		return this.bottomRight;
-
-return null;
-}
-Move(xoffset, yoffset) {
-	this.setX(this.getX() + xoffset);
-	this.setY(this.getY() + yoffset);
-}
-Rotate(rotation) {
-	let a = new Point();
-	let b = new Point();
-	if (rotation.angle > 0) {
-		a.setLocation(this.upperLeft.x, this.upperLeft.y);
-		let p = utilities.rotate(this.bottomLeft, rotation.originx,
-			rotation.originy, rotation.angle);
-		this.upperLeft.setLocation(p.x, p.y);
-
-	   b.setLocation(this.upperRight.x, this.upperRight.y);
-	   p = utilities.rotate(a, rotation.originx,
-			rotation.originy, rotation.angle);
-	   this.upperRight.setLocation(p.x, p.y);
-
-	   a.setLocation(this.bottomRight.x, this.bottomRight.y);
-	   p = utilities.rotate(b, rotation.originx,
-			rotation.originy, rotation.angle);
-	   this.bottomRight.setLocation(p.x, p.y);
-
-	   p = utilities.rotate(a, rotation.originx,
-			rotation.originy, rotation.angle);
-	   this.bottomLeft.setLocation(p.x, p.y);
-} else {
-	   a.setLocation(this.upperLeft.x, this.upperLeft.y);
-	   let p = utilities.rotate(this.upperRight, rotation.originx,
-			rotation.originy, rotation.angle);
-	   this.upperLeft.setLocation(p.x, p.y);
-
-	   b.setLocation(this.bottomLeft.x, this.bottomLeft.y);
-	   p = utilities.rotate(a, rotation.originx,
-			rotation.originy, rotation.angle);
-	   this.bottomLeft.setLocation(p.x, p.y);
-
-	   a.setLocation(this.bottomRight.x, this.bottomRight.y);
-	   p = utilities.rotate(b, rotation.originx,
-			rotation.originy, rotation.angle);
-	   this.bottomRight.setLocation(p.x, p.y);
-
-	   p = utilities.rotate(a, rotation.originx,
-			rotation.originy, rotation.angle);
-	   this.upperRight.setLocation(p.x, p.y);
-}
-}
-Mirror(A,B){
-    let p = new Point();
-    //***is this right-left mirroring
-    if (A.x == B.x) {
-        //***which place in regard to x origine
-        p.setLocationPoint(this.upperRight);
-        this.upperRight.setLocationPoint(utilities.mirrorPoint(A,B, this.upperLeft));
-        this.upperLeft.setLocationPoint(utilities.mirrorPoint(A,B, p));
-        p.setLocationPoint(this.bottomRight);
-        this.bottomRight.setLocationPoint(utilities.mirrorPoint(A,B, this.bottomLeft));
-        this.bottomLeft.setLocationPoint(utilities.mirrorPoint(A,B, p));
-    } else { //***top-botom mirroring
-        //***which place in regard to y origine
-        p.setLocationPoint(this.bottomLeft);
-        this.bottomLeft.setLocationPoint(utilities.mirrorPoint(A,B, this.upperLeft));
-        this.upperLeft.setLocationPoint(utilities.mirrorPoint(A,B, p));
-        p.setLocationPoint(this.bottomRight);
-        this.bottomRight.setLocationPoint(utilities.mirrorPoint(A,B, this.upperRight));
-        this.upperRight.setLocationPoint(utilities.mirrorPoint(A,B, p));
-    }	
-}
-Resize(xOffset, yOffset, clickedPoint) {
-if (clickedPoint.equals(this.upperLeft)) {
-	this.upperLeft.setLocation(this.upperLeft.x + xOffset,
-			this.upperLeft.y + yOffset);
-	this.bottomLeft.setLocation(this.bottomLeft.x + xOffset,
-			this.bottomLeft.y);
-	this.upperRight.setLocation(this.upperRight.x, this.upperRight.y
-			+ yOffset);
-} else if (clickedPoint.equals(this.upperRight)) {
-	this.upperRight.setLocation(this.upperRight.x + xOffset,
-			this.upperRight.y + yOffset);
-	this.bottomRight.setLocation(this.bottomRight.x + xOffset,
-			this.bottomRight.y);
-	this.upperLeft.setLocation(this.upperLeft.x, this.upperLeft.y
-			+ yOffset);
-} else if (clickedPoint.equals(this.bottomLeft)) {
-	this.bottomLeft.setLocation(this.bottomLeft.x + xOffset,
-			this.bottomLeft.y + yOffset);
-	this.upperLeft.setLocation(this.upperLeft.x + xOffset,
-			this.upperLeft.y);
-	this.bottomRight.setLocation(this.bottomRight.x, this.bottomRight.y
-			+ yOffset);
-} else if (clickedPoint.equals(this.bottomRight)) {
-	this.bottomRight.setLocation(this.bottomRight.x + xOffset,
-			this.bottomRight.y + yOffset);
-	this.upperRight.setLocation(this.upperRight.x + xOffset,
-			this.upperRight.y);
-	this.bottomLeft.setLocation(this.bottomLeft.x, this.bottomLeft.y
-			+ yOffset);
-}
-
-}
-isInRect(r) {
-	if (r.contains(this.getBoundingShape().getCenterX(), this
-		.getBoundingShape().getCenterY()))
-		return true;
-	else
-		return false;
-}
-drawControlShape(g2, viewportWindow, scale) {
-    utilities.drawCrosshair(g2, viewportWindow, scale, this.resizingPoint, this.selectionRectWidth, [this.upperLeft,this.upperRight,this.bottomLeft,this.bottomRight]);
-}
-
-setSelected (selection) {
-	this.selection = selection;
-		if (!selection) {
-			this.resizingPoint = null;
-}
-}
-getCenter() {        
-   return new Point(this.getX()+(this.getWidth()/2), this.getY()+ (this.getHeight()/2));
-} 
-getY () {
-	return this.upperLeft.y;
-}
-
-getX() {
-	return this.upperLeft.x;
-}
-setY(y) {
-	this.init(this.upperLeft.x, y, this.getWidth(), this.getHeight());
-}
-setX (x) {
-	this.init(x, this.upperLeft.y, this.getWidth(), this.getHeight());
-}
-setWidth (width) {
-	this.upperRight
-		.setLocation(this.upperLeft.x + width, this.upperRight.y);
-	this.bottomRight.setLocation(this.bottomLeft.x + width,
-		this.bottomRight.y);
-	this.init(this.upperLeft.x, this.upperLeft.y, this.getWidth(), this
-		.getHeight());
-}
-setHeight (height) {
-	this.bottomLeft.setLocation(this.bottomLeft.x, this.upperLeft.y
-		+ height);
-	this.bottomRight.setLocation(this.bottomRight.x, this.upperRight.y
-		+ height);
-	this.init(this.upperLeft.x, this.upperLeft.y, this.getWidth(), this
-		.getHeight());
-}
-
-getWidth() {
-	return this.upperRight.x - this.upperLeft.x;
-}
-getHeight() {
-	return this.bottomLeft.y - this.upperLeft.y;
-}
-
-}
-
-//class SquareResizableShape extends ResizeableShape{
-//	constructor( x, y, width, thickness,
-//			layermask) {
-//		super(x, y, width, width, thickness, layermask);
-//	}
-//
-//	Resize(xoffset, yoffset, clickedPoint) {
-//		var offset = 0;
-//		if (xoffset == 0) {
-//			offset = yoffset;
-//		} else {
-//			if (yoffset == 0) {
-//				offset = xoffset;
-//			} else {
-//				offset = Math.max(xoffset, yoffset);
-//			}
-//		}
-//		var width = this.getWidth() + offset;
-//
-//		if (clickedPoint.equals(this.upperLeft)) {
-//			this.upperLeft.setLocation(this.upperLeft.x + xoffset,
-//					this.upperLeft.y + yoffset);
-//			this.upperRight.setLocation(this.upperLeft.x + width,
-//					this.upperLeft.y);
-//			this.bottomLeft.setLocation(this.upperLeft.x,
-//					this.upperLeft.y + width);
-//			this.bottomRight.setLocation(this.upperLeft.x + width,
-//					this.upperLeft.y + width);
-//		} else if (clickedPoint.equals(this.upperRight)) {
-//			this.upperRight.setLocation(this.upperRight.x + xoffset,
-//					this.upperRight.y + yoffset);
-//			this.bottomRight.setLocation(this.upperRight.x,
-//					this.upperRight.y + width);
-//			this.upperLeft.setLocation(this.upperRight.x - width,
-//					this.upperRight.y);
-//			this.bottomLeft.setLocation(this.upperRight.x - width,
-//					this.upperRight.y + width);
-//		} else if (clickedPoint.equals(this.bottomLeft)) {
-//			this.bottomLeft.setLocation(this.bottomLeft.x + xoffset,
-//					this.bottomLeft.y + yoffset);
-//			this.bottomRight.setLocation(this.bottomLeft.x + width,
-//					this.bottomLeft.y);
-//			this.upperLeft.setLocation(this.bottomLeft.x,
-//					this.bottomLeft.y - width);
-//			this.upperRight.setLocation(this.bottomLeft.x + width,
-//					this.bottomLeft.y - width);
-//		} else if (clickedPoint.equals(this.bottomRight)) {
-//			this.bottomRight.setLocation(this.bottomRight.x + xoffset,
-//					this.bottomRight.y + yoffset);
-//			this.bottomLeft.setLocation(this.bottomRight.x - width,
-//					this.bottomRight.y);
-//			this.upperRight.setLocation(this.bottomRight.x,
-//					this.bottomRight.y - width);
-//			this.upperLeft.setLocation(this.bottomRight.x - width,
-//					this.bottomRight.y - width);
-//		}
-//	}
-//	setWidth(width) {
-//		this.upperRight.setLocation(this.upperLeft.x + width,
-//				this.upperRight.y);
-//		this.bottomRight.setLocation(this.upperLeft.x + width,
-//				this.upperLeft.y + width);
-//		this.bottomLeft.setLocation(this.upperLeft.x, this.upperLeft.y
-//				+ width);
-//	}
-//	setHeight(height) {
-//
-//	}
-//
-//}
-/**********************Ruler**********************************/
-class Ruler extends Shape{
-constructor () {
-	super(0, 0, 0, 0, 0, 0);
-    this.text=new font.FontTexture('label','',0,0,new Alignment(AlignEnum.LEFT),MM_TO_COORD(1.2));       
-    this.text.fillColor='white';        
-	this.resizingPoint=null;
-}
-Resize( xOffset, yOffset) {
-    this.resizingPoint.setLocation(this.resizingPoint.x+xOffset,this.resizingPoint.y+yOffset);
-    this.text.setLocation(this.resizingPoint.x, this.resizingPoint.y);
-}	
-Paint( g2,  viewportWindow,  scale) {        
-		if(this.resizingPoint==null){
-            return;
-        }
-        this.text.setText(parseFloat(COORD_TO_MM(this.resizingPoint.distance(this.x,this.y))).toFixed(4)+' MM');
-        this.text.Paint(g2, viewportWindow, scale);
-
-        let line=new Line();
- 		
-        let a=new Point(this.x,this.y);
-		
-		line.setLine(a.x,a.y,this.resizingPoint.x,this.resizingPoint.y);
-
-        g2.strokeStyle  = 'white';
-		g2.lineWidth=1; 
-        
-		line.draw(g2,viewportWindow,scale);
-		
-    }	
-}
-/**********************Coordinate System**********************************/
-class CoordinateSystem extends Shape {
-	constructor (owningUnit) {
-		super(0, 0, 0, 0, 0, 0);
-        this.owningUnit=owningUnit;	
-        this.selectionRectWidth=3000;		
-	}
-alignToGrid(isRequired) {
-    if(isRequired){
-           return super.alignToGrid(isRequired);
-    }else{
-          return null;
-    }
-}
-calculateShape() {
-    return new Rectangle(this.x-this.selectionRectWidth/2,this.y-this.selectionRectWidth/2,this.selectionRectWidth,this.selectionRectWidth);
-}
-Reset(x, y) {
-		if (x < 0) {
-			x = 0;
-		} else if (x > this.owningUnit.getWidth()) {
-			x = this.owningUnit.getWidth();
-		}
-		if (y < 0) {
-			y = 0;
-		} else if (y > this.owningUnit.getWidth()) {
-			y = this.owningUnit.getWidth();
-		}
-		this.x=x;
-		this.y=y;
-}
-
-Paint(g2, viewportWindow, scale) {
-		if (this.x == 0 && this.y == 0) {
-			return;
-		}
-
-		var line = new Line();		
-
-		g2.strokeStyle  = 'blue';
-		g2.lineWidth=1; 
-		
-		line.setLine(0, this.y, this.owningUnit.getWidth(),
-				this.y);
-	    line.draw(g2, viewportWindow,scale);
-		
-		line.setLine(this.x, 0, this.x, this.owningUnit
-				.getHeight());
-		line.draw(g2, viewportWindow,scale);
-	}
-}
 
 //-----------------------UnitSelectionCell---------
 var UnitSelectionCell = function (uuid,x, y,width,height,name) {
@@ -1577,6 +806,7 @@ var UnitSelectionGrid = Backbone.Model.extend({
 	initialize: function(){
     this.model=null;
     this.cells=[];
+    this.scaleFactor=10;
   },
 setModel:function(model){
 		this.model=model;
@@ -1597,17 +827,19 @@ build:function(){
 	 for(let unit of this.model.getUnits()){
 	     //hide grid
 		 unit.getGrid().paintable=false;
+		 //hide frame
+		 unit.frame=null;
 		 //make it smaller
-		 unit.scalableTransformation=new ScalableTransformation(10,4,13);
-	     var w=Math.round(unit.getBoundingRect().getWidth()*unit.scalableTransformation.getScale());
+		 unit.scalableTransformation=new ScalableTransformation(this.scaleFactor,4,13);
+	     var w=Math.round(unit.getBoundingRect().width*unit.scalableTransformation.getScale());
 		 width=Math.max(width,w);
        
 	  }
 	 for(let unit of this.model.getUnits()){     
 		 var r=unit.getBoundingRect();
-		 var x=Math.round(r.getX()*unit.scalableTransformation.getScale());
-		 var y=Math.round(r.getY()*unit.scalableTransformation.getScale());
-         var height=Math.round(r.getHeight()*unit.getScalableTransformation().getScale());             
+		 var x=Math.round(r.x*unit.scalableTransformation.getScale());
+		 var y=Math.round(r.y*unit.scalableTransformation.getScale());
+         var height=Math.round(r.height*unit.getScalableTransformation().getScale());             
          var cell=UnitSelectionCell(unit.getUUID(),x,y,width,height,unit.unitName);
          cell.selected=( this.model.getUnit()==unit?true:false);
          this.cells.push(cell);        
@@ -1662,7 +894,7 @@ var UnitSelectionPanel=Backbone.View.extend({
   	        ctx.fillStyle = "rgb(0,0,0)";
   	        ctx.fillRect(0, 0, cell.width, cell.height);  
 
-  	        unit.paint(ctx,new Rectangle(cell.x,cell.y,cell.width,cell.height));                    	         
+  	        unit.paint(ctx,d2.Box.fromRect(cell.x,cell.y,cell.width,cell.height));                    	         
   		  };
   	}
   },
@@ -1692,12 +924,9 @@ var UnitSelectionPanel=Backbone.View.extend({
 
 
 module.exports ={
-	mywebpcb,
-	AlignEnum,
-	OrientEnum,
-	Alignment,
+	mywebpcb,	
 	UUID,
-	gridraster,
+	GridRaster,
 	Fill,
 	Units,
 	ModeEnum,
@@ -1705,24 +934,17 @@ module.exports ={
 	Layer,
 	ScalableTransformation,
 	ViewportWindow,
-	Grid,
-	Point,
-	Line,
-	Rectangle,
+	Grid,	
 	ChipText,
 	UnitFrame,
-	Shape,
-	ResizeableShape,
 	AffineTransform,
     MM_TO_COORD,
     COORD_TO_MM,
 	UnitSelectionPanel,
-	CoordinateSystem,
-	Ruler,
-	CompositeLayer
+	CompositeLayer,
+	isEventEnabled
 }
 
 var events=require('core/events');
 var utilities=require('core/utilities');
-var glyph = require('core/text/glyph');
-var font = require('core/text/font');
+var font = require('core/text/d2font');

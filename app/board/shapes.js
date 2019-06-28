@@ -1,16 +1,20 @@
 var core=require('core/core');
 var utilities =require('core/utilities');
-var Shape=require('core/core').Shape;
+var Shape=require('core/shapes').Shape;
 var ResizeableShape=require('core/core').ResizeableShape;
-var glyph=require('core/text/glyph');
-var font=require('core/text/font');
+var glyph=require('core/text/d2glyph');
+var font=require('core/text/d2font');
 var Circle =require('pads/shapes').Circle;
 var Arc =require('pads/shapes').Arc;
+var Pad =require('pads/shapes').Pad;
 var Line =require('pads/shapes').Line;
 var RoundRect =require('pads/shapes').RoundRect;
+var SolidRegion =require('pads/shapes').SolidRegion;
 var GlyphLabel=require('pads/shapes').GlyphLabel;
 var AbstractLine=require('core/shapes').AbstractLine;
 var FootprintShapeFactory=require('pads/shapes').FootprintShapeFactory;
+var d2=require('d2/d2');
+
 
 class BoardShapeFactory{
 	
@@ -25,11 +29,11 @@ class BoardShapeFactory{
 			via.fromXML(data);
 			return via;
 		}		
-//		if (data.tagName.toLowerCase() == 'rectangle') {
-//			var roundRect = new RoundRect(0, 0, 0, 0, 0,0, core.Layer.SILKSCREEN_LAYER_FRONT);
-//			roundRect.fromXML(data);
-//			return roundRect;
-//		}
+		if (data.tagName.toLowerCase() == 'circle') {
+			var circle = new PCBCircle(0, 0, 0, 0, 0);
+			circle.fromXML(data);
+			return circle;
+		}
 		if (data.tagName.toLowerCase() == 'ellipse') {
 			var circle = new Circle(0, 0, 0, 0, 0);
 			circle.fromXML(data);
@@ -50,11 +54,11 @@ class BoardShapeFactory{
 		    track.fromXML(data);
 		    return track;
 	    }		
-//		if (data.tagName.toLowerCase() == 'arc') {
-//			var arc = new Arc(0, 0, 0, 0, 0);
-//			arc.fromXML(data);
-//			return arc;
-//		}
+		if (data.tagName.toLowerCase() == 'hole') {
+			var hole = new PCBHole(0, 0, 0, 0, 0);
+			hole.fromXML(data);
+			return hole;
+		}
 		if (data.tagName.toLowerCase() == 'label') {
 			var label = new PCBLabel(0, 0, 0);
 			label.fromXML(data);		
@@ -63,6 +67,7 @@ class BoardShapeFactory{
 		return null;
 	}
 }
+
 class PCBFootprint extends Shape{
 constructor(layermaskId){
 		super(0,0,0,0,0,layermaskId);
@@ -73,16 +78,18 @@ constructor(layermaskId){
 	    this.text.Add(new glyph.GlyphTexture("","value", 8,8,core.MM_TO_COORD(1.2)));		 	    
         this.units=core.Units.MM;
         this.value=2.54;  
+        this.rotate=0;
 	}
 clone(){
         var copy=new PCBFootprint(this.copper.getLayerMaskID());
         copy.text =this.text.clone();
         copy.shapes=[];
+        copy.rotate=this.rotate;
         copy.units=this.units;
         copy.value=this.value;
         copy.displayName=this.displayName;
         this.shapes.forEach(function(shape){ 
-          copy.shapes.push(shape.clone());  
+          copy.add(shape.clone());  
         });
         return copy;        
     }
@@ -100,7 +107,7 @@ getSide(){
 clear() {    
 	this.shapes.forEach(function(shape) {
 		  shape.owningUnit=null;
-		  shape.Clear();
+		  shape.clear();
 		  shape=null;
      });
      this.shapes=[];	
@@ -110,8 +117,53 @@ getOrderWeight() {
    var r=this.getBoundingShape();
    return (r.width);
 }
+isClicked(x,y){
+	var r=this.getBoundingShape();
+	if(!r.contains(x,y)){
+		return false;
+	}
+	let ps=new d2.Polygon();
+	var result= this.shapes.some(function(shape) {
+	   if(!(shape instanceof Line)){ 
+		return shape.isClicked(x,y);
+	   }else{
+		ps.points.push(...shape.vertices);  //line vertices   
+		return false;
+	   }
+	});		
+	if(result){
+		return true;//click on a anything but a Line
+	}
+	
+	this.sortPolygon(ps.points);  //line only
+	return ps.contains(x,y);
+}
+getPolygonCentroid(points){
+	let x=0,y=0;
+	points.forEach(p=>{
+		x+=p.x;
+		y+=p.y;
+	});
+	return new d2.Point(x/points.length,y/points.length);
+}
+sortPolygon(points){
+	let center=this.getPolygonCentroid(points);
+	
+	points.sort((a,b)=>{
+	 let a1=(utilities.degrees(Math.atan2(a.x-center.x,a.y-center.y))+360)%360;
+	 let a2=(utilities.degrees(Math.atan2(b.x-center.x,b.y-center.y))+360)%360;
+	 return (a1-a2);
+	});
+}
+
+setSelected (selection) {
+	super.setSelected(selection);
+	this.shapes.forEach(function(shape) {		  
+		  shape.setSelected(selection);
+   });	
+}
 calculateShape() {
- 	var r = new core.Rectangle(0,0,0,0);
+	var r = new d2.Box(0,0,0,0);
  	var x1 = Number.MAX_VALUE; 
  	var y1 = Number.MAX_VALUE;
  	var x2 = Number.MIN_VALUE;
@@ -144,44 +196,72 @@ Move(xoffset,yoffset){
 	   }	
 	   this.text.Move(xoffset,yoffset);
 }
+setRotation(rotate){
+	let alpha=rotate-this.rotate;
+	let center=this.getBoundingShape().center;
+	let len=this.shapes.length;
+	for(var i=0;i<len;i++){
+		
+	   this.shapes[i].setRotation(rotate,center);  
+	}	
+	this.text.setRotation(rotate,center);
+	this.rotate=rotate;
+}
 Rotate(rotation){
+	//fix angle
+	   let alpha=this.rotate+rotation.angle;
+	   if(alpha>=360){
+		 alpha-=360
+	   }
+	   if(alpha<0){
+		 alpha+=360; 
+	   }
+
 	   var len=this.shapes.length;
 	   for(var i=0;i<len;i++){
 		   this.shapes[i].Rotate(rotation);  
-	   }	
-	   this.text.Rotate(rotation);
+	   }
+	  
+	   this.text.Rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	   this.rotate=alpha;
 }
-Paint(g2, viewportWindow, scale,layermask) {        
-     
-	   var rect = this.getBoundingShape().getScaledRect(scale);
-	   if (!rect.intersects(viewportWindow)) {
-		 return;
-	   }
-	 
-	   var len=this.shapes.length;
-	   for(i=0;i<len;i++){
-		  this.shapes[i].Paint(g2,viewportWindow,scale);  
-	   }
-    this.text.text.forEach(function(texture){
-           //if((texture.getLayermaskId()&layermask)!=0){            
-       texture.fillColor=(this.selection?'gray':'cyan');
-       texture.Paint(g2,viewportWindow,scale,layermask);
-           //}
-    },this);      
-    
-    if(this.selection){
-
-		g2.globalCompositeOperation = 'lighter';
-		g2.beginPath();
-		utilities.roundrect(g2, rect.x - viewportWindow.x, rect.y
-				- viewportWindow.y, rect.width, rect.height, 3000
-				* scale.getScale());
-		
-		g2.closePath();
-		g2.fillStyle = "gray";
-		g2.fill();
-		g2.globalCompositeOperation = 'source-over';
+drawClearence(g2,viewportWindow,scale,source){
+    let rect=this.getBoundingShape();
+    if (!rect.intersects(source.getBoundingShape())) {    
+    	return;
     }
+    
+    rect.scale(scale.getScale());
+	if (!rect.intersects(viewportWindow)) {
+		return;
+	}
+	var len=this.shapes.length;
+	for(i=0;i<len;i++){
+	  if(this.shapes[i] instanceof Pad){
+		  this.shapes[i].drawClearence(g2,viewportWindow,scale,source); 
+	  }
+	}
+	
+}
+paint(g2, viewportWindow, scale,layersmask) {        
+     
+	var rect = this.getBoundingShape();		
+	rect.scale(scale.getScale());
+	if (!rect.intersects(viewportWindow)) {
+	 return;
+	}
+		
+	var len=this.shapes.length;
+	for(i=0;i<len;i++){
+		  this.shapes[i].paint(g2,viewportWindow,scale,layersmask);  
+	}
+    this.text.text.forEach(function(texture){
+       if((texture.layermaskId&layersmask)!=0){            
+        texture.fillColor=(this.selection?'gray':'cyan');
+        texture.paint(g2,viewportWindow,scale,layersmask);
+       }
+    },this);      
+
  }    
 fromXML(data){
 	 this.copper=core.Layer.Copper.valueOf(j$(data).attr("layer"));
@@ -221,28 +301,58 @@ fromXML(data){
          that.add(shape);
 	 });
 }
+
+toXML() {
+    let xml="<footprint layer=\""+this.copper.getName()+"\">\r\n";
+           xml+="<name>"+this.displayName+"</name>\r\n";
+           xml+="<units raster=\""+this.value+"\">"+this.units+"</units>\r\n"; 
+           xml+="<reference layer=\""+core.Layer.Copper.resolve(this.text.getTextureByTag("reference").layermaskId).getName()+"\">"+(this.text.getTextureByTag("reference")==null?"":this.text.getTextureByTag("reference").toXML())+"</reference>\r\n";                           
+           xml+="<value layer=\""+core.Layer.Copper.resolve(this.text.getTextureByTag("value").layermaskId).getName()+"\">"+(this.text.getTextureByTag("value")==null?"":this.text.getTextureByTag("value").toXML())+"</value>\r\n";
+//    //***labels and connectors
+//           BoardMgr boardMgr = BoardMgr.getInstance();
+//           if(boardMgr.getChildrenByParent(getOwningUnit().getShapes(),this).size()>0){
+//             xml.append("<children>\r\n");
+//               Collection<Shape> children=boardMgr.getChildrenByParent(getOwningUnit().getShapes(),this);
+//                for(Shape child:children){
+//                  xml.append(((Externalizable)child).toXML());  
+//                }
+//                xml.append("</children>\r\n");
+//    }               
+//              
+           xml+="<shapes>\r\n";
+           this.shapes.forEach(
+            s=>xml+=s.toXML()
+           )
+           xml+="\r\n</shapes>\r\n";
+           xml+="</footprint>";                 
+    return xml;  
+}
 }
 
 class PCBCircle extends Circle{
     constructor( x, y,  r,  thickness, layermaskid) {
         super( x, y, r, thickness, layermaskid);
-        this.displayName = "Circle";
     }	
     clone(){
-    	return new PCBCircle(this.x,this.y,this.width,this.thickness,this.copper.getLayerMaskID());
-    }    
+    	let copy = new PCBCircle(this.x,this.y,this.width,this.thickness,this.copper.getLayerMaskID());
+    	copy.circle=this.circle.clone();
+    	copy.fill=this.fill;
+    	return copy;
+    }  
+    
+    
 }
 
 class PCBArc extends Arc{
     constructor( x, y,  r,  thickness, layermaskid) {
         super( x, y, r, thickness, layermaskid);
-        this.displayName = "Arc";
     }	
     clone() {
 		var copy = new PCBArc(this.x, this.y, this.width,
 						this.thickness,this.copper.getLayerMaskID());
-		copy.startAngle = this.startAngle;
-		copy.extendAngle = this.extendAngle;
+        copy.arc=this.arc.clone();
+		copy.arc.startAngle = this.arc.startAngle;
+        copy.arc.endAngle = this.arc.endAngle;         
 		copy.fill = this.fill;
 		return copy;
 }    
@@ -251,60 +361,89 @@ class PCBArc extends Arc{
 class PCBLabel extends GlyphLabel{
     constructor( layermaskId) {
         super("Label",core.MM_TO_COORD(0.3),layermaskId);
+        this.clearance=0;
     }
 clone(){
 	var copy = new PCBLabel(this.copper.getLayerMaskID());
     copy.texture = this.texture.clone();        
     copy.copper=this.copper;
-    return copy;
-}    
+	return copy;
+} 
+drawClearence(g2,viewportWindow,scale,source){
+   if((source.copper.getLayerMaskID()&this.copper.getLayerMaskID())==0){        
+	   return;  //not on the same layer
+   }
+   let clear=this.clearance!=0?this.clearance:source.clearance;
+   
+   let rect=this.texture.getBoundingShape();
+   rect.min.move(-clear,-clear);
+   rect.max.move(clear,clear);
+   
+   if (!rect.intersects(source.getBoundingShape())) {
+		return;
+   }
+
+    let r=this.texture.getBoundingRect();
+ 
+	r.grow(clear);
+    r.scale(scale.getScale());
+	if (!r.intersects(viewportWindow)) {
+		return;
+	}
+	
+	g2._fill=true;
+	g2.fillStyle = "black";	
+	
+	
+    r.move(-viewportWindow.x,- viewportWindow.y);
+	r.paint(g2);
+	
+    g2._fill=false;	
+   
+}
 getDrawingOrder() {
         let order=super.getDrawingOrder();
         if(this.owningUnit==null){            
            return order;
         }
         
-        if(owningUnit.getActiveSide()==Layer.Side.resolve(this.copper.getLayerMaskID())){
+        if(this.owningUnit.activeSide==core.Layer.Side.resolve(this.copper.getLayerMaskID())){
           order= 4;
         }else{
           order= 3; 
         }  
         return order;
     }
-fromXML(data){
-    //extract layer info        
-    if(j$(data).attr("layer")!=null){
-       this.copper =core.Layer.Copper.valueOf(j$(data).attr("layer"));
-    }else{
-       this.copper=core.Layer.Copper.FSilkS;
-    }
-    this.texture.fromXML(data);  	
-}
 }
 class PCBLine extends Line{
 constructor(thickness,layermaskId){
         super(thickness,layermaskId);
-        //this.displayname = "Line";
     }
 clone() {
 		var copy = new PCBLine(this.thickness,this.copper.getLayerMaskID());
-		for (var index = 0; index < this.points.length; index++) {
-			  copy.points.push(new core.Point(this.points[index].x,this.points[index].y));
-		}
-		return copy;
-
+		  copy.polyline=this.polyline.clone();
+		  return copy;
 	}    
 }
+class PCBSolidRegion extends SolidRegion{
+	constructor(layermaskId){
+	        super(layermaskId);
+	    }
+	clone() {
+			var copy = new PCBSolidRegion(this.copper.getLayerMaskID());
+			  copy.polygon=this.polygon.clone();  
+			  return copy;
+		}    
+}
+
 class PCBRoundRect extends RoundRect{
 constructor( x, y,  width,height,arc,  thickness, layermaskid) {
         super( x, y, width,height,arc, thickness, layermaskid);
         this.displayName = "Rect";
     }
 clone(){
-	var copy = new PCBRoundRect(this.getX(), this.getY(), this.width, this.height, this.arc,
-			this.thickness,this.copper.getLayerMaskID());
-	copy.roundRect = new core.Rectangle(this.roundRect.x,
-			this.roundRect.y, this.roundRect.width, this.roundRect.height);
+	var copy = new PCBRoundRect(0,0,0,0,0,this.thickness,this.copper.getLayerMaskID());
+	copy.roundRect = this.roundRect.clone();
 	copy.fill = this.fill;
 	copy.arc=this.arc;
 	return copy;	
@@ -315,84 +454,109 @@ class PCBTrack extends AbstractLine{
 constructor(thickness,layermaskId){
        super(thickness,layermaskId);
        this.displayName = "Track";
+       this.clearance=0;
 	}
 clone() {
 	var copy = new PCBTrack(this.thickness,this.copper.getLayerMaskID());
-		for (var index = 0; index < this.points.length; index++) {
-		   copy.points.push(new core.Point(this.points[index].x,this.points[index].y));
-		}
+	copy.clearance=this.clearance=0;;
+	copy.polyline=this.polyline.clone();
 	return copy;
 
 	}
-
 getDrawingOrder() {
     let order=super.getDrawingOrder();
     if(this.owningUnit==null){            
         return order;
     }
     
-//    if(this.owningUnit.getActiveSide()==Layer.Side.resolve(this.copper.getLayerMaskID())){
-//       order= 4;
-//     }else{
-//       order= 3; 
-//     }  
+    if(this.owningUnit.activeSide==core.Layer.Side.resolve(this.copper.getLayerMaskID())){
+       order= 4;
+     }else{
+       order= 3; 
+     }  
     return order;     
 }
-
 getOrderWeight() {
     return 4;
 }
+drawClearence(g2,viewportWindow,scale,source){
+   if((source.copper.getLayerMaskID()&this.copper.getLayerMaskID())==0){        
+	   return;  //not on the same layer
+   }
+   g2.lineWidth=(this.thickness+2*(this.clearance!=0?this.clearance:source.clearance))*scale.getScale(); 
+   g2.strokeStyle = "black";
+   
+    
+   let clip=source.clip;
+   g2.save();
+   g2.beginPath();
+   g2.moveTo(clip[0].x,clip[0].y);
+   for (var i = 1; i < clip.length; i++) {
+	   g2.lineTo(clip[i].x, clip[i].y);
+   } 
+   g2.clip();
+   
+   let a=this.polyline.clone();
+   a.scale(scale.getScale());
+   a.move( - viewportWindow.x, - viewportWindow.y);		
+   a.paint(g2);
 
-Paint(g2, viewportWindow, scale) {
-	var rect = this.getBoundingShape().getScaledRect(scale);
-	if (!this.isFloating()
-							&& (!rect.intersects(viewportWindow))) {
+   g2.restore();
+}
+paint(g2, viewportWindow, scale,layersmask) {
+    if((this.copper.getLayerMaskID()&layersmask)==0){
+        return;
+    }
+	
+	var rect = this.polyline.box;
+	rect.scale(scale.getScale());		
+	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
 		return;
 	}
-					// scale points
-	let dst = [];
-	this.points.forEach(function(wirePoint) {
-		dst.push(wirePoint.getScaledPoint(scale));
-	});
 
 	g2.globalCompositeOperation = 'lighter';
-	g2.beginPath();
 	g2.lineCap = 'round';
 	g2.lineJoin = 'round';
-	g2.moveTo(dst[0].x - viewportWindow.x, dst[0].y
-							- viewportWindow.y);
-	for (var i = 1; i < dst.length; i++) {
-						g2.lineTo(dst[i].x - viewportWindow.x, dst[i].y
-								- viewportWindow.y);
-	}
+	
 
 	g2.lineWidth = this.thickness * scale.getScale();
 
-	// draw floating point
-	if (this.isFloating()) {
-			let p = this.floatingEndPoint.getScaledPoint(scale);
-				g2.lineTo(p.x - viewportWindow.x, p.y
-								- viewportWindow.y);
-	}
 
 	if (this.selection)
 		g2.strokeStyle = "gray";
 	else
 		g2.strokeStyle = this.copper.getColor();
 
-	g2.stroke();
-	g2.globalCompositeOperation = 'source-over';
+	let a=this.polyline.clone();
+	a.scale(scale.getScale());
+	a.move( - viewportWindow.x, - viewportWindow.y);		
+	a.paint(g2);
+	
+	// draw floating point
+	if (this.isFloating()) {
+			let p = this.floatingMidPoint.clone();
+			p.scale(scale.getScale());
+			p.move( - viewportWindow.x, - viewportWindow.y);
+			g2.lineTo(p.x, p.y);									
+			g2.stroke();							    		
+		
+			p = this.floatingEndPoint.clone();
+			p.scale(scale.getScale());
+			p.move( - viewportWindow.x, - viewportWindow.y);
+			g2.lineTo(p.x, p.y);									
+			g2.stroke();					
+	}
 
+	g2.globalCompositeOperation = 'source-over';
 
 }
 drawControlShape(g2, viewportWindow, scale){   
     if((!this.isSelected())/*&&(!this.isSublineSelected())*/){
       return;
     }
-    super.drawControlShape(g2, viewportWindow, scale);
+    this.drawControlPoints(g2, viewportWindow, scale);
 }
 fromXML(data) {
-
        this.copper =core.Layer.Copper.valueOf(j$(data).attr("layer"));
 	   this.thickness = (parseInt(j$(data).attr("thickness")));
 	   var tokens = data.textContent.split(",");
@@ -400,83 +564,127 @@ fromXML(data) {
 	   for (var index = 0; index < len; index += 2) {
 			var x = parseInt(tokens[index]);
 			var y = parseInt(tokens[index + 1]);
-			this.points.push(new core.Point(x, y));
+			this.polyline.points.push(new d2.Point(x, y));
 		}
+}
+toXML() {
+	var result = "<track layer=\"" + this.copper.getName()
+								+ "\" thickness=\"" + this.thickness + "\" clearance=\"" + this.clearance + "\" net=\"" + this.net +"\">";
+	this.polyline.points.forEach(function(point) {
+		result += utilities.roundFloat(point.x,5) + "," + utilities.roundFloat(point.y,5) + ",";
+	},this);
+	result += "</track>";
+	return result;
 }
 }
 class PCBHole extends Shape{
 	constructor() {
 		super(0, 0, 0, 0,0,core.Layer.LAYER_ALL);		
-		this.setWidth(core.MM_TO_COORD(1.6)); 
 		this.displayName='Hole';	
-        this.fillColor='white';         
+        this.fillColor='white';
+        this.selectionRectWidth = 3000;
+        this.circle=new d2.Circle(new d2.Point(0,0),core.MM_TO_COORD(1.6)/2);
+        this.clearance=0;
    	}
 clone(){
 	   	var copy = new PCBHole();
-	        copy.x=this.x;
-	        copy.y=this.y;
-	   		copy.width=this.width;
-	        copy.height=this.height;	        
-	        return copy;
-	   	}	
+		 copy.circle.pc.x=this.circle.pc.x;
+		 copy.circle.pc.y=this.circle.pc.y;
+		 copy.circle.r=this.circle.r;	        	        
+	     return copy;
+}	
 alignToGrid(isRequired) {
 	    if(isRequired){
 	       return super.alignToGrid(isRequired);
 	    }else{
 	        return null;
 	    }
-	}	
+	}
+Move(xoffset, yoffset) {
+	this.circle.move(xoffset,yoffset);
+}
 getOrderWeight() {
     return 3;
 }
 setWidth(width){
-	   super.setWidth(width);
-	   super.setHeight(width);
+	  this.circle.r=width/2;
 	}
 calculateShape() {
-	    return new core.Rectangle(this.x - this.width/2, this.y - this.width/2, this.width,this.width);
-	}	
-Paint(g2, viewportWindow, scale) {	
-	var rect = this.getBoundingShape().getScaledRect(scale);
+	    return this.circle.box;
+	}
+drawClearence(g2, viewportWindow,scale, source) {
+	
+    let r=this.circle.r+(this.clearance!=0?this.clearance:source.clearance);
+    let c=new d2.Circle(this.circle.pc.clone(),r);
+	let rect=c.box;
+	if (!rect.intersects(source.getBoundingShape())) {
+		return;
+	}
+
+	rect.scale(scale.getScale());
 	if (!rect.intersects(viewportWindow)) {
 		return;
 	}
-	g2.beginPath(); // clear the canvas context
-	g2.lineWidth=scale.getScale()*1000;
-    g2.arc( rect.getCenterX() - viewportWindow.x,
-			rect.getCenterY() - viewportWindow.y, rect.width/2, 0,2*Math.PI,false);
-	g2.closePath();
+	g2._fill=true;
+	g2.fillStyle = "black";	
+	
+	c.scale(scale.getScale());
+    c.move(-viewportWindow.x,- viewportWindow.y);
+	c.paint(g2);
+	
+    g2._fill=false;	
+}
+paint(g2, viewportWindow, scale,layersmask) {	
+	var rect = this.calculateShape();
+	rect.scale(scale.getScale());
+	if (!rect.intersects(viewportWindow)) {
+		return;
+	}
+	
+	g2.lineWidth=(scale.getScale())*1000;
 	if (this.selection) {
 		g2.strokeStyle = "gray";
 	} else {
 		g2.strokeStyle = "white";
 	}
 
-	g2.stroke();
-	utilities.drawCrosshair(g2, viewportWindow, scale,null, this.width,[new core.Point(this.x,this.y)]);
+    let c=this.circle.clone();
+	c.scale(scale.getScale());
+    c.move(-viewportWindow.x,- viewportWindow.y);
+	c.paint(g2);
+	
+	if(this.selection){
+	  utilities.drawCrosshair(g2, viewportWindow, scale,null,this.selectionRectWidth,[this.circle.center]);
+	}
 }
-fromXML(node) {
-	this.setX(parseInt(j$(data).attr("x")));
-	this.setY(parseInt(j$(data).attr("y")));
-	this.setWidth(parseInt(j$(data).attr("width")));	      
+toXML(){
+	
+}
+fromXML(data) {
+	let x=parseFloat(j$(data).attr("x"));
+	let y=parseFloat(j$(data).attr("y"));
+    this.circle.pc.set(x,y);
+
+	this.circle.r=(parseInt(j$(data).attr("width")));	
+	this.clearance=(parseInt(j$(data).attr("clearance")));	      
 } 
 
 }
 class PCBVia extends Shape{
 constructor() {
 		super(0, 0, 0, 0,core.MM_TO_COORD(0.3),core.Layer.LAYER_ALL);		
-		this.setWidth(core.MM_TO_COORD(0.5)); 
+		this.outer=new d2.Circle(new d2.Point(0,0),core.MM_TO_COORD(0.8));
+		this.inner=new d2.Circle(new d2.Point(0,0),core.MM_TO_COORD(0.4));
+        this.selectionRectWidth = 3000;
 		this.displayName='Via';	
-        this.fillColor='white';         
+        this.fillColor='white'; 
+        this.clearance=0;
    	}
 
 clone(){
    	var copy = new PCBVia();
-        copy.x=this.x;
-        copy.y=this.y;
-   		copy.width=this.width;
-        copy.height=this.height;
-        copy.thickness=this.thickness;
+        copy.inner=this.inner.clone();
+        copy.outer=this.outer.clone();
         return copy;
    	}
 
@@ -487,131 +695,123 @@ alignToGrid(isRequired) {
         return null;
     }
 }
+Move(xoffset, yoffset) {
+   this.outer.move(xoffset,yoffset);
+   this.inner.move(xoffset,yoffset);
+}
+Rotate(rotation) {
+	this.inner.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	this.outer.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+}
 setWidth(width){
-   super.setWidth(width);
-   super.setHeight(width);
+
 }
 calculateShape() {
-    return new core.Rectangle(this.x - this.width/2, this.y - this.width/2, this.width,this.width);
+    return this.outer.box;
 }
-Paint(g2, viewportWindow, scale) {
+drawClearence(g2, viewportWindow,scale, source) {    
 	
-	var rect = this.getBoundingShape().getScaledRect(scale);
+    let r=this.outer.r+(this.clearance!=0?this.clearance:source.clearance);
+    let c=new d2.Circle(this.outer.pc.clone(),r);
+	let rect=c.box;
+	if (!rect.intersects(source.getBoundingShape())) {
+		return;
+	}
+
+	rect.scale(scale.getScale());
 	if (!rect.intersects(viewportWindow)) {
 		return;
 	}
-	g2.beginPath(); // clear the canvas context
-    g2.arc( rect.getCenterX() - viewportWindow.x,
-			rect.getCenterY() - viewportWindow.y, rect.width/2, 0,2*Math.PI,false);
-	g2.closePath();
+	g2._fill=true;
+	g2.fillStyle = "black";	
+	
+	c.scale(scale.getScale());
+    c.move(-viewportWindow.x,- viewportWindow.y);
+	c.paint(g2);
+	
+    g2._fill=false;
+}
+paint(g2, viewportWindow, scale,layersmask) {
+	
+	var rect = this.calculateShape();
+	rect.scale(scale.getScale());
+	if (!rect.intersects(viewportWindow)) {
+		return;
+	}
+	
+	g2._fill=true;
 	if (this.selection) {
 		g2.fillStyle = "gray";
 	} else {
 		g2.fillStyle = "white";
 	}
 
-	g2.fill();
+	let c=this.outer.clone();
+	c.scale(scale.getScale());
+    c.move(-viewportWindow.x,- viewportWindow.y);
+	c.paint(g2);
 	
-	g2.beginPath(); // clear the canvas context				
-    g2.arc( rect.getCenterX() - viewportWindow.x,
-			rect.getCenterY() - viewportWindow.y,(this.thickness/2) * scale.getScale(), 0,2*Math.PI,false);
-	g2.closePath();
+
 	g2.fillStyle = "black";	
-	g2.fill();
+	c=this.inner.clone();
+	c.scale(scale.getScale());
+    c.move(-viewportWindow.x,- viewportWindow.y);
+	c.paint(g2);
+	
+    g2._fill=false;
+	if(this.selection){
+	   utilities.drawCrosshair(g2, viewportWindow, scale,null,this.selectionRectWidth,[this.inner.center]);
+	}    
 }
 getOrderWeight() {
     return 3;
 }
 fromXML(data) {
-	this.setX(parseInt(j$(data).attr("x")));
-	this.setY(parseInt(j$(data).attr("y")));
-	this.setWidth(parseInt(j$(data).attr("width")));
-	this.thickness = (parseInt(j$(data).attr("drill")));  	
+	let x=parseFloat(j$(data).attr("x"));
+	let y=parseFloat(j$(data).attr("y"));
+    this.inner.pc.set(x,y);
+    this.outer.pc.set(x,y);
+
+
+	this.outer.r=(parseInt(j$(data).attr("width")))/2;
+	this.inner.r = (parseInt(j$(data).attr("drill")))/2;
+	this.clearance=(parseInt(j$(data).attr("clearance")));
 }
+toXML() {
+    return "<via type=\"\" x=\""+utilities.roundFloat(this.inner.center.x,5)+"\" y=\""+utilities.roundFloat(this.inner.center.y,5)+"\" width=\""+this.outer.r+"\" drill=\""+this.inner.r+"\"   clearance=\""+this.clearance+"\" net=\""+(this.net==null?"":this.net)+"\" />";    
 }
-class Polygon{
-	constructor(){
-		this.points=[];
-	}
-add(point){
-  this.points.push(point);	
-}
-insert(point, index) {
-    this.points.splice(index, 0, point);
-}
-contains(x,y){
-	  let inside = false;
-      // use some raycasting to test hits
-      // https://github.com/substack/point-in-polygon/blob/master/index.js
-      
-	  //flat out points
-	  let p = [];
-
-      for (let i = 0, il = this.points.length; i < il; i++)
-      {
-          p.push(this.points[i].x, this.points[i].y);
-      }
-
-	  
-	  let length = p.length / 2;
-
-      for (let i = 0, j = length - 1; i < length; j = i++)
-      {
-          let xi = p[i * 2];
-          let yi = p[(i * 2) + 1];
-          let xj = p[j * 2];
-          let yj = p[(j * 2) + 1];
-          let intersect = ((yi > y) !== (yj > y)) && (x < ((xj - xi) * ((y - yi) / (yj - yi))) + xi);
-
-          if (intersect)
-          {
-              inside = !inside;
-          }
-      }
-
-      return inside;
-}
-getBoundingRect(){	
-	let r= new core.Rectangle(0,0,0,0);
-	
-    var x1 = Number.MAX_VALUE; 
-    var y1 = Number.MAX_VALUE;
-    var x2 = Number.MIN_VALUE;
-    var y2 = Number.MIN_VALUE;
-
-    this.points.forEach(function(p) {
-        x1 = Math.min(x1, p.x);
-        y1 = Math.min(y1, p.y);
-        x2 = Math.max(x2, p.x);
-        y2 = Math.max(y2, p.y);
-    });
-
-    r.setRect(x1, y1, x2 - x1, y2 - y1);
-    return r;	
-}
-
 }
 class PCBCopperArea extends Shape{
 	constructor( layermaskid) {
         super( 0, 0, 0,0, 0, layermaskid);
         this.displayName = "Copper Area";
         this.clearance=core.MM_TO_COORD(0.2); 
-        this.floatingStartPoint=new core.Point();
-        this.floatingEndPoint=new core.Point();                 
+        this.floatingStartPoint=new d2.Point();
+        this.floatingEndPoint=new d2.Point();                 
         this.selectionRectWidth = 3000;
         this.fill=core.Fill.FILLED;
-        this.polygon=new Polygon();
+        this.polygon=new d2.Polygon();
         this.resizingPoint;
+        this.clip=[];
+        this.net='gnd';
     }
 clone(){
     let copy=new PCBCopperArea(this.copper.getLayerMaskID());
-    this.polygon.points.forEach(function(point){
-    	copy.polygon.points.push(new core.Point(point.x,point.y));
-    });  
+    copy.polygon=this.polygon.clone();  
     return copy;	
-}	
+}
+
+prepareClippingRegion(viewportWindow,scale){
+    this.clip=[];
+    this.polygon.points.forEach(function(point){
+        let p=point.clone();            
+        p.scale(scale.getScale());
+        p.move(-viewportWindow.x,-viewportWindow.y);
+        this.clip.push(p);    
+	}.bind(this));
+}
 calculateShape(){  	    
-   return this.polygon.getBoundingRect();
+   return this.polygon.box;
 }	
 
 getLinePoints() {
@@ -620,20 +820,57 @@ getLinePoints() {
 add(point) {
     this.polygon.add(point);
 }
+getDrawingOrder() {
+    if(this.owningUnit==null){            
+        return super.getDrawingOrder();
+    }
+    
+    if(this.owningUnit.compositeLayer.activeSide==core.Layer.Side.resolve(this.copper.getLayerMaskID())){
+       return 2;
+    }else{
+       return 1; 
+    }
+}
 setResizingPoint(point) {
     this.resizingPoint=point;
 }
 isFloating() {
     return (!this.floatingStartPoint.equals(this.floatingEndPoint));                
 }
+isClicked(x,y){
+	  var result = false;
+		// build testing rect
+	  var rect = d2.Box.fromRect(x
+								- (3000 / 2), y
+								- (3000 / 2), 3000,
+								3000);
+	  var r1 = rect.min;
+	  var r2 = rect.max;
+
+	  // ***make lines and iterate one by one
+	  var prevPoint = this.polygon.points[this.polygon.points.length-1];
+
+	  this.polygon.points.some(function(wirePoint) {
+							// skip first point
+							{
+								if (utilities.intersectLineRectangle(
+										prevPoint, wirePoint, r1, r2)) {
+									result = true;
+									return true;
+								}
+								prevPoint = wirePoint;
+							}
+
+						});
+
+	return result;
+}
 isControlRectClicked(x, y) {
-	var rect = new core.Rectangle(x
-								- this.selectionRectWidth / 2, y - this.selectionRectWidth
-								/ 2, this.selectionRectWidth, this.selectionRectWidth);
+	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
 	let point = null;
 
 	this.polygon.points.some(function(wirePoint) {
-		if (rect.contains(wirePoint.x, wirePoint.y)) {
+		if (rect.contains(wirePoint)) {
 					point = wirePoint;
 		  return true;
 		}else{
@@ -642,9 +879,6 @@ isControlRectClicked(x, y) {
 	});
 
 	return point;
-}
-isClicked(x,y){
-  return this.polygon.contains(x,y);
 }
 isInRect(r) {
 
@@ -657,71 +891,103 @@ reset(){
 	this.resetToPoint(this.floatingStartPoint);	
 }
 resetToPoint(p){
-    this.floatingStartPoint.setLocation(p.x,p.y);
-    this.floatingEndPoint.setLocation(p.x,p.y); 
+    this.floatingStartPoint.set(p.x,p.y);
+    this.floatingEndPoint.set(p.x,p.y); 
 }
 Rotate(rotation) {
-	this.polygon.points.forEach(function(point) {
-				var p = utilities.rotate(point,
-									rotation.originx, rotation.originy,
-									rotation.angle);
-				point.setLocation(p.x, p.y);
-	});
+	this.polygon.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
 }
 Resize(xoffset, yoffset, clickedPoint) {
-	clickedPoint.setLocation(clickedPoint.x + xoffset,
+	clickedPoint.set(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);
 }
-Paint(g2,viewportWindow,scale, layersmask){
-	var rect = this.getBoundingShape().getScaledRect(scale);
+paint(g2,viewportWindow,scale, layersmask){
+   
+    if((this.copper.getLayerMaskID()&layersmask)==0){
+      return;
+    }
+	var rect = this.polygon.box;
+	rect.scale(scale.getScale());		
 	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
 		return;
 	}
-	let dst = [];
-	this.polygon.points.forEach(function(point) {
-		dst.push(point.getScaledPoint(scale));
-	});
-	g2.globalCompositeOperation = 'lighter';
-	g2.beginPath();
-	g2.lineCap = 'round';
-	g2.lineJoin = 'round';
-	g2.moveTo(dst[0].x - viewportWindow.x, dst[0].y
-							- viewportWindow.y);
-	for (var i = 1; i < dst.length; i++) {
-						g2.lineTo(dst[i].x - viewportWindow.x, dst[i].y
-								- viewportWindow.y);
-	}
 	
-	// draw floating point
+	g2.lineWidth = 1;
+	
+	if(this.isFloating()){
+      g2.strokeStyle = this.copper.getColor();		
+	}else{
+	  g2._fill=true;
+	  if (this.selection) {
+		 g2.fillStyle = "gray";
+	  } else {
+		 g2.fillStyle = this.copper.getColor();
+	  }
+	}
+	let a=this.polygon.clone();	
 	if (this.isFloating()) {
-			let p = this.floatingEndPoint.getScaledPoint(scale);
-				g2.lineTo(p.x - viewportWindow.x, p.y
-								- viewportWindow.y);
-	}
-	g2.closePath();
-
-	if (this.selection){
-		g2.fillStyle = "gray";
-    }else{    	
-		g2.fillStyle = this.copper.getColor();
-	}
-    g2.fill();   
-    
-    if(this.isSelected()){  
-    	g2.lineWidth=1;
-    	g2.strokeStyle = "blue";                   
-        g2.stroke();
-    
-        this.drawControlShape(g2,viewportWindow,scale);
+		let p = this.floatingEndPoint.clone();
+		a.add(p);	
     }
+	a.scale(scale.getScale());
+	a.move( - viewportWindow.x, - viewportWindow.y);		
+	a.paint(g2);
+	g2._fill=false;
     
-	g2.globalCompositeOperation = 'source-over';
+    
+    //draw clearence background
+    this.prepareClippingRegion(viewportWindow, scale);
+    this.owningUnit.shapes.forEach(target=>{
+    	if(target.drawClearence!=undefined){
+         target.drawClearence(g2, viewportWindow, scale, this);
+    	}
+    });
+	
+	
+//	let dst = [];
+//	this.polygon.points.forEach(function(point) {
+//		dst.push(point.getScaledPoint(scale));
+//	});
+//	g2.globalCompositeOperation = 'lighter';
+//	g2.beginPath();
+//	g2.lineCap = 'round';
+//	g2.lineJoin = 'round';
+//	g2.moveTo(dst[0].x - viewportWindow.x, dst[0].y
+//							- viewportWindow.y);
+//	for (var i = 1; i < dst.length; i++) {
+//						g2.lineTo(dst[i].x - viewportWindow.x, dst[i].y
+//								- viewportWindow.y);
+//	}
+//	
+//	// draw floating point
+//	if (this.isFloating()) {
+//			let p = this.floatingEndPoint.getScaledPoint(scale);
+//				g2.lineTo(p.x - viewportWindow.x, p.y
+//								- viewportWindow.y);
+//	}
+//	g2.closePath();
+//
+//	if (this.selection){
+//		g2.fillStyle = "gray";
+//    }else{    	
+//		g2.fillStyle = this.copper.getColor();
+//	}
+//    g2.fill();   
+//    
+//    if(this.isSelected()){  
+//    	g2.lineWidth=1;
+//    	g2.strokeStyle = "blue";                   
+//        g2.stroke();
+//    
+//        this.drawControlShape(g2,viewportWindow,scale);
+//    }
+//    
+//	g2.globalCompositeOperation = 'source-over';
 }	
-drawControlShape(g2, viewportWindow,scalableTransformation) {
-    if((!this.isSelected())){
-        return;
-    }  
-	utilities.drawCrosshair(g2, viewportWindow,scalableTransformation,this.resizingPoint,this.selectionRectWidth,this.polygon.points);
+drawControlShape(g2, viewportWindow, scale) {
+	if (this.isSelected()) {	
+	  utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.polygon.points);
+	}
 }
 fromXML(data){
     this.copper =core.Layer.Copper.valueOf(j$(data).attr("layer"));
@@ -733,8 +999,17 @@ fromXML(data){
 	   for (var index = 0; index < len; index += 2) {
 			var x = parseInt(tokens[index]);
 			var y = parseInt(tokens[index + 1]);
-			this.polygon.points.push(new core.Point(x, y));
+			this.polygon.points.push(new d2.Point(x, y));
 	   }
+}
+toXML() {
+	var result = "<copperarea layer=\"" + this.copper.getName()
+								+ "\" padconnect=\"" + this.padConnection + "\" clearance=\"" + this.clearance + "\" net=\"" + this.net +"\">";
+	this.polygon.points.forEach(function(point) {
+		result += utilities.roundFloat(point.x,5) + "," + utilities.roundFloat(point.y,5) + ",";
+	},this);
+	result += "</copperarea>";
+	return result;
 }
 }
 
@@ -749,6 +1024,7 @@ module.exports ={
 		PCBHole,
 		PCBTrack,
 		PCBLine,
+		PCBSolidRegion,
 		BoardShapeFactory
 		
 }

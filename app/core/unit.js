@@ -1,8 +1,10 @@
 var mywebpcb=require('core/core').mywebpcb;
 var core = require('core/core');
+var shape = require('core/shapes');
 var events=require('core/events');
-var GlyphManager=require('core/text/glyph').GlyphManager;
+var GlyphManager=require('core/text/d2glyph').GlyphManager;
 var ViewportWindow=require('core/core').ViewportWindow;
+var d2=require('d2/d2');
 
 //**********************UnitMgr***************************************
 var UnitMgr=(function(){
@@ -24,7 +26,7 @@ var UnitMgr=(function(){
            });
         
         if(isPinnable)
-            return new core.Rectangle(x1,y1,x2-x1,y2-y1);            
+            return  d2.Box.fromRect(x1,y1,x2-x1,y2-y1);            
         else
             return null;  
         };
@@ -109,7 +111,7 @@ class manager{
 //**********************Unit*******************************************
 class Unit{
     constructor(width,height) {
-        this.silent=false; 	 
+        //this.silent=false; 	 
     	this.scalableTransformation=new core.ScalableTransformation(8,4,13);
     	this.uuid=core.UUID();
     	this.shapes=[];
@@ -120,8 +122,8 @@ class Unit{
         this.scrollPositionXValue = 0;
         this.scrollPositionYValue = 0;
         this.frame=new core.UnitFrame(this.width,this.height);
-        this.coordinateSystem=new core.CoordinateSystem(this);
-		this.ruler=new core.Ruler();
+        this.coordinateSystem;//=new core.CoordinateSystem(this);
+		this.ruler=new shape.Ruler();
 		this.shapeFactory=null;
         
     }
@@ -130,8 +132,9 @@ setScrollPositionValue(scrollPositionXValue,scrollPositionYValue) {
         this.scrollPositionYValue = scrollPositionYValue;
        }
 fireShapeEvent(event){
-		if(this.silent)
+		if(!core.isEventEnabled)
 			return;
+
 		switch(event.type){
 		  case events.Event.SELECT_SHAPE:
 			  core.mywebpcb.trigger('shape:inspector',event);
@@ -172,7 +175,7 @@ clear(){
         //***go through all lists and delete them
  	   this.shapes.forEach(function(shape) {
  		  shape.owningUnit=null;
- 		  shape.Clear();
+ 		  shape.clear();
  		  shape=null;
        },this);
         this.shapes=[];	
@@ -189,7 +192,7 @@ getBoundingRect() {
         return this.getShapesRect(this.shapes);
     }
 getShapesRect(shapes) {
-        var r = new core.Rectangle(0,0,0,0);
+        var r = new d2.Box(0,0,0,0);
         var x1 = Number.MAX_VALUE; 
         var y1 = Number.MAX_VALUE;
         var x2 = Number.MIN_VALUE;
@@ -201,7 +204,7 @@ getShapesRect(shapes) {
         }
         var len=shapes.length;
   	    for(var i=0;i<len;i++){
-            var tmp = shapes[i].getBoundingShape();
+  	    	var tmp = shapes[i].getBoundingShape();
             if (tmp != null) {
                 x1 = Math.min(x1, tmp.x);
                 y1 = Math.min(y1, tmp.y);
@@ -217,7 +220,7 @@ remove(uuid) {
  	   this.shapes = this.shapes.filter(function(item) { 
                if(item.getUUID()==uuid){
 			      this.fireShapeEvent({target:item,type:events.Event.DELETE_SHAPE});
-         	      item.Clear();
+         	      item.clear();
          	      item=null;
 				  return false;
 			   }
@@ -236,62 +239,135 @@ getWidth(){
 getHeight(){
  	return this.height;
  	}
-buildClickableOrderItem(x,  y,  isTextIncluded){
-     var orderElements = [];
-     var index = 0;
-     this.shapes.forEach(function(shape){
-         if(isTextIncluded){
-           	if((undefined !=shape['getChipText'])&&shape.getChipText().isClicked(x, y)){
-           	    orderElements.push({index:index,orderWeight:0});
-           	}
-         }		 
-         
-		if(!shape.isClicked(x, y)){
-               index++;
-               return; 
+buildClickedShapesList(x,  y,  isTextIncluded){
+   var orderElements = [];
+   let len=this.shapes.length;
+   for(i=0;i<len;i++){   
+       if(isTextIncluded){
+    	if((undefined !=this.shapes[i]['getChipText'])&&this.shapes[i].getChipText().isClicked(x, y)){                               
+             orderElements.splice(0, 0, this.shapes[i]);
+             continue;
         }
-         //***give selected a higher priority
-        orderElements.push({index:index,
-         	                orderWeight:shape.isSelected() && shape.getOrderWeight() > 1 ? 2 : shape.getOrderWeight()});
-
-         index++;
-     }.bind(this));
-     return orderElements;
- }
+       }     
+       if(this.shapes[i].isClicked(x, y)){
+          orderElements.push(this.shapes[i]);
+       
+       }  
+   }
+   return orderElements;
+}
 getClickedShape( x,  y,  isTextIncluded){
- 	       var result=null;
- 	       var orderElements=this.buildClickableOrderItem(x,y,isTextIncluded);
- 	       
- 	      
- 	       orderElements.sort(function(a,b) {
- 	    	   if (a.orderWeight < b.orderWeight){
- 		    	      return -1;
- 	    	   }
- 		       if (a.orderWeight > b.orderWeight){
- 		    	     return 1;
- 		       }	     
- 		       return 0;
- 		    });
- 	    
- 	       orderElements.some(function(item) {			   
- 	    	    var shape=this.shapes[item.index];
-				
-                 if(isTextIncluded){
-                 	if((undefined !=shape['getChipText'])&&shape.getChipText().isClicked(x, y)){
-                 	    result=shape;
-                 		return true;
-                 	}
+    let clickedShapes = this.buildClickedShapesList(x,y,isTextIncluded);
+    if(clickedShapes.length==0){
+        return null;
+    }
+    //Text?
+    if (undefined !=clickedShapes[0]['getChipText']) {   
+        if(this.isShapeVisibleOnLayers(clickedShapes[0])){             
+          return clickedShapes[0];
+        }
+    }
+
+    clickedShapes.sort(function(o1, o2){
+       
+            //both on same side
+    	 if(o1.owningUnit.compositeLayer!=undefined){    
+    	   let s1=core.Layer.Side.resolve(o1.copper.getLayerMaskID());
+           let s2=core.Layer.Side.resolve(o2.copper.getLayerMaskID());
+           let active=o1.owningUnit.compositeLayer.activeSide;
+             //active layer has presedense
+           if(s1!=s2){
+               if(s1==active){
+                     return -1;
+                 }else{
+                     return 1;
                  }
- 	 		   
- 	 		    //if (shape.isClicked(x, y)) {
-                 result=shape;
- 				 return true;				 
-                //}  
-				 
-            }.bind(this));
- 		   
- 		   return result;
- 	}
+           }
+    	 }
+                   
+       if ((o1.getOrderWeight() - o2.getOrderWeight()) == 0)
+           return 0;
+       if ((o1.getOrderWeight() - o2.getOrderWeight()) > 0)
+           return 1;
+       else
+           return -1;
+       
+   }.bind(this));
+    
+    for(i=0;i<clickedShapes.length;i++){
+       if(!this.isShapeVisibleOnLayers(clickedShapes[i])){             
+           continue;              
+       }        
+       return clickedShapes[i];
+    };
+    return null;  
+}
+isShapeVisibleOnLayers(shape){
+   if (undefined !=this.compositeLayer) {	
+    if(shape.isVisibleOnLayers(this.compositeLayer.getLayerMaskID())){
+      return true;
+    }else{
+      return false;  
+    }    
+   }else{
+	   return true;
+   }
+}
+//buildClickableOrderItem(x,  y,  isTextIncluded){
+//     var orderElements = [];
+//     var index = 0;
+//     this.shapes.forEach(function(shape){
+//         if(isTextIncluded){
+//           	if((undefined !=shape['getChipText'])&&shape.getChipText().isClicked(x, y)){
+//           	    orderElements.push({index:index,orderWeight:0});
+//           	}
+//         }		 
+//         
+//		if(!shape.isClicked(x, y)){
+//               index++;
+//               return; 
+//        }
+//         //***give selected a higher priority
+//        orderElements.push({index:index,
+//         	                orderWeight:shape.isSelected() && shape.getOrderWeight() > 1 ? 2 : shape.getOrderWeight()});
+//
+//         index++;
+//     }.bind(this));
+//     return orderElements;
+// }
+//getClickedShape( x,  y,  isTextIncluded){
+// 	       var result=null;
+// 	       var orderElements=this.buildClickableOrderItem(x,y,isTextIncluded);
+//
+// 	       orderElements.sort(function(a,b) {
+// 	    	   if (a.orderWeight < b.orderWeight){
+// 		    	      return -1;
+// 	    	   }
+// 		       if (a.orderWeight > b.orderWeight){
+// 		    	     return 1;
+// 		       }	     
+// 		       return 0;
+// 		    });
+// 	    
+// 	       orderElements.some(function(item) {			   
+// 	    	    var shape=this.shapes[item.index];
+//				
+//                 if(isTextIncluded){
+//                 	if((undefined !=shape['getChipText'])&&shape.getChipText().isClicked(x, y)){
+//                 	    result=shape;
+//                 		return true;
+//                 	}
+//                 }
+// 	 		   
+// 	 		    //if (shape.isClicked(x, y)) {
+//                 result=shape;
+// 				 return true;				 
+//                //}  
+//				 
+//            }.bind(this));
+// 		   
+// 		   return result;
+// 	}
 isControlRectClicked( x,  y) {
          /*
           * if two symbols overlap and one is selected
@@ -376,24 +452,28 @@ notifyListeners(eventType) {
 paint(g2, viewportWindow){
  	   let len=this.shapes.length;
  	   for(let i=0;i<len;i++){
- 		   this.shapes[i].Paint(g2,viewportWindow,this.scalableTransformation);  
+ 		   this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation);  
  	   }
  	   //grid
-        this.grid.paint(g2,viewportWindow,this.scalableTransformation);
+       this.grid.paint(g2,viewportWindow,this.scalableTransformation);
         //coordinate system
-        this.coordinateSystem.Paint(g2, viewportWindow,this.scalableTransformation);
-		//ruler
-		this.ruler.Paint(g2, viewportWindow,this.scalableTransformation);
+       if(this.coordinateSystem!=null){
+         this.coordinateSystem.paint(g2, viewportWindow,this.scalableTransformation);
+       }	
+         //ruler
+	   this.ruler.paint(g2, viewportWindow,this.scalableTransformation);
         //frame
-        this.frame.paint(g2, viewportWindow,this.scalableTransformation);
+       if(this.frame!=null){
+	     this.frame.paint(g2, viewportWindow,this.scalableTransformation);
+       }
      }    
        
 }
 
 //**********************UnitContainer*******************************************
 class UnitContainer{
-	constructor(silent){
-	      this.silent= silent || false;;	
+	constructor(){
+	      //this.silent= silent || false;;	
 		  this.unitsmap=new Map();
 		  this.unit=null;
 		  this.fileName="";
@@ -402,6 +482,7 @@ class UnitContainer{
 	}
     setFileName(fileName) {
         this.fileName = fileName;
+        this.formatedFileName=this.fileName;
     }
 	add(unit){
 	  this.unitsmap.set(unit.getUUID(), unit);
@@ -450,9 +531,11 @@ class UnitContainer{
 	getUnit(){
 	  return this.unit;
 	}
+
 	fireUnitEvent(event){
-		if(this.silent)
+		if(!core.isEventEnabled)
 			return;
+		
 		switch(event.type){
 		  case events.Event.ADD_UNIT:
 			  core.mywebpcb.trigger('unit:inspector',event);
@@ -568,6 +651,10 @@ Clear(){
     this.getModel().clear();
   }
 fireContainerEvent(event){
+	
+	  if(!core.isEventEnabled)
+		return;
+	
 	  mywebpcb.trigger('container:inspector',event); 
 }
 keyPress(event){
@@ -667,7 +754,7 @@ mouseWheelMoved(event){
 ZoomIn(x,y){
     if(this.getModel().getUnit().getScalableTransformation().ScaleOut()){
         this.viewportWindow.scalein(x,y, this.getModel().getUnit().getScalableTransformation());
-        this.Repaint();         
+        this.repaint();         
     }else{
         return false;
     } 
@@ -685,7 +772,7 @@ ZoomIn(x,y){
 ZoomOut(x,y){
     if(this.getModel().getUnit().getScalableTransformation().ScaleIn()){
             this.viewportWindow.scaleout(x,y, this.getModel().getUnit().getScalableTransformation());
-            this.Repaint();                       
+            this.repaint();                       
     }else{
             return false;
     }
@@ -703,12 +790,12 @@ ZoomOut(x,y){
 }
 vStateChanged(event){
     this.viewportWindow.y= parseInt(event.currentValue);
-    this.Repaint();
+    this.repaint();
 	
   }
 hStateChanged(event){
     this.viewportWindow.x= parseInt(event.currentValue);
-    this.Repaint();
+    this.repaint();
   }
 screenResized(e){	  
 	  var container = j$('#mycanvasframe');	  
@@ -721,7 +808,7 @@ screenResized(e){
 	  //set canvas width
 	  this.canvas.attr('width',this.width);
 	  this.componentResized();
-	  this.Repaint();
+	  this.repaint();
 	}
 componentResized(){
     if(this.getModel().getUnit()==null){
@@ -746,13 +833,13 @@ setContainerCursor(_cursor) {
 getContainerCursor() {
     return this.cursor;
 }
-Repaint(){
+repaint(){
 	  if(this.getModel().getUnit()!=null){
-      this.ctx.fillStyle = "rgb(0,0,0)";
+      this.ctx.fillStyle = "black";
       this.ctx.fillRect(0, 0, this.width, this.height); 
-		this.getModel().getUnit().paint(this.ctx,this.viewportWindow);
+	  this.getModel().getUnit().paint(this.ctx,this.viewportWindow);
       if (this.cursor != null) {
-      	this.cursor.Paint(this.ctx,this.viewportWindow, this.getModel().getUnit().getScalableTransformation());
+      	this.cursor.paint(this.ctx,this.viewportWindow, this.getModel().getUnit().getScalableTransformation(),core.Layer.Copper.All.getLayerMaskID());
 
       }
 	  }else{

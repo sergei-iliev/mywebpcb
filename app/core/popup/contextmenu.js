@@ -1,5 +1,6 @@
 var core=require('core/core');
 var UnitMgr = require('core/unit').UnitMgr;
+var d2=require('d2/d2');
 
 class ContextMenu{
 constructor(component,placeholderid){
@@ -54,8 +55,10 @@ show(){
 	}    
 	this.opened = true;		  		  
 }
-close() {        
-    this.placeholder.className = "hidden";
+close() {
+	
+	j$(this.placeholder).removeClass("visible");
+	j$(this.placeholder).empty();
     this.opened = false;  
 }
 isOpen(){
@@ -82,13 +85,13 @@ actionPerformed(id,context){
 		   context.target.setSelected(false);
 		   this.component.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
 	       this.component.setMode(core.ModeEnum.COMPONENT_MODE); 
-	       this.component.Repaint();
+	       this.component.repaint();
 	 }
      if (id=="addbendingpointid") {
     	 let line=context.target;
          line.insertPoint(this.x, this.y);
          
-         this.component.Repaint();
+         this.component.repaint();
          return;
     }	 
      if(id=='deletelastpointid') {
@@ -101,7 +104,7 @@ actionPerformed(id,context){
             this.component.getModel().getUnit().remove(line.uuid);
         }
 
-         this.component.Repaint();
+         this.component.repaint();
          return;
      }
      if(id=='deletebendingpointid'){
@@ -112,7 +115,7 @@ actionPerformed(id,context){
         	 this.component.getEventMgr().resetEventHandle();
         	 this.component.getModel().getUnit().remove(line.uuid);
          }
-         this.component.Repaint();
+         this.component.repaint();
          return;
      }
      if (id=="deletelineid") {
@@ -120,7 +123,7 @@ actionPerformed(id,context){
          //this.component.getModel().getUnit().registerMemento(getTarget().getState(MementoType.DELETE_MEMENTO));
          this.component.getEventMgr().resetEventHandle();
          this.component.getModel().getUnit().remove(line.uuid);
-         this.component.Repaint();                    
+         this.component.repaint();                    
    } 
 	 if(id=='topbottomid'||id=='leftrightid'){
          let shapes= this.component.getModel().getUnit().getSelectedShapes(false);         
@@ -130,14 +133,14 @@ actionPerformed(id,context){
          
          let r=this.component.getModel().getUnit().getShapesRect(shapes);       
          let unitMgr = UnitMgr.getInstance();
-         let p=this.component.getModel().getUnit().grid.positionOnGrid(r.getCenterX(),r.getCenterY()); 
+         let p=this.component.getModel().getUnit().grid.positionOnGrid(r.center.x,r.center.y); 
          if(id=='topbottomid'){
-             unitMgr.mirrorBlock(shapes,new core.Point(p.x-10,p.y),new core.Point(p.x+10,p.y));
+             unitMgr.mirrorBlock(shapes,new d2.Line(new d2.Point(p.x-10,p.y),new d2.Point(p.x+10,p.y)));
          }else{
-             unitMgr.mirrorBlock(shapes,new core.Point(p.x,p.y-10),new core.Point(p.x,p.y+10));
+             unitMgr.mirrorBlock(shapes,new d2.Line(new d2.Point(p.x,p.y-10),new d2.Point(p.x,p.y+10)));
          }         
          unitMgr.alignBlock(this.component.getModel().getUnit().grid,shapes);
-         this.component.Repaint();		 
+         this.component.repaint();		 
 	 }	
 	 if(id=='rotaterightid'||id=='rotateleftid'){
          let shapes= this.component.getModel().getUnit().getSelectedShapes(false);         
@@ -148,16 +151,17 @@ actionPerformed(id,context){
          let r=this.component.getModel().getUnit().getShapesRect(shapes);       
          let unitMgr = UnitMgr.getInstance();
          
-         unitMgr.rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.getCenterX(),r.getCenterY(),(id==("rotateleftid")?-1:1)*(90.0)));
+         unitMgr.rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(id==("rotateleftid")?1:-1)*(90.0)));
+         
          unitMgr.alignBlock(this.component.getModel().getUnit().grid,shapes);
-         this.component.Repaint();		 
+         this.component.repaint();		 
 	 }
 	 if(id=='positiontocenterid'){
 	     let unit=this.component.getModel().getUnit();           
 	     let rect =unit.getBoundingRect();
 	    
-	     let x=rect.getCenterX();
-	     let y=rect.getCenterY();
+	     let x=rect.center.x;
+	     let y=rect.center.y;
 	     
 	     let unitMgr = UnitMgr.getInstance();
 	     
@@ -166,7 +170,7 @@ actionPerformed(id,context){
 	      
 	     //scroll to center
 	     this.component.setScrollPosition((unit.width/2), (unit.height/2));
-	     this.component.Repaint();
+	     this.component.repaint();
 	 }
 	 if(id=='deleteunit'){
          this.component.getModel().delete(this.component.getModel().getUnit().getUUID());
@@ -177,13 +181,13 @@ actionPerformed(id,context){
         	 this.component.Clear();
         	 this.component.fireContainerEvent({target:null, type:Event.DELETE_CONTAINER});
          }
-         this.component.Repaint();  
+         this.component.repaint();  
 	 }
      if (id=='deleteid') {
     	 let unit=this.component.getModel().getUnit(); 
     	 let unitMgr = UnitMgr.getInstance();        
          unitMgr.deleteBlock(unit,unit.getSelectedShapes(false));
-         this.component.Repaint();                     
+         this.component.repaint();                     
      } 
 	 if(id=='cloneid'){
 		 let unit=this.component.getModel().getUnit();  
@@ -195,7 +199,7 @@ actionPerformed(id,context){
                               r.width,r.height);
          unitMgr.alignBlock(unit.grid,shapes);
          
-         this.component.Repaint();
+         this.component.repaint();
          //***emit property event change
          if (shapes.length == 1) {            
 	       unit.fireShapeEvent({target:shapes[0],type:Event.SELECT_SHAPE});
@@ -204,7 +208,7 @@ actionPerformed(id,context){
 	 }
 	 if(id=='selectallid'){ 
 	     this.component.getModel().getUnit().setSelected(true);
-	     this.component.Repaint();  
+	     this.component.repaint();  
 	 }	
 }
 }

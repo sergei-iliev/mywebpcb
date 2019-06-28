@@ -10,8 +10,7 @@ BoardLoadView=Backbone.View.extend({
 			j$('#BoardLoadDialog').on('close', j$.proxy(this.onclose,this)); 
 			this.unitSelectionPanel=new core.UnitSelectionPanel({selectorid:'boardselectionpanel',canvasprefixid:'b',enabled:opt.enabled});
 			this.libraryview=new LibraryView({unitSelectionPanel:this.unitSelectionPanel});  
-	    	this.buttonview=new ButtonView({unitSelectionPanel:this.unitSelectionPanel});  
-	    	//j$('#loadtitle').html("Load Board");
+	    	this.buttonview=new ButtonLoadView({unitSelectionPanel:this.unitSelectionPanel});  
 		  },
       onclose:function(){
     	  this.undelegateEvents();
@@ -36,7 +35,7 @@ LibraryView=Backbone.View.extend({
 		j$('#boardtree').jqxTree({width: '100%',height:'260px'});
 		//bind select element
 		j$('#boardtree').on('select',j$.proxy(this.onvaluechange,this));			
-        this.loadprojects();
+        this.loadworkspaces();
 	},
 	clear:function(){
 	    //unbind select element		
@@ -53,18 +52,27 @@ LibraryView=Backbone.View.extend({
     onvaluechange:function(event){
         //is this category or footprint selection
     	var item = j$('#boardtree').jqxTree('getItem', event.args.element);
-    	var	callback=this.loadboard;
-    	var  url=item.value.project+"/"+item.value.fullname;	
-
+    	var  url=j$('#projectcombo').val()+'/'+item.value.project;	
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/rest/boards/projects/'+url,
+	        url:encodeURI('/rest/boards/workspaces/'+url),
 	        dataType: "xml",
 	        beforeSend:function(){
 		          j$('#BoardLoadDialog').block({message:'<h5>Loading...</h5>'});	
 		        },
-	        success: j$.proxy(callback,this),
+	        success: j$.proxy(function(data, textStatus, jqXHR){
+	            this.unitSelectionPanel.release();
+	            
+	            let boardContainer=new BoardContainer(true);	            
+	            core.isEventEnabled=false;
+	            boardContainer.parse(data);
+	            core.isEventEnabled=true;
+	            this.unitSelectionPanel.unitSelectionGrid.setModel(boardContainer);
+	            this.unitSelectionPanel.unitSelectionGrid.scaleFactor=11;
+	            this.unitSelectionPanel.unitSelectionGrid.build();   
+	            this.unitSelectionPanel.render();	        	
+	        },this),
 	        
 	        error: function(jqXHR, textStatus, errorThrown){
 	            	alert(errorThrown+":"+jqXHR.responseText);
@@ -75,24 +83,16 @@ LibraryView=Backbone.View.extend({
 	    });
     	
     },
-    loadboard:function(data, textStatus, jqXHR){
-      this.unitSelectionPanel.release();
-      let boardContainer=new BoardContainer(true);      
-      boardContainer.parse(data);
-      this.unitSelectionPanel.unitSelectionGrid.setModel(boardContainer);
-      this.unitSelectionPanel.unitSelectionGrid.build();   
-      this.unitSelectionPanel.render();
-    },
-    loadprojects:function(){
+    loadworkspaces:function(){
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/rest/boards/projects',
+	        url: '/rest/boards/workspaces',
 	        dataType: "xml",
 	        beforeSend:function(){
 		          j$('#BoardLoadDialog').block({message:'<h5>Loading...</h5>'});	
 		        },
-	        success: j$.proxy(this.onloadprojects,this),
+	        success: j$.proxy(this.onloadworkspaces,this),
 	        
 	        error: function(jqXHR, textStatus, errorThrown){
 	            	alert(errorThrown+":"+jqXHR.responseText);
@@ -103,19 +103,23 @@ LibraryView=Backbone.View.extend({
 	    });
 	    
 	}, 
-	onloadprojects:function(data, textStatus, jqXHR){
+	onloadworkspaces:function(data, textStatus, jqXHR){
 		var that=this; 
 		j$(data).find("name").each(j$.proxy(function(){
-		  j$('#projectcombo').append('<option value=' +j$(this).text()+ '>' +  j$(this).text() + '</option>');
+			console.log();
+		  j$('#projectcombo').append('<option value="' +j$(this).text()+ '">' +  j$(this).text() + '</option>');
 		}),that);
-		//category load		
+
 		this.loadboards(j$('#projectcombo').val());
 	},	
-	loadboards:function(project){
+	loadboards:function(workspace){
+		if(workspace==null){
+			return;
+		}
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/rest/boards/projects/'+project,
+	        url: encodeURI('/rest/boards/workspaces/'+workspace),
 	        dataType: "xml",
 	        beforeSend:function(){
 		          j$('#BoardLoadDialog').block({message:'<h5>Loading...</h5>'});	
@@ -144,7 +148,7 @@ LibraryView=Backbone.View.extend({
 		
 	}
 });
-ButtonView=Backbone.View.extend({
+ButtonLoadView=Backbone.View.extend({
 	el:"#boardbuttonslot",
 	initialize:function(opt){
 	  this.unitSelectionPanel=opt.unitSelectionPanel;
@@ -163,6 +167,7 @@ ButtonView=Backbone.View.extend({
     	mywebpcb.trigger('workspaceview:load',this.unitSelectionPanel.unitSelectionGrid.model);
 		//close dialog 
 		j$('#BoardLoadDialog').jqxWindow('close');
+		
     },
     onclose:function(){
     	j$('#BoardLoadDialog').jqxWindow('close'); 	

@@ -1,43 +1,53 @@
 var EventHandle = require('core/events').EventHandle;
 var events = require('core/events');
 var core = require('core/core');
-
+var d2 = require('d2/d2');
 
 class ArcMidPointEventHandle extends EventHandle{
 constructor(component) {
 		 super(component);
 	 }
-Attach(){	  	    
-   super.Attach();
-   this.target.resizingPoint=new core.Point();
-   this.isClockwise=this.target.extendAngle<0
-} 
  
 mousePressed(event){
-	 }
-mouseDragged(event){
-	 	let new_mx = event.x;
-	    let new_my = event.y;	    		
-	        
-	    this.target.resizingPoint.x=event.x;
-	    this.target.resizingPoint.y=event.y;
-	    
-	    this.target.recalculateArc(this.isClockwise);
-		this.component.Repaint();
+	if(super.isRightMouseButton(event)){
+            if (this.target["getLinePoints"]!=undefined){
+            	this.component.popup.registerLineSelectPopup(this.target,event);            
+            }            
     }
-mouseReleased(event){
-	this.target.resizingPoint=null; 
-	this.component.Repaint();
-} 
-mouseMove(event){
-	 
-	}
-Detach(){
-   if(this.target!=null){
-	   this.target.resizingPoint=null;  
-   }	     
-   super.Detach();
-} 
+     
+    this.component.getModel().getUnit().setSelected(false);
+    this.target.setSelected(true);
+	this.mx=event.x;
+	this.my=event.y;
+        
+    this.targetPoint=this.target.isControlRectClicked(event.x,event.y);
+    this.target.setResizingPoint(this.targetPoint);
+    
+    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
+    
+	this.component.repaint();
+ }
+ mouseReleased(event){
+	    if(this.component.getParameter("snaptogrid")){
+         this.target.alignResizingPointToGrid(this.targetPoint);
+	     this.component.repaint();	 
+		}
+	    this.target.resizingPoint=null;
+ }
+ mouseDragged(event){
+ 	let new_mx = event.x;
+    let new_my = event.y;
+    
+    this.target.Resize(0,0,event);
+    
+    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
+    this.mx = new_mx;
+    this.my = new_my;
+	this.component.repaint();
+ }
+ mouseMove(event){
+ 
+ }
 }
 
 class ArcStartAngleEventHandle extends EventHandle{
@@ -52,10 +62,9 @@ class ArcStartAngleEventHandle extends EventHandle{
     
 	
         
-    let centerX=this.target.getCenter().x;
-    let centerY=this.target.getCenter().y;
-        
-        
+    let centerX=this.target.arc.center.x;
+    let centerY=this.target.arc.center.y;
+           
     let start = (180/Math.PI*Math.atan2(new_my-centerY,new_mx-centerX));
 
     if(start<0){
@@ -69,7 +78,7 @@ class ArcStartAngleEventHandle extends EventHandle{
 
 	this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:events.Event.PROPERTY_CHANGE});
 		
-	this.component.Repaint();
+	this.component.repaint();
  }
 mouseReleased(event){
 
@@ -90,8 +99,8 @@ class ArcExtendAngleEventHandler extends EventHandle{
  	let new_mx = event.x;
     let new_my = event.y;
         
-    let centerX=this.target.getCenter().x;
-    let centerY=this.target.getCenter().y;
+    let centerX=this.target.arc.center.x;
+    let centerY=this.target.arc.center.y;
         
         
     let extend = (180/Math.PI*Math.atan2(new_my-centerY,new_mx-centerX));
@@ -103,25 +112,25 @@ class ArcExtendAngleEventHandler extends EventHandle{
     }
         
         //-360<extend<360 
-    let extendAngle=this.target.extendAngle;
+    let extendAngle=this.target.arc.endAngle;
     if(extendAngle<0){        
-          if(extend-this.target.startAngle>0) {                
-              this.target.setExtendAngle(((extend-this.target.startAngle))-360);
+          if(extend-this.target.arc.startAngle>0) {                
+              this.target.setExtendAngle(((extend-this.target.arc.startAngle))-360);
           }else{
-              this.target.setExtendAngle(extend-this.target.startAngle);
+              this.target.setExtendAngle(extend-this.target.arc.startAngle);
             }
         }else{           
-            if(extend-this.target.startAngle>0) {
-              this.target.setExtendAngle(extend-this.target.startAngle);
+            if(extend-this.target.arc.startAngle>0) {
+              this.target.setExtendAngle(extend-this.target.arc.startAngle);
             }else{
-              this.target.setExtendAngle((360-this.target.startAngle)+extend);
+              this.target.setExtendAngle((360-this.target.arc.startAngle)+extend);
             }
         }
         
     //***update PropertiesPanel           
 	this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:events.Event.PROPERTY_CHANGE});
 		
-	this.component.Repaint();
+	this.component.repaint();
  }
 mouseReleased(event){
 
@@ -142,8 +151,8 @@ constructor(component) {
 			     * Wiring rule-> discard point if overlaps with last line point
 			     */
 			    function isOverlappedPoint( line, pointToAdd){
-			        if(line.points.length>0){
-			          let lastPoint=line.points[line.points.length-1]; 
+			        if(line.polyline.points.length>0){
+			          let lastPoint=line.polyline.points[line.polyline.points.length-1]; 
 			            //***is this the same point as last one?   
 			          if(pointToAdd.equals(lastPoint))
 			            return true;    
@@ -155,9 +164,9 @@ constructor(component) {
 			     *                 without adding the point
 			     */
 			   function isPointOnLine(line,pointToAdd){
-			         if(line.points.length>=2){
-			             let lastPoint=line.points[line.points.length-1];  
-			             let lastlastPoint=line.points[line.points.length-2]; 
+			         if(line.polyline.points.length>=2){
+			             let lastPoint=line.polyline.points[line.polyline.points.length-1];  
+			             let lastlastPoint=line.polyline.points[line.polyline.points.length-2]; 
 			            
 			            //***check if point to add overlaps last last point
 			            if(lastlastPoint.equals(pointToAdd)){
@@ -181,7 +190,7 @@ constructor(component) {
 				        let result=false;
 				        if(!isOverlappedPoint(line,p)){
 				            if(!isPointOnLine(line,p)){
-				                line.points.push(p);   
+				                line.polyline.add(p);   
 				                result=true;
 				            }               
 				        }         
@@ -190,7 +199,7 @@ constructor(component) {
 			   },
 			   Release:function(){
 			          line.reset(); 
-			          if(line.points.length<2){
+			          if(line.polyline.points.length<2){
 			                line.owningUnit.remove(line.getUUID());                
 			          }
 			 
@@ -209,7 +218,7 @@ mousePressed(event){
 	  //   this.target=null;
 	  //}		
 	  //this.component.setMode(core.ModeEnum.LINE_MODE);
-	  //this.component.Repaint();	
+	  //this.component.repaint();	
 	   this.component.popup.registerLinePopup(this.target,event);
 	  	
 		
@@ -220,16 +229,16 @@ mousePressed(event){
 	this.lineBendingProcessor.Initialize(this.target);
 	this.target.setSelected(true);
 	
-    this.target.setResizingPoint(new core.Point(event.x,event.y));
+    this.target.setResizingPoint(new d2.Point(event.x,event.y));
     this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:events.Event.PROPERTY_CHANGE});
 	
     if(this.component.getParameter("snaptogrid")){
     	let p=this.component.getModel().getUnit().getGrid().positionOnGrid(event.x,event.y); 
     	this.lineBendingProcessor.addLinePoint(p);	
     }else{
-       this.lineBendingProcessor.addLinePoint(new core.Point(event.x,event.y));
+       this.lineBendingProcessor.addLinePoint(new d2.Point(event.x,event.y));
     }
-	this.component.Repaint();	 
+	this.component.repaint();	 
    }
  mouseReleased(event){
 
@@ -237,16 +246,16 @@ mousePressed(event){
  mouseDragged(event){
    }
  mouseMove(event){
-	 this.target.floatingEndPoint.setLocation(event.x,event.y); 
-	 this.target.floatingMidPoint.setLocation(event.x,event.y);
+	 this.target.floatingEndPoint.set(event.x,event.y); 
+	 this.target.floatingMidPoint.set(event.x,event.y);
 	 this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:events.Event.PROPERTY_CHANGE});
-	 this.component.Repaint(); 
+	 this.component.repaint(); 
    }
  dblClick(){
      this.target.reset();  
      this.target.setSelected(false);
      this.component.getEventMgr().resetEventHandle();
-     this.component.Repaint();	 
+     this.component.repaint();	 
 	 } 
 // keyPressed(event){
 //	 if(event.keyCode==27){   //ESCAPE
@@ -264,7 +273,64 @@ mousePressed(event){
 	 super.Detach();
  }    
 }
+class SolidRegionEventHandle extends EventHandle{
+	constructor(component) {
+		 super(component);
+	 }
+mousePressed(event){
+      this.mx=event.x;
+	  this.my=event.y;
+	  if(super.isRightMouseButton(event)){                                  
+           return;
+      }
+      this.component.getModel().getUnit().setSelected(false);
+	  this.target.setSelected(true);
 
+      let p;      
+      
+      if(this.component.getParameter("snaptogrid")){
+        p=this.component.getModel().getUnit().getGrid().positionOnGrid(event.x,event.y);       		
+      }else{
+        p=new d2.Point(event.x,event.y);
+      }
+      let justcreated=this.target.polygon.points.length==2;
+      
+      if(this.target.getLinePoints().length==0){
+    	  this.target.add(p);    
+          //avoid point over point
+      }else if(!this.target.getLinePoints()[this.target.getLinePoints().length-1].equals(p)){
+    	  this.target.add(p);           
+      }
+      
+      
+	  this.component.repaint();	   
+	    
+	 }
+mouseReleased(event){
+		
+	 }
+	 
+mouseDragged(event){
+		
+	 }
+mouseMove(event){
+    this.target.floatingEndPoint.set(event.x,event.y);   
+    this.component.repaint();	 
+	 }	 
+dblClick(){
+      
+    this.target.setSelected(false);
+    this.component.getEventMgr().resetEventHandle();
+    this.component.repaint();	 
+} 
+Detach() {
+    this.target.reset(); 
+    if(this.target.polygon.points.length<3){
+        this.target.owningUnit.remove(this.target.uuid);
+    }
+    super.Detach();
+}	
+}
 class FootprintEventMgr{
  constructor(component) {
     this.component=component;
@@ -283,13 +349,14 @@ class FootprintEventMgr{
 	this.hash.set("dragheand",new events.DragingEventHandle(component));
 	this.hash.set("origin",new events.OriginEventHandle(component));
 	this.hash.set("measure",new events.MeasureEventHandle(component));
+	this.hash.set("solidregion",new SolidRegionEventHandle(component));
  }
  //****private
  getEventHandle(eventKey,target) {
     var handle=this.hash.get(eventKey);
 	if(handle!=null){
 	  handle.setTarget(target);
-	  if(eventKey=='resize'||eventKey=='move'||eventKey=='line'||eventKey=='texture'){
+	  if(eventKey=='resize'||eventKey=='move'||eventKey=='line'||eventKey=='solidregion'||eventKey=='texture'){
 	     this.component.getModel().getUnit().fireShapeEvent({target:target,type:events.Event.SELECT_SHAPE});
 	  }
 	  if(eventKey=='component'||eventKey=="origin"){
@@ -324,5 +391,7 @@ module.exports ={
 	  FootprintEventMgr,
 	  ArcExtendAngleEventHandler,
 	  ArcStartAngleEventHandle,
-	  LineEventHandle
+	  ArcMidPointEventHandle,
+	  LineEventHandle,
+	  SolidRegionEventHandle
 }
