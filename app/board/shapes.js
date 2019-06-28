@@ -95,7 +95,8 @@ clone(){
     }
 add(shape){
     if (shape == null)
-          return;   
+          return;
+    shape.isControlPointVisible=false;
     this.shapes.push(shape);  
 } 
 getChipText() {

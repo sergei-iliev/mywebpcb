@@ -278,6 +278,7 @@ class RoundRect extends Shape{
 		this.fill = parseInt(j$(data).attr("fill"));
 	}
 	paint(g2, viewportWindow, scale,layersmask) {
+		console.log(22);
 	    if((this.copper.getLayerMaskID()&layersmask)==0){
 	        return;
 	    }		
@@ -314,7 +315,7 @@ class RoundRect extends Shape{
 		
 		
 
-		if (this.isSelected()) {
+		if (this.isSelected()&&this.isControlPointVisible) {
 			this.drawControlPoints(g2, viewportWindow, scale);
 		}
 	}
@@ -490,7 +491,7 @@ fromXML(data) {
 
 		g2.globalCompositeOperation = 'source-over';
 		
-		if (this.isSelected()) {
+		if (this.isSelected()&&this.isControlPointVisible) {
 			this.drawControlPoints(g2, viewportWindow, scale);
   } 
  }
@@ -760,7 +761,7 @@ paint(g2, viewportWindow, scale,layersmask) {
 		
 		g2.globalCompositeOperation = 'source-over';
 
-		if (this.isSelected()) {
+		if (this.isSelected()&&this.isControlPointVisible) {
 			this.drawControlPoints(g2, viewportWindow, scale);
 		}
 		if (this.center!=null) {
@@ -1012,7 +1013,7 @@ paint(g2, viewportWindow, scale,layersmask) {
 		}
 		
 		g2.globalCompositeOperation = 'source-over';
-		if (this.selection) {
+		if (this.selection&&this.isControlPointVisible) {
 			this.drawControlPoints(g2, viewportWindow, scale);
 		}
 

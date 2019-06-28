@@ -17,6 +17,7 @@ class Shape{
 		this.displayName = "noname";
 		this.fill = Fill.EMPTY;
 		this.fillColor;		 
+		this.isControlPointVisible=true;
 		this.copper = core.Layer.Copper.resolve(layermask);
 	}
 getCenter(){
