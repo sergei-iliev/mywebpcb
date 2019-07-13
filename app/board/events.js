@@ -16,7 +16,7 @@ mousePressed(event){
 			    this.component.getModel().getUnit().setSelected(false);
 			    this.target.setSelected(true);
 				this.component.repaint();
-				this.component.popup.registerChipPopup(this.target,event);            
+				this.component.popup.registerFootprintPopup(this.target,event);            
 	            return;
 	   }
 	   if(event.data.ctrlKey){

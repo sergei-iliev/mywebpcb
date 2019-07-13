@@ -159,8 +159,11 @@ sortPolygon(points){
 
 setSelected (selection) {
 	super.setSelected(selection);
-	this.shapes.forEach(function(shape) {		  
+	this.shapes.forEach(function(shape) {	
 		  shape.setSelected(selection);
+		  if(shape instanceof Pad){			
+			  shape.text.setSelected(false);
+		  }		  
    });	
 }
 calculateShape() {

@@ -278,7 +278,6 @@ class RoundRect extends Shape{
 		this.fill = parseInt(j$(data).attr("fill"));
 	}
 	paint(g2, viewportWindow, scale,layersmask) {
-		console.log(22);
 	    if((this.copper.getLayerMaskID()&layersmask)==0){
 	        return;
 	    }		

@@ -17,14 +17,12 @@ registerTrackPopup(target,event){
 	    this.setContent(items,{target:target});	    
 	    this.open(event);		
 }
-registerChipPopup(target,event){
+registerFootprintPopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
 	    items+="<tr id='selectallid' ><td style='padding: 0.4em;'>Edit Footprint</td></tr>";
 	    items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
 	    items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
-	    items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
-	    items+="<tr id='topbottomid'><td style='padding: 0.4em'>Mirror Top-Bottom</td></tr>";
-	    items+="<tr id='leftrightid'><td style='padding: 0.4em'>Mirror Left-Right</td></tr>";
+	    items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";	    
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Wire ends connect</td></tr>";	
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Wire ends disconnect</td></tr>";	
@@ -52,8 +50,6 @@ registerBlockPopup(target,event){
 	    items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
 	    items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
 	    items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
-	    items+="<tr id='topbottomid'><td style='padding: 0.4em'>Mirror Top-Bottom</td></tr>";
-	    items+="<tr id='leftrightid'><td style='padding: 0.4em'>Mirror Left-Right</td></tr>";
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
 	    this.setContent(items,{target:target});	
