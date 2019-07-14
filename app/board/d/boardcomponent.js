@@ -321,7 +321,7 @@ mouseDown(event){
 		     shape = this.getModel().getUnit().getClickedShape(scaledEvent.x, scaledEvent.y, true);
 		     
 		     if(shape!=null){
-			   if (UnitMgr.getInstance().isBlockSelected(this.getModel().getUnit().shapes) && shape.isSelected()){					   
+			   if ((UnitMgr.getInstance().isBlockSelected(this.getModel().getUnit().shapes)&& shape.isSelected())||event.ctrlKey){					   
                  this.getEventMgr().setEventHandle("block", shape);						 
 		       }else if ((!(shape instanceof PCBLabel))&&(undefined !=shape['getChipText'])&&shape.getChipText().isClicked(scaledEvent.x, scaledEvent.y)){
 			     this.getEventMgr().setEventHandle("texture",shape);
