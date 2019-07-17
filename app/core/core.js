@@ -859,10 +859,24 @@ var UnitSelectionPanel=Backbone.View.extend({
     this.enabled=opt.enabled;
   },
   events: {
-	  'click [type="checkbox"]': 'processClick',
+	  'click [type="checkbox"]': 'checkBoxClick',
+	  'click' : 'panelClick',
   },
-	
-  processClick:function(event){
+  panelClick:function(event){
+	  if(event.originalEvent.target.id==""){
+		  return;
+	  }
+      let uuid=(j$('#'+event.originalEvent.target.id).data('uuid'));
+      if(this.enabled){
+		  this.unitSelectionGrid.getModel().setActiveUnitUUID(uuid);		  		 
+		  
+		  var group = "input:checkbox[name='cb']";
+		  j$(group).prop("checked", false);
+		  
+		  j$('#'+uuid).prop("checked",true);
+	  }
+  },	  
+  checkBoxClick:function(event){
 	  
 	  var j$box = j$(event.currentTarget);
 	  if (j$box.is(":checked")) {
@@ -889,12 +903,13 @@ var UnitSelectionPanel=Backbone.View.extend({
   		var i=0;
 		for(let unit of this.unitSelectionGrid.model.getUnits()){  	
   	        var cell=this.unitSelectionGrid.cells[i];
-  			var canvas = j$('#'+this.canvasprefixid+(i++));
+  			var canvas = j$('#'+this.canvasprefixid+(i));
   	  	    var ctx = canvas[0].getContext("2d");
   	        ctx.fillStyle = "rgb(0,0,0)";
   	        ctx.fillRect(0, 0, cell.width, cell.height);  
-
-  	        unit.paint(ctx,d2.Box.fromRect(cell.x,cell.y,cell.width,cell.height));                    	         
+  	        unit.paint(ctx,d2.Box.fromRect(cell.x,cell.y,cell.width,cell.height));
+  	        i++;
+  
   		  };
   	}
   },
@@ -905,7 +920,7 @@ var UnitSelectionPanel=Backbone.View.extend({
 		      for(i=0;i<this.unitSelectionGrid.cells.length;i++){
 		    	var cell=this.unitSelectionGrid.cells[i];
 		    	
-		    	panel+="<div><canvas id=\""+this.canvasprefixid+i+"\" width=\""+cell.width+"px\" height=\""+cell.height+"px\">"+
+		    	panel+="<div><canvas id=\""+this.canvasprefixid+i+"\" width=\""+cell.width+"px\" height=\""+cell.height+"px\"  data-uuid=\""+cell.uuid+"\" >"+
 		        "</canvas></div>"+
 		        "<div><input type=checkbox name='cb' id='"+cell.uuid+"' style='vertical-align: -2px;margin-left:10px;margin-right:5px;' "+
 		        (cell.selected?" checked ":(this.enabled?" ":" checked "))+
