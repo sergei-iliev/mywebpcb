@@ -165,6 +165,10 @@ class RoundRect extends Shape{
 	calculateShape() {
 		return this.roundRect.box;		
 	}
+    alignResizingPointToGrid(targetPoint){
+        let point=this.owningUnit.getGrid().positionOnGrid(targetPoint.x,targetPoint.y);  
+        this.Resize(point.x -targetPoint.x,point.y-targetPoint.y,targetPoint);     
+    }	
 	getCenter() {
 		let box=this.roundRect.box;
 	    return new d2.Point(box.center.x,box.center.y);
@@ -350,8 +354,8 @@ alignToGrid(isRequired) {
             return null;
         }
 }
-alignResizingPointToGrid(point) {          
-        this.width=this.owningUnit.getGrid().lengthOnGrid(this.width);                
+alignResizingPointToGrid(targetPoint) {   
+
 }
 get vertices(){
 	  return this.circle.vertices;	
