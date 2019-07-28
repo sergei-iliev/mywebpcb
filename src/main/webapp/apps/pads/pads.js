@@ -1009,10 +1009,24 @@ var UnitSelectionPanel=Backbone.View.extend({
     this.enabled=opt.enabled;
   },
   events: {
-	  'click [type="checkbox"]': 'processClick',
+	  'click [type="checkbox"]': 'checkBoxClick',
+	  'click' : 'panelClick',
   },
-	
-  processClick:function(event){
+  panelClick:function(event){
+	  if(event.originalEvent.target.id==""){
+		  return;
+	  }
+      let uuid=(j$('#'+event.originalEvent.target.id).data('uuid'));
+      if(this.enabled){
+		  this.unitSelectionGrid.getModel().setActiveUnitUUID(uuid);		  		 
+		  
+		  var group = "input:checkbox[name='cb']";
+		  j$(group).prop("checked", false);
+		  
+		  j$('#'+uuid).prop("checked",true);
+	  }
+  },	  
+  checkBoxClick:function(event){
 	  
 	  var j$box = j$(event.currentTarget);
 	  if (j$box.is(":checked")) {
@@ -1039,12 +1053,13 @@ var UnitSelectionPanel=Backbone.View.extend({
   		var i=0;
 		for(let unit of this.unitSelectionGrid.model.getUnits()){  	
   	        var cell=this.unitSelectionGrid.cells[i];
-  			var canvas = j$('#'+this.canvasprefixid+(i++));
+  			var canvas = j$('#'+this.canvasprefixid+(i));
   	  	    var ctx = canvas[0].getContext("2d");
   	        ctx.fillStyle = "rgb(0,0,0)";
   	        ctx.fillRect(0, 0, cell.width, cell.height);  
-
-  	        unit.paint(ctx,d2.Box.fromRect(cell.x,cell.y,cell.width,cell.height));                    	         
+  	        unit.paint(ctx,d2.Box.fromRect(cell.x,cell.y,cell.width,cell.height));
+  	        i++;
+  
   		  };
   	}
   },
@@ -1055,7 +1070,7 @@ var UnitSelectionPanel=Backbone.View.extend({
 		      for(i=0;i<this.unitSelectionGrid.cells.length;i++){
 		    	var cell=this.unitSelectionGrid.cells[i];
 		    	
-		    	panel+="<div><canvas id=\""+this.canvasprefixid+i+"\" width=\""+cell.width+"px\" height=\""+cell.height+"px\">"+
+		    	panel+="<div><canvas id=\""+this.canvasprefixid+i+"\" width=\""+cell.width+"px\" height=\""+cell.height+"px\"  data-uuid=\""+cell.uuid+"\" >"+
 		        "</canvas></div>"+
 		        "<div><input type=checkbox name='cb' id='"+cell.uuid+"' style='vertical-align: -2px;margin-left:10px;margin-right:5px;' "+
 		        (cell.selected?" checked ":(this.enabled?" ":" checked "))+
@@ -1145,7 +1160,7 @@ class EventHandle{
 				 this.component.getModel().getUnit().getSelectedShapes().forEach(function(shape) {
 					 this.component.getModel().getUnit().remove(shape.getUUID());	
 		           }.bind(this));  
-				 this.component.Repaint();
+				 this.component.repaint();
 			 }
 			 if (this.component.getEventMgr().getTargetEventHandle() != null&&event.keyCode==27) {	
 			   this.component.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
@@ -1174,7 +1189,7 @@ class MoveEventHandle extends EventHandle{
 	 mousePressed(event){	
 	    this.component.getModel().getUnit().setSelected(false);
 	    this.target.setSelected(true);
-		this.component.Repaint();
+		this.component.repaint();
 		if(super.isRightMouseButton(event)){
             if (this.target["getLinePoints"]!=undefined){
             	this.component.popup.registerLineSelectPopup(this.target,event);
@@ -1198,7 +1213,7 @@ class MoveEventHandle extends EventHandle{
 		this.target.alignToGrid(false || this.component.getParameter("snaptogrid"));
 				 
 		this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
-		this.component.Repaint();
+		this.component.repaint();
 	 }
 	 
 	 mouseDragged(event){
@@ -1212,7 +1227,7 @@ class MoveEventHandle extends EventHandle{
 	    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
 	    this.mx = new_mx;
 	    this.my = new_my;
-		this.component.Repaint();
+		this.component.repaint();
 	 }
 	 mouseMove(event){
 	 
@@ -1241,12 +1256,12 @@ class ResizeEventHandle extends EventHandle{
 	    
 	    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
 	    
-		this.component.Repaint();
+		this.component.repaint();
 	 }
 	 mouseReleased(event){
 		    if(this.component.getParameter("snaptogrid")){
 	         this.target.alignResizingPointToGrid(this.targetPoint);
-		     this.component.Repaint();	 
+		     this.component.repaint();	 
 			}
 			
 	 }
@@ -1257,7 +1272,7 @@ class ResizeEventHandle extends EventHandle{
 	    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
 	    this.mx = new_mx;
 	    this.my = new_my;
-		this.component.Repaint();
+		this.component.repaint();
 	 }
 	 mouseMove(event){
 	 
@@ -1289,7 +1304,7 @@ mouseDragged(event){
    
    this.mx = event.windowx;
    this.my = event.windowy;
-   this.component.Repaint();  
+   this.component.repaint();  
 		 }
 mouseMove(event){
 		 
@@ -1307,7 +1322,7 @@ class UnitEventHandle extends EventHandle{
 	 }
 	 mousePressed(event){
 		this.component.getModel().getUnit().setSelected(false);
-		this.component.Repaint();
+		this.component.repaint();
 			
 		if(super.isRightMouseButton(event)){
 			this.component.popup.registerUnitPopup(this.target,event);
@@ -1323,7 +1338,7 @@ class UnitEventHandle extends EventHandle{
 		 }
 		 this.selectionBox.move(this.component.viewportWindow.x,this.component.viewportWindow.y);
 		 this.component.getModel().getUnit().setSelectedInRect(this.component.getModel().getUnit().getScalableTransformation().getInverseRect(this.selectionBox));
-	     this.component.Repaint();
+	     this.component.repaint();
 	 }
 	 mouseDragged(event){
 		 if(super.isRightMouseButton(event)){
@@ -1336,7 +1351,7 @@ class UnitEventHandle extends EventHandle{
 		  let y=this.my - (h < 0 ? Math.abs(h) : 0);
 		
 	      this.selectionBox.setRect(x,y,Math.abs(w),Math.abs(h));	
-	      this.component.Repaint();
+	      this.component.repaint();
 		  
 		  this.component.ctx.globalCompositeOperation='lighter';
 	      this.component.ctx.beginPath();
@@ -1389,7 +1404,7 @@ mouseMove(event){
 
 	        this.mx = new_mx;
 	        this.my = new_my;     
-	        this.component.Repaint();   		 
+	        this.component.repaint();   		 
 		 }
 
 }
@@ -1415,7 +1430,7 @@ class CursorEventHandle extends EventHandle{
 	         shape.setSelected(true);
 	         shape.alignToGrid();
 	         this.component.getModel().getUnit().fireShapeEvent({target:shape,type:Event.SELECT_SHAPE});
-	         this.component.Repaint();	            
+	         this.component.repaint();	            
 	 }
 	 mouseReleased(event){
 
@@ -1432,7 +1447,7 @@ class CursorEventHandle extends EventHandle{
 
 		    this.mx = new_mx;
 		    this.my = new_my;
-			this.component.Repaint(); 
+			this.component.repaint(); 
 	 }
 }
 
@@ -1458,7 +1473,7 @@ class BlockEventHandle extends EventHandle{
 		  this.component.getModel().getUnit().setSelectedShape(this.target.uuid,
 	                   !this.target.isSelected());
 	      this.ctrlButtonPress = true;
-	      this.component.Repaint();
+	      this.component.repaint();
 	      return;		   
 		}		
 		this.mx=event.x;
@@ -1469,7 +1484,7 @@ class BlockEventHandle extends EventHandle{
 		  return;
 		}
 		UnitMgr.getInstance().alignBlock(this.component.getModel().getUnit().grid, this.selectedShapes);
-		this.component.Repaint();
+		this.component.repaint();
 	 }
 	 mouseDragged(event){
 		if(super.isRightMouseButton(event)){
@@ -1482,7 +1497,7 @@ class BlockEventHandle extends EventHandle{
 		
 	    this.mx = new_mx;
 	    this.my = new_my;
-		this.component.Repaint();
+		this.component.repaint();
 	   
 	 }
 	 mouseMove(event){
@@ -1505,7 +1520,7 @@ mousePressed(event){
 	this.my=event.y;
 
 	this.texture= this.target.getChipText().getClickedTexture(event.x,event.y);  
-	this.component.Repaint();
+	this.component.repaint();
 	
 }
 mouseReleased(event){
@@ -1520,7 +1535,7 @@ mouseDragged(event){
 		
 	    this.mx = new_mx;
 	    this.my = new_my;
-		this.component.Repaint();       
+		this.component.repaint();       
 }
 mouseMove(event){
 
@@ -1556,7 +1571,7 @@ mouseMove(e) {
         this.mx = new_mx;
         this.my = new_my;
         
-        this.component.Repaint();
+        this.component.repaint();
     }	
 }
 
@@ -1726,13 +1741,13 @@ actionPerformed(id,context){
 		   context.target.setSelected(false);
 		   this.component.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
 	       this.component.setMode(core.ModeEnum.COMPONENT_MODE); 
-	       this.component.Repaint();
+	       this.component.repaint();
 	 }
      if (id=="addbendingpointid") {
     	 let line=context.target;
          line.insertPoint(this.x, this.y);
          
-         this.component.Repaint();
+         this.component.repaint();
          return;
     }	 
      if(id=='deletelastpointid') {
@@ -1745,7 +1760,7 @@ actionPerformed(id,context){
             this.component.getModel().getUnit().remove(line.uuid);
         }
 
-         this.component.Repaint();
+         this.component.repaint();
          return;
      }
      if(id=='deletebendingpointid'){
@@ -1756,7 +1771,7 @@ actionPerformed(id,context){
         	 this.component.getEventMgr().resetEventHandle();
         	 this.component.getModel().getUnit().remove(line.uuid);
          }
-         this.component.Repaint();
+         this.component.repaint();
          return;
      }
      if (id=="deletelineid") {
@@ -1764,7 +1779,7 @@ actionPerformed(id,context){
          //this.component.getModel().getUnit().registerMemento(getTarget().getState(MementoType.DELETE_MEMENTO));
          this.component.getEventMgr().resetEventHandle();
          this.component.getModel().getUnit().remove(line.uuid);
-         this.component.Repaint();                    
+         this.component.repaint();                    
    } 
 	 if(id=='topbottomid'||id=='leftrightid'){
          let shapes= this.component.getModel().getUnit().getSelectedShapes(false);         
@@ -1781,7 +1796,7 @@ actionPerformed(id,context){
              unitMgr.mirrorBlock(shapes,new d2.Line(new d2.Point(p.x,p.y-10),new d2.Point(p.x,p.y+10)));
          }         
          unitMgr.alignBlock(this.component.getModel().getUnit().grid,shapes);
-         this.component.Repaint();		 
+         this.component.repaint();		 
 	 }	
 	 if(id=='rotaterightid'||id=='rotateleftid'){
          let shapes= this.component.getModel().getUnit().getSelectedShapes(false);         
@@ -1795,7 +1810,7 @@ actionPerformed(id,context){
          unitMgr.rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(id==("rotateleftid")?1:-1)*(90.0)));
          
          unitMgr.alignBlock(this.component.getModel().getUnit().grid,shapes);
-         this.component.Repaint();		 
+         this.component.repaint();		 
 	 }
 	 if(id=='positiontocenterid'){
 	     let unit=this.component.getModel().getUnit();           
@@ -1811,7 +1826,7 @@ actionPerformed(id,context){
 	      
 	     //scroll to center
 	     this.component.setScrollPosition((unit.width/2), (unit.height/2));
-	     this.component.Repaint();
+	     this.component.repaint();
 	 }
 	 if(id=='deleteunit'){
          this.component.getModel().delete(this.component.getModel().getUnit().getUUID());
@@ -1822,13 +1837,13 @@ actionPerformed(id,context){
         	 this.component.Clear();
         	 this.component.fireContainerEvent({target:null, type:Event.DELETE_CONTAINER});
          }
-         this.component.Repaint();  
+         this.component.repaint();  
 	 }
      if (id=='deleteid') {
     	 let unit=this.component.getModel().getUnit(); 
     	 let unitMgr = UnitMgr.getInstance();        
          unitMgr.deleteBlock(unit,unit.getSelectedShapes(false));
-         this.component.Repaint();                     
+         this.component.repaint();                     
      } 
 	 if(id=='cloneid'){
 		 let unit=this.component.getModel().getUnit();  
@@ -1840,7 +1855,7 @@ actionPerformed(id,context){
                               r.width,r.height);
          unitMgr.alignBlock(unit.grid,shapes);
          
-         this.component.Repaint();
+         this.component.repaint();
          //***emit property event change
          if (shapes.length == 1) {            
 	       unit.fireShapeEvent({target:shapes[0],type:Event.SELECT_SHAPE});
@@ -1849,7 +1864,7 @@ actionPerformed(id,context){
 	 }
 	 if(id=='selectallid'){ 
 	     this.component.getModel().getUnit().setSelected(true);
-	     this.component.Repaint();  
+	     this.component.repaint();  
 	 }	
 }
 }
@@ -1879,6 +1894,7 @@ class Shape{
 		this.displayName = "noname";
 		this.fill = Fill.EMPTY;
 		this.fillColor;		 
+		this.isControlPointVisible=true;
 		this.copper = core.Layer.Copper.resolve(layermask);
 	}
 getCenter(){
@@ -3432,19 +3448,19 @@ notifyListeners(eventType) {
 paint(g2, viewportWindow){
  	   let len=this.shapes.length;
  	   for(let i=0;i<len;i++){
- 		   this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation);  
+ 		   this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);  
  	   }
  	   //grid
-       this.grid.paint(g2,viewportWindow,this.scalableTransformation);
+       this.grid.paint(g2,viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
         //coordinate system
        if(this.coordinateSystem!=null){
-         this.coordinateSystem.paint(g2, viewportWindow,this.scalableTransformation);
+         this.coordinateSystem.paint(g2, viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
        }	
          //ruler
-	   this.ruler.paint(g2, viewportWindow,this.scalableTransformation);
+	   this.ruler.paint(g2, viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
         //frame
        if(this.frame!=null){
-	     this.frame.paint(g2, viewportWindow,this.scalableTransformation);
+	     this.frame.paint(g2, viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
        }
      }    
        
@@ -3734,7 +3750,7 @@ mouseWheelMoved(event){
 ZoomIn(x,y){
     if(this.getModel().getUnit().getScalableTransformation().ScaleOut()){
         this.viewportWindow.scalein(x,y, this.getModel().getUnit().getScalableTransformation());
-        this.Repaint();         
+        this.repaint();         
     }else{
         return false;
     } 
@@ -3752,7 +3768,7 @@ ZoomIn(x,y){
 ZoomOut(x,y){
     if(this.getModel().getUnit().getScalableTransformation().ScaleIn()){
             this.viewportWindow.scaleout(x,y, this.getModel().getUnit().getScalableTransformation());
-            this.Repaint();                       
+            this.repaint();                       
     }else{
             return false;
     }
@@ -3770,12 +3786,12 @@ ZoomOut(x,y){
 }
 vStateChanged(event){
     this.viewportWindow.y= parseInt(event.currentValue);
-    this.Repaint();
+    this.repaint();
 	
   }
 hStateChanged(event){
     this.viewportWindow.x= parseInt(event.currentValue);
-    this.Repaint();
+    this.repaint();
   }
 screenResized(e){	  
 	  var container = j$('#mycanvasframe');	  
@@ -3788,7 +3804,7 @@ screenResized(e){
 	  //set canvas width
 	  this.canvas.attr('width',this.width);
 	  this.componentResized();
-	  this.Repaint();
+	  this.repaint();
 	}
 componentResized(){
     if(this.getModel().getUnit()==null){
@@ -3813,13 +3829,13 @@ setContainerCursor(_cursor) {
 getContainerCursor() {
     return this.cursor;
 }
-Repaint(){
+repaint(){
 	  if(this.getModel().getUnit()!=null){
       this.ctx.fillStyle = "black";
       this.ctx.fillRect(0, 0, this.width, this.height); 
 	  this.getModel().getUnit().paint(this.ctx,this.viewportWindow);
       if (this.cursor != null) {
-      	this.cursor.paint(this.ctx,this.viewportWindow, this.getModel().getUnit().getScalableTransformation());
+      	this.cursor.paint(this.ctx,this.viewportWindow, this.getModel().getUnit().getScalableTransformation(),core.Layer.Copper.All.getLayerMaskID());
 
       }
 	  }else{
@@ -6743,7 +6759,7 @@ setMode(_mode){
 	            this.getEventMgr().setEventHandle("origin",null);   
 	            break;          
 	        default:
-	          this.Repaint();
+	          this.repaint();
 	      }       
 } 
 
@@ -6858,7 +6874,7 @@ mouseDown(event){
                     (this.getEventMgr().getTargetEventHandle() instanceof events.MeasureEventHandle)) {
                      this.getModel().getUnit().ruler.resizingPoint=null;
                      this.getEventMgr().resetEventHandle();
-                     this.Repaint();
+                     this.repaint();
                 }else{
                    this.getEventMgr().setEventHandle("measure",this.getModel().getUnit().ruler);   
 				   this.getModel().getUnit().ruler.setX(scaledEvent.x);
@@ -6913,12 +6929,12 @@ mousePressed(event){
     
     this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
     
-	this.component.Repaint();
+	this.component.repaint();
  }
  mouseReleased(event){
 	    if(this.component.getParameter("snaptogrid")){
          this.target.alignResizingPointToGrid(this.targetPoint);
-	     this.component.Repaint();	 
+	     this.component.repaint();	 
 		}
 	    this.target.resizingPoint=null;
  }
@@ -6931,7 +6947,7 @@ mousePressed(event){
     this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
     this.mx = new_mx;
     this.my = new_my;
-	this.component.Repaint();
+	this.component.repaint();
  }
  mouseMove(event){
  
@@ -6966,7 +6982,7 @@ class ArcStartAngleEventHandle extends EventHandle{
 
 	this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:events.Event.PROPERTY_CHANGE});
 		
-	this.component.Repaint();
+	this.component.repaint();
  }
 mouseReleased(event){
 
@@ -7018,7 +7034,7 @@ class ArcExtendAngleEventHandler extends EventHandle{
     //***update PropertiesPanel           
 	this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:events.Event.PROPERTY_CHANGE});
 		
-	this.component.Repaint();
+	this.component.repaint();
  }
 mouseReleased(event){
 
@@ -7106,7 +7122,7 @@ mousePressed(event){
 	  //   this.target=null;
 	  //}		
 	  //this.component.setMode(core.ModeEnum.LINE_MODE);
-	  //this.component.Repaint();	
+	  //this.component.repaint();	
 	   this.component.popup.registerLinePopup(this.target,event);
 	  	
 		
@@ -7126,7 +7142,7 @@ mousePressed(event){
     }else{
        this.lineBendingProcessor.addLinePoint(new d2.Point(event.x,event.y));
     }
-	this.component.Repaint();	 
+	this.component.repaint();	 
    }
  mouseReleased(event){
 
@@ -7137,13 +7153,13 @@ mousePressed(event){
 	 this.target.floatingEndPoint.set(event.x,event.y); 
 	 this.target.floatingMidPoint.set(event.x,event.y);
 	 this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:events.Event.PROPERTY_CHANGE});
-	 this.component.Repaint(); 
+	 this.component.repaint(); 
    }
  dblClick(){
      this.target.reset();  
      this.target.setSelected(false);
      this.component.getEventMgr().resetEventHandle();
-     this.component.Repaint();	 
+     this.component.repaint();	 
 	 } 
 // keyPressed(event){
 //	 if(event.keyCode==27){   //ESCAPE
@@ -7191,7 +7207,7 @@ mousePressed(event){
       }
       
       
-	  this.component.Repaint();	   
+	  this.component.repaint();	   
 	    
 	 }
 mouseReleased(event){
@@ -7203,13 +7219,13 @@ mouseDragged(event){
 	 }
 mouseMove(event){
     this.target.floatingEndPoint.set(event.x,event.y);   
-    this.component.Repaint();	 
+    this.component.repaint();	 
 	 }	 
 dblClick(){
       
     this.target.setSelected(false);
     this.component.getEventMgr().resetEventHandle();
-    this.component.Repaint();	 
+    this.component.repaint();	 
 } 
 Detach() {
     this.target.reset(); 
@@ -7351,7 +7367,7 @@ var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
 			 fc.getModel().fireUnitEvent({target:fc.getModel().getUnit(),type:events.Event.SELECT_UNIT});
 				
 			 fc.componentResized();
-			 fc.Repaint();
+			 fc.repaint();
 			
 			//init load dialog
 				j$('#FootprintLoadDialog').jqxWindow({
@@ -7395,7 +7411,7 @@ var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
 	              var rect=fc.getModel().getUnit().getBoundingRect();
 	              fc.setScrollPosition(rect.center.x,rect.center.y);
 	              fc.getModel().fireUnitEvent({target:fc.getModel().getUnit(),type: events.Event.SELECT_UNIT});
-	      		  fc.Repaint();
+	      		  fc.repaint();
 	      		  //set button group
 	      		  fc.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);	        
 	        },
@@ -7626,10 +7642,10 @@ fromXML(data){
         }
         this.texture.fromXML(data);  
 }    
-paint(g2, viewportWindow, scale) {
-        //if((this.getCopper().getLayerMaskID()&layermask)==0){
-        //    return;
-        //}
+paint(g2, viewportWindow, scale,layersmask) {
+      if((this.copper.getLayerMaskID()&layersmask)==0){
+        return;
+      }
 		var rect = this.texture.getBoundingShape();
 			rect.scale(scale.getScale());
 			if (!rect.intersects(viewportWindow)) {
@@ -7663,6 +7679,10 @@ class RoundRect extends Shape{
 	calculateShape() {
 		return this.roundRect.box;		
 	}
+    alignResizingPointToGrid(targetPoint){
+        let point=this.owningUnit.getGrid().positionOnGrid(targetPoint.x,targetPoint.y);  
+        this.Resize(point.x -targetPoint.x,point.y-targetPoint.y,targetPoint);     
+    }	
 	getCenter() {
 		let box=this.roundRect.box;
 	    return new d2.Point(box.center.x,box.center.y);
@@ -7775,7 +7795,10 @@ class RoundRect extends Shape{
 		this.thickness = (parseInt(j$(data).attr("thickness")));
 		this.fill = parseInt(j$(data).attr("fill"));
 	}
-	paint(g2, viewportWindow, scale) {
+	paint(g2, viewportWindow, scale,layersmask) {
+	    if((this.copper.getLayerMaskID()&layersmask)==0){
+	        return;
+	    }		
 		var rect = this.roundRect.box;
 		rect.scale(scale.getScale());
 		if (!rect.intersects(viewportWindow)) {
@@ -7809,7 +7832,7 @@ class RoundRect extends Shape{
 		
 		
 
-		if (this.isSelected()) {
+		if (this.isSelected()&&this.isControlPointVisible) {
 			this.drawControlPoints(g2, viewportWindow, scale);
 		}
 	}
@@ -7845,8 +7868,8 @@ alignToGrid(isRequired) {
             return null;
         }
 }
-alignResizingPointToGrid(point) {          
-        this.width=this.owningUnit.getGrid().lengthOnGrid(this.width);                
+alignResizingPointToGrid(targetPoint) {   
+
 }
 get vertices(){
 	  return this.circle.vertices;	
@@ -7948,7 +7971,10 @@ fromXML(data) {
          
         this.circle.r=radius;
     }	
-	paint(g2, viewportWindow, scale) {
+	paint(g2, viewportWindow, scale,layersmask) {
+	    if((this.copper.getLayerMaskID()&layersmask)==0){
+	        return;
+	    }		
 		var rect = this.circle.box;
 		rect.scale(scale.getScale());
 		if (!rect.intersects(viewportWindow)) {
@@ -7982,7 +8008,7 @@ fromXML(data) {
 
 		g2.globalCompositeOperation = 'source-over';
 		
-		if (this.isSelected()) {
+		if (this.isSelected()&&this.isControlPointVisible) {
 			this.drawControlPoints(g2, viewportWindow, scale);
   } 
  }
@@ -8209,8 +8235,10 @@ Resize(xoffset, yoffset,point) {
 Move(xoffset,yoffset){
   this.arc.move(xoffset,yoffset);	
 }
-paint(g2, viewportWindow, scale) {
-		
+paint(g2, viewportWindow, scale,layersmask) {
+    if((this.copper.getLayerMaskID()&layersmask)==0){
+        return;
+      }
 		var rect = this.arc.box;
 		rect.scale(scale.getScale());
 		if (!rect.intersects(viewportWindow)) {
@@ -8250,7 +8278,7 @@ paint(g2, viewportWindow, scale) {
 		
 		g2.globalCompositeOperation = 'source-over';
 
-		if (this.isSelected()) {
+		if (this.isSelected()&&this.isControlPointVisible) {
 			this.drawControlPoints(g2, viewportWindow, scale);
 		}
 		if (this.center!=null) {
@@ -8374,7 +8402,10 @@ Rotate(rotation) {
 	this.rotate=alpha;
 	this.polygon.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
 }
-paint(g2, viewportWindow, scale) {		
+paint(g2, viewportWindow, scale,layersmask) {		
+    if((this.copper.getLayerMaskID()&layersmask)==0){
+        return;
+    }
 	var rect = this.polygon.box;
 	rect.scale(scale.getScale());		
 	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
@@ -8461,7 +8492,10 @@ getOrderWeight() {
 	return 2;
 }
 
-paint(g2, viewportWindow, scale) {		
+paint(g2, viewportWindow, scale,layersmask) {		
+    if((this.copper.getLayerMaskID()&layersmask)==0){
+        return;
+    }	
 		var rect = this.polyline.box;
 		rect.scale(scale.getScale());		
 		if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
@@ -8496,7 +8530,7 @@ paint(g2, viewportWindow, scale) {
 		}
 		
 		g2.globalCompositeOperation = 'source-over';
-		if (this.selection) {
+		if (this.selection&&this.isControlPointVisible) {
 			this.drawControlPoints(g2, viewportWindow, scale);
 		}
 
@@ -8900,8 +8934,11 @@ drawClearence(g2,viewportWindow,scale,source){
 	
 	this.shape.drawClearence(g2,viewportWindow,scale,source);
 }
-paint(g2,viewportWindow,scale){
-	    switch(this.type){
+paint(g2,viewportWindow,scale,layersmask){
+//    if((this.copper.getLayerMaskID()&layersmask)==0){
+//        return;
+//    }	
+	switch(this.type){
 	    case PadType.THROUGH_HOLE:
 	        if(this.shape.paint(g2, viewportWindow, scale)){
 	         if(this.drill!=null){
@@ -9696,7 +9733,6 @@ var ComponentPanelBuilder=BaseBuilder.extend({
 		
 	},
 	updateui:function(){
-		console.log(this.target.getModel());
 		j$("#nameid").val(this.target.getModel().formatedFileName);
 	},
 	render:function(){
@@ -9732,7 +9768,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='widthid'||event.target.id=='heightid'){           
 		    this.component.getModel().getUnit().setSize(core.MM_TO_COORD(parseFloat(j$('#widthid').val())),core.MM_TO_COORD(parseFloat(j$('#heightid').val())));  
 		    this.component.componentResized();     
-		    this.component.Repaint();
+		    this.component.repaint();
 		 }
 		 if(event.target.id=='nameid'){
 			 this.target.unitName=j$("#nameid").val(); 
@@ -9742,7 +9778,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 			 if(this.component.getModel().getUnit().getCoordinateSystem()!=null){
 			    this.component.getModel().getUnit().getCoordinateSystem().reset(core.MM_TO_COORD(parseFloat(j$('#originxid').val())),core.MM_TO_COORD(parseFloat(j$('#originyid').val())));  
 			    this.component.componentResized();     
-			    this.component.Repaint();
+			    this.component.repaint();
 			 }
 		 }
 		 //mycanvas.focus();
@@ -9751,7 +9787,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 	onchange:function(event){
 		if(event.target.id=='gridrasterid'){
 			this.target.grid.setGridValue(parseFloat(j$("#gridrasterid").val()));
-			this.component.Repaint();
+			this.component.repaint();
 		}		
 		if(event.target.id=='referenceid'){
 			var texture=UnitMgr.getInstance().getTextureByTag(this.target,'reference');
@@ -9763,7 +9799,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 				return;
 			label=this.target.getShape(j$("#referenceid").val());
 			label.getChipText().get(0).tag='reference';
-			this.component.Repaint();
+			this.component.repaint();
 		}
 		if(event.target.id=='valueid'){
 			var texture=UnitMgr.getInstance().getTextureByTag(this.target,'value');
@@ -9775,7 +9811,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 				return;
 			label=this.target.getShape(j$("#valueid").val());
 			label.getChipText().get(0).tag='value';
-			this.component.Repaint();
+			this.component.repaint();
 		}
 	},
 	updateui:function(){
@@ -9887,7 +9923,7 @@ var PadPanelBuilder=BaseBuilder.extend({
         	this.updateui();
         }
         
-       this.component.Repaint(); 
+       this.component.repaint(); 
       },
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -9932,7 +9968,7 @@ var PadPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='offsetyid'){ 
 			 this.target.offset.y=(core.MM_TO_COORD(parseFloat(j$('#offsetyid').val())));   
 		 }
-		 this.component.Repaint(); 
+		 this.component.repaint(); 
     },
 	updateui:function(){
 
@@ -10054,7 +10090,7 @@ var RectPanelBuilder=BaseBuilder.extend({
     	if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
         }
-        this.component.Repaint(); 
+        this.component.repaint(); 
       },    
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -10077,7 +10113,7 @@ var RectPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='roundingid'){
 			 this.target.setRounding(core.MM_TO_COORD(parseFloat(j$('#roundingid').val())));			 
 		 }
-		 this.component.Repaint(); 		 
+		 this.component.repaint(); 		 
     },
 	updateui:function(){
 		j$('#layerid').val(this.target.copper.getName());
@@ -10136,7 +10172,7 @@ var ArcPanelBuilder=BaseBuilder.extend({
         if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
         }        
-        this.component.Repaint(); 
+        this.component.repaint(); 
     }, 
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -10154,7 +10190,7 @@ var ArcPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='extendangleid'){
 			   this.target.setExtendAngle(j$('#extendangleid').val());	
 		 } 	
-		 this.component.Repaint(); 	
+		 this.component.repaint(); 	
     },
 	updateui:function(){
 		j$('#layerid').val(this.target.copper.getName());
@@ -10205,7 +10241,7 @@ var SolidRegionPanelBuilder=BaseBuilder.extend({
         if(event.target.id=='layerid'){
         	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
         }              
-        this.component.Repaint(); 
+        this.component.repaint(); 
     }, 
 	updateui:function(){
 		
@@ -10244,7 +10280,7 @@ var CirclePanelBuilder=BaseBuilder.extend({
         if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
         }
-        this.component.Repaint(); 
+        this.component.repaint(); 
       },    
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -10264,7 +10300,7 @@ var CirclePanelBuilder=BaseBuilder.extend({
 	         var y=this.fromUnitY(j$('#yid').val()); 
 	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
 		 } 		 
-		 this.component.Repaint(); 		 
+		 this.component.repaint(); 		 
     },
 
 	updateui:function(){
@@ -10317,7 +10353,7 @@ var LinePanelBuilder=BaseBuilder.extend({
         if(event.target.id=='layerid'){
         	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
         }
-        this.component.Repaint(); 
+        this.component.repaint(); 
       }, 
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -10332,7 +10368,7 @@ var LinePanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='yid'){	            
 			 this.target.resizingPoint.y=this.fromUnitY(j$('#yid').val());  
 	     }
-		 this.component.Repaint();  
+		 this.component.repaint();  
     },
 	updateui:function(){
 		j$('#layerid').val(this.target.copper.getName());
@@ -10377,7 +10413,7 @@ var LabelPanelBuilder=BaseBuilder.extend({
 	  if(event.target.id=='layerid'){
 		  this.target.setCopper(core.Layer.Copper.valueOf(j$('#layerid').val()));
       }
-      this.component.Repaint(); 
+      this.component.repaint(); 
     },
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -10401,7 +10437,7 @@ var LabelPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='yid'){	            
 			 this.target.texture.anchorPoint.y=this.fromUnitY(j$('#yid').val());  
 	     }		 
-		 this.component.Repaint();     		    	
+		 this.component.repaint();     		    	
     },
 	updateui:function(){
 	 j$("#rotateid").val(this.target.texture.rotate); 	
@@ -10477,7 +10513,7 @@ var FootprintsTree=Backbone.View.extend({
 			this.footprintComponent.hbar.jqxScrollBar({ value:this.footprintComponent.getModel().getUnit().scrollPositionXValue});
 			this.footprintComponent.vbar.jqxScrollBar({ value:this.footprintComponent.getModel().getUnit().scrollPositionYValue});
 			
-			this.footprintComponent.Repaint();
+			this.footprintComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:this.footprintComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 
 		}
 		if(item.value==222){
@@ -10492,7 +10528,7 @@ var FootprintsTree=Backbone.View.extend({
 			var shape=this.footprintComponent.getModel().getUnit().getShape(item.id);
 			this.footprintComponent.getModel().getUnit().setSelected(false);
 			shape.setSelected(true);
-			this.footprintComponent.Repaint();
+			this.footprintComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:shape,type:events.Event.SELECT_SHAPE}); 	
 		}
 	
@@ -10953,7 +10989,7 @@ var ToggleButtonView=Backbone.View.extend({
             UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(event.data.model.id==("rotateleftid")?1:-1)*(90.0)));   
             UnitMgr.getInstance().alignBlock(this.footprintComponent.getModel().getUnit().grid,shapes);  
             
-            this.footprintComponent.Repaint();
+            this.footprintComponent.repaint();
 		}
 		if(event.data.model.id=='zoominid'){
 			this.footprintComponent.ZoomIn(parseInt(this.footprintComponent.width/2),parseInt(this.footprintComponent.height/2));
@@ -11001,7 +11037,7 @@ var ToggleButtonView=Backbone.View.extend({
           this.footprintComponent.setScrollPosition(rect.center.x,rect.center.y);
           this.footprintComponent.fireContainerEvent({target:null,type: events.Event.RENAME_CONTAINER});
           this.footprintComponent.getModel().fireUnitEvent({target:this.footprintComponent.getModel().getUnit(),type: events.Event.SELECT_UNIT});
-		  this.footprintComponent.Repaint();
+		  this.footprintComponent.repaint();
 		  //set button group
 		  this.footprintComponent.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
 		  
@@ -11056,3 +11092,5 @@ module.exports =ToggleButtonView
   
 });})();require('___globals___');
 
+
+//# sourceMappingURL=pads.js.map
