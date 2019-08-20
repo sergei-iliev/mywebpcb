@@ -430,32 +430,25 @@ fromXML(data) {
 		this.circle.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	}
 	Resize(xoffset, yoffset,point) {    
-        let quadrant= utilities.getQuadrantLocation(point,this.circle.center);
-        let radius=this.circle.r;
-        switch(quadrant){
-        case utilities.QUADRANT.FIRST:case utilities.QUADRANT.FORTH: 
-            //uright
-             if(xoffset<0){
-               //grows             
-                radius+=Math.abs(xoffset);
-             }else{
-               //shrinks
-                radius-=Math.abs(xoffset);
-             }             
-            break;
-        case utilities.QUADRANT.SECOND:case utilities.QUADRANT.THIRD:
-            //uleft
-             if(xoffset<0){
-               //shrinks             
-                radius-=Math.abs(xoffset);
-             }else{
-               //grows
-                radius+=Math.abs(xoffset);
-             }             
-            break;        
+		let radius=this.circle.r;
+
+        if(d2.utils.EQ(point.x,this.circle.pc.x)){
+          if(point.y>this.circle.pc.y){
+        	  radius+=yoffset;
+          }else{
+        	  radius-=yoffset;  
+          }	
         }
-         
-        this.circle.r=radius;
+        if(d2.utils.EQ(point.y,this.circle.pc.y)){
+            if(point.x>this.circle.pc.x){
+          	  radius+=xoffset;
+            }else{
+          	  radius-=xoffset;  
+            }	
+        }
+        if(radius>0){ 
+          this.circle.r=radius;
+        }
     }	
 	paint(g2, viewportWindow, scale,layersmask) {
 	    if((this.copper.getLayerMaskID()&layersmask)==0){

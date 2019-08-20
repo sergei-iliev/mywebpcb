@@ -31,7 +31,7 @@ module.exports = function(d2) {
            );
        }       
 	   get vertices() {
-		    return this.box.vertices;	
+		   return [new d2.Point(this.pc.x-this.r,this.pc.y),new d2.Point(this.pc.x,this.pc.y-this.r),new d2.Point(this.pc.x+this.r,this.pc.y),new d2.Point(this.pc.x,this.pc.y+this.r)];
 	   }
        contains(pt){
     	   return d2.utils.LE(pt.distanceTo(this), this.r);    	   
