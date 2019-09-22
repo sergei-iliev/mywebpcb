@@ -111,7 +111,7 @@ Mirror(line) {
 
 }
 Move(xoffset,yoffset) {
-  this.texture.Move(xoffset, yoffset);
+  this.texture.move(xoffset, yoffset);
 }
 toXML() {
     if (!this.texture.isEmpty())

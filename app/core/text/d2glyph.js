@@ -309,11 +309,16 @@ mirror(mirrored,line){
     }.bind(this));
         
 }
-Move(xoffset,yoffset) {
+move(xoffset,yoffset) {
     this.anchorPoint.move(xoffset,yoffset);
     this.glyphs.forEach(function(glyph){
         glyph.move(xoffset,yoffset);
     }.bind(this));      
+}
+setLocation(x,y){
+	let xx=x-this.anchorPoint.x;
+	let yy=y-this.anchorPoint.y;
+	this.move(xx,yy);
 }
 setRotation(rotate,pt){
 	let alpha=rotate-this.rotate;

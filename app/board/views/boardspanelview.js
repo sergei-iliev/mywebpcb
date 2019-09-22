@@ -807,12 +807,9 @@ var LabelPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='thicknessid'){
 			 this.target.texture.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
 		 }		 
-		 if(event.target.id=='xid'){	            
-			 this.target.texture.anchorPoint.x=this.fromUnitX(j$('#xid').val()); 
-	     }	         
-		 if(event.target.id=='yid'){	            
-			 this.target.texture.anchorPoint.y=this.fromUnitY(j$('#yid').val());  
-	     }		 
+		 if((event.target.id=='yid')||(event.target.id=='xid')){	            
+			 this.target.texture.setLocation(this.fromUnitX(j$('#xid').val()),this.fromUnitY(j$('#yid').val()));  
+	     }	 
 		 this.component.repaint();     		    	
     },
 	updateui:function(){
