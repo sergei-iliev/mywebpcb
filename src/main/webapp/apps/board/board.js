@@ -3268,12 +3268,9 @@ var LabelPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='thicknessid'){
 			 this.target.texture.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
 		 }		 
-		 if(event.target.id=='xid'){	            
-			 this.target.texture.anchorPoint.x=this.fromUnitX(j$('#xid').val()); 
-	     }	         
-		 if(event.target.id=='yid'){	            
-			 this.target.texture.anchorPoint.y=this.fromUnitY(j$('#yid').val());  
-	     }		 
+		 if((event.target.id=='yid')||(event.target.id=='xid')){	            
+			 this.target.texture.setLocation(this.fromUnitX(j$('#xid').val()),this.fromUnitY(j$('#yid').val()));  
+	     }	 
 		 this.component.repaint();     		    	
     },
 	updateui:function(){
@@ -6896,6 +6893,11 @@ Move(xoffset,yoffset) {
         glyph.move(xoffset,yoffset);
     }.bind(this));      
 }
+setLocation(x,y){
+	let xx=x-this.anchorPoint.x;
+	let yy=y-this.anchorPoint.y;
+	this.move(xx,yy);
+}
 setRotation(rotate,pt){
 	let alpha=rotate-this.rotate;
 	this.anchorPoint.rotate(alpha,pt);
@@ -8511,7 +8513,7 @@ module.exports = function(d2) {
            );
        }       
 	   get vertices() {
-		    return this.box.vertices;	
+		   return [new d2.Point(this.pc.x-this.r,this.pc.y),new d2.Point(this.pc.x,this.pc.y-this.r),new d2.Point(this.pc.x+this.r,this.pc.y),new d2.Point(this.pc.x,this.pc.y+this.r)];
 	   }
        contains(pt){
     	   return d2.utils.LE(pt.distanceTo(this), this.r);    	   
@@ -11893,32 +11895,25 @@ fromXML(data) {
 		this.circle.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	}
 	Resize(xoffset, yoffset,point) {    
-        let quadrant= utilities.getQuadrantLocation(point,this.circle.center);
-        let radius=this.circle.r;
-        switch(quadrant){
-        case utilities.QUADRANT.FIRST:case utilities.QUADRANT.FORTH: 
-            //uright
-             if(xoffset<0){
-               //grows             
-                radius+=Math.abs(xoffset);
-             }else{
-               //shrinks
-                radius-=Math.abs(xoffset);
-             }             
-            break;
-        case utilities.QUADRANT.SECOND:case utilities.QUADRANT.THIRD:
-            //uleft
-             if(xoffset<0){
-               //shrinks             
-                radius-=Math.abs(xoffset);
-             }else{
-               //grows
-                radius+=Math.abs(xoffset);
-             }             
-            break;        
+		let radius=this.circle.r;
+
+        if(d2.utils.EQ(point.x,this.circle.pc.x)){
+          if(point.y>this.circle.pc.y){
+        	  radius+=yoffset;
+          }else{
+        	  radius-=yoffset;  
+          }	
         }
-         
-        this.circle.r=radius;
+        if(d2.utils.EQ(point.y,this.circle.pc.y)){
+            if(point.x>this.circle.pc.x){
+          	  radius+=xoffset;
+            }else{
+          	  radius-=xoffset;  
+            }	
+        }
+        if(radius>0){ 
+          this.circle.r=radius;
+        }
     }	
 	paint(g2, viewportWindow, scale,layersmask) {
 	    if((this.copper.getLayerMaskID()&layersmask)==0){
@@ -13460,5 +13455,3 @@ module.exports =FootprintLoadView
   
 });})();require('___globals___');
 
-
-//# sourceMappingURL=board.js.map

@@ -19,7 +19,7 @@
         <a class="p-2 text-dark" href="#">Slaves</a>
         <a class="p-2 text-dark" href="#">Freedom</a>
       </nav>
-      <a class="btn btn-outline-primary" href="#">Sign up</a>
+      <a class="btn btn-outline-primary" href="/logout">Sign up</a>
 </div>
 <div class="container">
 <div class="panel panel-default">
