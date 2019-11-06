@@ -111,7 +111,7 @@ Mirror(line) {
 
 }
 Move(xoffset,yoffset) {
-  this.texture.move(xoffset, yoffset);
+  this.texture.Move(xoffset, yoffset);
 }
 toXML() {
     if (!this.texture.isEmpty())
@@ -191,7 +191,7 @@ class RoundRect extends Shape{
 	isControlRectClicked(x,y){
 	   	let pt=new d2.Point(x,y);
 	   	let result=null
-		this.roundRect.vertices.some(v=>{
+		this.roundRect.points.some(v=>{
 	   		if(d2.utils.LE(pt.distanceTo(v),this.selectionRectWidth/2)){
 	   		  	result=v;
 	   			return true;
@@ -292,7 +292,9 @@ class RoundRect extends Shape{
 		}
 		
 		g2.lineWidth = this.thickness * scale.getScale();
-
+		g2.lineCap = 'round';
+		g2.lineJoin = 'round';
+		
 		if (this.fill == core.Fill.EMPTY) {
 			g2.globalCompositeOperation = 'lighter';
 			if (this.selection) {

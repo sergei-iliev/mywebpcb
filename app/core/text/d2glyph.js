@@ -309,7 +309,7 @@ mirror(mirrored,line){
     }.bind(this));
         
 }
-move(xoffset,yoffset) {
+Move(xoffset,yoffset) {
     this.anchorPoint.move(xoffset,yoffset);
     this.glyphs.forEach(function(glyph){
         glyph.move(xoffset,yoffset);

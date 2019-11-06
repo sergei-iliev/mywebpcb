@@ -1,19 +1,19 @@
 var d2=require('d2/d2');
-class TextureCache{
-	constructor(shape) {
-		this.shape=shape;
-		this.rotation=0;
-		this.fontSize=0;
-		this.text=0;
-	}
-	reset(shape,fontSize,text,rotation){
-		this.shape=shape;
-		this.rotation=rotation;
-		this.fontSize=fontSize;
-		this.text=text;
-	
-	}
-}
+//class TextureCache{
+//	constructor(shape) {
+//		this.shape=shape;
+//		this.rotation=0;
+//		this.fontSize=0;
+//		this.text=0;
+//	}
+//	reset(shape,fontSize,text,rotation){
+//		this.shape=shape;
+//		this.rotation=rotation;
+//		this.fontSize=fontSize;
+//		this.text=text;
+//	
+//	}
+//}
 class FontTexture{
  constructor(tag,text,x,y,fontSize,rotation) {
     this.tag=tag;
@@ -21,7 +21,7 @@ class FontTexture{
 	this.selection=false;
 	this.selectionRectWidth=3000;
 	this.constSize=false;
-	this.cache=new TextureCache(this);
+	//this.cache=new TextureCache(this);
  }
 clone(){
      var copy=new FontTexture(this.tag,this.shape.text,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.fontSize,this.shape.rotation);     
@@ -43,9 +43,9 @@ getBoundingRect(){
     } 
     
 }
-isChanged(fontSize,text,rotation){
-	return fontSize===this.cache.fontSize&&text===this.cache.text&&rotation===this.cache.rotation
-}
+//isChanged(fontSize,text,rotation){
+//	return fontSize===this.cache.fontSize&&text===this.cache.text&&rotation===this.cache.rotation
+//}
 setLocation(x,y){
 	this.shape.setLocation(x,y);
 }
