@@ -388,7 +388,7 @@ toXML(){
         ",,"+this.thickness+","+this.size+","+this.rotate);	
 }
 fromXML(node){	
-	
+	console.log(node);
 	if (node == null || j$(node).text().length==0) {
          this.text = "";
          return;

@@ -82,7 +82,6 @@ var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
 		            height: 270,
 		            autoOpen:false
                 });	
-				
 		   //load demo footprint
 			    	//loadDemo(fc);
 	});	

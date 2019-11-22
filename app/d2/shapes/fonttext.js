@@ -27,6 +27,7 @@ updateMetrics() {
        this.updated=false;
        this.fontSize=-1;
 }
+/*
 calculateMetrics(fontSize,text) {
 	    if(this.fontSize!=fontSize){
 	        this.fontSize=fontSize;
@@ -55,7 +56,8 @@ calculateMetrics(fontSize,text) {
 	    	    
 	       	 
 }
-recalculateMetrics(fontSize,text) {
+*/
+calculateMetrics(fontSize,text) {
     this.fontSize=fontSize;    
     var ctx=fontmetrics.getCanvasContext();	    	    
     	    
@@ -79,44 +81,42 @@ recalculateMetrics(fontSize,text) {
 
 module.exports = function(d2) {
 	d2.FontText = class FontText{
-		constructor(pt,text,fontSize,rotation){
-			this.anchorPoint=pt;
+		constructor(x,y,text,fontSize,rotation){
+			this.anchorPoint=new d2.Point(x,y);
 			this.text=text;
 			this.fontSize=fontSize;
 		    this.rotation=rotation;	
 		    this.metrics=new TextMetrics();  
-		    this.metrics.recalculateMetrics(this.fontSize,this.text);
+		    this.metrics.calculateMetrics(this.fontSize,this.text);
 		}
 		clone(){
-			let copy=new FontText(this.anchorPoint.clone(),this.text,this.fontSize,this.rotation);		
+			let copy=new FontText(this.anchorPoint.x,this.anchorPoint.y,this.text,this.fontSize,this.rotation);		
 			return copy;
 		}
 		setText(text){
 			this.text=text;
-			this.metrics.recalculateMetrics(this.fontSize,this.text);
+			this.metrics.calculateMetrics(this.fontSize,this.text);
 		}
 		setSize(size){
 			this.fontSize=size;
-			this.metrics.recalculateMetrics(this.fontSize,this.text);
+			this.metrics.calculateMetrics(this.fontSize,this.text);
 		}
 		scale(alpha){
 	      	this.anchorPoint.scale(alpha);
 			this.fontSize=parseInt(this.fontSize*alpha);
-			this.metrics.recalculateMetrics(this.fontSize,this.text);
+			this.metrics.calculateMetrics(this.fontSize,this.text);
 			
 		}
 		setLocation(x,y){
-			this.anchorPoint.set(x,y);
-		    //this.metrics.recalculateMetrics(this.fontSize, this.text);			
+			this.anchorPoint.set(x,y);			
 		}
 		move(offsetX,offsetY){
 			this.anchorPoint.move(offsetX,offsetY);
-		    //this.metrics.recalculateMetrics(this.fontSize, this.text);
 		}
 		rotate(angle, center = {x:this.anchorPoint.x, y:this.anchorPoint.y}) {        	
         	this.anchorPoint.rotate((angle-this.rotation),center);
         	this.rotation=angle;
-        	this.metrics.recalculateMetrics(this.fontSize,this.text);
+        	this.metrics.calculateMetrics(this.fontSize,this.text);
         }
 		mirror(line){
 		   	
@@ -164,32 +164,11 @@ module.exports = function(d2) {
 		        }    
 		    	
 		    }
-			return false;
-			/*	
-			 * Based on the assumption that anchorPoint is left normal aligned
-				let ps=this.anchorPoint;
-				let pe=new d2.Point(ps.x,ps.y);
-				pe.move(this.metrics.width,0);
-				
-				pe.rotate(this.rotation,this.anchorPoint);
-				
-				let l=new d2.Line(ps,pe);
-	        	let projectionPoint=l.projectionPoint(pt);
-	        	
-			    let a=(projectionPoint.x-ps.x)/((pe.x-ps.x)==0?1:pe.x-ps.x);
-			    let b=(projectionPoint.y-ps.y)/((pe.y-ps.y)==0?1:pe.y-ps.y);
-
-			    let dist=projectionPoint.distanceTo(pt);
-			    
-			    if(0<=a&&a<=1&&0<=b&&b<=1){  //is projection between start and end point
-			        if(dist<=(Math.abs(this.metrics.xHeight * (this.fontSize)))){
-			        	return true;
-			        }    
-			    	
-			    }
-	        	*/
-        	
+			return false;        	
 		}
+		/*
+		 * Avoid recalculating text metrics!!!!!!!!!
+		 */
 		scalePaint(g2,viewportWindow,alpha){
 			let scaledAnchorPoint=this.anchorPoint.clone();			
 	      	scaledAnchorPoint.scale(alpha);
@@ -216,7 +195,7 @@ module.exports = function(d2) {
 			g2.fillText(this.text,0,0);				
 			g2.restore();
 			
-		}
+		}		
 		paint(g2){					
 			g2.font = ""+(this.fontSize)+"px Monospace";
 			g2.textBaseline='middle';

@@ -126,6 +126,7 @@ fromXML(data){
         }else{
            this.copper=core.Layer.Copper.FSilkS;
         }
+        console.log(2222);
         this.texture.fromXML(data);  
 }    
 paint(g2, viewportWindow, scale,layersmask) {
@@ -549,8 +550,7 @@ fromXML(data){
  	        this.arc.pc.set(xx,yy);
  	        this.arc.r=radius; 			 		
  		}
-		let diameter=parseInt(parseInt(j$(data).attr("width"))); 
-		
+		//let diameter=parseInt(parseInt(j$(data).attr("width"))); 		
         //this.arc.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
         //this.arc.r = parseInt(diameter/2);
         
@@ -1092,8 +1092,8 @@ class Drill{
 	    return "<drill type=\"CIRCULAR\" x=\""+this.circle.pc.x+"\" y=\""+this.circle.pc.y+"\" width=\""+2*this.circle.radius+"\" />";	
 	}
 	fromXML(data){ 
-	   this.setLocation(parseInt(j$(data).attr("x")),parseInt(j$(data).attr("y")));
-	   this.setWidth(parseInt(j$(data).attr("width")));  	   
+	   this.setLocation(parseFloat(j$(data).attr("x")),parseFloat(j$(data).attr("y")));
+	   this.setWidth(parseFloat(j$(data).attr("width")));  	   
 	}
 }
 
@@ -1222,19 +1222,19 @@ fromXML(data){
 		      this.copper=core.Layer.Copper.valueOf(j$(data).attr("copper"));
 		      this.setType(PadType.parse(j$(data).attr("type")));
 		      
-			  let x=(parseInt(j$(data).attr("x")));
-			  let y=(parseInt(j$(data).attr("y")));
-		      this.width=(parseInt(j$(data).attr("width")));
-		      this.height=(parseInt(j$(data).attr("height")));
+			  let x=(parseFloat(j$(data).attr("x")));
+			  let y=(parseFloat(j$(data).attr("y")));
+		      this.width=(parseFloat(j$(data).attr("width")));
+		      this.height=(parseFloat(j$(data).attr("height")));
 		      
 		      if(j$(data).attr("rt")!=undefined)
-		        this.rotate=(parseInt(j$(data).attr("rt")));
+		        this.rotate=(parseFloat(j$(data).attr("rt")));
 		      
 		      this.setShape(x,y,PadShape.parse(j$(data).attr("shape")));
 			  
 		      var offset=(j$(data).find("offset"));
-		      this.offset.x=(parseInt(j$(offset).attr("x")));
-		      this.offset.y=(parseInt(j$(offset).attr("y")));
+		      this.offset.x=(parseFloat(j$(offset).attr("x")));
+		      this.offset.y=(parseFloat(j$(offset).attr("y")));
 		      
 		      if(this.drill!=null){
 		          this.drill.fromXML(j$(data).find("drill"));

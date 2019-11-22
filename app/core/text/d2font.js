@@ -17,7 +17,7 @@ var d2=require('d2/d2');
 class FontTexture{
  constructor(tag,text,x,y,fontSize,rotation) {
     this.tag=tag;
-	this.shape=new d2.FontText(new d2.Point(x,y),text,fontSize,rotation);    
+	this.shape=new d2.FontText(x,y,text,fontSize,rotation);    
 	this.selection=false;
 	this.selectionRectWidth=3000;
 	this.constSize=false;
@@ -76,15 +76,6 @@ paint(g2,viewportWindow,scale){
 	 }
 	 g2.fillStyle = 'white';
 	 
-//	 if(!this.isChanged(parseInt(this.shape.fontSize*scale.getScale()),this.shape.text,this.shape.rotation)){
-//	  this.cache.reset(this.shape.clone(),parseInt(this.shape.fontSize*scale.getScale()),this.shape.text,this.shape.rotation);
-//      this.cache.shape.scale(scale.getScale());
-//      this.cache.shape.move(-viewportWindow.x,- viewportWindow.y);
-//	 }else{
-//		 
-//		 console.log('2222');
-//	 }
-//     this.cache.shape.paint(g2);
 	 
 //     let t=this.shape.clone();
 //     t.scale(scale.getScale());
