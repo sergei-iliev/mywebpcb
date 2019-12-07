@@ -2367,29 +2367,29 @@ module.exports ={
 
 ;require.register("core/text/d2font.js", function(exports, require, module) {
 var d2=require('d2/d2');
-class TextureCache{
-	constructor(shape) {
-		this.shape=shape;
-		this.rotation=0;
-		this.fontSize=0;
-		this.text=0;
-	}
-	reset(shape,fontSize,text,rotation){
-		this.shape=shape;
-		this.rotation=rotation;
-		this.fontSize=fontSize;
-		this.text=text;
-	
-	}
-}
+//class TextureCache{
+//	constructor(shape) {
+//		this.shape=shape;
+//		this.rotation=0;
+//		this.fontSize=0;
+//		this.text=0;
+//	}
+//	reset(shape,fontSize,text,rotation){
+//		this.shape=shape;
+//		this.rotation=rotation;
+//		this.fontSize=fontSize;
+//		this.text=text;
+//	
+//	}
+//}
 class FontTexture{
  constructor(tag,text,x,y,fontSize,rotation) {
     this.tag=tag;
-	this.shape=new d2.FontText(new d2.Point(x,y),text,fontSize,rotation);    
+	this.shape=new d2.FontText(x,y,text,fontSize,rotation);    
 	this.selection=false;
 	this.selectionRectWidth=3000;
 	this.constSize=false;
-	this.cache=new TextureCache(this);
+	//this.cache=new TextureCache(this);
  }
 clone(){
      var copy=new FontTexture(this.tag,this.shape.text,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.fontSize,this.shape.rotation);     
@@ -2411,9 +2411,9 @@ getBoundingRect(){
     } 
     
 }
-isChanged(fontSize,text,rotation){
-	return fontSize===this.cache.fontSize&&text===this.cache.text&&rotation===this.cache.rotation
-}
+//isChanged(fontSize,text,rotation){
+//	return fontSize===this.cache.fontSize&&text===this.cache.text&&rotation===this.cache.rotation
+//}
 setLocation(x,y){
 	this.shape.setLocation(x,y);
 }
@@ -2444,15 +2444,6 @@ paint(g2,viewportWindow,scale){
 	 }
 	 g2.fillStyle = 'white';
 	 
-//	 if(!this.isChanged(parseInt(this.shape.fontSize*scale.getScale()),this.shape.text,this.shape.rotation)){
-//	  this.cache.reset(this.shape.clone(),parseInt(this.shape.fontSize*scale.getScale()),this.shape.text,this.shape.rotation);
-//      this.cache.shape.scale(scale.getScale());
-//      this.cache.shape.move(-viewportWindow.x,- viewportWindow.y);
-//	 }else{
-//		 
-//		 console.log('2222');
-//	 }
-//     this.cache.shape.paint(g2);
 	 
 //     let t=this.shape.clone();
 //     t.scale(scale.getScale());
@@ -2892,7 +2883,6 @@ toXML(){
         ",,"+this.thickness+","+this.size+","+this.rotate);	
 }
 fromXML(node){	
-	
 	if (node == null || j$(node).text().length==0) {
          this.text = "";
          return;
@@ -4504,6 +4494,7 @@ updateMetrics() {
        this.updated=false;
        this.fontSize=-1;
 }
+/*
 calculateMetrics(fontSize,text) {
 	    if(this.fontSize!=fontSize){
 	        this.fontSize=fontSize;
@@ -4532,7 +4523,8 @@ calculateMetrics(fontSize,text) {
 	    	    
 	       	 
 }
-recalculateMetrics(fontSize,text) {
+*/
+calculateMetrics(fontSize,text) {
     this.fontSize=fontSize;    
     var ctx=fontmetrics.getCanvasContext();	    	    
     	    
@@ -4556,44 +4548,42 @@ recalculateMetrics(fontSize,text) {
 
 module.exports = function(d2) {
 	d2.FontText = class FontText{
-		constructor(pt,text,fontSize,rotation){
-			this.anchorPoint=pt;
+		constructor(x,y,text,fontSize,rotation){
+			this.anchorPoint=new d2.Point(x,y);
 			this.text=text;
 			this.fontSize=fontSize;
 		    this.rotation=rotation;	
 		    this.metrics=new TextMetrics();  
-		    this.metrics.recalculateMetrics(this.fontSize,this.text);
+		    this.metrics.calculateMetrics(this.fontSize,this.text);
 		}
 		clone(){
-			let copy=new FontText(this.anchorPoint.clone(),this.text,this.fontSize,this.rotation);		
+			let copy=new FontText(this.anchorPoint.x,this.anchorPoint.y,this.text,this.fontSize,this.rotation);		
 			return copy;
 		}
 		setText(text){
 			this.text=text;
-			this.metrics.recalculateMetrics(this.fontSize,this.text);
+			this.metrics.calculateMetrics(this.fontSize,this.text);
 		}
 		setSize(size){
 			this.fontSize=size;
-			this.metrics.recalculateMetrics(this.fontSize,this.text);
+			this.metrics.calculateMetrics(this.fontSize,this.text);
 		}
 		scale(alpha){
 	      	this.anchorPoint.scale(alpha);
 			this.fontSize=parseInt(this.fontSize*alpha);
-			this.metrics.recalculateMetrics(this.fontSize,this.text);
+			this.metrics.calculateMetrics(this.fontSize,this.text);
 			
 		}
 		setLocation(x,y){
-			this.anchorPoint.set(x,y);
-		    //this.metrics.recalculateMetrics(this.fontSize, this.text);			
+			this.anchorPoint.set(x,y);			
 		}
 		move(offsetX,offsetY){
 			this.anchorPoint.move(offsetX,offsetY);
-		    //this.metrics.recalculateMetrics(this.fontSize, this.text);
 		}
 		rotate(angle, center = {x:this.anchorPoint.x, y:this.anchorPoint.y}) {        	
         	this.anchorPoint.rotate((angle-this.rotation),center);
         	this.rotation=angle;
-        	this.metrics.recalculateMetrics(this.fontSize,this.text);
+        	this.metrics.calculateMetrics(this.fontSize,this.text);
         }
 		mirror(line){
 		   	
@@ -4641,32 +4631,11 @@ module.exports = function(d2) {
 		        }    
 		    	
 		    }
-			return false;
-			/*	
-			 * Based on the assumption that anchorPoint is left normal aligned
-				let ps=this.anchorPoint;
-				let pe=new d2.Point(ps.x,ps.y);
-				pe.move(this.metrics.width,0);
-				
-				pe.rotate(this.rotation,this.anchorPoint);
-				
-				let l=new d2.Line(ps,pe);
-	        	let projectionPoint=l.projectionPoint(pt);
-	        	
-			    let a=(projectionPoint.x-ps.x)/((pe.x-ps.x)==0?1:pe.x-ps.x);
-			    let b=(projectionPoint.y-ps.y)/((pe.y-ps.y)==0?1:pe.y-ps.y);
-
-			    let dist=projectionPoint.distanceTo(pt);
-			    
-			    if(0<=a&&a<=1&&0<=b&&b<=1){  //is projection between start and end point
-			        if(dist<=(Math.abs(this.metrics.xHeight * (this.fontSize)))){
-			        	return true;
-			        }    
-			    	
-			    }
-	        	*/
-        	
+			return false;        	
 		}
+		/*
+		 * Avoid recalculating text metrics!!!!!!!!!
+		 */
 		scalePaint(g2,viewportWindow,alpha){
 			let scaledAnchorPoint=this.anchorPoint.clone();			
 	      	scaledAnchorPoint.scale(alpha);
@@ -4693,7 +4662,7 @@ module.exports = function(d2) {
 			g2.fillText(this.text,0,0);				
 			g2.restore();
 			
-		}
+		}		
 		paint(g2){					
 			g2.font = ""+(this.fontSize)+"px Monospace";
 			g2.textBaseline='middle';
@@ -5944,8 +5913,9 @@ module.exports = function(d2) {
     		this.width=width;
     		this.height=height;
     		this.rounding=rounding;
-    		this.segments=[];
-    		this.arcs=[];    		
+    		this.segments=[new d2.Segment(0,0,0,0),new d2.Segment(0,0,0,0),new d2.Segment(0,0,0,0),new d2.Segment(0,0,0,0)];
+    		this.arcs = [new d2.Arc(),new d2.Arc(),new d2.Arc(),new d2.Arc()];  
+    		
     		this.reset();
     	}
     	clone(){
@@ -5976,15 +5946,19 @@ module.exports = function(d2) {
          * @param start angle point
          * @param end angle point
          */
-    	createArc(center, start, end) {
+        resetArc(arc,center,start,end) {
             let startAngle =360 -(new d2.Vector(center,start)).slope;
             let endAngle = (new d2.Vector(center, end)).slope;
             if (d2.utils.EQ(startAngle, endAngle)) {
-                endAngle = 360;
+              endAngle = 360;
             }
-            let r = (new d2.Vector(center, start)).length;           
-            return new d2.Arc(center, r, startAngle, 90);
-        }
+            let r = (new d2.Vector(center, start)).length;         	  
+            arc.pc=center;
+            arc.r=r;
+            arc.startAngle=startAngle;
+            arc.endAngle=90;
+
+        }    	
         /**
         *
         * @param {Point} p1 corner point
@@ -6018,58 +5992,43 @@ module.exports = function(d2) {
 			   			
 		}
     	reset(){
-		 this.segments=[];
-         this.arcs=[];
-            
-    	 if(this.rounding==0){
-      	   let top=new d2.Segment(this.points[0],this.points[1]);
-    	   this.segments.push(top);
-    	   
-    	   let right=new d2.Segment(this.points[1],this.points[2]);
-    	   this.segments.push(right);
+            if (this.rounding == 0) {
+            	 
+                this.segments[0].set(this.points[0].x,this.points[0].y,this.points[1].x, this.points[1].y);
+                this.segments[1].set(this.points[1].x,this.points[1].y,this.points[2].x, this.points[2].y);
+                this.segments[2].set(this.points[2].x,this.points[2].y,this.points[3].x, this.points[3].y);
+                this.segments[3].set(this.points[3].x,this.points[3].y,this.points[0].x, this.points[0].y);               
 
-    	   let bottom=new d2.Segment(this.points[2],this.points[3]);
-    	   this.segments.push(bottom);
+            } else {
+                //rect
+                let top = this.segments[0];
+                let right = this.segments[1];    
+                let bottom = this.segments[2];
+                let left =this.segments[3];
+     
 
-    	   let left=new d2.Segment(this.points[3],this.points[0]);
-    	   this.segments.push(left);
-    	   	 
-    	 }else{  
-    	   //rect	 
-    	   let top=new d2.Segment(0,0,0,0);
-    	   this.segments.push(top);
-    	   
-    	   let right=new d2.Segment(0,0,0,0);
-    	   this.segments.push(right);
+                //arcs
+                let r = this.findArcPoints(this.points[0], this.points[1], this.points[3]);
+                this.resetArc(this.arcs[0],r[0], r[1], r[2]);
+                top.ps = r[1].clone();
+                left.ps = r[2].clone();
 
-    	   let bottom=new d2.Segment(0,0,0,0);
-    	   this.segments.push(bottom);
+                r = this.findArcPoints(this.points[1], this.points[2], this.points[0]);
+                this.resetArc(this.arcs[1],r[0], r[1], r[2]);
+                top.pe = r[2].clone();
+                right.ps = r[1].clone();
 
-    	   let left=new d2.Segment(0,0,0,0);
-    	   this.segments.push(left);
+                r = this.findArcPoints(this.points[2], this.points[3], this.points[1]);
+                this.resetArc(this.arcs[2] ,r[0], r[1], r[2]);
+                right.pe = r[2].clone();
+                bottom.ps = r[1].clone();
 
-    	   //arcs	 
-    	   let r=this.findArcPoints(this.points[0],this.points[1],this.points[3]);
-		   this.arcs.push(this.createArc(r[0],r[1],r[2]));
-		   top.ps=r[1].clone();
-		   left.ps=r[2].clone();
-		   
-		   r=this.findArcPoints(this.points[1],this.points[2],this.points[0]);   
-		   this.arcs.push(this.createArc(r[0],r[1],r[2]));
-		   top.pe=r[2].clone();
-		   right.ps=r[1].clone();
-		   
-		   r=this.findArcPoints(this.points[2],this.points[3],this.points[1]);  
-		   this.arcs.push(this.createArc(r[0],r[1],r[2]));
-		   right.pe=r[2].clone();
-		   bottom.ps=r[1].clone();
-			
-		   
-		   r=this.findArcPoints(this.points[3],this.points[0],this.points[2]);  
-		   this.arcs.push(this.createArc(r[0],r[1],r[2]));
-		   bottom.pe=r[2].clone();
-		   left.pe=r[1].clone();
-    	 }      	
+
+                r = this.findArcPoints(this.points[3], this.points[0], this.points[2]);
+                this.resetArc(this.arcs[3],r[0], r[1], r[2]);
+                bottom.pe = r[2].clone();
+                left.pe = r[1].clone();
+            }    		    	
     	}
     	resize(offX,offY,point){
     		super.resize(offX,offY,point);
@@ -7391,7 +7350,6 @@ var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
 		            height: 270,
 		            autoOpen:false
                 });	
-				
 		   //load demo footprint
 			    	//loadDemo(fc);
 	});	
@@ -7605,6 +7563,9 @@ setRotation(rotate,center){
 calculateShape(){ 
   return this.texture.getBoundingShape();
 }
+getLabel(){
+  return this.texture;
+}
 get vertices(){
 	  return [];	
 }
@@ -7710,7 +7671,7 @@ class RoundRect extends Shape{
 	isControlRectClicked(x,y){
 	   	let pt=new d2.Point(x,y);
 	   	let result=null
-		this.roundRect.vertices.some(v=>{
+		this.roundRect.points.some(v=>{
 	   		if(d2.utils.LE(pt.distanceTo(v),this.selectionRectWidth/2)){
 	   		  	result=v;
 	   			return true;
@@ -7811,7 +7772,9 @@ class RoundRect extends Shape{
 		}
 		
 		g2.lineWidth = this.thickness * scale.getScale();
-
+		g2.lineCap = 'round';
+		g2.lineJoin = 'round';
+		
 		if (this.fill == core.Fill.EMPTY) {
 			g2.globalCompositeOperation = 'lighter';
 			if (this.selection) {
@@ -8066,8 +8029,7 @@ fromXML(data){
  	        this.arc.pc.set(xx,yy);
  	        this.arc.r=radius; 			 		
  		}
-		let diameter=parseInt(parseInt(j$(data).attr("width"))); 
-		
+		//let diameter=parseInt(parseInt(j$(data).attr("width"))); 		
         //this.arc.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
         //this.arc.r = parseInt(diameter/2);
         
@@ -8609,8 +8571,8 @@ class Drill{
 	    return "<drill type=\"CIRCULAR\" x=\""+this.circle.pc.x+"\" y=\""+this.circle.pc.y+"\" width=\""+2*this.circle.radius+"\" />";	
 	}
 	fromXML(data){ 
-	   this.setLocation(parseInt(j$(data).attr("x")),parseInt(j$(data).attr("y")));
-	   this.setWidth(parseInt(j$(data).attr("width")));  	   
+	   this.setLocation(parseFloat(j$(data).attr("x")),parseFloat(j$(data).attr("y")));
+	   this.setWidth(parseFloat(j$(data).attr("width")));  	   
 	}
 }
 
@@ -8739,19 +8701,19 @@ fromXML(data){
 		      this.copper=core.Layer.Copper.valueOf(j$(data).attr("copper"));
 		      this.setType(PadType.parse(j$(data).attr("type")));
 		      
-			  let x=(parseInt(j$(data).attr("x")));
-			  let y=(parseInt(j$(data).attr("y")));
-		      this.width=(parseInt(j$(data).attr("width")));
-		      this.height=(parseInt(j$(data).attr("height")));
+			  let x=(parseFloat(j$(data).attr("x")));
+			  let y=(parseFloat(j$(data).attr("y")));
+		      this.width=(parseFloat(j$(data).attr("width")));
+		      this.height=(parseFloat(j$(data).attr("height")));
 		      
 		      if(j$(data).attr("rt")!=undefined)
-		        this.rotate=(parseInt(j$(data).attr("rt")));
+		        this.rotate=(parseFloat(j$(data).attr("rt")));
 		      
 		      this.setShape(x,y,PadShape.parse(j$(data).attr("shape")));
 			  
 		      var offset=(j$(data).find("offset"));
-		      this.offset.x=(parseInt(j$(offset).attr("x")));
-		      this.offset.y=(parseInt(j$(offset).attr("y")));
+		      this.offset.x=(parseFloat(j$(offset).attr("x")));
+		      this.offset.y=(parseFloat(j$(offset).attr("y")));
 		      
 		      if(this.drill!=null){
 		          this.drill.fromXML(j$(data).find("drill"));
@@ -9788,27 +9750,27 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 			this.component.repaint();
 		}		
 		if(event.target.id=='referenceid'){
-			var texture=UnitMgr.getInstance().getTextureByTag(this.target,'reference');
-			if(texture!=null){
-				texture.tag='label';
+			var label=UnitMgr.getInstance().getLabelByTag(this.target,'reference');
+			if(label!=null){
+				label.texture.tag='label';
 			}
 			//unmark the other
 			if(j$("#referenceid").val()==-1)
 				return;
 			label=this.target.getShape(j$("#referenceid").val());
-			label.getChipText().get(0).tag='reference';
+			label.getTexture().tag='reference';
 			this.component.repaint();
 		}
 		if(event.target.id=='valueid'){
-			var texture=UnitMgr.getInstance().getTextureByTag(this.target,'value');
-			if(texture!=null){
-				texture.tag='label';
+			var label=UnitMgr.getInstance().getLabelByTag(this.target,'value');
+			if(label!=null){
+				label.texture.tag='label';
 			}
 			//unmark the other
 			if(j$("#valueid").val()==-1)
 				return;
 			label=this.target.getShape(j$("#valueid").val());
-			label.getChipText().get(0).tag='value';
+			label.getTexture().tag='value';
 			this.component.repaint();
 		}
 	},
