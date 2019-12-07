@@ -95,27 +95,27 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 			this.component.repaint();
 		}		
 		if(event.target.id=='referenceid'){
-			var texture=UnitMgr.getInstance().getTextureByTag(this.target,'reference');
-			if(texture!=null){
-				texture.tag='label';
+			var label=UnitMgr.getInstance().getLabelByTag(this.target,'reference');
+			if(label!=null){
+				label.texture.tag='label';
 			}
 			//unmark the other
 			if(j$("#referenceid").val()==-1)
 				return;
 			label=this.target.getShape(j$("#referenceid").val());
-			label.getChipText().get(0).tag='reference';
+			label.getTexture().tag='reference';
 			this.component.repaint();
 		}
 		if(event.target.id=='valueid'){
-			var texture=UnitMgr.getInstance().getTextureByTag(this.target,'value');
-			if(texture!=null){
-				texture.tag='label';
+			var label=UnitMgr.getInstance().getLabelByTag(this.target,'value');
+			if(label!=null){
+				label.texture.tag='label';
 			}
 			//unmark the other
 			if(j$("#valueid").val()==-1)
 				return;
 			label=this.target.getShape(j$("#valueid").val());
-			label.getChipText().get(0).tag='value';
+			label.getTexture().tag='value';
 			this.component.repaint();
 		}
 	},

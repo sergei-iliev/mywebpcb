@@ -456,7 +456,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 		j$(this.el).empty();
 		j$(this.el).append(
 		"<table width='100%'>"+
-		"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
+		"<tr><td style='width:50%;padding:7px'>Side</td><td>" +
 		"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
 	    this.fillComboBox([{id:'1',value:'TOP',selected:true},{id:'2',value:'BOTTOM'}])+
 	    "</select>" +

@@ -201,7 +201,7 @@ Move(xoffset,yoffset){
 	   this.text.Move(xoffset,yoffset);
 }
 setRotation(rotate){
-	let alpha=rotate-this.rotate;
+	//let alpha=rotate-this.rotate;
 	let center=this.getBoundingShape().center;
 	let len=this.shapes.length;
 	for(var i=0;i<len;i++){
@@ -813,6 +813,10 @@ prepareClippingRegion(viewportWindow,scale){
         p.move(-viewportWindow.x,-viewportWindow.y);
         this.clip.push(p);    
 	}.bind(this));
+}
+
+alignResizingPointToGrid(pt) {
+    this.owningUnit.getGrid().snapToGrid(pt);
 }
 calculateShape(){  	    
    return this.polygon.box;

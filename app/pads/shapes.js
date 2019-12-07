@@ -86,6 +86,9 @@ setRotation(rotate,center){
 calculateShape(){ 
   return this.texture.getBoundingShape();
 }
+getLabel(){
+  return this.texture;
+}
 get vertices(){
 	  return [];	
 }
@@ -126,7 +129,6 @@ fromXML(data){
         }else{
            this.copper=core.Layer.Copper.FSilkS;
         }
-        console.log(2222);
         this.texture.fromXML(data);  
 }    
 paint(g2, viewportWindow, scale,layersmask) {
