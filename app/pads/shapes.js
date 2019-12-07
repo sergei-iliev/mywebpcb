@@ -917,7 +917,9 @@ paint(g2, viewportWindow, scale,layersmask) {
     }
 	a.scale(scale.getScale());
 	a.move( - viewportWindow.x, - viewportWindow.y);		
+	g2.globalCompositeOperation = 'lighter';
 	a.paint(g2);
+	g2.globalCompositeOperation = 'source-over';
 	g2._fill=false;
     
 	if (this.isSelected()) {
@@ -1177,9 +1179,9 @@ class Pad extends Shape{
 	   this.shape=new CircularShape(0,0,width,this);
 	   this.setType(PadType.THROUGH_HOLE);	   
 	   this.setDisplayName("Pad");
-	   this.text=new core.ChipText();
-	   this.text.Add(new font.FontTexture("number","1",x,y,4000,0));
-	   this.text.Add(new font.FontTexture("netvalue","",x,y,4000,0));   
+	   
+	   this.number=new font.FontTexture("number","1",x,y,4000,0);
+	   this.netvalue=new font.FontTexture("netvalue","",x,y,4000,0);   
 	}
 clone(){
 	     var copy=new Pad(0,0,this.width,this.height);
@@ -1189,14 +1191,32 @@ clone(){
 	     copy.rotate=this.rotate;
 	     copy.shape=this.shape.copy(copy);
 	     copy.copper=this.copper;
-	     copy.text=this.text.clone();
+	     copy.number=this.number.clone();
+	     copy.netvalue=this.netvalue.clone();
 	     if(this.drill!=null){
 	    	 copy.drill=this.drill.clone();
 	     }
 	     return copy;
 	}
-getChipText() {
-	    return this.text;
+
+getClickedTexture(x,y) {
+    if(this.number.isClicked(x, y))
+        return this.number;
+    else if(this.netvalue.isClicked(x, y))
+        return this.netvalue;
+    else
+    return null;
+}
+isClickedTexture(x,y) {
+    return this.getClickedTexture(x, y)!=null;
+}
+getTextureByTag(tag) {
+    if(tag===(this.number.tag))
+        return this.number;
+    else if(tag===(this.netvalue.tag))
+        return this.netvalue;
+    else
+    return null;
 }
 getCenter(){
 	return this.shape.center;
@@ -1206,13 +1226,13 @@ toXML(){
 	        //xml+=this.shape.toXML()+"\r\n";
 	        xml+="<offset x=\""+this.offset.x+"\" y=\""+this.offset.y+"\" />\r\n";
 	    
-	        if (!this.text.getTextureByTag("number").isEmpty())
+	        if (!this.number.isEmpty())
 	        	xml+="<number>" +
-	                      this.text.getTextureByTag("number").toXML() +
+	                      this.number.toXML() +
 	                      "</number>\r\n";
-	    if (!this.text.getTextureByTag("netvalue").isEmpty())
+	    if (!this.netvalue.isEmpty())
 	           xml+="<netvalue>" +
-	                      this.text.getTextureByTag("netvalue").toXML() +
+	                      this.netvalue.toXML() +
 	                      "</netvalue>\r\n";
 	    if(this.drill!=null){
 	        xml+=this.drill.toXML()+"\r\n";  
@@ -1245,14 +1265,14 @@ fromXML(data){
 		      var number=(j$(data).find("number").text()); 
 			  var netvalue=(j$(data).find("netvalue").text());
 			  if(number==''){
-				  this.text.getTextureByTag("number").setLocation(this.getX(), this.getY());
+				  this.number.setLocation(this.getX(), this.getY());
 			  }else{
-				  this.text.getTextureByTag("number").fromXML(number);
+				  this.number.fromXML(number);
 			  }
 			  if(netvalue==''){
-				  this.text.getTextureByTag("netvalue").setLocation(this.getX(), this.getY());
+				  this.netvalue.setLocation(this.getX(), this.getY());
 			  }else{
-				  this.text.getTextureByTag("netvalue").fromXML(netvalue);
+				  this.netvalue.fromXML(netvalue);
 			  }
 		     
 	}
@@ -1283,7 +1303,8 @@ isInRect(r) {
 	}
 setSelected (selection) {
 	super.setSelected(selection);
-	this.text.setSelected(selection);
+	this.number.setSelected(selection);
+	this.netvalue.setSelected(selection);
 }
 Move(xoffset, yoffset){
 	   this.shape.move(xoffset, yoffset);
@@ -1291,31 +1312,27 @@ Move(xoffset, yoffset){
 	   if(this.drill!=null){
 	     this.drill.Move(xoffset, yoffset);
 	   }
-	   this.text.Move(xoffset,yoffset);
+	   this.number.Move(xoffset,yoffset);
+	   this.netvalue.Move(xoffset,yoffset);
 	   
 	}
 
 Mirror(line) {
-//    let source = new d2.Point(this.x,this.y);
-//    utilities.mirrorPoint(A, B, source);
-//    this.setX(source.x);
-//    this.setY(source.y);
-//    if (this.drill != null) {
-//        this.drill.Mirror(A, B);
-//    }
-//    this.text.Mirror(A, B);
+
 }
 setRotation(rotate,center){	
 	let alpha=rotate-this.rotate;	
 	if(center==null){
 	  this.shape.rotate(alpha);
-	  this.text.setRotation(rotate,this.shape.center);
+	  this.number.setRotation(rotate,this.shape.center);
+	  this.netvalue.setRotation(rotate,this.shape.center);
 	  if(this.drill!=null){
 		this.drill.rotate(alpha);
 	  }	  	  
 	}else{		
 	  this.shape.rotate(alpha,center);
-	  this.text.setRotation(rotate,center);
+	  this.number.setRotation(rotate,center);
+	  this.netvalue.setRotation(rotate,center);
 	  if(this.drill!=null){
 	    this.drill.rotate(alpha,center);
 	  }	  
@@ -1334,7 +1351,8 @@ Rotate(rotation){
     if(this.drill!=null){
      this.drill.Rotate(rotation);
     }	
-	this.text.setRotation(alpha,new d2.Point(rotation.originx,rotation.originy));
+	this.number.setRotation(alpha,new d2.Point(rotation.originx,rotation.originy));
+	this.netvalue.setRotation(alpha,new d2.Point(rotation.originx,rotation.originy));
 	this.rotate=alpha;
 	
 	}
@@ -1418,9 +1436,6 @@ drawClearence(g2,viewportWindow,scale,source){
 	this.shape.drawClearence(g2,viewportWindow,scale,source);
 }
 paint(g2,viewportWindow,scale,layersmask){
-//    if((this.copper.getLayerMaskID()&layersmask)==0){
-//        return;
-//    }	
 	switch(this.type){
 	    case PadType.THROUGH_HOLE:
 	        if(this.shape.paint(g2, viewportWindow, scale)){
@@ -1434,7 +1449,8 @@ paint(g2,viewportWindow,scale,layersmask){
 	        break;
 	    
 	    }
-	    this.text.paint(g2, viewportWindow, scale);	    
+	    this.number.paint(g2, viewportWindow, scale);
+	    this.netvalue.paint(g2, viewportWindow, scale);
 	 }
 
 }

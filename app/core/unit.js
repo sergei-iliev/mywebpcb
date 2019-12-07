@@ -244,7 +244,7 @@ buildClickedShapesList(x,  y,  isTextIncluded){
    let len=this.shapes.length;
    for(i=0;i<len;i++){   
        if(isTextIncluded){
-    	if((undefined !=this.shapes[i]['getChipText'])&&this.shapes[i].getChipText().isClicked(x, y)){                               
+    	if((undefined !=this.shapes[i]['getTextureByTag'])&&this.shapes[i].getClickedTexture(x, y)){                               
              orderElements.splice(0, 0, this.shapes[i]);
              continue;
         }
@@ -262,7 +262,7 @@ getClickedShape( x,  y,  isTextIncluded){
         return null;
     }
     //Text?
-    if (undefined !=clickedShapes[0]['getChipText']) {   
+    if (undefined !=clickedShapes[0]['getTextureByTag']) {   
         if(this.isShapeVisibleOnLayers(clickedShapes[0])){             
           return clickedShapes[0];
         }

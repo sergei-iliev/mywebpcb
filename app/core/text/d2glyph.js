@@ -140,7 +140,7 @@ class GlyphTexture{
 	    this.setSize(size);
 		this.fillColor='gray';
 	    this.layermaskId=core.Layer.SILKSCREEN_LAYER_FRONT;	
-	    this.isSelected=false;	
+	    this.selection=false;	
 	    this.rotate=0;
 	    this.mirrored=false;
 }
@@ -175,6 +175,9 @@ clear() {
     this.glyphs=[];
     this.width=0;
     this.height=0;
+}
+setSelected(selection){
+	this.selection=selection;
 }
 isEmpty() {
 	   return this.text == null || this.text.length == 0;
@@ -350,7 +353,7 @@ paint(g2,viewportWindow,scale,layermaskId){
    if (this.isEmpty()) {
         return;
    }
-   if (this.isSelected)
+   if (this.selection)
        g2.strokeStyle='gray';
    else
        g2.strokeStyle=this.fillColor;
@@ -375,7 +378,7 @@ paint(g2,viewportWindow,scale,layermaskId){
    //box.scale(scale.getScale());
    //box.move(-viewportWindow.x,- viewportWindow.y);
    //box.paint(g2);
-   if (this.isSelected){
+   if (this.selection){
        this.drawControlShape(g2,viewportWindow,scale);
    }   
 }

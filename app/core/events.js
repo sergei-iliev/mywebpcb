@@ -401,7 +401,7 @@ mousePressed(event){
 	this.mx=event.x;
 	this.my=event.y;
 
-	this.texture= this.target.getChipText().getClickedTexture(event.x,event.y);  
+	this.texture= this.target.getClickedTexture(event.x,event.y);  
 	this.component.repaint();
 	
 }

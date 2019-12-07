@@ -73,11 +73,10 @@ constructor(layermaskId){
 		super(0,0,0,0,0,layermaskId);
 		this.displayName = "Footprint";
    	    this.shapes=[];
-		this.text = new core.ChipText();
-	    this.text.Add(new glyph.GlyphTexture("","reference", 0, 0,  core.MM_TO_COORD(1.2)));
-	    this.text.Add(new glyph.GlyphTexture("","value", 8,8,core.MM_TO_COORD(1.2)));		 	    
+	    this.reference=(new glyph.GlyphTexture("","reference", 0, 0,  core.MM_TO_COORD(1.2)));
+	    this.value=(new glyph.GlyphTexture("","value", 8,8,core.MM_TO_COORD(1.2)));		 	    
         this.units=core.Units.MM;
-        this.value=2.54;  
+        this._value=2.54;  
         this.rotate=0;
 	}
 clone(){
@@ -86,7 +85,7 @@ clone(){
         copy.shapes=[];
         copy.rotate=this.rotate;
         copy.units=this.units;
-        copy.value=this.value;
+        copy._value=this.value;
         copy.displayName=this.displayName;
         this.shapes.forEach(function(shape){ 
           copy.add(shape.clone());  
@@ -99,8 +98,24 @@ add(shape){
     shape.isControlPointVisible=false;
     this.shapes.push(shape);  
 } 
-getChipText() {
-    return this.text;
+getClickedTexture(x,y) {
+    if(this.reference.isClicked(x, y))
+        return this.reference;
+    else if(this.value.isClicked(x, y))
+        return this.value;
+    else
+    return null;
+}
+isClickedTexture(x,y) {
+    return this.getClickedTexture(x, y)!=null;
+}
+getTextureByTag(tag) {
+    if(tag===(this.reference.tag))
+        return this.reference;
+    else if(tag===(this.value.tag))
+        return this.value;
+    else
+    return null;
 }
 getSide(){
     return core.Layer.Side.resolve(this.copper.getLayerMaskID());       
@@ -274,20 +289,7 @@ fromXML(data){
      
 	 var reference=j$(data).find("reference")[0];
  	 var value=j$(data).find("value")[0];
- 	 
- 	 
-//	 if(reference!=null&&reference.text()!=''){
-//           var label = new GlyphLabel(0,0,0);
-//           label.fromXML(reference[0]);
-//           label.texture.tag="reference";
-//           this.add(label);      
-// 	 }
-// 	 if(value!=null&&value.text()!=''){
-//           var label = new GlyphLabel(0,0,0);
-//           label.fromXML(value[0]);
-//           label.texture.tag="value";
-//           this.add(label);	 		   
-// 	 }
+ 	 	
  	 
  	 var texture=this.text.getTextureByTag("reference");
  	 texture.fromXML(reference);
@@ -312,17 +314,7 @@ toXML() {
            xml+="<units raster=\""+this.value+"\">"+this.units+"</units>\r\n"; 
            xml+="<reference layer=\""+core.Layer.Copper.resolve(this.text.getTextureByTag("reference").layermaskId).getName()+"\">"+(this.text.getTextureByTag("reference")==null?"":this.text.getTextureByTag("reference").toXML())+"</reference>\r\n";                           
            xml+="<value layer=\""+core.Layer.Copper.resolve(this.text.getTextureByTag("value").layermaskId).getName()+"\">"+(this.text.getTextureByTag("value")==null?"":this.text.getTextureByTag("value").toXML())+"</value>\r\n";
-//    //***labels and connectors
-//           BoardMgr boardMgr = BoardMgr.getInstance();
-//           if(boardMgr.getChildrenByParent(getOwningUnit().getShapes(),this).size()>0){
-//             xml.append("<children>\r\n");
-//               Collection<Shape> children=boardMgr.getChildrenByParent(getOwningUnit().getShapes(),this);
-//                for(Shape child:children){
-//                  xml.append(((Externalizable)child).toXML());  
-//                }
-//                xml.append("</children>\r\n");
-//    }               
-//              
+             
            xml+="<shapes>\r\n";
            this.shapes.forEach(
             s=>xml+=s.toXML()

@@ -42,13 +42,13 @@ class manager{
  	    	var shape=footprint.shapes[i];
 	               if (shape instanceof shapes.GlyphLabel) {
 	   				 if(shape.texture.tag=="value"){
-	   					pcbfootprint.getChipText().getTextureByTag("value").copy(shape.texture); 
-	   					pcbfootprint.getChipText().getTextureByTag("value").layermaskId=shape.copper.getLayerMaskID();
+	   					pcbfootprint.value.copy(shape.texture); 
+	   					pcbfootprint.value.layermaskId=shape.copper.getLayerMaskID();
 	   					continue;
 	   				 }
 	   				 if(shape.texture.tag=="reference"){
-		   			    pcbfootprint.getChipText().getTextureByTag("reference").copy(shape.texture); 
-		   			    pcbfootprint.getChipText().getTextureByTag("reference").layermaskId=shape.copper.getLayerMaskID();
+		   			    pcbfootprint.reference.copy(shape.texture); 
+		   			    pcbfootprint.reference.layermaskId=shape.copper.getLayerMaskID();
 		   			    continue;
 	   				 }  
 	               }
@@ -272,7 +272,7 @@ setMode(_mode){
 
 mouseDown(event){
     event.preventDefault();
-    
+    console.log(11);
     //this.canvas.focus();
 	if (this.getModel().getUnit() == null) { 
 	   return; 
@@ -323,7 +323,7 @@ mouseDown(event){
 		     if(shape!=null){
 			   if ((UnitMgr.getInstance().isBlockSelected(this.getModel().getUnit().shapes)&& shape.isSelected())||event.ctrlKey){					   
                  this.getEventMgr().setEventHandle("block", shape);						 
-		       }else if ((!(shape instanceof PCBLabel))&&(undefined !=shape['getChipText'])&&shape.getChipText().isClicked(scaledEvent.x, scaledEvent.y)){
+		       }else if ((!(shape instanceof PCBLabel))&&(undefined !=shape['getTextureByTag'])&&shape.getClickedTexture(scaledEvent.x, scaledEvent.y)!=null){
 			     this.getEventMgr().setEventHandle("texture",shape);
                }else if(shape instanceof PCBFootprint){
             	 this.getEventMgr().setEventHandle("symbol",shape);

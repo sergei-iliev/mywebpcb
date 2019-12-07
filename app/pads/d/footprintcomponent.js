@@ -261,7 +261,7 @@ mouseDown(event){
 		     if(shape!=null){
 			   if (UnitMgr.getInstance().isBlockSelected(this.getModel().getUnit().shapes) && shape.isSelected()){
                  this.getEventMgr().setEventHandle("block", null);						 
-		       }else if ((!(shape instanceof GlyphLabel))&&(undefined !=shape['getChipText'])&&shape.getChipText().isClicked(scaledEvent.x, scaledEvent.y)){
+		       }else if ((!(shape instanceof GlyphLabel))&&(undefined !=shape['getTextureByTag'])&&shape.getClickedTexture(scaledEvent.x, scaledEvent.y)!=null){
 			     this.getEventMgr().setEventHandle("texture",shape);
                }else
 		         this.getEventMgr().setEventHandle("move",shape);

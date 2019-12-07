@@ -428,11 +428,11 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 			 this.component.getModel().fireUnitEvent({target:this.target,type:events.Event.RENAME_UNIT});		   
 		 }
 		 if(event.target.id=='referenceid'){
-		   var texture=this.target.getChipText().getTextureByTag('reference');
+		   var texture=this.target.reference;
 		   texture.setText(j$("#referenceid").val());
 		 }
 		 if(event.target.id=='valueid'){
-		   var texture=this.target.getChipText().getTextureByTag('value');
+		   var texture=this.target.value;
 		   texture.setText(j$("#valueid").val());
 		 }
 		 this.component.repaint();   
@@ -445,11 +445,11 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 		   
 		   j$("#rotateid").val(this.target.rotate); 	
 		   
-		   var texture=this.target.getChipText().getTextureByTag('reference');
+		   var texture=this.target.reference;
 		   j$("#referenceid").val(texture==null?"":texture.text);
 
 			 
-		   texture=this.target.getChipText().getTextureByTag('value');
+		   texture=this.target.value;
 		   j$("#valueid").val(texture==null?"":texture.text);
 	},
 	render:function(){	

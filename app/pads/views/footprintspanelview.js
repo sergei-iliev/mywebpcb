@@ -234,8 +234,7 @@ var PadPanelBuilder=BaseBuilder.extend({
 		 if(event.keyCode != 13){
 				return; 
 		 }
-	     if(event.target.id=='padwidthid'){
-	    	console.log(1); 
+	     if(event.target.id=='padwidthid'){	    	
 	        this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#padwidthid').val()))); 
 	     }
 	     if(event.target.id=='padheightid'){
@@ -245,24 +244,24 @@ var PadPanelBuilder=BaseBuilder.extend({
 		        this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val()))); 
 		     }	     
 		 if(event.target.id=='numberid'){ 
-			 this.target.getChipText().getTextureByTag("number").setText(j$('#numberid').val());			   
+			 this.target.getTextureByTag("number").setText(j$('#numberid').val());			   
 		 }
 		 if(event.target.id=='numbersizeid'){ 
-			 this.target.getChipText().getTextureByTag("number").setSize(core.MM_TO_COORD(parseFloat(j$('#numbersizeid').val())));  
+			 this.target.getTextureByTag("number").setSize(core.MM_TO_COORD(parseFloat(j$('#numbersizeid').val())));  
 		 }
 		 if(event.target.id=='numberxid'||event.target.id=='numberyid'){ 
-			 this.target.getChipText().getTextureByTag("number").setLocation(this.fromUnitX(parseFloat(j$('#numberxid').val())),this.fromUnitY(parseFloat(j$('#numberyid').val())));
+			 this.targetgetTextureByTag("number").setLocation(this.fromUnitX(parseFloat(j$('#numberxid').val())),this.fromUnitY(parseFloat(j$('#numberyid').val())));
 			 
 		 }
 		 //--------netvalue-------
 		 if(event.target.id=='netvalueid'){ 
-			 this.target.getChipText().getTextureByTag("netvalue").setText(j$('#netvalueid').val()); 
+			 this.target.getTextureByTag("netvalue").setText(j$('#netvalueid').val()); 
 		 }
 		 if(event.target.id=='netvaluesizeid'){ 
-			 this.target.getChipText().getTextureByTag("netvalue").setSize(core.MM_TO_COORD(parseFloat(j$('#netvaluesizeid').val()))); 
+			 this.target.getTextureByTag("netvalue").setSize(core.MM_TO_COORD(parseFloat(j$('#netvaluesizeid').val()))); 
 		 }
 		 if(event.target.id=='netvaluexid'||event.target.id=='netvalueyid'){ 
-			 this.target.getChipText().getTextureByTag("netvalue").setLocation(this.fromUnitX(parseFloat(j$('#netvaluexid').val())),this.fromUnitY(parseFloat(j$('#netvalueyid').val()))); 
+			 this.target.getTextureByTag("netvalue").setLocation(this.fromUnitX(parseFloat(j$('#netvaluexid').val())),this.fromUnitY(parseFloat(j$('#netvalueyid').val()))); 
 		 }
 		 if(event.target.id=='drillwidthid'){ 
 			 this.target.drill.setWidth(core.MM_TO_COORD(parseFloat(j$('#drillwidthid').val())));   
@@ -292,27 +291,27 @@ var PadPanelBuilder=BaseBuilder.extend({
 	        j$('#typeid').val(this.target.type);  
 	        j$('#shapeid').val(this.target.getShape());  
 	        //-------number---------
-	        j$('#numberid').val(this.target.getChipText().getTextureByTag("number").shape.text); 
-	        j$('#numbersizeid').val(core.COORD_TO_MM(this.target.getChipText().getTextureByTag("number").shape.fontSize)); 
+	        j$('#numberid').val(this.target.getTextureByTag("number").shape.text); 
+	        j$('#numbersizeid').val(core.COORD_TO_MM(this.target.getTextureByTag("number").shape.fontSize)); 
 	        
-	        if(this.target.getChipText().getTextureByTag("number").isEmpty()){
+	        if(this.target.getTextureByTag("number").isEmpty()){
 	            j$('#numberxid').val('');
 				j$('#numberyid').val('');
 	        }else{ 
-	         j$('#numberxid').val(this.toUnitX(this.target.getChipText().getTextureByTag("number").shape.anchorPoint.x));
-			 j$('#numberyid').val(this.toUnitY(this.target.getChipText().getTextureByTag("number").shape.anchorPoint.y));
+	         j$('#numberxid').val(this.toUnitX(this.target.getTextureByTag("number").shape.anchorPoint.x));
+			 j$('#numberyid').val(this.toUnitY(this.target.getTextureByTag("number").shape.anchorPoint.y));
 	        }	       	        
 
 	        //-------netvalue--------
-	        j$('#netvalueid').val(this.target.getChipText().getTextureByTag("netvalue").shape.text); 
-	        j$('#netvaluesizeid').val(core.COORD_TO_MM(this.target.getChipText().getTextureByTag("netvalue").shape.fontSize)); 
+	        j$('#netvalueid').val(this.target.getTextureByTag("netvalue").shape.text); 
+	        j$('#netvaluesizeid').val(core.COORD_TO_MM(this.target.getTextureByTag("netvalue").shape.fontSize)); 
 	        
-	        if(this.target.getChipText().getTextureByTag("netvalue").isEmpty()){
+	        if(this.target.getTextureByTag("netvalue").isEmpty()){
 	            j$('#netvaluexid').val('');
 				j$('#netvalueyid').val('');
 	        }else{ 
-	         j$('#netvaluexid').val(this.toUnitX(this.target.getChipText().getTextureByTag("netvalue").shape.anchorPoint.x));
-			 j$('#netvalueyid').val(this.toUnitY(this.target.getChipText().getTextureByTag("netvalue").shape.anchorPoint.y));
+	         j$('#netvaluexid').val(this.toUnitX(this.target.getTextureByTag("netvalue").shape.anchorPoint.x));
+			 j$('#netvalueyid').val(this.toUnitY(this.target.getTextureByTag("netvalue").shape.anchorPoint.y));
 	        }
 	        
 	        //-----drill and offset------

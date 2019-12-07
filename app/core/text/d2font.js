@@ -61,7 +61,9 @@ setRotation(rotate,pt){
 Move(xoffset, yoffset){
    this.shape.move(xoffset, yoffset);  
 }
-
+setSelected(selection){
+	this.selection=selection;
+}
 paint(g2,viewportWindow,scale){
 	 if(this.isEmpty()){
 	   return;	 
