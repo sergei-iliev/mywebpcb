@@ -76,16 +76,17 @@ constructor(layermaskId){
 	    this.reference=(new glyph.GlyphTexture("","reference", 0, 0,  core.MM_TO_COORD(1.2)));
 	    this.value=(new glyph.GlyphTexture("","value", 8,8,core.MM_TO_COORD(1.2)));		 	    
         this.units=core.Units.MM;
-        this._value=2.54;  
+        this.val=2.54;  
         this.rotate=0;
 	}
 clone(){
         var copy=new PCBFootprint(this.copper.getLayerMaskID());
-        copy.text =this.text.clone();
         copy.shapes=[];
         copy.rotate=this.rotate;
         copy.units=this.units;
-        copy._value=this.value;
+        copy.val=this.val;
+        copy.value =this.value.clone();
+        copy.reference =this.reference.clone();        
         copy.displayName=this.displayName;
         this.shapes.forEach(function(shape){ 
           copy.add(shape.clone());  
@@ -127,7 +128,8 @@ clear() {
 		  shape=null;
      });
      this.shapes=[];	
-     this.text.Clear();
+     this.value.clear();
+     this.reference.clear();
 }
 getOrderWeight() {
    var r=this.getBoundingShape();
@@ -176,10 +178,10 @@ setSelected (selection) {
 	super.setSelected(selection);
 	this.shapes.forEach(function(shape) {	
 		  shape.setSelected(selection);
-		  if(shape instanceof Pad){			
-			  shape.text.setSelected(false);
-		  }		  
+		  	 
    });	
+    this.value.setSelected(selection);
+    this.reference.setSelected(selection);
 }
 calculateShape() {
 	var r = new d2.Box(0,0,0,0);
@@ -213,7 +215,8 @@ Move(xoffset,yoffset){
 	   for(var i=0;i<len;i++){
 		   this.shapes[i].Move(xoffset,yoffset);  
 	   }	
-	   this.text.Move(xoffset,yoffset);
+	   this.reference.Move(xoffset,yoffset);
+	   this.value.Move(xoffset,yoffset);
 }
 setRotation(rotate){
 	//let alpha=rotate-this.rotate;
@@ -223,7 +226,8 @@ setRotation(rotate){
 		
 	   this.shapes[i].setRotation(rotate,center);  
 	}	
-	this.text.setRotation(rotate,center);
+    this.value.setRotation(rotate,center);
+    this.reference.setRotation(rotate,center);
 	this.rotate=rotate;
 }
 Rotate(rotation){
@@ -241,7 +245,8 @@ Rotate(rotation){
 		   this.shapes[i].Rotate(rotation);  
 	   }
 	  
-	   this.text.Rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	   this.value.Rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	   this.reference.Rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	   this.rotate=alpha;
 }
 drawClearence(g2,viewportWindow,scale,source){
@@ -273,29 +278,22 @@ paint(g2, viewportWindow, scale,layersmask) {
 	var len=this.shapes.length;
 	for(i=0;i<len;i++){
 		  this.shapes[i].paint(g2,viewportWindow,scale,layersmask);  
-	}
-    this.text.text.forEach(function(texture){
-       if((texture.layermaskId&layersmask)!=0){            
-        texture.fillColor=(this.selection?'gray':'cyan');
-        texture.paint(g2,viewportWindow,scale,layersmask);
-       }
-    },this);      
-
+	}    
+    
+    this.value.paint(g2, viewportWindow, scale, layersmask);
+    this.reference.paint(g2, viewportWindow, scale, layersmask);
  }    
 fromXML(data){
 	 this.copper=core.Layer.Copper.valueOf(j$(data).attr("layer"));
-	 this.value=parseFloat(j$(data).find("units").attr("raster"));
+	 this.val=parseFloat(j$(data).find("units").attr("raster"));
      this.units=core.Units.MM;	
      
 	 var reference=j$(data).find("reference")[0];
  	 var value=j$(data).find("value")[0];
  	 	
+ 	 this.reference.fromXML(reference);
  	 
- 	 var texture=this.text.getTextureByTag("reference");
- 	 texture.fromXML(reference);
- 	 
- 	 var texture=this.text.getTextureByTag("value");
- 	 texture.fromXML(value);
+ 	 this.value.fromXML(value);
  	 
  	 this.displayName=j$(data).find("name")[0].textContent;	
  	 
@@ -311,10 +309,9 @@ fromXML(data){
 toXML() {
     let xml="<footprint layer=\""+this.copper.getName()+"\">\r\n";
            xml+="<name>"+this.displayName+"</name>\r\n";
-           xml+="<units raster=\""+this.value+"\">"+this.units+"</units>\r\n"; 
-           xml+="<reference layer=\""+core.Layer.Copper.resolve(this.text.getTextureByTag("reference").layermaskId).getName()+"\">"+(this.text.getTextureByTag("reference")==null?"":this.text.getTextureByTag("reference").toXML())+"</reference>\r\n";                           
-           xml+="<value layer=\""+core.Layer.Copper.resolve(this.text.getTextureByTag("value").layermaskId).getName()+"\">"+(this.text.getTextureByTag("value")==null?"":this.text.getTextureByTag("value").toXML())+"</value>\r\n";
-             
+           xml+="<units raster=\""+this.val+"\">"+this.units+"</units>\r\n"; 
+           xml+="<reference layer=\""+core.Layer.Copper.resolve(this.reference.layermaskId).getName()+"\">"+this.reference.toXML()+"</reference>\r\n";                           
+           xml+="<value layer=\""+core.Layer.Copper.resolve(this.value.layermaskId).getName()+"\">"+this.value.toXML()+"</value>\r\n";             
            xml+="<shapes>\r\n";
            this.shapes.forEach(
             s=>xml+=s.toXML()

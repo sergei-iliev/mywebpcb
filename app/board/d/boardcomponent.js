@@ -59,7 +59,7 @@ class manager{
 	    }
  	    pcbfootprint.setDisplayName(footprint.unitName);
         pcbfootprint.units=footprint.getGrid().getGridUnits();
-        pcbfootprint.value=footprint.getGrid().getGridValue();
+        pcbfootprint.val=footprint.getGrid().getGridValue();
  	    return pcbfootprint; 	          
     }       
     
@@ -272,7 +272,6 @@ setMode(_mode){
 
 mouseDown(event){
     event.preventDefault();
-    console.log(11);
     //this.canvas.focus();
 	if (this.getModel().getUnit() == null) { 
 	   return; 

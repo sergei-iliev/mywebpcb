@@ -378,6 +378,7 @@ paint(g2,viewportWindow,scale,layermaskId){
    //box.scale(scale.getScale());
    //box.move(-viewportWindow.x,- viewportWindow.y);
    //box.paint(g2);
+   
    if (this.selection){
        this.drawControlShape(g2,viewportWindow,scale);
    }   
