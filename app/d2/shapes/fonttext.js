@@ -119,7 +119,7 @@ module.exports = function(d2) {
         	this.metrics.calculateMetrics(this.fontSize,this.text);
         }
 		mirror(line){
-		   	
+			this.anchorPoint.mirror(line);  	
 		}
 		//anchor point is text center
 		get box(){
@@ -181,13 +181,16 @@ module.exports = function(d2) {
 			g2.textAlign='center';
 			g2.save();
 			g2.translate(scaledAnchorPoint.x,scaledAnchorPoint.y);
-			if(0<=this.rotation&&this.rotation<90){
-			  g2.rotate(d2.utils.radians(360-this.rotation));
-			}else if(90<=this.rotation&&this.rotation<=180){
-			  g2.rotate(d2.utils.radians(180-this.rotation));	
-			}else{
-			  g2.rotate(d2.utils.radians(360-(this.rotation-180)));	
-			}
+
+			g2.rotate(d2.utils.radians(360-this.rotation));
+			
+//			if(0<=this.rotation&&this.rotation<90){
+//			  g2.rotate(d2.utils.radians(360-this.rotation));
+//			}else if(90<=this.rotation&&this.rotation<=180){
+//			  g2.rotate(d2.utils.radians(180-this.rotation));	
+//			}else{
+//			  g2.rotate(d2.utils.radians(360-(this.rotation-180)));	
+//			}
             //let box=this.box;
             //box.move(-this.anchorPoint.x,-this.anchorPoint.y);
             //box.paint(g2);
@@ -202,13 +205,15 @@ module.exports = function(d2) {
 			g2.textAlign='center';
 			g2.save();
 			g2.translate(this.anchorPoint.x,this.anchorPoint.y);
-			if(0<=this.rotation&&this.rotation<90){
-			  g2.rotate(d2.utils.radians(360-this.rotation));
-			}else if(90<=this.rotation&&this.rotation<=180){
-			  g2.rotate(d2.utils.radians(180-this.rotation));	
-			}else{
-			  g2.rotate(d2.utils.radians(360-(this.rotation-180)));	
-			}
+		
+			g2.rotate(d2.utils.radians(360-this.rotation));
+//			if(0<=this.rotation&&this.rotation<90){
+//			  g2.rotate(d2.utils.radians(360-this.rotation));
+//			}else if(90<=this.rotation&&this.rotation<=180){
+//			  g2.rotate(d2.utils.radians(180-this.rotation));	
+//			}else{
+//			  g2.rotate(d2.utils.radians(360-(this.rotation-180)));	
+//			}
             //let box=this.box;
             //box.move(-this.anchorPoint.x,-this.anchorPoint.y);
             //box.paint(g2);

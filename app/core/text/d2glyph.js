@@ -312,6 +312,33 @@ mirror(mirrored,line){
     }.bind(this));
         
 }
+setSide(side,  line, angle) {
+    this.mirrored=(side==core.Layer.Side.BOTTOM);
+    //reset original text
+    this.text = this.resetGlyphText(this.text);
+    //reset size
+    this.glyphs.forEach(function(glyph){
+        glyph.setSize(core.COORD_TO_MM(this.size));
+    }.bind(this));         
+    this.anchorPoint.mirror(line);
+    //arrange it according to anchor point
+    this.resetGlyphsLine();
+
+     //mirror text around anchor point
+    let ln=new d2.Line(new d2.Point(this.anchorPoint.x,this.anchorPoint.y-20),new d2.Point(this.anchorPoint.x,this.anchorPoint.y+20));
+    this.glyphs.forEach(glyph=>{
+       if(this.mirrored){
+           glyph.mirror(ln);                        
+       }
+       glyph.rotate(angle,this.anchorPoint);                   
+    });
+    
+    let copper=core.Layer.Side.change(this.layermaskId);
+    this.fillColor=copper.getColor();
+    this.layermaskId=copper.getLayerMaskID();
+    this.rotate=angle;
+}
+
 Move(xoffset,yoffset) {
     this.anchorPoint.move(xoffset,yoffset);
     this.glyphs.forEach(function(glyph){

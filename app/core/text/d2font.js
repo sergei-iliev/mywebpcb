@@ -43,9 +43,7 @@ getBoundingRect(){
     } 
     
 }
-//isChanged(fontSize,text,rotation){
-//	return fontSize===this.cache.fontSize&&text===this.cache.text&&rotation===this.cache.rotation
-//}
+
 setLocation(x,y){
 	this.shape.setLocation(x,y);
 }
@@ -60,6 +58,10 @@ setRotation(rotate,pt){
 }
 Move(xoffset, yoffset){
    this.shape.move(xoffset, yoffset);  
+}
+setSide(side,  line,  angle) { 
+    this.shape.mirror(line); 
+    this.shape.rotation=angle;
 }
 setSelected(selection){
 	this.selection=selection;

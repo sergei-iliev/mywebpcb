@@ -101,6 +101,10 @@ getCenter(){
 getTexture(){
   return this.texture;    
 }
+setSide(side, line,angle) {
+    this.copper=(core.Layer.Side.change(this.copper.getLayerMaskID()));
+    this.texture.setSide(side, line, angle);
+}
 setSelected(selected) {
     this.texture.isSelected=selected;
 }
@@ -228,7 +232,7 @@ class RoundRect extends Shape{
 	}
 	Mirror(line){
 		this.roundRect.mirror(line);
-	}
+	}	
 	Rotate(rotation){	
 		//fix angle
 		let alpha=this.rotate+rotation.angle;
@@ -410,6 +414,7 @@ fromXML(data) {
 	Mirror(line){
 	   this.circle.mirror(line);	
 	}
+    
 	Move(xoffset, yoffset) {
 		this.circle.move(xoffset,yoffset);
 	}	
@@ -976,7 +981,6 @@ alignToGrid(isRequired) {
 getOrderWeight() {
 	return 2;
 }
-
 paint(g2, viewportWindow, scale,layersmask) {		
     if((this.copper.getLayerMaskID()&layersmask)==0){
         return;
@@ -1074,6 +1078,9 @@ class Drill{
 	 }
 	 Rotate(rotation) {
 		 this.circle.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	 }	   
+	 mirror( line) {
+	       this.circle.mirror(line);
 	 }
 	 rotate(alpha,origin){
 	    if(origin==null){
@@ -1320,6 +1327,16 @@ Move(xoffset, yoffset){
 Mirror(line) {
 
 }
+setSide(side, line, angle) {
+    this.copper=core.Layer.Side.change(this.copper.getLayerMaskID());
+    this.netvalue.setSide(side,line,angle);
+    this.number.setSide(side,line,angle);
+    this.shape.mirror(line);
+    if(this.drill!=null){
+       this.drill.mirror(line);
+    }
+    this.rotate=angle;
+}
 setRotation(rotate,center){	
 	let alpha=rotate-this.rotate;	
 	if(center==null){
@@ -1518,6 +1535,9 @@ class CircularShape{
     contains(pt){
     	return this.circle.contains(pt);
     }
+    mirror(line) {
+        this.circle.mirror(line);
+    }
 	move(xoffset, yoffset) {
 		this.circle.move(xoffset,yoffset);
 	}	
@@ -1596,6 +1616,9 @@ rotate(alpha,origin){
 	}
 	
 }
+mirror( line) {
+    this.rect.mirror(line);
+}
 move(xoffset, yoffset) {
 	this.rect.move(xoffset,yoffset);
 }
@@ -1672,6 +1695,9 @@ contains(pt){
 }
 move(xoffset, yoffset) {
 	this.obround.move(xoffset,yoffset);
+}
+mirror(line) {
+    this.obround.mirror(line);
 }
 get box(){
 	return this.obround.box;
@@ -1754,7 +1780,10 @@ get center(){
 }
 move(xoffset, yoffset) {
 		this.hexagon.move(xoffset,yoffset);
-	}
+}
+mirror(line) {
+   hexagon.mirror(line);
+}
 setWidth(width) {
         this.hexagon.setWidth(width);
 }

@@ -414,7 +414,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
         'keypress #nameid' : 'onenter',   
         'keypress #valueid' : 'onenter',	
         'keypress #referenceid' : 'onenter',	
-        
+        'change #sideid': 'onchange',
     },
 	onenter:function(event){
 		 if(event.keyCode != 13){
@@ -438,7 +438,10 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 		 this.component.repaint();   
 	},   
 	onchange:function(event){
-	      
+		if(event.target.id=='sideid'){
+			this.target.setSide(j$("#sideid").val());
+			this.component.repaint();
+		}		      
 	},	
 	updateui:function(){
 		   j$("#nameid").val(this.target.displayName);
@@ -451,13 +454,15 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 			 
 		   texture=this.target.value;
 		   j$("#valueid").val(texture==null?"":texture.text);
+	
+		   j$("#sideid").val(this.target.getSide());
 	},
 	render:function(){	
 		j$(this.el).empty();
 		j$(this.el).append(
 		"<table width='100%'>"+
 		"<tr><td style='width:50%;padding:7px'>Side</td><td>" +
-		"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
+		"<select class=\"form-control input-sm\" id=\"sideid\">"+
 	    this.fillComboBox([{id:'1',value:'TOP',selected:true},{id:'2',value:'BOTTOM'}])+
 	    "</select>" +
 		"</td></tr>"+

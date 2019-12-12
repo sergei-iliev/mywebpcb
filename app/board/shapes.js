@@ -118,6 +118,21 @@ getTextureByTag(tag) {
     else
     return null;
 }
+setSide(side){
+    //mirror footprint
+    let r=this.getBoundingShape();
+    let p=r.center;
+    let line= new d2.Line(new d2.Point(p.x,p.y-10),new d2.Point(p.x,p.y+10));
+    
+    this.shapes.forEach(shape=>{
+        shape.setSide(side,line,(360-this.rotate));
+    });  
+    this.reference.setSide(side,line,(360-this.rotate));       
+    this.value.setSide(side,line,(360-this.rotate));       
+    
+    this.copper=(core.Layer.Side.change(this.copper.getLayerMaskID()));
+    this.rotate=360-this.rotate;	
+}
 getSide(){
     return core.Layer.Side.resolve(this.copper.getLayerMaskID());       
 }
@@ -219,7 +234,6 @@ Move(xoffset,yoffset){
 	   this.value.Move(xoffset,yoffset);
 }
 setRotation(rotate){
-	//let alpha=rotate-this.rotate;
 	let center=this.getBoundingShape().center;
 	let len=this.shapes.length;
 	for(var i=0;i<len;i++){

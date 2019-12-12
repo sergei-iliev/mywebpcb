@@ -115,7 +115,11 @@ Move(xoffset,yoffset) {
 Mirror(line) {
 
 }
-    
+setSide(side, line, angle) {
+    this.copper=(core.Layer.Side.change(this.copper.getLayerMaskID()));
+    this.Mirror(line);
+    this.rotate=angle;
+}     
 
 Rotate(rotation) {
 //		let point = new Point(this.getX(), this.getY());

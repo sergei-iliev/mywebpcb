@@ -144,22 +144,23 @@ var Layer=(function(){
 	    Side:{
 		   TOP:1,
            BOTTOM:2,
-           change:function(copper){
-               if (copper.getLayerMaskID() == LAYER_FRONT) {
-                   return Copper.BCu;
-               } else if (copper.getLayerMaskID() == SILKSCREEN_LAYER_FRONT) {
-                   return Copper.BSilkS;
-               } else if (copper.getLayerMaskID() == SOLDERMASK_LAYER_FRONT) {
-                   return Copper.BMask;
-               } else if (copper.getLayerMaskID() == LAYER_BACK) {
-                   return Copper.FCu;
-               } else if (copper.getLayerMaskID() == SILKSCREEN_LAYER_BACK) {
-                   return Copper.FSilkS;
-               } else if (copper.getLayerMaskID() == SOLDERMASK_LAYER_BACK) {
-                   return Copper.FMask;
+           change:function(layermaskId){
+        	   
+               if ( layermaskId== Layer.LAYER_FRONT) {
+                   return Layer.Copper.BCu;
+               } else if (layermaskId == Layer.SILKSCREEN_LAYER_FRONT) {
+                   return Layer.Copper.BSilkS;
+               } else if (layermaskId == Layer.SOLDERMASK_LAYER_FRONT) {
+                   return Layer.Copper.BMask;
+               } else if (layermaskId == Layer.LAYER_BACK) {
+                   return Layer.Copper.FCu;
+               } else if (layermaskId == Layer.SILKSCREEN_LAYER_BACK) {
+                   return Layer.Copper.FSilkS;
+               } else if (layermaskId == Layer.SOLDERMASK_LAYER_BACK) {
+                   return Layer.Copper.FMask;
                }
 
-               return copper;        	   
+               return Layer.Copper.All;        	   
            },
 		   resolve:function(layermaskId) {
             if (layermaskId == Layer.LAYER_BACK) {
