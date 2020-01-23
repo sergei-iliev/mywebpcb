@@ -16,9 +16,11 @@ var QUADRANT=(function(){
         FORTH:4
 	}
 })();
+
 var roundDouble=function(number){
-	return Math.round(number*10000)/10000 ;
+	return roundFloat(number,4);
 }
+
 var round=function(angle){
 	return Math.round(angle*100.0)/100.0;
 }

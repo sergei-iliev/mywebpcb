@@ -415,8 +415,8 @@ drawControlShape(g2, viewportWindow,scale){
 }
 toXML(){
     return (this.isEmpty()? "" :
-        this.text + "," + utilities.roundFloat(this.anchorPoint.x,5) + "," + utilities.roundFloat(this.anchorPoint.y,5) +
-        ",,"+this.thickness+","+this.size+","+this.rotate);	
+        this.text + "," + utilities.roundFloat(this.anchorPoint.x,4) + "," + utilities.roundFloat(this.anchorPoint.y,4) +
+        ",,"+utilities.roundFloat(this.thickness,2)+","+utilities.roundFloat(this.size,2)+","+utilities.roundFloat(this.rotate,2));	
 }
 fromXML(node){	
 	if (node == null || j$(node).text().length==0) {

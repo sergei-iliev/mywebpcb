@@ -569,8 +569,8 @@ fromXML(data) {
 	   var tokens = data.textContent.split(",");
 	   var len = Math.floor(tokens.length / 2) * 2;
 	   for (var index = 0; index < len; index += 2) {
-			var x = parseInt(tokens[index]);
-			var y = parseInt(tokens[index + 1]);
+			var x = parseFloat(tokens[index]);
+			var y = parseFloat(tokens[index + 1]);
 			this.polyline.points.push(new d2.Point(x, y));
 		}
 }
@@ -785,7 +785,7 @@ fromXML(data) {
 	this.clearance=(parseInt(j$(data).attr("clearance")));
 }
 toXML() {
-    return "<via type=\"\" x=\""+utilities.roundFloat(this.inner.center.x,5)+"\" y=\""+utilities.roundFloat(this.inner.center.y,5)+"\" width=\""+this.outer.r+"\" drill=\""+this.inner.r+"\"   clearance=\""+this.clearance+"\" net=\""+(this.net==null?"":this.net)+"\" />";    
+    return "<via x=\""+utilities.roundFloat(this.inner.center.x,5)+"\" y=\""+utilities.roundFloat(this.inner.center.y,5)+"\" width=\""+this.outer.r*2+"\" drill=\""+this.inner.r*2+"\"   clearance=\""+this.clearance+"\" net=\""+(this.net==null?"":this.net)+"\" />";    
 }
 }
 class PCBCopperArea extends Shape{
@@ -1008,8 +1008,8 @@ fromXML(data){
 	   var tokens = data.textContent.split(",");
 	   var len = Math.floor(tokens.length / 2) * 2;
 	   for (var index = 0; index < len; index += 2) {
-			var x = parseInt(tokens[index]);
-			var y = parseInt(tokens[index + 1]);
+			var x = parseFloat(tokens[index]);
+			var y = parseFloat(tokens[index + 1]);
 			this.polygon.points.push(new d2.Point(x, y));
 	   }
 }

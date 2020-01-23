@@ -106,10 +106,10 @@ setSide(side, line,angle) {
     this.texture.setSide(side, line, angle);
 }
 setSelected(selected) {
-    this.texture.isSelected=selected;
+    this.texture.setSelected(selected);
 }
 isSelected() {
-   return this.texture.isSelected;
+   return this.texture.selection;
 }
 Rotate(rotation) {	
 	this.texture.Rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	
@@ -254,7 +254,7 @@ class RoundRect extends Shape{
 	toXML() {
 		let points="";
 		this.roundRect.points.forEach(function(point) {
-			points += utilities.roundFloat(point.x,5) + "," + utilities.roundFloat(point.y,5) + ",";
+			points += utilities.roundFloat(point.x,4) + "," + utilities.roundFloat(point.y,4) + ",";
 		},this);
 		return "<rectangle copper=\"" + this.copper.getName()
 		        +"\" thickness=\"" + this.thickness
@@ -389,7 +389,7 @@ isControlRectClicked(x,y) {
    	return result;
     }	
 toXML() {
-        return "<circle copper=\""+this.copper.getName()+"\" x=\""+(this.circle.pc.x)+"\" y=\""+(this.circle.pc.y)+"\" radius=\""+(this.circle.r)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
+        return "<circle copper=\""+this.copper.getName()+"\" x=\""+utilities.roundFloat(this.circle.pc.x,4)+"\" y=\""+utilities.roundFloat(this.circle.pc.y,4)+"\" radius=\""+utilities.roundFloat(this.circle.r,4)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
 	}
 fromXML(data) {	  
         this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
@@ -567,7 +567,7 @@ fromXML(data){
 		this.fill = (parseInt(j$(data).attr("fill"))||0);
 }
 toXML() {
-    return '<arc copper="'+this.copper.getName()+'"  x="'+(this.arc.pc.x)+'" y="'+(this.arc.pc.y)+'" radius="'+(this.arc.r)+'"  thickness="'+this.thickness+'" start="'+this.arc.startAngle+'" extend="'+this.arc.endAngle+'" fill="'+this.fill+'" />';
+    return '<arc copper="'+this.copper.getName()+'"  x="'+utilities.roundFloat(this.arc.pc.x,4)+'" y="'+utilities.roundFloat(this.arc.pc.y,4)+'" radius="'+utilities.roundFloat(this.arc.r,4)+'"  thickness="'+this.thickness+'" start="'+utilities.roundFloat(this.arc.startAngle,2)+'" extend="'+utilities.roundFloat(this.arc.endAngle,2)+'" fill="'+this.fill+'" />';
 }
 setRadius(r){
 	this.arc.r=r;	
@@ -937,7 +937,7 @@ drawControlPoints(g2, viewportWindow, scale) {
 toXML() {
 	var result = "<solidregion copper=\"" + this.copper.getName() + "\">";
 	this.polygon.points.forEach(function(point) {
-		result += point.x + "," + point.y + ",";
+		result += utilities.roundFloat(point.x,4) + "," + utilities.roundFloat(point.y,4) + ",";
 	});
 	result += "</solidregion>";
 	return result;
@@ -1100,7 +1100,7 @@ class Drill{
 		g2._fill=false;
 	}
 	toXML(){
-	    return "<drill type=\"CIRCULAR\" x=\""+this.circle.pc.x+"\" y=\""+this.circle.pc.y+"\" width=\""+2*this.circle.radius+"\" />";	
+	    return "<drill type=\"CIRCULAR\" x=\""+utilities.roundFloat(this.circle.pc.x,4)+"\" y=\""+utilities.roundFloat(this.circle.pc.y,4)+"\" width=\""+utilities.roundFloat(2*this.circle.radius,2)+"\" />";	
 	}
 	fromXML(data){ 
 	   this.setLocation(parseFloat(j$(data).attr("x")),parseFloat(j$(data).attr("y")));
@@ -1229,7 +1229,7 @@ getCenter(){
 	return this.shape.center;
 }
 toXML(){
-	    var xml="<pad copper=\""+this.copper.getName()+"\" type=\"" +PadType.format(this.type) + "\" shape=\""+PadShape.format(this.getShape())+"\" x=\""+this.shape.center.x+"\" y=\""+this.shape.center.y+"\" width=\""+this.getWidth()+"\" height=\""+this.getHeight()+"\" rt=\""+this.rotate+"\">\r\n";
+	    var xml="<pad copper=\""+this.copper.getName()+"\" type=\"" +PadType.format(this.type) + "\" shape=\""+PadShape.format(this.getShape())+"\" x=\""+utilities.roundFloat(this.shape.center.x,4)+"\" y=\""+utilities.roundFloat(this.shape.center.y,4)+"\" width=\""+utilities.roundFloat(this.getWidth(),2)+"\" height=\""+utilities.roundFloat(this.getHeight(),2)+"\" rt=\""+utilities.roundFloat(this.rotate,2)+"\">\r\n";
 	        //xml+=this.shape.toXML()+"\r\n";
 	        xml+="<offset x=\""+this.offset.x+"\" y=\""+this.offset.y+"\" />\r\n";
 	    
@@ -1339,21 +1339,13 @@ setSide(side, line, angle) {
 }
 setRotation(rotate,center){	
 	let alpha=rotate-this.rotate;	
-	if(center==null){
-	  this.shape.rotate(alpha);
-	  this.number.setRotation(rotate,this.shape.center);
-	  this.netvalue.setRotation(rotate,this.shape.center);
-	  if(this.drill!=null){
-		this.drill.rotate(alpha);
-	  }	  	  
-	}else{		
+	
 	  this.shape.rotate(alpha,center);
 	  this.number.setRotation(rotate,center);
 	  this.netvalue.setRotation(rotate,center);
 	  if(this.drill!=null){
-	    this.drill.rotate(alpha,center);
-	  }	  
-	}
+	    this.drill.rotate(alpha,center);	   
+	  }
 	this.rotate=rotate;
 }
 Rotate(rotation){
