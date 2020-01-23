@@ -293,8 +293,12 @@ paint(g2, viewportWindow, scale,layersmask) {
 	for(i=0;i<len;i++){
 		  this.shapes[i].paint(g2,viewportWindow,scale,layersmask);  
 	}    
-    
+	
+    this.value.fillColor=core.Layer.Copper.resolve(this.value.layermaskId).getColor();
     this.value.paint(g2, viewportWindow, scale, layersmask);
+
+	
+    this.reference.fillColor=core.Layer.Copper.resolve(this.reference.layermaskId).getColor();
     this.reference.paint(g2, viewportWindow, scale, layersmask);
  }    
 fromXML(data){

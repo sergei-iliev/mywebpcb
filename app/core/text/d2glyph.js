@@ -380,6 +380,7 @@ paint(g2,viewportWindow,scale,layermaskId){
    if (this.isEmpty()) {
         return;
    }
+
    if (this.selection)
        g2.strokeStyle='gray';
    else
@@ -423,6 +424,9 @@ fromXML(node){
          this.text = "";
          return;
      }
+	 var tokens=j$(node).text().split(',');
+     this.text=tokens[0];
+     
 	 //layer?
      if(j$(node).attr("layer")!=null){
         this.layermaskId=core.Layer.Copper.valueOf(j$(node).attr("layer")).getLayerMaskID();
@@ -430,8 +434,6 @@ fromXML(node){
     	this.layermaskId=core.Layer.SILKSCREEN_LAYER_FRONT;	
      }
      
-	 var tokens=j$(node).text().split(',');
-     this.text=tokens[0];
 	 
      this.anchorPoint.set(parseInt(tokens[1]),
              parseInt(tokens[2]));  
@@ -457,6 +459,7 @@ fromXML(node){
 	 if(side==core.Layer.Side.BOTTOM){
 		this.mirrored=true;		 
 	 }
+
 	 //invalidate
 	 this.setText(this.text);
 }

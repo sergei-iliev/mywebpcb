@@ -197,7 +197,7 @@ class BoardEventMgr{
 		this.hash.set("resize",new events.ResizeEventHandle(component));
 	    this.hash.set("component",new events.UnitEventHandle(component));
 		this.hash.set("block",new events.BlockEventHandle(component));
-		this.hash.set("line",new pad_events.LineEventHandle(component));
+		this.hash.set("line",new events.LineEventHandle(component));
 		this.hash.set("cursor",new events.CursorEventHandle(component));
 		this.hash.set("symbol",new FootprintEventHandle(component));
 		this.hash.set("texture",new events.TextureEventHandle(component));

@@ -4,6 +4,9 @@ var LineSlopBendingProcessor=require('core/line/linebendingprocessor').LineSlopB
 var SlopLineBendingProcessor=require('core/line/linebendingprocessor').SlopLineBendingProcessor;
 var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').DefaultLineBendingProcessor;
 
+var PCBLine=require('board/shapes').PCBLine;
+var PCBTrack=require('board/shapes').PCBTrack;
+
 class BoardContextMenu extends ContextMenu{
 constructor(component,placeholderid){
 		super(component,placeholderid);	
@@ -81,9 +84,22 @@ attachEventListeners(context){
 }
 actionPerformed(id,context){
    if (id=="resumeid") {
-        this.component.getView().setButtonGroup(core.ModeEnum.LINE_MODE);
-        this.component.setMode(core.ModeEnum.LINE_MODE);         
-        this.component.resumeLine(context.target,"line", {x:this.x, y:this.y,which:3});
+        //this.component.getView().setButtonGroup(core.ModeEnum.LINE_MODE);
+        //this.component.setMode(core.ModeEnum.LINE_MODE);         
+        //this.component.resumeLine(context.target,"line", {x:this.x, y:this.y,which:3});
+        
+        if(context.target instanceof PCBTrack){                
+            this.component.getView().setButtonGroup(core.ModeEnum.TRACK_MODE);
+            this.component.setMode(core.ModeEnum.TRACK_MODE);
+            this.component.resumeLine(context.target,"track",  {x:this.x, y:this.y,which:3});
+            
+        }else{
+        	this.component.getView().setButtonGroup(core.ModeEnum.LINE_MODE);
+        	this.component.setMode(core.ModeEnum.LINE_MODE);
+        	this.component.resumeLine(context.target,"line",  {x:this.x, y:this.y,which:3});
+        }
+
+        return;
     }  	
     let line =this.component.lineBendingProcessor.line;
 	if(id=='lineslopebendid'){		

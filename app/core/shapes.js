@@ -288,9 +288,9 @@ reset() {
 }
 reverse(x,y) {
     let p=this.isBendingPointClicked(x, y);
-    if (this.points[0].x == p.x &&
-        this.points[0].y == p.y) {
-    	this.points.reverse(); 
+    if (this.polyline.points[0].x == p.x &&
+        this.polyline.points[0].y == p.y) {
+    	this.polyline.points.reverse(); 
     }       
 }
 Resize(xoffset, yoffset, clickedPoint) {
@@ -362,7 +362,7 @@ deleteLastPoint() {
 									.setLocation(this.points[this.points.length - 1]);
 }
 isEndPoint(x,y){
-    if (this.points.length< 2) {
+    if (this.polyline.points.length< 2) {
         return false;
     }
 
@@ -371,14 +371,33 @@ isEndPoint(x,y){
         return false;
     }
     //***head point
-    if (this.points[0].x == point.x && this.points[0].y == point.y) {
+    if (this.polyline.points[0].x == point.x && this.polyline.points[0].y == point.y) {
         return true;
     }
     //***tail point
-    if ((this.points[this.points.length - 1].x == point.x )&& (this.points[this.points.length - 1].y == point.y)) {
+    if ((this.polyline.points[this.polyline.points.length - 1].x == point.x )&& (this.polyline.points[this.polyline.points.length - 1].y == point.y)) {
         return true;
     }
     return false;	
+}
+getEndPoint(x,y){
+    if (this.polyline.points.length< 2) {
+        return null;
+    }
+
+    let point = this.isBendingPointClicked(x, y);
+    if (point == null) {
+        return null;
+    }
+    //***head point
+    if (this.polyline.points[0].x == point.x && this.polyline.points[0].y == point.y) {
+    	return this.polyline.points.get(0);
+    }
+    //***tail point
+    if ((this.polyline.points[this.polyline.points.length - 1].x == point.x )&& (this.polyline.points[this.polyline.points.length - 1].y == point.y)) {
+    	return (this.polyline.points.get(this.polyline.points.size() - 1));
+    }
+    return false;		
 }
 isInRect(r) {
 	var result = true;
@@ -399,13 +418,13 @@ setSelected(selection) {
      }
 }
 isBendingPointClicked( x,  y) {
-	var rect = new core.Rectangle(x
+	var rect = d2.Box.fromRect(x
 			- this.selectionRectWidth / 2, y - this.selectionRectWidth
 			/ 2, this.selectionRectWidth, this.selectionRectWidth);
 
     let point = null;
 
-	this.points.some(function(wirePoint) {
+	this.polyline.points.some(function(wirePoint) {
 		if (rect.contains(wirePoint.x, wirePoint.y)) {
 					point = wirePoint;
 		  return true;

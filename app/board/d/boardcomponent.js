@@ -24,7 +24,7 @@ var PCBSolidRegion=require('board/shapes').PCBSolidRegion;
 var SolidRegionEventHandle=require('pads/events').SolidRegionEventHandle;
 var d2=require('d2/d2');
 
-var LineEventHandle=require('pads/events').LineEventHandle;
+var LineEventHandle=require('core/events').LineEventHandle;
 var CopperAreaEventHandle=require('board/events').CopperAreaEventHandle;
 var TrackEventHandle=require('board/events').TrackEventHandle;
 var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').DefaultLineBendingProcessor;
