@@ -44,7 +44,13 @@ isPointOnLine(pointToAdd){
    return false;	
 }
 isSlopeInterval(p1,p2){
-    return ((!d2.utils.EQ(p1.x,p2.x))&&(!d2.utils.EQ(p1.y,p2.y)));
+	if(d2.utils.EQ(p1.x,p2.x)){
+		return false;
+	}
+	if(d2.utils.EQ(p1.y,p2.y)){
+		return false;
+	}
+	return true;	
 }
 }
 class LineSlopBendingProcessor extends LineBendingProcessor{
@@ -85,12 +91,16 @@ addLinePoint( point) {
         
 }	
 moveLinePoint(x,y){
+	
 	    if(this.line.getLinePoints().length>1){
-	        let lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
+	        //line is resumed if line end is not slope then go on from previous segment
+	    	let lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
 	        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
 	        if(this.isSlopeInterval(lastPoint, lastlastPoint)){
-	           this.handleLine(x, y);
+	            console.log("slope");
+	        	this.handleLine(x, y);
 	        }else{
+	        	console.log("line");
 	           this.handleSlope(x, y); 
 	        }
 	        

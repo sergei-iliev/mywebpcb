@@ -67,6 +67,7 @@ constructor(component) {
 
 Attach() {        
     super.Attach();
+    console.log(111);
     this.component.lineBendingProcessor.initialize(this.target);
 }
 mousePressed(event){

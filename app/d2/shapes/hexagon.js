@@ -30,6 +30,10 @@ module.exports = function(d2) {
             	point.move(offsetX,offsetY);
             });	
         }
+        mirror(line) {        
+            super.mirror(line);
+            this.pc.mirror(line);
+        }        
 		rotate(angle,center = {x:this.center.x, y:this.center.y}){
 			this.center.rotate(angle,center);
 			super.rotate(angle,center);

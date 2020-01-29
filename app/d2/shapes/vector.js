@@ -20,6 +20,17 @@ module.exports = function(d2) {
                  return;
              }	         
 		}
+		
+		set(...args){
+			  if (typeof(args[0]) == "number") {
+				  this.x=args[2] - args[0];   //x2-x1
+				  this.y=args[3] - args[1];  	//y2-y1
+			  }else{
+	              this.x = args[1].x - args[0].x;
+	              this.y = args[1].y - args[0].y;
+			  }       
+		} 
+		
         clone() {
             return new Vector(this.x, this.y);
         }

@@ -114,11 +114,11 @@ module.exports = function(d2) {
             this.pe.move(offsetX,offsetY);
         }  
 	    grow(offset){
-			if(this.width>=this.height){
-			  this.height+=2*offset;
-			}else{
-			  this.width+=2*offset;
-			}
+	        if(d2.utils.GE(width,height)){
+	            this.height +=  2*offset;
+	        } else {
+	            this.width +=  2*offset;
+	        }
 	    }
 		paint(g2){
 			g2.beginPath();
