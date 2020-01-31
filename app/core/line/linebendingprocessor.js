@@ -97,10 +97,8 @@ moveLinePoint(x,y){
 	    	let lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
 	        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
 	        if(this.isSlopeInterval(lastPoint, lastlastPoint)){
-	            console.log("slope");
 	        	this.handleLine(x, y);
 	        }else{
-	        	console.log("line");
 	           this.handleSlope(x, y); 
 	        }
 	        

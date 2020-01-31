@@ -108,13 +108,18 @@ module.exports = function(d2) {
       	  this.height*=alpha;
       	  
       	}
+        mirror(line){
+            this.pc.mirror(line);
+            this.ps.mirror(line);
+            this.pe.mirror(line);        
+        }    	
         move(offsetX,offsetY){
             this.pc.move(offsetX,offsetY);
             this.ps.move(offsetX,offsetY);
             this.pe.move(offsetX,offsetY);
         }  
 	    grow(offset){
-	        if(d2.utils.GE(width,height)){
+	        if(d2.utils.GE(this.width,this.height)){
 	            this.height +=  2*offset;
 	        } else {
 	            this.width +=  2*offset;

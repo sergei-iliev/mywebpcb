@@ -1638,7 +1638,6 @@ class OvalShape{
 	drawClearence(g2,viewportWindow,scale,source){
 		let o=this.obround.clone();
 	    o.grow(source.clearance);
-
 	    g2.strokeStyle = "black";  
 
 		o.scale(scale.getScale());
@@ -1713,8 +1712,8 @@ constructor(x,y,width,pad){
 		this.hexagon=new d2.Hexagon(new d2.Point(x,y),width);		
 }	
 drawClearence(g2,viewportWindow,scale,source){
-	    let h=new d2.Hexagon(this.hexagon.center.clone(),(this.hexagon.width+2*source.clearance));
-	    h.rotate(this.pad.rotate);
+	    let h=this.hexagon.clone();
+	    h.grow(source.clearance);
      
 	    g2._fill=true;		   
 		g2.fillStyle = "black";	
@@ -1774,10 +1773,10 @@ move(xoffset, yoffset) {
 		this.hexagon.move(xoffset,yoffset);
 }
 mirror(line) {
-   hexagon.mirror(line);
+   this.hexagon.mirror(line);
 }
 setWidth(width) {
-        this.hexagon.setWidth(width);
+   this.hexagon.setWidth(width);
 }
 setHeight(height) {
             

@@ -77,8 +77,7 @@ ButtonView=Backbone.View.extend({
     },
     onsave:function(){
     	let workspace=j$('#workspacecomboid').val()!=''?j$('#workspacecomboid').val():'null';
-	    let name=j$('#projectnameid').val()!=''?j$('#projectnameid').val():'null'
-	    	console.log(workspace+'='+name);	
+	    let name=j$('#projectnameid').val()!=''?j$('#projectnameid').val():'null'	
     	j$.ajax({
 	        type: 'POST',
 	        contentType: 'application/xml',

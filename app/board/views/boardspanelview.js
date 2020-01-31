@@ -454,7 +454,6 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 			 
 		   texture=this.target.value;
 		   j$("#valueid").val(texture==null?"":texture.text);
-	
 		   j$("#sideid").val(this.target.getSide());
 	},
 	render:function(){	

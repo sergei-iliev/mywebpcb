@@ -67,7 +67,6 @@ constructor(component) {
 
 Attach() {        
     super.Attach();
-    console.log(111);
     this.component.lineBendingProcessor.initialize(this.target);
 }
 mousePressed(event){
@@ -139,7 +138,6 @@ mousePressed(event){
       }
       this.component.getModel().getUnit().setSelected(false);
 	  this.target.setSelected(true);
-
       let p;      
       
       if(this.component.getParameter("snaptogrid")){
@@ -147,6 +145,8 @@ mousePressed(event){
       }else{
         p=new d2.Point(event.x,event.y);
       }
+
+      
       let justcreated=this.target.polygon.points.length==2;
       
       if(this.target.getLinePoints().length==0){
@@ -214,7 +214,7 @@ class BoardEventMgr{
 	    var handle=this.hash.get(eventKey);
 		if(handle!=null){
 		  handle.setTarget(target);
-		  if(eventKey=='resize'||eventKey=='move'||eventKey=='line'||eventKey=='texture'){
+		  if(eventKey=="move"||eventKey=="copperarea"||eventKey=="track"||eventKey=="line"||eventKey=="texture"||eventKey=="symbol"||eventKey=="resize"||eventKey=="solidregion"){		        	
 		     this.component.getModel().getUnit().fireShapeEvent({target:target,type:events.Event.SELECT_SHAPE});
 		  }
 		  if(eventKey=='component'||eventKey=="origin"){

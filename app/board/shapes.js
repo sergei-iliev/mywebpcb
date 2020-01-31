@@ -99,6 +99,9 @@ add(shape){
     shape.isControlPointVisible=false;
     this.shapes.push(shape);  
 } 
+getPads(){
+   return this.shapes.filter(s => s instanceof Pad);        
+}
 getClickedTexture(x,y) {
     if(this.reference.isClicked(x, y))
         return this.reference;
@@ -136,6 +139,7 @@ setSide(side){
 getSide(){
     return core.Layer.Side.resolve(this.copper.getLayerMaskID());       
 }
+
 clear() {    
 	this.shapes.forEach(function(shape) {
 		  shape.owningUnit=null;

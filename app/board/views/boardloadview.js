@@ -106,7 +106,6 @@ LibraryView=Backbone.View.extend({
 	onloadworkspaces:function(data, textStatus, jqXHR){
 		var that=this; 
 		j$(data).find("name").each(j$.proxy(function(){
-			console.log();
 		  j$('#projectcombo').append('<option value="' +j$(this).text()+ '">' +  j$(this).text() + '</option>');
 		}),that);
 

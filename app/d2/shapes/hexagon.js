@@ -24,16 +24,34 @@ module.exports = function(d2) {
 			  this.width=width;
 			  this.reset();			    
 		}
+		grow(offset) {
+		       this.width += 2 * offset;
+		       let a =(2*offset)/Math.sqrt(3);
+		            
+
+		       let v=new d2.Vector(0,0);
+		        
+		            for(i=0;i<this.points.length;i++){
+		                v.set(this.center, this.points[i]);
+		                let norm = v.normalize();
+		                let x = this.points[i].x + a * norm.x;
+		                let y = this.points[i].y + a * norm.y;
+		        
+		                this.points[i].set(x, y);
+		            }
+		            
+		            
+		}		
         move(offsetX,offsetY){
         	this.center.move(offsetX,offsetY);
             this.points.forEach(point=>{
             	point.move(offsetX,offsetY);
             });	
-        }
-        mirror(line) {        
-            super.mirror(line);
-            this.pc.mirror(line);
         }        
+        mirror(line) {        
+          super.mirror(line);
+          this.center.mirror(line);
+        }
 		rotate(angle,center = {x:this.center.x, y:this.center.y}){
 			this.center.rotate(angle,center);
 			super.rotate(angle,center);

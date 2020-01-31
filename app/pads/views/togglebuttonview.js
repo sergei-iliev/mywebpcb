@@ -90,7 +90,6 @@ var ToggleButtonView=Backbone.View.extend({
 //		        	j$('#mywebpadsid').unblock();
 //		        }
 //		    });
-			console.log(this.footprintComponent.getModel().format());
 			new FootprintSaveView({footprintComponent:this.footprintComponent}).render();			
 		}
 

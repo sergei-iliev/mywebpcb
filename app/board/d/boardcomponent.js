@@ -181,9 +181,7 @@ constructor() {
   	  this.formatedFileName="Boards";
   	}
 parse(xml){
-	  this.workspacename=(j$(xml).find("workspaceName").text());
-	  console.log(j$(xml).find("projectName").text());
-	   	
+	  this.workspacename=(j$(xml).find("workspaceName").text());	   	
 	  this.setFileName(j$(xml).find("projectName").text());
 	  var that=this;
 	  
@@ -204,7 +202,6 @@ format() {
 	  xml+="\r\n";
 	}    	    	
     xml+="</boards>";
-    console.log(xml);
     return xml;
 }
 
