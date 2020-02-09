@@ -673,15 +673,15 @@ paint(g2, viewportWindow, scale,layersmask) {
 	}
 }
 toXML(){
-	
+    return "<hole x=\""+utilities.roundFloat(this.circle.pc.x,5)+"\" y=\""+utilities.roundFloat(this.circle.pc.y,5)+"\" width=\""+this.circle.r*2+"\"  clearance=\""+this.clearance+"\" />";	
 }
 fromXML(data) {
 	let x=parseFloat(j$(data).attr("x"));
 	let y=parseFloat(j$(data).attr("y"));
     this.circle.pc.set(x,y);
 
-	this.circle.r=(parseInt(j$(data).attr("width")));	
-	this.clearance=(parseInt(j$(data).attr("clearance")));	      
+	this.circle.r=(parseInt(j$(data).attr("width")))/2;	
+	this.clearance=(parseInt(j$(data).attr("clearance")));		
 } 
 
 }
