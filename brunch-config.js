@@ -22,6 +22,9 @@ exports.files = {
 	  ]
 	},
 	entryPoints: {      
+	  'app/symbols/symbols.js':{
+      	'symbols/symbols.js': /^app/  
+      },
       'app/pads/pads.js':{
     	'pads/pads.js': /^app/        
       },

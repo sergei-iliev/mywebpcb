@@ -375,15 +375,15 @@ var AffineTransform=(function(){
 })();
 
 class ScalableTransformation{
-  constructor(scaleFactor,minScaleFactor,maxScaleFactor) {
-        this.Reset(scaleFactor,minScaleFactor,maxScaleFactor);
+  constructor(scaleFactor,minScaleFactor,maxScaleFactor) {	    
+        this.reset(0.5,scaleFactor,minScaleFactor,maxScaleFactor);
   }
   getScaleRatio(){
-     return 0.5;  
+     return this.scaleRatio;  
    }
    
   getInverseScaleRatio(){
-     return 2;  
+	return 1/this.scaleRatio;
   }
   getScaleFactor(){
      return this.scaleFactor;  
@@ -391,16 +391,17 @@ class ScalableTransformation{
   setScaleFactor(newScaleFactor){
     this.Reset(newScaleFactor,this.minScaleFactor,this.maxScaleFactor); 
   } 
-  Reset(scaleFactor,minScaleFactor,maxScaleFactor){
+  reset(scaleRatio,scaleFactor,minScaleFactor,maxScaleFactor){
         this.scaleFactor=scaleFactor;
         this.maxScaleFactor=maxScaleFactor;
         this.minScaleFactor=minScaleFactor;
+        this.scaleRatio=scaleRatio;
         this.scale=this.calculateTransformation();
   }
   getScale(){
      return this.scale;
   }
-  ScaleOut(){
+  scaleOut(){
         this.scaleFactor --;
         if (this.scaleFactor == this.minScaleFactor-1) {
                 this.scaleFactor = this.minScaleFactor;
@@ -410,14 +411,14 @@ class ScalableTransformation{
         this.scale=this.calculateTransformation();
         return true;
   }
-  ScaleIn(){
+  scaleIn(){
             this.scaleFactor++ ;
             if (this.scaleFactor == this.maxScaleFactor) {
                 this.scaleFactor = this.maxScaleFactor-1;
                 return false;
             }            
             this.scale=this.calculateTransformation();
-            return true;   
+            return true;    
   }
   getInversePoint(x,y){
        let s=1.0;
@@ -441,7 +442,7 @@ class ScalableTransformation{
        let x=1.0;
        if(this.scaleFactor!=0){     
            for(let i=0;i<this.scaleFactor;i++){
-             x*=0.5;
+             x*=this.scaleRatio;
            }
        }
        return x;
@@ -471,17 +472,17 @@ class ViewportWindow{
 	     this.width=width;
 	     this.height=height;	 
 	 }
-	 scalein( xx, yy,scalableTransformation){ 
-	    let a=this.x*scalableTransformation.getInverseScaleRatio();
-		let b=this.y*scalableTransformation.getInverseScaleRatio();
-	    this.x=parseInt(a)+xx;
-	    this.y=parseInt(b)+yy;   
+	 scaleIn( xx, yy,scale){ 
+	    let a=(this.x+xx)*scale.getScaleRatio();
+		let b=(this.y+yy)*scale.getScaleRatio();
+	    this.x=parseInt(a)-xx;
+	    this.y=parseInt(b)-yy; 		     
 	 }
-	 scaleout( xx, yy,scalableTransformation){ 
-	    let a=(this.x-xx)*scalableTransformation.getScaleRatio();
-		let b=(this.y-yy)*scalableTransformation.getScaleRatio();
-	    this.x=parseInt(a);
-	    this.y=parseInt(b); 
+	 scaleOut( xx, yy,scale){ 	    
+        let a=this.x*scale.getInverseScaleRatio();
+        let b=this.y*scale.getInverseScaleRatio();
+        this.x=(parseInt(a)+xx);
+        this.y=(parseInt(b)+yy);
 	 }
 	 toString(){
 	   return "{"+this.x+","+this.y+","+this.width+","+this.height+"}";
@@ -502,6 +503,7 @@ class Grid{
    this.gridPointToPoint=0;
    this.pixelToPixelLimit=10;
    this.paintable=true;
+   this.pointsColor='white';
    this.setGridUnits(value,units);
  }
  clone(){
@@ -594,7 +596,7 @@ paint(g2,viewportWindow,scalableTransformation){
 				 
 				 g2.beginPath();
 				 g2.fillRect(point.x, point.y,2,2);
-				 g2.fillStyle = 'white';
+				 g2.fillStyle = this.pointsColor;				 
 				 g2.fill();                                       
             }
 	}

@@ -600,6 +600,7 @@ class UnitComponent{
 	}
 	
 	this.mode=core.ModeEnum.COMPONENT_MODE;
+	this.backgroundColor="black";
 	this.view=null;
 	this.cursor=null;
 	
@@ -745,15 +746,15 @@ mouseWheelMoved(event){
 	  }
 	var e=this.getScaledEvent(event);
 	if(event.originalEvent.wheelDelta /120 > 0) {
-		   this.ZoomIn(e.windowx,e.windowy);
+		   this.ZoomOut(e.windowx,e.windowy);
       }
       else{
-		   this.ZoomOut(e.windowx,e.windowy);
+		   this.ZoomIn(e.windowx,e.windowy);
       }
 }
 ZoomIn(x,y){
-    if(this.getModel().getUnit().getScalableTransformation().ScaleOut()){
-        this.viewportWindow.scalein(x,y, this.getModel().getUnit().getScalableTransformation());
+    if(this.getModel().getUnit().getScalableTransformation().scaleIn()){
+        this.viewportWindow.scaleIn(x,y, this.getModel().getUnit().getScalableTransformation());
         this.repaint();         
     }else{
         return false;
@@ -770,8 +771,8 @@ ZoomIn(x,y){
 	return true;
 }
 ZoomOut(x,y){
-    if(this.getModel().getUnit().getScalableTransformation().ScaleIn()){
-            this.viewportWindow.scaleout(x,y, this.getModel().getUnit().getScalableTransformation());
+    if(this.getModel().getUnit().getScalableTransformation().scaleOut()){
+            this.viewportWindow.scaleOut(x,y, this.getModel().getUnit().getScalableTransformation());
             this.repaint();                       
     }else{
             return false;
@@ -835,7 +836,7 @@ getContainerCursor() {
 }
 repaint(){
 	  if(this.getModel().getUnit()!=null){
-      this.ctx.fillStyle = "black";
+      this.ctx.fillStyle = this.backgroundColor;
       this.ctx.fillRect(0, 0, this.width, this.height); 
 	  this.getModel().getUnit().paint(this.ctx,this.viewportWindow);
       if (this.cursor != null) {
