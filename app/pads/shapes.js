@@ -222,6 +222,7 @@ class RoundRect extends Shape{
 	  this.roundRect.setRounding(rounding);
 	}
 	setResizingPoint(pt){
+		console.log(pt);
 		this.resizingPoint=pt;
 	}
 	getResizingPoint() {

@@ -740,11 +740,12 @@ mouseMove(event){
 
 }
 mouseWheelMoved(event){
-    event.preventDefault();
+    event.preventDefault();    
 	  if (this.getModel().getUnit() == null) { 
 		return; 
 	  }
 	var e=this.getScaledEvent(event);
+
 	if(event.originalEvent.wheelDelta /120 > 0) {
 		   this.ZoomOut(e.windowx,e.windowy);
       }
@@ -761,6 +762,7 @@ ZoomIn(x,y){
     } 
 	this.hbar.off(); 
 	this.vbar.off(); 
+
 	//set new maximum 
 	this.hbar.jqxScrollBar({ value:this.viewportWindow.x,width: this.width, height: 18, min: 0, max: parseInt(this.getModel().getUnit().getWidth()*this.getModel().getUnit().getScalableTransformation().getScale()-this.width)});
 	this.vbar.jqxScrollBar({ value:this.viewportWindow.y,width: 18, min: 0, max: parseInt(this.getModel().getUnit().getHeight()*this.getModel().getUnit().getScalableTransformation().getScale()-this.height)});

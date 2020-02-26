@@ -128,82 +128,82 @@ var ToggleButtonView=Backbone.View.extend({
 		//set mode
 		if(event.data.model.id=='lineid'){
 		  //Line mode
-		   this.footprintComponent.setMode(core.ModeEnum.LINE_MODE);
+		   this.symbolComponent.setMode(core.ModeEnum.LINE_MODE);
 		}
 		if(event.data.model.id=='anchorid'){
 			event.data.model.setActive(!event.data.model.isActive());  
-			this.footprintComponent.setParameter("snaptogrid",event.data.model.isActive());
+			this.symbolComponent.setParameter("snaptogrid",event.data.model.isActive());
 		}
 		if(event.data.model.id=='originid'){	
 			event.data.model.setActive(!event.data.model.isActive());
 			if(event.data.model.isActive()){
-			  this.footprintComponent.getModel().getUnit().coordinateSystem=new shape.CoordinateSystem(this.footprintComponent.getModel().getUnit());
-			  this.footprintComponent.setMode(core.ModeEnum.ORIGIN_SHIFT_MODE);
+			  this.symbolComponent.getModel().getUnit().coordinateSystem=new shape.CoordinateSystem(this.footprintComponent.getModel().getUnit());
+			  this.symbolComponent.setMode(core.ModeEnum.ORIGIN_SHIFT_MODE);
 			}else{
-			  this.footprintComponent.getModel().getUnit().coordinateSystem=null;
-			  this.footprintComponent.setMode(core.ModeEnum.COMPONENT_MODE);
+			  this.symbolComponent.getModel().getUnit().coordinateSystem=null;
+			  this.symbolComponent.setMode(core.ModeEnum.COMPONENT_MODE);
 			}
 						
 		}
 		if(event.data.model.id=='measureid'){ 
-			this.footprintComponent.setMode(core.ModeEnum.MEASUMENT_MODE);
+			this.symbolComponent.setMode(core.ModeEnum.MEASUMENT_MODE);
 		}
 		if(event.data.model.id=='rectid'){
 			this.symbolComponent.setMode(core.ModeEnum.RECT_MODE);
 		}
 		if(event.data.model.id=='ellipseid'){
-			this.footprintComponent.setMode(core.ModeEnum.ELLIPSE_MODE);
+			this.symbolComponent.setMode(core.ModeEnum.ELLIPSE_MODE);
 		}
 		if(event.data.model.id=='arcid'){
-			this.footprintComponent.setMode(core.ModeEnum.ARC_MODE);
+			this.symbolComponent.setMode(core.ModeEnum.ARC_MODE);
 		}
 		if(event.data.model.id=='labelid'){
-			this.footprintComponent.setMode(core.ModeEnum.LABEL_MODE);
+			this.symbolComponent.setMode(core.ModeEnum.LABEL_MODE);
 		}
 		if(event.data.model.id=='padid'){
-			this.footprintComponent.setMode(core.ModeEnum.PAD_MODE);
+			this.symbolComponent.setMode(core.ModeEnum.PAD_MODE);
 		}
 		if(event.data.model.id=='solidregionid'){
-			this.footprintComponent.setMode(core.ModeEnum.SOLID_REGION);
+			this.symbolComponent.setMode(core.ModeEnum.SOLID_REGION);
 		}		
 		if(event.data.model.id=='selectionid'){
 		   this.symbolComponent.setMode(core.ModeEnum.COMPONENT_MODE);
 		}		
 		if((event.data.model.id=='rotateleftid')||(event.data.model.id=='rotaterightid')){
-            shapes= this.footprintComponent.getModel().getUnit().shapes;
+            shapes= this.symbolComponent.getModel().getUnit().shapes;
             if(shapes.length==0){
                return; 
             }  
 			//shapes= this.footprintComponent.getModel().getUnit().getSelectedShapes();
-			var r=this.footprintComponent.getModel().getUnit().getShapesRect(shapes);
+			var r=this.symbolComponent.getModel().getUnit().getShapesRect(shapes);
             
             UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(event.data.model.id==("rotateleftid")?1:-1)*(90.0)));   
-            UnitMgr.getInstance().alignBlock(this.footprintComponent.getModel().getUnit().grid,shapes);  
+            UnitMgr.getInstance().alignBlock(this.symbolComponent.getModel().getUnit().grid,shapes);  
             
-            this.footprintComponent.repaint();
+            this.symbolComponent.repaint();
 		}
 		if(event.data.model.id=='zoominid'){
-			this.footprintComponent.ZoomIn(parseInt(this.footprintComponent.width/2),parseInt(this.footprintComponent.height/2));
+			this.symbolComponent.ZoomIn(parseInt(this.footprintComponent.width/2),parseInt(this.footprintComponent.height/2));
 		}
 		if(event.data.model.id=='zoomoutid'){
-			this.footprintComponent.ZoomOut(parseInt(this.footprintComponent.width/2),parseInt(this.footprintComponent.height/2));
+			this.symbolComponent.ZoomOut(parseInt(this.footprintComponent.width/2),parseInt(this.footprintComponent.height/2));
 		}	
 		if(event.data.model.id=='grabid'){
-			 this.footprintComponent.setMode(core.ModeEnum.DRAGHEAND_MODE);
+			 this.symbolComponent.setMode(core.ModeEnum.DRAGHEAND_MODE);
 		}	
 		if(event.data.model.id=='tocenterid'){
 			
-            this.footprintComponent.setScrollPosition(parseInt(this.footprintComponent.getModel().getUnit().width/2),
+            this.symbolComponent.setScrollPosition(parseInt(this.footprintComponent.getModel().getUnit().width/2),
             		parseInt(this.footprintComponent.getModel().getUnit().height/2));
 		}		
         if (event.data.model.id=='measureid') {
-            this.footprintComponent.setMode(core.ModeEnum.MEASUMENT_MODE);
+            this.symbolComponent.setMode(core.ModeEnum.MEASUMENT_MODE);
         }		
 	},
 	onload:function(selectedModel){
 		//****load it    	
-		  this.footprintComponent.Clear();
-		  this.footprintComponent.setMode(core.ModeEnum.COMPONENT_MODE);
+		  this.symbolComponent.Clear();
+		  this.symbolComponent.setMode(core.ModeEnum.COMPONENT_MODE);
 		  
 		  
 		  for(let unit of selectedModel.getUnits()){
@@ -211,7 +211,7 @@ var ToggleButtonView=Backbone.View.extend({
 			  var copy=unit.clone();
 			  core.isEventEnabled=true;
 			  
-			  this.footprintComponent.getModel().add(copy);  			  			  
+			  this.symbolComponent.getModel().add(copy);  			  			  
 			  copy.notifyListeners(events.Event.ADD_SHAPE);
 		  };
 		  

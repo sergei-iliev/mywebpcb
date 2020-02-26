@@ -6,6 +6,8 @@ var mywebpcb=require('core/core').mywebpcb;
 var core = require('core/core');
 var events=require('core/events');
 var RoundRect=require('symbols/shapes').RoundRect;
+var FontLabel=require('symbols/shapes').FontLabel;
+var Ellipse=require('symbols/shapes').Ellipse;
 var SymbolContextMenu=require('symbols/popup/symbolpopup').SymbolContextMenu;
 var SymbolShapeFactory=require('symbols/shapes').SymbolShapeFactory;
 var SymbolEventMgr = require('symbols/events').SymbolEventMgr;
@@ -15,11 +17,10 @@ var d2=require('d2/d2');
 class Symbol extends Unit{
 constructor(width,height) {
        super(width,height); 
-       this.scalableTransformation.reset(1.2,0,0,15);
+       this.scalableTransformation.reset(1.2,2,2,15);
 	   this.shapeFactory = new SymbolShapeFactory();
        this.grid.setGridUnits(8, core.Units.PIXEL);
        this.grid.pointsColor='black'; 
-       //this.grid.setPointsColor(Color.BLACK);
 	}
 clone(){
 	  var copy=new Symbol(this.width,this.height);
@@ -165,7 +166,7 @@ setMode(_mode){
 	          
 	          break;
 	        case  core.ModeEnum.ELLIPSE_MODE:	
-	            shape=new Circle(0,0,core.MM_TO_COORD(3.4),core.MM_TO_COORD(0.2),core.Layer.SILKSCREEN_LAYER_FRONT);
+	            shape=new Ellipse(70,50);
 	            this.setContainerCursor(shape);               
 	            this.getEventMgr().setEventHandle("cursor",shape); 
 	          break;
@@ -175,7 +176,7 @@ setMode(_mode){
 	            this.getEventMgr().setEventHandle("cursor",shape); 
 	          break;
 	        case  core.ModeEnum.LABEL_MODE:
-	            shape=new GlyphLabel("sergei_iliev@yahoo.com",core.MM_TO_COORD(0.3),core.Layer.SILKSCREEN_LAYER_FRONT);			
+	            shape=new FontLabel(0,0);			
 		        this.setContainerCursor(shape);               
 	            this.getEventMgr().setEventHandle("cursor",shape); 
 	          break;
@@ -235,31 +236,31 @@ mouseDown(event){
     		
     	  var shape=this.getModel().getUnit().isControlRectClicked(scaledEvent.x, scaledEvent.y);
 		  if(shape!=null){
-                if(shape instanceof Arc){
-                     if(shape.isStartAnglePointClicked(scaledEvent.x , scaledEvent.y)){ 
-                         this.getEventMgr().setEventHandle("arc.start.angle",shape);                    
-                     }else if(shape.isExtendAnglePointClicked(scaledEvent.x , scaledEvent.y)){
-                         this.getEventMgr().setEventHandle("arc.extend.angle",shape);                      
-                     }else if(shape.isMidPointClicked(scaledEvent.x , scaledEvent.y)){
-                    	  this.getEventMgr().setEventHandle("arc.mid.point",shape);
-                     }else{
-                          this.getEventMgr().setEventHandle("resize",shape);    
-                     }
-                    }else{
+//                if(shape instanceof Arc){
+//                     if(shape.isStartAnglePointClicked(scaledEvent.x , scaledEvent.y)){ 
+//                         this.getEventMgr().setEventHandle("arc.start.angle",shape);                    
+//                     }else if(shape.isExtendAnglePointClicked(scaledEvent.x , scaledEvent.y)){
+//                         this.getEventMgr().setEventHandle("arc.extend.angle",shape);                      
+//                     }else if(shape.isMidPointClicked(scaledEvent.x , scaledEvent.y)){
+//                    	  this.getEventMgr().setEventHandle("arc.mid.point",shape);
+//                     }else{
+//                          this.getEventMgr().setEventHandle("resize",shape);    
+//                     }
+//                    }else{
 						this.getEventMgr().setEventHandle("resize",shape); 
-                    }
+                    //}
 			
  
 		  }else{
 		     shape = this.getModel().getUnit().getClickedShape(scaledEvent.x, scaledEvent.y, true);
 		     
 		     if(shape!=null){
-			   if (UnitMgr.getInstance().isBlockSelected(this.getModel().getUnit().shapes) && shape.isSelected()){
-                 this.getEventMgr().setEventHandle("block", null);						 
-		       }else if ((!(shape instanceof GlyphLabel))&&(undefined !=shape['getTextureByTag'])&&shape.getClickedTexture(scaledEvent.x, scaledEvent.y)!=null){
-			     this.getEventMgr().setEventHandle("texture",shape);
-               }else
-		         this.getEventMgr().setEventHandle("move",shape);
+                 //***block operation
+				 if (UnitMgr.getInstance().isBlockSelected(this.getModel().getUnit().shapes) && shape.isSelected()){
+		                 this.getEventMgr().setEventHandle("block", null);		    	 		         
+		    	 }else{	 
+		    		 this.getEventMgr().setEventHandle("move",shape);
+		    	 }
 		     }else{
 		         this.getEventMgr().setEventHandle("component",null);
 		     }

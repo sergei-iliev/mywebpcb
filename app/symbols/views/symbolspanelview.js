@@ -4,8 +4,9 @@ var core=require('core/core');
 var UnitMgr = require('core/unit').UnitMgr;
 var utilities =require('core/utilities');
 var BaseBuilder = require('core/views/panelview').BaseBuilder;
-
-
+var	RoundRect=require('symbols/shapes').RoundRect;
+var	Ellipse=require('symbols/shapes').Ellipse;
+var	FontLabel=require('symbols/shapes').FontLabel;
 
 var ComponentPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
@@ -41,6 +42,84 @@ var ComponentPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
 				"</td></tr></table>"
 		);	
+		return this;
+	}
+});
+var EllipsePanelBuilder=BaseBuilder.extend({
+	initialize:function(component){
+		EllipsePanelBuilder.__super__.initialize(component);
+		this.id="ellipsepanelbuilder";  
+    },	
+    events: {
+        'keypress #xid' : 'onenter',	
+        'keypress #yid' : 'onenter',
+        'keypress #thicknessid' : 'onenter',        
+        'keypress #radiusid' : 'onenter',
+        'change #fillid': 'onchange',
+    },
+    onchange:function(event){
+        if(event.target.id=='layerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        }
+        if(event.target.id=='fillid'){        
+        	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
+        }
+        this.component.repaint(); 
+      },    
+    onenter:function(event){
+		 if(event.keyCode != 13){
+				return; 
+		 }
+		 if(event.target.id=='thicknessid'){
+			this.target.thickness=parseFloat(j$('#thicknessid').val());			 
+		 } 
+		 if(event.target.id=='radiusid'){
+		   this.target.circle.r=(core.MM_TO_COORD(parseFloat(j$('#radiusid').val())));			 
+		 } 
+		 if(event.target.id=='xid'){			 
+	         var x=this.fromUnitX(j$('#xid').val()); 
+	         this.target.Resize(x-this.target.resizingPoint.x, 0, this.target.resizingPoint);			   
+		 } 
+	     if(event.target.id=='yid'){		
+	         var y=this.fromUnitY(j$('#yid').val()); 
+	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
+		 } 		 
+		 this.component.repaint(); 		 
+    },
+
+	updateui:function(){
+        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
+        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
+        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
+        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
+		j$('#thicknessid').val(this.target.thickness);
+		j$("#radiusxid").val((this.target.ellipse.w));    
+		j$("#radiusyid").val((this.target.ellipse.h));
+		j$("#fillid").val(this.target.fill);		
+	},
+	render:function(){
+		j$(this.el).empty();
+		j$(this.el).append(
+				"<table width='100%'>"+
+				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+			    "</select>" +
+				"</td></tr>"+				
+				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Fill</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"fillid\">"+
+				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+			    "</select>" +
+				"</td></tr>"+				
+				
+				"<tr><td style='padding:7px'>Radius X</td><td><input type='text' id='radiusxid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Radius Y</td><td><input type='text' id='radiusyid' value='' class='form-control input-sm\'></td></tr>"+
+				
+		"</table>");
+			
 		return this;
 	}
 });
@@ -181,7 +260,137 @@ var SymbolPanelBuilder=BaseBuilder.extend({
 		return this;
 	}
 });
-
+var LabelPanelBuilder=BaseBuilder.extend({
+	initialize:function(component){
+		LabelPanelBuilder.__super__.initialize(component);	
+		this.id="labelpanelbuilder";   
+    },
+    events: {
+        'keypress #xid' : 'onenter',	
+        'keypress #yid' : 'onenter',
+        'keypress #textid' : 'onenter',	
+        'keypress #rotateid' : 'onenter',
+        'keypress #sizeid' : 'onenter',	
+        'keypress #thicknessid' : 'onenter',	
+		'change #layerid':'onchange',
+    },
+    onchange:function(event){      
+	  if(event.target.id=='layerid'){
+		  this.target.setCopper(core.Layer.Copper.valueOf(j$('#layerid').val()));
+      }
+      this.component.repaint(); 
+    },
+    onenter:function(event){
+		 if(event.keyCode != 13){
+				return; 
+		 }
+		  if(event.target.id=='rotateid'){
+		      this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val()))); 
+		  }			 
+		 if(event.target.id=='textid'){
+			 this.target.texture.setText(j$('#textid').val());			  
+		 }
+		 if(event.target.id=='sizeid'){
+			 this.target.texture.setSize(core.MM_TO_COORD(parseFloat(j$('#sizeid').val())));			 
+		 }
+		 if(event.target.id=='thicknessid'){
+			 this.target.texture.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
+		 }		          
+		 if((event.target.id=='yid')||(event.target.id=='xid')){	            
+			 this.target.texture.setLocation(this.fromUnitX(j$('#xid').val()),this.fromUnitY(j$('#yid').val()));  
+	     }		 
+		 this.component.repaint();     		    	
+    },
+	updateui:function(){
+	 j$('#textid').val(this.target.texture.shape.text);	
+	 j$('#xid').val((this.target.texture.shape.anchorPoint.x));
+	 j$('#yid').val((this.target.texture.shape.anchorPoint.y));	 
+//	 j$('#sizeid').val(core.COORD_TO_MM(this.target.texture.size));
+//	 j$('#thicknessid').val(core.COORD_TO_MM(this.target.texture.thickness));
+	},
+	render:function(){
+		j$(this.el).empty();
+		j$(this.el).append(
+				"<table width='100%'>"+
+				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Text</td><td><input type='text' id='textid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='sizeid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
+		        "</table>");
+			
+		return this;
+	}
+});
+var RectPanelBuilder=BaseBuilder.extend({
+	initialize:function(component){
+		RectPanelBuilder.__super__.initialize(component);
+		this.id="rectpanelbuilder"; 
+    },	
+    events: {
+        'keypress #xid' : 'onenter',	
+        'keypress #yid' : 'onenter',
+        'keypress #thicknessid' : 'onenter',
+        'keypress #rotateid' : 'onenter',        
+        'keypress #roundingid' : 'onenter',
+        'change #fillid': 'onchange',
+    },
+    onchange:function(event){
+    	if(event.target.id=='fillid'){        
+        	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
+        }
+        this.component.repaint(); 
+      },    
+    onenter:function(event){
+		 if(event.keyCode != 13){
+				return; 
+		 }
+		 if(event.target.id=='thicknessid'){
+			 this.target.thickness=(parseFloat(j$('#thicknessid').val()));			 
+		 } 	 	
+		 if(event.target.id=='xid'){			 
+	         var x=this.fromUnitX(j$('#xid').val()); 
+	         this.target.Resize(x-this.target.resizingPoint.x, 0, this.target.resizingPoint);			   
+		 } 
+	     if(event.target.id=='yid'){		
+	         var y=this.fromUnitY(j$('#yid').val()); 
+	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
+		 } 	
+		 if(event.target.id=='roundingid'){
+			 this.target.setRounding((parseFloat(j$('#roundingid').val())));			 
+		 }
+		 this.component.repaint(); 		 
+    },
+	updateui:function(){
+        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
+        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
+        j$('#xid').val(utilities.roundDouble(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x)));
+        j$('#yid').val(utilities.roundDouble(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y))); 
+		j$('#thicknessid').val(this.target.thickness);
+		//j$("#rotateid").val(this.target.rotate);    
+		j$("#roundingid").val(this.target.roundRect.rounding);
+		j$("#fillid").val(this.target.fill);
+	},
+	render:function(){
+		j$(this.el).empty();
+		j$(this.el).append(
+				"<table width='100%'>"+			
+				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Fill</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"fillid\">"+
+				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+			    "</select>" +
+				"</td></tr>"+
+				//"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Rounding</td><td><input type='text' id='roundingid' value='' class='form-control input-sm\'></td></tr>"+						        
+		"</table>");
+			
+		return this;
+	}
+});
 var SymbolsTree=Backbone.View.extend({	
 	initialize:function(opt){		
 	    //creat tree
@@ -328,11 +537,11 @@ var SymbolsInspector=Backbone.View.extend({
 		this.collection=new Backbone.Collection([
 		                                         new SymbolPanelBuilder(this.symbolComponent),
 		                                         //new LinePanelBuilder(this.footprintComponent),
-		                                         //new RectPanelBuilder(this.footprintComponent),
+		                                         new RectPanelBuilder(this.symbolComponent),
 		                                         //new PadPanelBuilder(this.footprintComponent),
-		                                         //new LabelPanelBuilder(this.footprintComponent),
-		                                         new ComponentPanelBuilder(this.symbolComponent)
-		                                         //new CirclePanelBuilder(this.footprintComponent),
+		                                         new LabelPanelBuilder(this.footprintComponent),
+		                                         new ComponentPanelBuilder(this.symbolComponent),
+		                                         new EllipsePanelBuilder(this.symbolComponent),
 		                                         //new SolidRegionPanelBuilder(this.footprintComponent),
 		                                         //new ArcPanelBuilder(this.footprintComponent)
 		                                         ]);
@@ -414,7 +623,7 @@ var SymbolsInspector=Backbone.View.extend({
 		switch(event.type){
 		case events.Event.PROPERTY_CHANGE:
 		case events.Event.SELECT_SHAPE:
-		if(event.target instanceof GlyphLabel){
+		if(event.target instanceof FontLabel){
 			if(this.panel.id!='labelpanelbuilder'){
 				this.panel.attributes.remove();
 				this.panel=this.collection.get('labelpanelbuilder');
@@ -430,44 +639,45 @@ var SymbolsInspector=Backbone.View.extend({
 				this.render();
 		    }
 		}
-		if(event.target instanceof Pad){
-			if(this.panel.id!='padpanelbuilder'){
+//		if(event.target instanceof Pad){
+//			if(this.panel.id!='padpanelbuilder'){
+//				this.panel.attributes.remove();
+//				this.panel=this.collection.get('padpanelbuilder');
+//				this.panel.attributes.delegateEvents();
+//				this.render();
+//		    }
+//		}
+//		if(event.target instanceof Line){
+//			if(this.panel.id!='linepanelbuilder'){
+//				this.panel.attributes.remove();
+//				this.panel=this.collection.get('linepanelbuilder');
+//				this.panel.attributes.delegateEvents();
+//				this.render();				
+//			}	
+//		}
+		if(event.target instanceof Ellipse){
+			if(this.panel.id!='ellipsepanelbuilder'){
 				this.panel.attributes.remove();
-				this.panel=this.collection.get('padpanelbuilder');
+				this.panel=this.collection.get('ellipsepanelbuilder');
 				this.panel.attributes.delegateEvents();
 				this.render();
-		    }
-		}
-		if(event.target instanceof Line){
-			if(this.panel.id!='linepanelbuilder'){
-				this.panel.attributes.remove();
-				this.panel=this.collection.get('linepanelbuilder');
-				this.panel.attributes.delegateEvents();
-				this.render();				
-			}	
-		}
-		if(event.target instanceof Circle){
-			if(this.panel.id!='circlepanelbuilder'){
-				this.panel.attributes.remove();
-				this.panel=this.collection.get('circlepanelbuilder');
-				this.panel.attributes.delegateEvents();
-				this.render();
-			}	
-		}if(event.target instanceof Arc){
-			if(this.panel.id!='arcpanelbuilder'){
-				this.panel.attributes.remove();
-				this.panel=this.collection.get('arcpanelbuilder');
-				this.panel.attributes.delegateEvents();
-				this.render();
-			}	
-		}if(event.target instanceof SolidRegion){
-			if(this.panel.id!='solidregionpanelbuilder'){
-				this.panel.attributes.remove();
-				this.panel=this.collection.get('solidregionpanelbuilder');
-				this.panel.attributes.delegateEvents();
-				this.render();
-			}				
-		}
+			}
+		}	
+//		}if(event.target instanceof Arc){
+//			if(this.panel.id!='arcpanelbuilder'){
+//				this.panel.attributes.remove();
+//				this.panel=this.collection.get('arcpanelbuilder');
+//				this.panel.attributes.delegateEvents();
+//				this.render();
+//			}	
+//		}if(event.target instanceof SolidRegion){
+//			if(this.panel.id!='solidregionpanelbuilder'){
+//				this.panel.attributes.remove();
+//				this.panel=this.collection.get('solidregionpanelbuilder');
+//				this.panel.attributes.delegateEvents();
+//				this.render();
+//			}				
+//		}
 		//update panel ui values
 		this.panel.attributes.setTarget(event.target);
 		this.panel.attributes.updateui();

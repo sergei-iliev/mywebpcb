@@ -240,10 +240,10 @@ class UnitEventHandle extends EventHandle{
 	      this.component.ctx.rect(this.selectionBox.x,this.selectionBox.y,this.selectionBox.width,this.selectionBox.height);
 	      this.component.ctx.fillStyle = 'gray';
 	      this.component.ctx.fill();
+		  this.component.ctx.globalCompositeOperation='source-over';
 	      this.component.ctx.lineWidth = 1;
 	      this.component.ctx.strokeStyle = '#5B5B5B';
 	      this.component.ctx.stroke();
-		  this.component.ctx.globalCompositeOperation='source-over';
 	 }
 	 mouseMove(event){
 

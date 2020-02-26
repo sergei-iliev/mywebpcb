@@ -424,7 +424,7 @@ class ScalableTransformation{
        let s=1.0;
        if(this.scaleFactor!=0){     
            for(i=0;i<this.scaleFactor;i++){
-             s*=2;
+             s*=this.getInverseScaleRatio();
            }
        }
 	  return new d2.Point(x*s,y*s);
@@ -433,7 +433,7 @@ class ScalableTransformation{
        let s=1.0;
        if(this.scaleFactor!=0){     
            for(let i=0;i<this.scaleFactor;i++){
-             s*=2;
+             s*=this.getInverseScaleRatio();
            }
        }
 	  return d2.Box.fromRect(r.x*s,r.y*s,r.width*s,r.height*s);
@@ -475,14 +475,14 @@ class ViewportWindow{
 	 scaleIn( xx, yy,scale){ 
 	    let a=(this.x+xx)*scale.getScaleRatio();
 		let b=(this.y+yy)*scale.getScaleRatio();
-	    this.x=parseInt(a)-xx;
-	    this.y=parseInt(b)-yy; 		     
+	    this.x=a-xx;
+	    this.y=b-yy;
 	 }
 	 scaleOut( xx, yy,scale){ 	    
-        let a=this.x*scale.getInverseScaleRatio();
-        let b=this.y*scale.getInverseScaleRatio();
-        this.x=(parseInt(a)+xx);
-        this.y=(parseInt(b)+yy);
+        let a=(this.x+xx)*scale.getInverseScaleRatio();
+        let b=(this.y+yy)*scale.getInverseScaleRatio();
+        this.x=a-xx;
+        this.y=b-yy;
 	 }
 	 toString(){
 	   return "{"+this.x+","+this.y+","+this.width+","+this.height+"}";
@@ -581,6 +581,10 @@ paint(g2,viewportWindow,scalableTransformation){
     }
 		
 	let point=new d2.Point();  
+	 
+	g2.strokeStyle = this.pointsColor;				 
+    g2.lineWidth = 1;
+     
 	for (let h =position.y; h <= position.y+r.height; h += this.gridPointToPoint) {
             for (w =position.x; w <=position.x+r.width; w += this.gridPointToPoint) {
                  point.set(w, h); 
@@ -594,10 +598,10 @@ paint(g2,viewportWindow,scalableTransformation){
                  //}   
                 
 				 
-				 g2.beginPath();
-				 g2.fillRect(point.x, point.y,2,2);
-				 g2.fillStyle = this.pointsColor;				 
-				 g2.fill();                                       
+             	g2.beginPath();
+            	g2.arc(point.x,point.y,0.1, 0, 2 * Math.PI, false);
+			    g2.stroke();
+				 
             }
 	}
    
@@ -605,12 +609,7 @@ paint(g2,viewportWindow,scalableTransformation){
 isGridDrawable(point,scalableTransformation){
         let x=point.x*scalableTransformation.scale;    
 	    let xx=(point.x+this.gridPointToPoint)*scalableTransformation.scale;
-	    return  (parseInt(Math.round(xx-x)))>this.pixelToPixelLimit;
-	    //var scaledPoint=point.getScaledPoint(scalableTransformation);  
-        //var x=scaledPoint.x;
-        //point.x=point.x+this.gridPointToPoint;
-        //scaledPoint=point.getScaledPoint(scalableTransformation);
-        //return  (parseInt(Math.round(scaledPoint.x-x)))>this.pixelToPixelLimit;    
+	    return  (parseInt(Math.round(xx-x)))>this.pixelToPixelLimit;   
     }
 positionOnGrid( x,  y) {        
         let ftmp     =  x / this.gridPointToPoint;

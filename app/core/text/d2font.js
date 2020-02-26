@@ -21,10 +21,12 @@ class FontTexture{
 	this.selection=false;
 	this.selectionRectWidth=3000;
 	this.constSize=false;
+	this.fillColor='white'; 
 	//this.cache=new TextureCache(this);
  }
 clone(){
      var copy=new FontTexture(this.tag,this.shape.text,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.fontSize,this.shape.rotation);     
+     copy.fillColor=this.fillColor;
      return copy;	 
  } 
 isEmpty() {
@@ -43,7 +45,12 @@ getBoundingRect(){
     } 
     
 }
-
+getBoundingShape() {
+    if (this.shape.text == null || this.shape.text.length == 0) {
+          return null;
+    }
+     return this.shape.box;
+}
 setLocation(x,y){
 	this.shape.setLocation(x,y);
 }
@@ -78,7 +85,7 @@ paint(g2,viewportWindow,scale){
 		 }
 		 g2.font = ""+parseInt(this.shape.fontSize*scale.getScale())+"px Monospace";
 	 }
-	 g2.fillStyle = 'white';
+	 g2.fillStyle = this.fillColor;
 	 
 	 
 //     let t=this.shape.clone();
