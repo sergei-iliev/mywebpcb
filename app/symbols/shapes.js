@@ -57,7 +57,7 @@ class FontLabel extends Shape{
 	constructor(x, y) {
 		super(x, y, 0, 0, 1,core.Layer.LAYER_ALL);
 		this.setDisplayName("Label");		
-		this.texture=new font.FontTexture("Label","label",x,y,8,0);
+		this.texture=new font.SymbolFontTexture("Label","label",x,y,8,0);
 		this.texture.selectionRectWidth=4;
 		this.rotate=0;
 	}
@@ -86,16 +86,7 @@ class FontLabel extends Shape{
 		  return this.texture;
 		}
     Rotate(rotation){
-    	let alpha=this.rotate+rotation.angle;
-    	if(alpha>=360){
-    		alpha-=360
-    	}
-    	 if(alpha<0){
-    		 alpha+=360; 
-    	 }	
-    	this.texture.setRotation(alpha,new d2.Point(rotation.originx,rotation.originy));
-    	this.rotate=alpha;    	
-
+       this.texture.rotate(rotation);
     }    
     Move(xoffset,yoffset) {
         this.texture.Move(xoffset, yoffset);
@@ -251,6 +242,12 @@ class RoundRect extends Shape{
 		let box=this.roundRect.box;
 	    return new d2.Point(box.center.x,box.center.y);
 	}
+	setSelected (selection) {
+		super.setSelected(selection);
+			if (!selection) {
+				this.resizingPoint = null;
+	        }
+	}	
 	isClicked(x, y) {
 		if (this.roundRect.contains(new d2.Point(x, y)))
 			return true;

@@ -15,7 +15,7 @@ var d2=require('d2/d2');
 //	}
 //}
 class FontTexture{
- constructor(tag,text,x,y,fontSize,rotation) {
+ constructor(text,tag,x,y,fontSize,rotation) {
     this.tag=tag;
 	this.shape=new d2.FontText(x,y,text,fontSize,rotation);    
 	this.selection=false;
@@ -25,7 +25,7 @@ class FontTexture{
 	//this.cache=new TextureCache(this);
  }
 clone(){
-     var copy=new FontTexture(this.tag,this.shape.text,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.fontSize,this.shape.rotation);     
+     var copy=new FontTexture(this.shape.text,this.tag,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.fontSize,this.shape.rotation);     
      copy.fillColor=this.fillColor;
      return copy;	 
  } 
@@ -126,10 +126,42 @@ fromXML(node){
 }
 }
 
+class SymbolFontTexture extends FontTexture{
+constructor(tag,text,x,y,fontSize,rotation) {
+       super(tag,text,x,y,fontSize,rotation);
+}
+clone(){
+    var copy=new SymbolFontTexture(this.shape.text,this.tag,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.fontSize,this.shape.rotation);     
+    copy.fillColor=this.fillColor;
+    return copy;	 
+} 
+rotate(rotation){	
+    //redesign!!!!!!!!
+ 	this.shape.anchorPoint.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+ 	this.shape.metrics.calculateMetrics(this.shape.fontSize,this.shape.text);
+ 	if(this.shape.rotation==90){
+ 		this.shape.rotation=0;
+ 	}else{
+ 		this.shape.rotation=90;
+ 	}
+ } 
+
+isHorizontal(){	 
+	return (this.texture.shape.rotation==0);
+} 
+setHorizontal(){
+	
+}
+setVertical(){
+	
+}
+	    
+}
 var core=require('core/core');
 var utilities=require('core/utilities');
 
 
 module.exports ={
-   FontTexture
+   FontTexture,
+   SymbolFontTexture
 }
