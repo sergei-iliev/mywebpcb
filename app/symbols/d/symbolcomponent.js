@@ -8,6 +8,7 @@ var events=require('core/events');
 var RoundRect=require('symbols/shapes').RoundRect;
 var FontLabel=require('symbols/shapes').FontLabel;
 var Ellipse=require('symbols/shapes').Ellipse;
+var Line=require('symbols/shapes').Line;
 var SymbolContextMenu=require('symbols/popup/symbolpopup').SymbolContextMenu;
 var SymbolShapeFactory=require('symbols/shapes').SymbolShapeFactory;
 var SymbolEventMgr = require('symbols/events').SymbolEventMgr;
@@ -285,7 +286,7 @@ mouseDown(event){
             	if(event.which!=1){
             		return;
             	}
-                shape = new Line(core.MM_TO_COORD(0.3),core.Layer.SILKSCREEN_LAYER_FRONT);
+                shape = new Line(1);
                 this.getModel().getUnit().add(shape);
                 
             	this.getEventMgr().setEventHandle("line", shape);

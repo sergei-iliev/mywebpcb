@@ -52,7 +52,54 @@ class SymbolShapeFactory{
 
 	}
 }
+class Line extends AbstractLine{
+constructor(thickness) {
+	super(1,core.Layer.LAYER_ALL);	
+	this.fillColor='black';
+	this.selectionRectWidth=4;
+}
 
+paint(g2, viewportWindow, scale,layersmask) {			
+		var rect = this.polyline.box;
+		rect.scale(scale.getScale());		
+		if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
+			return;
+		}
+				
+
+		g2.lineCap = 'round';
+		g2.lineJoin = 'round';
+		
+
+		g2.lineWidth = this.thickness * scale.getScale();
+
+
+		if (this.selection)
+			g2.strokeStyle = "gray";
+		else
+			g2.strokeStyle = this.fillColor;
+		
+		let a=this.polyline.clone();
+		a.scale(scale.getScale());
+		a.move( - viewportWindow.x, - viewportWindow.y);		
+		a.paint(g2);
+		
+		// draw floating point
+		if (this.isFloating()) {
+				let p = this.floatingEndPoint.clone();
+				p.scale(scale.getScale());
+				p.move( - viewportWindow.x, - viewportWindow.y);
+					g2.lineTo(p.x, p.y);									
+					g2.stroke();					
+		}
+		
+		if (this.selection&&this.isControlPointVisible) {
+			this.drawControlPoints(g2, viewportWindow, scale);
+		}
+
+}
+
+}
 class FontLabel extends Shape{
 	constructor(x, y) {
 		super(x, y, 0, 0, 1,core.Layer.LAYER_ALL);
@@ -332,6 +379,7 @@ drawControlPoints(g2, viewportWindow, scale){
 }
 module.exports ={
 		Ellipse,
+		Line,
 		FontLabel,
 		RoundRect,
 		SymbolShapeFactory

@@ -7,6 +7,7 @@ var BaseBuilder = require('core/views/panelview').BaseBuilder;
 var	RoundRect=require('symbols/shapes').RoundRect;
 var	Ellipse=require('symbols/shapes').Ellipse;
 var	FontLabel=require('symbols/shapes').FontLabel;
+var	Line=require('symbols/shapes').Line;
 
 var ComponentPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
@@ -323,6 +324,53 @@ var LabelPanelBuilder=BaseBuilder.extend({
 		return this;
 	}
 });
+var LinePanelBuilder=BaseBuilder.extend({
+	initialize:function(component){
+		LinePanelBuilder.__super__.initialize(component);
+		this.id="linepanelbuilder";  
+    },
+    events: {
+        'keypress #xid' : 'onenter',	
+        'keypress #yid' : 'onenter',	
+        'keypress #thicknessid' : 'onenter',
+    },
+    onchange:function(event){
+        this.component.repaint(); 
+      }, 
+    onenter:function(event){
+		 if(event.keyCode != 13){
+				return; 
+		     }
+		 if(event.target.id=='thicknessid'){
+			 this.target.thickness=parseFloat(j$('#thicknessid').val()); 
+		 }   
+		 if(event.target.id=='xid'){	            
+			 this.target.resizingPoint.x=this.fromUnitX(j$('#xid').val()); 
+	     }	         
+		 if(event.target.id=='yid'){	            
+			 this.target.resizingPoint.y=this.fromUnitY(j$('#yid').val());  
+	     }
+		 this.component.repaint();  
+    },
+	updateui:function(){
+        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
+        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
+        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
+        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
+        j$('#thicknessid').val(this.target.thickness);
+	},
+	render:function(){
+		j$(this.el).empty();
+		j$(this.el).append(
+				"<table width='100%'>"+				
+				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
+		        "</table>");
+			
+		return this;
+	}
+});
 var RectPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
 		RectPanelBuilder.__super__.initialize(component);
@@ -395,7 +443,7 @@ var SymbolsTree=Backbone.View.extend({
 	initialize:function(opt){		
 	    //creat tree
 		this.name=opt.name;
-		this.footprintComponent=opt.footprintComponent;		
+		this.symbolComponent=opt.symbolComponent;		
 		this.$tree=j$('#'+opt.name);
 		//bind select element
 		this.$tree.on('select',j$.proxy(this.valuechanged,this));
@@ -426,31 +474,31 @@ var SymbolsTree=Backbone.View.extend({
 
 		if(item.value==111){
 		   //unit	
-			this.footprintComponent.getModel().getUnit().setScrollPositionValue(this.footprintComponent.viewportWindow.x,this.footprintComponent.viewportWindow.y);
+			this.symbolComponent.getModel().getUnit().setScrollPositionValue(this.symbolComponent.viewportWindow.x,this.symbolComponent.viewportWindow.y);
 			
-			this.footprintComponent.getModel().setActiveUnitUUID(item.id);
-			this.footprintComponent.getModel().getUnit().setSelected(false);
-			this.footprintComponent.componentResized();
+			this.symbolComponent.getModel().setActiveUnitUUID(item.id);
+			this.symbolComponent.getModel().getUnit().setSelected(false);
+			this.symbolComponent.componentResized();
 			
-			this.footprintComponent.hbar.jqxScrollBar({ value:this.footprintComponent.getModel().getUnit().scrollPositionXValue});
-			this.footprintComponent.vbar.jqxScrollBar({ value:this.footprintComponent.getModel().getUnit().scrollPositionYValue});
+			this.symbolComponent.hbar.jqxScrollBar({ value:this.symbolComponent.getModel().getUnit().scrollPositionXValue});
+			this.symbolComponent.vbar.jqxScrollBar({ value:this.symbolComponent.getModel().getUnit().scrollPositionYValue});
 			
-			this.footprintComponent.repaint();
-			mywebpcb.trigger('tree:select',{target:this.footprintComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 
+			this.symbolComponent.repaint();
+			mywebpcb.trigger('tree:select',{target:this.symbolComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 
 		}
 		if(item.value==222){
 			//is this the same shape of the current unit
-			if(this.footprintComponent.getModel().getUnit().getUUID()!=item.parentId){
+			if(this.symbolComponent.getModel().getUnit().getUUID()!=item.parentId){
 		 		   this.$tree.off('select',j$.proxy(this.valuechanged,this));
 		 		   this.$tree.jqxTree('selectItem',  j$("#"+item.parentId)[0]);
-		 		   this.footprintComponent.getModel().setActiveUnitUUID(item.parentId);
+		 		   this.symbolComponent.getModel().setActiveUnitUUID(item.parentId);
 		 		   this.$tree.on('select',j$.proxy(this.valuechanged,this));
 			}
 			   //shape
-			var shape=this.footprintComponent.getModel().getUnit().getShape(item.id);
-			this.footprintComponent.getModel().getUnit().setSelected(false);
+			var shape=this.symbolComponent.getModel().getUnit().getShape(item.id);
+			this.symbolComponent.getModel().getUnit().setSelected(false);
 			shape.setSelected(true);
-			this.footprintComponent.repaint();
+			this.symbolComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:shape,type:events.Event.SELECT_SHAPE}); 	
 		}
 	
@@ -462,7 +510,7 @@ var SymbolsTree=Backbone.View.extend({
 	         break;
 	      case events.Event.RENAME_CONTAINER:
 	    	  var element=j$('#root')[0];
-	    	  this.$tree.jqxTree('updateItem', { label: this.footprintComponent.getModel().formatedFileName},element);
+	    	  this.$tree.jqxTree('updateItem', { label: this.symbolComponent.getModel().formatedFileName},element);
 	    	  this.$tree.jqxTree('render');
 	         break; 
 	      case events.Event.DELETE_CONTAINER:
@@ -536,21 +584,21 @@ var SymbolsInspector=Backbone.View.extend({
 		this.symbolComponent=opt.symbolComponent;
 		this.collection=new Backbone.Collection([
 		                                         new SymbolPanelBuilder(this.symbolComponent),
-		                                         //new LinePanelBuilder(this.footprintComponent),
+		                                         new LinePanelBuilder(this.symbolComponent),
 		                                         new RectPanelBuilder(this.symbolComponent),
-		                                         //new PadPanelBuilder(this.footprintComponent),
-		                                         new LabelPanelBuilder(this.footprintComponent),
+		                                         //new PadPanelBuilder(this.symbolComponent),
+		                                         new LabelPanelBuilder(this.symbolComponent),
 		                                         new ComponentPanelBuilder(this.symbolComponent),
 		                                         new EllipsePanelBuilder(this.symbolComponent),
-		                                         //new SolidRegionPanelBuilder(this.footprintComponent),
-		                                         //new ArcPanelBuilder(this.footprintComponent)
+		                                         //new SolidRegionPanelBuilder(this.symbolComponent),
+		                                         //new ArcPanelBuilder(this.symbolComponent)
 		                                         ]);
 		this.el= '#symbolsinspectorid';	
 		//select container
 		this.panel=this.collection.get('componentpanelbuilder');
 		this.panel.attributes.delegateEvents();
-		this.panel.attributes.setTarget(this.footprintComponent);
-		//this.oncontainerevent({target:this.footprintComponent,type:mywebpads.container.Event.SELECT_CONTAINER});
+		this.panel.attributes.setTarget(this.symbolComponent);
+		//this.oncontainerevent({target:this.symbolComponent,type:mywebpads.container.Event.SELECT_CONTAINER});
 		
 		mywebpcb.bind('shape:inspector',this.onshapeevent,this);
 		mywebpcb.bind('unit:inspector',this.onunitevent,this);
@@ -576,7 +624,7 @@ var SymbolsInspector=Backbone.View.extend({
 	 			this.panel.attributes.remove();
 	 			this.panel=this.collection.get('componentpanelbuilder');
 	 			this.panel.attributes.delegateEvents();
-	 			this.panel.attributes.setTarget(this.footprintComponent);
+	 			this.panel.attributes.setTarget(this.symbolComponent);
 	 			this.render(); 
 	 		  }
  	    } 
@@ -609,7 +657,7 @@ var SymbolsInspector=Backbone.View.extend({
 			 			this.panel.attributes.remove();
 			 			this.panel=this.collection.get('componentpanelbuilder');
 			 			this.panel.attributes.delegateEvents();
-			 			this.panel.attributes.setTarget(this.footprintComponent);
+			 			this.panel.attributes.setTarget(this.symbolComponent);
 			 			this.render(); 
 			 			this.panel.attributes.updateui();
 			 		  }
@@ -647,14 +695,14 @@ var SymbolsInspector=Backbone.View.extend({
 //				this.render();
 //		    }
 //		}
-//		if(event.target instanceof Line){
-//			if(this.panel.id!='linepanelbuilder'){
-//				this.panel.attributes.remove();
-//				this.panel=this.collection.get('linepanelbuilder');
-//				this.panel.attributes.delegateEvents();
-//				this.render();				
-//			}	
-//		}
+		if(event.target instanceof Line){
+			if(this.panel.id!='linepanelbuilder'){
+				this.panel.attributes.remove();
+				this.panel=this.collection.get('linepanelbuilder');
+				this.panel.attributes.delegateEvents();
+				this.render();				
+			}	
+		}
 		if(event.target instanceof Ellipse){
 			if(this.panel.id!='ellipsepanelbuilder'){
 				this.panel.attributes.remove();
