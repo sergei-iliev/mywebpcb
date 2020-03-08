@@ -32,7 +32,7 @@ module.exports = function(d2) {
         contains(pt,g) {
         	let x=pt.x;
         	let y=pt.y;
-        	let alpha=this.convert();
+        	let alpha=this.convert(this.rotation);
             var cos = Math.cos(alpha),
                 sin = Math.sin(alpha);
             var dx  = (x - this.pc.x),
@@ -111,13 +111,14 @@ module.exports = function(d2) {
         move(offsetX,offsetY){
             this.pc.move(offsetX,offsetY);       	
         }
-        convert(){
-          return -1*d2.utils.radians(this.rotation);	
+        convert(a){
+          return -1*d2.utils.radians(a);	
         }
         paint(g2){
         	g2.beginPath();  
            	
-           	let alpha=this.convert();
+           	let alpha=this.convert(this.rotation);
+           	
            	g2.ellipse(this.pc.x,this.pc.y,this.w, this.h,alpha, 0, 2 * Math.PI);
         	  if(g2._fill!=undefined&&g2._fill){
             	  g2.fill();	

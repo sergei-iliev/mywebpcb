@@ -8,6 +8,7 @@ var	RoundRect=require('symbols/shapes').RoundRect;
 var	Ellipse=require('symbols/shapes').Ellipse;
 var	FontLabel=require('symbols/shapes').FontLabel;
 var	Line=require('symbols/shapes').Line;
+var	Arc=require('symbols/shapes').Arc;
 
 var ComponentPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
@@ -43,6 +44,82 @@ var ComponentPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
 				"</td></tr></table>"
 		);	
+		return this;
+	}
+});
+var ArcPanelBuilder=BaseBuilder.extend({
+	initialize:function(component){
+		ArcPanelBuilder.__super__.initialize(component);
+		this.id="arcpanelbuilder";  
+    },	
+    events: {
+        'keypress #xid' : 'onenter',	
+        'keypress #yid' : 'onenter',
+        'keypress #thicknessid' : 'onenter',
+        'keypress #widthid' : 'onenter',
+        'keypress #heightid' : 'onenter',
+        'keypress #startangleid' : 'onenter',
+        'keypress #extendangleid' : 'onenter',
+        'change #fillid': 'onchange', 
+    },
+    onchange:function(event){
+        if(event.target.id=='fillid'){        
+        	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
+        }        
+        this.component.repaint(); 
+    }, 
+    onenter:function(event){
+		 if(event.keyCode != 13){
+				return; 
+		 }
+		 if(event.target.id=='thicknessid'){
+			 this.target.thickness=(parseFloat(j$('#thicknessid').val()));			 
+		 } 
+		 if(event.target.id=='widthid'){
+			   this.target.arc.w=(parseFloat(j$('#widthid').val()));			 
+		 } 
+		 if(event.target.id=='heightid'){
+			   this.target.arc.h=(parseFloat(j$('#heightid').val()));			 
+		 } 
+		 if(event.target.id=='startangleid'){
+			   this.target.setStartAngle(j$('#startangleid').val());			 
+		 } 
+		 if(event.target.id=='extendangleid'){
+			   this.target.setExtendAngle(j$('#extendangleid').val());	
+		 } 	
+		 this.component.repaint(); 	
+    },
+	updateui:function(){
+
+		j$("#startangleid").val(this.target.arc.startAngle);    
+		j$("#extendangleid").val(this.target.arc.endAngle);		
+//        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
+//        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
+//        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:(this.target.resizingPoint.x)));
+//        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:(this.target.resizingPoint.y))); 
+		j$('#thicknessid').val(this.target.thickness);
+		j$("#widthid").val((this.target.arc.w));
+		j$("#heightid").val((this.target.arc.h));
+		j$("#fillid").val(this.target.fill);
+	},
+	render:function(){
+						
+		j$(this.el).empty();
+		j$(this.el).append(
+				"<table width='100%'>"+			
+				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+			
+				"<tr><td style='padding:7px'>Fill</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"fillid\">"+
+				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+			    "</select>" +
+				"</td></tr>"+
+				"<tr><td style='padding:7px'>Radius X</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+								
+				"<tr><td style='padding:7px'>Radius Y</td><td><input type='text' id='heightid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Start&deg</td><td><input type='text' id='startangleid' value='' class='form-control input-sm\'></td></tr>"+	
+				"<tr><td style='padding:7px'>Extend&deg</td><td><input type='text' id='extendangleid' value='' class='form-control input-sm\'></td></tr>"+
+		"</table>");
 		return this;
 	}
 });
@@ -591,7 +668,7 @@ var SymbolsInspector=Backbone.View.extend({
 		                                         new ComponentPanelBuilder(this.symbolComponent),
 		                                         new EllipsePanelBuilder(this.symbolComponent),
 		                                         //new SolidRegionPanelBuilder(this.symbolComponent),
-		                                         //new ArcPanelBuilder(this.symbolComponent)
+		                                         new ArcPanelBuilder(this.symbolComponent)
 		                                         ]);
 		this.el= '#symbolsinspectorid';	
 		//select container
@@ -711,13 +788,14 @@ var SymbolsInspector=Backbone.View.extend({
 				this.render();
 			}
 		}	
-//		}if(event.target instanceof Arc){
-//			if(this.panel.id!='arcpanelbuilder'){
-//				this.panel.attributes.remove();
-//				this.panel=this.collection.get('arcpanelbuilder');
-//				this.panel.attributes.delegateEvents();
-//				this.render();
-//			}	
+		if(event.target instanceof Arc){
+			if(this.panel.id!='arcpanelbuilder'){
+				this.panel.attributes.remove();
+				this.panel=this.collection.get('arcpanelbuilder');
+				this.panel.attributes.delegateEvents();
+				this.render();
+		}	
+		}	
 //		}if(event.target instanceof SolidRegion){
 //			if(this.panel.id!='solidregionpanelbuilder'){
 //				this.panel.attributes.remove();

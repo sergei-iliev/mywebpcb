@@ -18,7 +18,8 @@ class SymbolEventMgr{
 		this.hash.set("dragheand",new events.DragingEventHandle(component));
 		this.hash.set("origin",new events.OriginEventHandle(component));
 		this.hash.set("measure",new events.MeasureEventHandle(component));
-        
+		this.hash.set("arc.start.angle",new ArcStartAngleEventHandle(component));
+		this.hash.set("arc.extend.angle",new ArcExtendAngleEventHandler(component));
 	 }
 	 //****private
 	 getEventHandle(eventKey,target) {
@@ -56,6 +57,96 @@ class SymbolEventMgr{
 	 
 	}
 
+class ArcStartAngleEventHandle extends EventHandle{
+	 constructor(component) {
+		 super(component);
+	 }
+	 mousePressed(event){
+	 }
+	 mouseDragged(event){
+	 	let new_mx = event.x;
+	    let new_my = event.y;
+	    
+		
+	        
+	    let centerX=this.target.arc.center.x;
+	    let centerY=this.target.arc.center.y;
+	           
+	    let start = (180/Math.PI*Math.atan2(new_my-centerY,new_mx-centerX));
+
+	    if(start<0){
+	        this.target.setStartAngle(-1*(start));            
+	    }else{
+	        this.target.setStartAngle(360-(start));            
+	    }
+			
+		this.mx = new_mx;
+	    this.my = new_my;
+
+		this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:events.Event.PROPERTY_CHANGE});
+			
+		this.component.repaint();
+	 }
+	mouseReleased(event){
+
+	} 
+	mouseMove(event){
+	 
+	}
+
+}	
+class ArcExtendAngleEventHandler extends EventHandle{
+	 constructor(component) {
+		 super(component);
+
+	 }
+	 mousePressed(event){
+	 }
+	 mouseDragged(event){
+	 	let new_mx = event.x;
+	    let new_my = event.y;
+	        
+	    let centerX=this.target.arc.center.x;
+	    let centerY=this.target.arc.center.y;
+	        
+	        
+	    let extend = (180/Math.PI*Math.atan2(new_my-centerY,new_mx-centerX));
+
+	    if(extend<0){
+	        extend=(-1*(extend));                  
+	    }else{
+	        extend=(360-extend);         
+	    }
+	        
+	        //-360<extend<360 
+	    let extendAngle=this.target.arc.endAngle;
+	    if(extendAngle<0){        
+	          if(extend-this.target.arc.startAngle>0) {                
+	              this.target.setExtendAngle(((extend-this.target.arc.startAngle))-360);
+	          }else{
+	              this.target.setExtendAngle(extend-this.target.arc.startAngle);
+	            }
+	        }else{           
+	            if(extend-this.target.arc.startAngle>0) {
+	              this.target.setExtendAngle(extend-this.target.arc.startAngle);
+	            }else{
+	              this.target.setExtendAngle((360-this.target.arc.startAngle)+extend);
+	            }
+	        }
+	        
+	    //***update PropertiesPanel           
+		this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:events.Event.PROPERTY_CHANGE});
+			
+		this.component.repaint();
+	 }
+	mouseReleased(event){
+
+	} 
+	mouseMove(event){
+	 
+	}
+
+}
 
 module.exports ={
 		SymbolEventMgr

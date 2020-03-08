@@ -52,6 +52,7 @@ class SymbolShapeFactory{
 
 	}
 }
+
 class Line extends AbstractLine{
 constructor(thickness) {
 	super(1,core.Layer.LAYER_ALL);	
@@ -158,6 +159,131 @@ paint(g2, viewportWindow, scale,layersmask) {
 }
 	    
     
+}
+class Arc extends Shape{
+	constructor(x,y,w,h) {
+	   super(x,y, w, h, 1,core.Layer.LAYER_ALL);
+		this.setDisplayName("Arc");		
+		this.arc=new d2.Arcellipse(new d2.Point(x,y),w,h);
+		this.selectionRectWidth=4;
+		this.fillColor='black';								
+	}
+	clone(){
+		var copy = new Arc(this.arc.pc.x,this.arc.pc.y,this.arc.w,this.arc.h);
+		copy.arc=this.arc.clone();				
+		return copy;
+	}
+	calculateShape() {
+		return this.arc.box;		
+	}
+	isControlRectClicked(x,y){
+	   	let pt=new d2.Point(x,y);
+	   	let result=null;
+		this.arc.vertices.some(v=>{
+	   		if(d2.utils.LE(pt.distanceTo(v),this.selectionRectWidth/2)){
+	   		  	result=v;
+	   			return true;
+	   		}else{
+	   			return false;
+	   		}
+	   	});
+	   	return result;
+	}	
+	isClicked(x, y) {
+		if (this.arc.contains(new d2.Point(x, y)))
+			return true;
+		else
+			return false;
+	}
+	isStartAnglePointClicked(x,y){	
+	    let p=this.arc.start;
+	    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
+	                 this.selectionRectWidth, this.selectionRectWidth);
+	    if (box.contains({x,y})) {
+	        return true;
+	    }else{                   
+	        return false;
+		}
+	}	
+	isExtendAnglePointClicked(x,y){
+	    let p=this.arc.end;
+	    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
+	                 this.selectionRectWidth, this.selectionRectWidth);
+	    if (box.contains({x,y})) {
+	        return true;
+	    }else{                   
+	        return false;
+		}
+	}	
+	setSelected (selection) {
+		super.setSelected(selection);
+			if (!selection) {
+				this.resizingPoint = null;
+	        }
+	}
+	getCenter() {
+	    return this.arc.pc;
+	}
+	setExtendAngle(extendAngle){
+	    this.arc.endAngle=utilities.round(extendAngle);
+	}
+	setStartAngle(startAngle){        
+	    this.arc.startAngle=utilities.round(startAngle);
+	}	
+	Rotate(rotation){	
+		   this.arc.pc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+		   let w=this.arc.w;
+		   this.arc.w=this.arc.h;
+		   this.arc.h=w;
+		   this.arc.startAngle+=rotation.angle;
+      	   if(this.arc.startAngle>=360){
+    		 this.arc.startAngle-=360;
+    	   }
+    	   if(this.arc.startAngle<0){
+    		 this.arc.startAngle+=360; 
+    	   }
+	} 	
+    Move(xoffset,yoffset) {
+        this.arc.move(xoffset, yoffset);
+    }
+	paint(g2, viewportWindow, scale,layersmask) {	
+	  	  var rect = this.arc.box;
+	  	  rect.scale(scale.getScale());
+	  	  if (!rect.intersects(viewportWindow)) {
+	  		  return;
+	  	  }
+
+		  g2.lineWidth = this.thickness * scale.getScale();
+		  g2.lineCap = 'round';
+		  g2.lineJoin = 'round';
+			
+		  if (this.fill == core.Fill.EMPTY) {
+				if (this.selection) {
+					g2.strokeStyle = "gray";
+				} else {
+					g2.strokeStyle = this.fillColor;
+				}
+			} else {
+				g2._fill=true;
+				if (this.selection) {
+					g2.fillStyle = "gray";
+				} else {
+					g2.fillStyle = this.fillColor;
+				}			
+			}
+			let e=this.arc.clone();	
+			e.scale(scale.getScale());
+	        e.move(-viewportWindow.x,- viewportWindow.y);
+			e.paint(g2);
+			
+			g2._fill=false;
+			if (this.isSelected()) {
+				this.drawControlPoints(g2, viewportWindow, scale);
+			}		
+	}
+drawControlPoints(g2, viewportWindow, scale){
+		utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.arc.vertices); 		
+}	
 }
 class Ellipse extends Shape{
 	constructor(w, h) {
@@ -378,6 +504,7 @@ drawControlPoints(g2, viewportWindow, scale){
 }		
 }
 module.exports ={
+		Arc,
 		Ellipse,
 		Line,
 		FontLabel,

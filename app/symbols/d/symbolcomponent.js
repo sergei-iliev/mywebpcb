@@ -9,6 +9,7 @@ var RoundRect=require('symbols/shapes').RoundRect;
 var FontLabel=require('symbols/shapes').FontLabel;
 var Ellipse=require('symbols/shapes').Ellipse;
 var Line=require('symbols/shapes').Line;
+var Arc=require('symbols/shapes').Arc;
 var SymbolContextMenu=require('symbols/popup/symbolpopup').SymbolContextMenu;
 var SymbolShapeFactory=require('symbols/shapes').SymbolShapeFactory;
 var SymbolEventMgr = require('symbols/events').SymbolEventMgr;
@@ -172,7 +173,7 @@ setMode(_mode){
 	            this.getEventMgr().setEventHandle("cursor",shape); 
 	          break;
 	        case  core.ModeEnum.ARC_MODE:
-	        	shape=new Arc(0,0,core.MM_TO_COORD(3.4),core.MM_TO_COORD(0.2),core.Layer.SILKSCREEN_LAYER_FRONT);
+	        	shape=new Arc(0,0,30,40);
 	            this.setContainerCursor(shape);               
 	            this.getEventMgr().setEventHandle("cursor",shape); 
 	          break;
@@ -237,19 +238,19 @@ mouseDown(event){
     		
     	  var shape=this.getModel().getUnit().isControlRectClicked(scaledEvent.x, scaledEvent.y);
 		  if(shape!=null){
-//                if(shape instanceof Arc){
-//                     if(shape.isStartAnglePointClicked(scaledEvent.x , scaledEvent.y)){ 
-//                         this.getEventMgr().setEventHandle("arc.start.angle",shape);                    
-//                     }else if(shape.isExtendAnglePointClicked(scaledEvent.x , scaledEvent.y)){
-//                         this.getEventMgr().setEventHandle("arc.extend.angle",shape);                      
+                if(shape instanceof Arc){
+                     if(shape.isStartAnglePointClicked(scaledEvent.x , scaledEvent.y)){ 
+                         this.getEventMgr().setEventHandle("arc.start.angle",shape);                    
+                     }else if(shape.isExtendAnglePointClicked(scaledEvent.x , scaledEvent.y)){
+                         this.getEventMgr().setEventHandle("arc.extend.angle",shape);                      
 //                     }else if(shape.isMidPointClicked(scaledEvent.x , scaledEvent.y)){
 //                    	  this.getEventMgr().setEventHandle("arc.mid.point",shape);
-//                     }else{
-//                          this.getEventMgr().setEventHandle("resize",shape);    
-//                     }
-//                    }else{
+                     }else{
+                          this.getEventMgr().setEventHandle("resize",shape);    
+                     }
+                   }else{
 						this.getEventMgr().setEventHandle("resize",shape); 
-                    //}
+                    }
 			
  
 		  }else{
