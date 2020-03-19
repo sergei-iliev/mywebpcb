@@ -16,6 +16,7 @@ var QUADRANT=(function(){
         FORTH:4
 	}
 })();
+var POINT_TO_POINT=8;
 
 var roundDouble=function(number){
 	return roundFloat(number,4);
@@ -160,11 +161,11 @@ var Max=function(p1,p2){
 
 version=(function(){
 	return {
-		MYWEBPCB_VERSION:"3.0",
-	    SYMBOL_VERSION:"1.0",
+		MYWEBPCB_VERSION:"8.0",
+	    SYMBOL_VERSION:"3.0",
         CIRCUIT_VERSION:"1.2",     
         FOOTPRINT_VERSION:"3.0", 
-        BOARD_VERSION:"2.0" 
+        BOARD_VERSION:"3.0" 
 	};
 })();
 
@@ -180,5 +181,6 @@ module.exports = {
   degrees,
   radians,
   QUADRANT,
+  POINT_TO_POINT,
   mirrorPoint
 }

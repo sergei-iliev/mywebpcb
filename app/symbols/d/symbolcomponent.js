@@ -10,6 +10,7 @@ var FontLabel=require('symbols/shapes').FontLabel;
 var Ellipse=require('symbols/shapes').Ellipse;
 var Line=require('symbols/shapes').Line;
 var Arc=require('symbols/shapes').Arc;
+var Pin=require('symbols/shapes').Pin;
 var SymbolContextMenu=require('symbols/popup/symbolpopup').SymbolContextMenu;
 var SymbolShapeFactory=require('symbols/shapes').SymbolShapeFactory;
 var SymbolEventMgr = require('symbols/events').SymbolEventMgr;
@@ -177,6 +178,11 @@ setMode(_mode){
 	            this.setContainerCursor(shape);               
 	            this.getEventMgr().setEventHandle("cursor",shape); 
 	          break;
+	        case core.ModeEnum.PIN_MODE:
+	            shape=new Pin();
+	            this.setContainerCursor(shape);               
+	            this.getEventMgr().setEventHandle("cursor",shape);  
+	            break;	          
 	        case  core.ModeEnum.LABEL_MODE:
 	            shape=new FontLabel(0,0);			
 		        this.setContainerCursor(shape);               
@@ -253,19 +259,20 @@ mouseDown(event){
                     }
 			
  
-		  }else{
+		  }else{		    		     
 		     shape = this.getModel().getUnit().getClickedShape(scaledEvent.x, scaledEvent.y, true);
 		     
 		     if(shape!=null){
-                 //***block operation
-				 if (UnitMgr.getInstance().isBlockSelected(this.getModel().getUnit().shapes) && shape.isSelected()){
-		                 this.getEventMgr().setEventHandle("block", null);		    	 		         
-		    	 }else{	 
-		    		 this.getEventMgr().setEventHandle("move",shape);
-		    	 }
+			   if (UnitMgr.getInstance().isBlockSelected(this.getModel().getUnit().shapes) && shape.isSelected()){
+                 this.getEventMgr().setEventHandle("block", null);						 
+		       }else if ((!(shape instanceof FontLabel))&&(undefined !=shape['getTextureByTag'])&&shape.getClickedTexture(scaledEvent.x, scaledEvent.y)!=null){
+			     this.getEventMgr().setEventHandle("texture",shape);
+               }else
+		         this.getEventMgr().setEventHandle("move",shape);
 		     }else{
 		         this.getEventMgr().setEventHandle("component",null);
-		     }
+		     }		     
+		     
 		  }
 		  break;
     	case core.ModeEnum.SOLID_REGION:

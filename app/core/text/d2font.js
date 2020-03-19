@@ -129,6 +129,7 @@ fromXML(node){
 class SymbolFontTexture extends FontTexture{
 constructor(tag,text,x,y,fontSize,rotation) {
        super(tag,text,x,y,fontSize,rotation);
+       this.selectionRectWidth=4;
 }
 clone(){
     var copy=new SymbolFontTexture(this.shape.text,this.tag,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.fontSize,this.shape.rotation);     

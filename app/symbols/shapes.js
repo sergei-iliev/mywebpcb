@@ -106,7 +106,6 @@ class FontLabel extends Shape{
 		super(x, y, 0, 0, 1,core.Layer.LAYER_ALL);
 		this.setDisplayName("Label");		
 		this.texture=new font.SymbolFontTexture("Label","label",x,y,8,0);
-		this.texture.selectionRectWidth=4;
 		this.rotate=0;
 	}
 	clone(){
@@ -503,8 +502,183 @@ drawControlPoints(g2, viewportWindow, scale){
 		utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.roundRect.vertices); 		
 }		
 }
+
+Style ={
+    LINE:0, /*default*/
+    INVERTED:1,
+    CLOCK:2,
+    INVERTED_CLOCK:3,
+    INPUT_LOW:4,
+    CLOCK_LOW:5,
+    OUTPUT_LOW:6,
+    FALLING_EDGE_CLOCK:7,
+    NON_LOGIC:8
+}
+Orientation={
+        NORTH:0,
+        SOUTH:1,
+        WEST:2,
+        EAST:3
+}
+PinType={
+		SIMPLE:0,
+		COMPLEX:1,
+
+//		   parse:function(type){
+//			  switch(type){
+//			  case 'THROUGH_HOLE':
+//				     return this.THROUGH_HOLE;
+//					 break;
+//			  case 'SMD':
+//					 return this.SMD;
+//					 break; 
+//			  case 'CONNECTOR':
+//					 return this.CONNECTOR;
+//					 break;	
+//			  default:
+//				  throw new TypeError('Unrecognized pad Type:'+type+' to parse');  
+//			  } 
+//		   },
+//		   format:function(type){
+//			  if(type==this.THROUGH_HOLE)
+//				 return 'THROUGH_HOLE';
+//			  if(type==this.SMD)
+//					 return 'SMD';
+//			  if(type==this.CONNECTOR)
+//					 return 'CONNECTOR';
+//			  else
+//				  return '';
+//		   }
+};
+var PIN_LENGTH = 2 * utilities.POINT_TO_POINT;
+
+class Pin extends Shape{
+constructor() {
+		super(0, 0, 0,0, 1,core.Layer.LAYER_ALL);
+		this.setDisplayName("Pin");		
+		this.selectionRectWidth=4;
+		this.resizingPoint = null;
+		this.fillColor='black';	
+        this.orientation = Orientation.EAST;
+        this.type = PinType.COMPLEX;
+        this.style = Style.LINE;
+ 	    
+ 	    this.name=new font.SymbolFontTexture("XXX","name",-8,0,8,0);
+	    this.number=new font.SymbolFontTexture("1","number",6,-4,8,0);
+	    this.segment=new d2.Segment(0,0,0,0);
+	    this.createPinLine();
+	}
+clone(){
+    var copy=new Pin();
+    copy.orientation=this.orientation;
+    copy.type=this.type;
+    copy.style=this.style;
+    copy.name=this.name.clone();
+    copy.number=this.number.clone();
+    copy.segment=this.segment.clone();
+    return copy;
+}
+
+alignToGrid(isRequired) {
+    var center=this.segment.ps;
+    var point=this.owningUnit.getGrid().positionOnGrid(center.x,center.y);
+    this.Move(point.x - center.x,point.y - center.y);
+    return new d2.Point(point.x - center.x, point.y - center.y);  
+}
+getClickedTexture(x,y) {
+    if(this.name.isClicked(x, y))
+        return this.name;
+    else if(this.number.isClicked(x, y))
+        return this.number;
+    else
+    return null;
+}
+isClickedTexture(x,y) {
+    return this.getClickedTexture(x, y)!=null;
+}
+getTextureByTag(tag) {
+    if(tag===(this.name.tag))
+        return this.name;
+    else if(tag===(this.number.tag))
+        return this.number;
+    else
+    return null;
+}
+isClicked(x, y) {
+	  var rect = d2.Box.fromRect(x
+				- (this.selectionRectWidth / 2), y
+				- (this.selectionRectWidth / 2), this.selectionRectWidth,
+				this.selectionRectWidth);
+	  
+		if (utilities.intersectLineRectangle(
+				this.segment.ps,this.segment.pe, rect.min, rect.max)) {			
+			return true;
+		}else{
+			return false
+		}
+		
+}
+Move(xoffset,yoffset) {
+    this.segment.move(xoffset,yoffset);
+	this.name.Move(xoffset,yoffset);
+	this.number.Move(xoffset,yoffset);
+}
+calculateShape() {
+	return this.segment.box;
+} 
+createPinLine(){
+    switch (this.orientation) {
+    case Orientation.EAST:        
+        this.segment.pe.set(this.getX() + (this.type == PinType.COMPLEX ? PIN_LENGTH : PIN_LENGTH / 2), this.getY());
+        break;
+    case Orientation.WEST:
+    	this.segment.pe.set(this.getX() - (this.type == PinType.COMPLEX ? PIN_LENGTH : PIN_LENGTH / 2), this.getY());    	
+        break;
+    case Orientation.NORTH:
+    	this.segment.pe.set(this.getX(), this.getY() - (this.type == PinType.COMPLEX ? PIN_LENGTH : PIN_LENGTH / 2));    	
+        break;
+    case Orientation.SOUTH:    	
+    	this.segment.pe.set(this.getX(), this.getY() + (this.type == PinType.COMPLEX ? PIN_LENGTH : PIN_LENGTH / 2));
+    }   
+}
+getCenter(){
+	return this.segment.ps;
+}
+
+
+paint(g2, viewportWindow, scale,layersmask) {
+	var rect = this.segment.box;
+	rect.scale(scale.getScale());
+	if (!rect.intersects(viewportWindow)) {
+		return;
+	}
+	g2.lineWidth = this.thickness * scale.getScale();
+
+	if (this.selection) {
+		g2.strokeStyle = "gray";
+	  	this.name.fillColor = "gray";
+	  	this.number.fillColor = "gray";
+	} else {
+		g2.strokeStyle = this.fillColor;
+	  	this.name.fillColor = 'black';
+		this.number.fillColor = 'black';
+	}
+
+
+	let r=this.segment.clone();	
+	r.scale(scale.getScale());
+    r.move(-viewportWindow.x,- viewportWindow.y);
+	r.paint(g2);
+	
+	  
+    this.name.paint(g2, viewportWindow, scale);
+    this.number.paint(g2, viewportWindow, scale);	
+}
+	
+}
 module.exports ={
 		Arc,
+		Pin,
 		Ellipse,
 		Line,
 		FontLabel,

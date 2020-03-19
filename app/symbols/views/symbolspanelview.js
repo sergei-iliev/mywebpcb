@@ -9,6 +9,7 @@ var	Ellipse=require('symbols/shapes').Ellipse;
 var	FontLabel=require('symbols/shapes').FontLabel;
 var	Line=require('symbols/shapes').Line;
 var	Arc=require('symbols/shapes').Arc;
+var	Pin=require('symbols/shapes').Pin;
 
 var ComponentPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
@@ -46,6 +47,190 @@ var ComponentPanelBuilder=BaseBuilder.extend({
 		);	
 		return this;
 	}
+});
+var PinPanelBuilder=BaseBuilder.extend({
+	initialize:function(component){
+		PinPanelBuilder.__super__.initialize(component);
+		this.id="pinpanelbuilder";   
+    },	
+    events: {
+        'keypress #padxid' : 'onenter',	
+        'keypress #padyid' : 'onenter',
+        'keypress #padwidthid' : 'onenter',
+        'keypress #padheightid' : 'onenter',
+        'keypress #rotateid' : 'onenter',
+        'keypress #numberid' : 'onenter',	
+        'keypress #numbersizeid' : 'onenter',
+        'keypress #numberxid' : 'onenter',	
+        'keypress #numberyid' : 'onenter',
+        'keypress #netvalueid' : 'onenter',	
+        'keypress #netvaluesizeid' : 'onenter',
+        'keypress #netvaluexid' : 'onenter',	
+        'keypress #netvalueyid' : 'onenter',
+        'keypress #drillwidthid' : 'onenter',
+        'keypress #offsetxid' : 'onenter',
+        'keypress #offsetyid' : 'onenter',
+        'change #layerid': 'onchange',
+        'change #typeid': 'onchange', 
+        'change #shapeid': 'onchange', 
+    },
+    onchange:function(event){
+        if(event.target.id=='layerid'){
+        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        }
+        if(event.target.id=='typeid'){        
+        	this.target.setType(PadType.parse(j$('#typeid').find('option:selected').text()));
+        	this.updateui();
+        }
+        if(event.target.id=='shapeid'){        
+        	this.target.setShape(PadShape.parse(j$('#shapeid').find('option:selected').text()));
+        	this.updateui();
+        }
+        
+       this.component.repaint(); 
+      },
+    onenter:function(event){
+		 if(event.keyCode != 13){
+				return; 
+		 }
+	     if(event.target.id=='padwidthid'){	    	
+	        this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#padwidthid').val()))); 
+	     }
+	     if(event.target.id=='padheightid'){
+	    	this.target.setHeight(core.MM_TO_COORD(parseFloat(j$('#padheightid').val()))); 
+	     }
+	     if(event.target.id=='rotateid'){
+		        this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val()))); 
+		     }	     
+		 if(event.target.id=='numberid'){ 
+			 this.target.getTextureByTag("number").setText(j$('#numberid').val());			   
+		 }
+		 if(event.target.id=='numbersizeid'){ 
+			 this.target.getTextureByTag("number").setSize(core.MM_TO_COORD(parseFloat(j$('#numbersizeid').val())));  
+		 }
+		 if(event.target.id=='numberxid'||event.target.id=='numberyid'){ 
+			 this.targetgetTextureByTag("number").setLocation(this.fromUnitX(parseFloat(j$('#numberxid').val())),this.fromUnitY(parseFloat(j$('#numberyid').val())));
+			 
+		 }
+		 //--------netvalue-------
+		 if(event.target.id=='netvalueid'){ 
+			 this.target.getTextureByTag("netvalue").setText(j$('#netvalueid').val()); 
+		 }
+		 if(event.target.id=='netvaluesizeid'){ 
+			 this.target.getTextureByTag("netvalue").setSize(core.MM_TO_COORD(parseFloat(j$('#netvaluesizeid').val()))); 
+		 }
+		 if(event.target.id=='netvaluexid'||event.target.id=='netvalueyid'){ 
+			 this.target.getTextureByTag("netvalue").setLocation(this.fromUnitX(parseFloat(j$('#netvaluexid').val())),this.fromUnitY(parseFloat(j$('#netvalueyid').val()))); 
+		 }
+		 if(event.target.id=='drillwidthid'){ 
+			 this.target.drill.setWidth(core.MM_TO_COORD(parseFloat(j$('#drillwidthid').val())));   
+		 }
+		 if(event.target.id=='offsetxid'){ 
+			 this.target.offset.x=(core.MM_TO_COORD(parseFloat(j$('#offsetxid').val())));   
+		 }
+		 if(event.target.id=='offsetyid'){ 
+			 this.target.offset.y=(core.MM_TO_COORD(parseFloat(j$('#offsetyid').val())));   
+		 }
+		 this.component.repaint(); 
+    },
+	updateui:function(){
+
+//		 j$('#layerid').val(this.target.copper.getName());
+//		 j$('#padxid').val(this.toUnitX(this.target.getCenter().x));
+//		 j$('#padyid').val(this.toUnitY(this.target.getCenter().y));
+//		 j$("#rotateid").val(this.target.rotate);  
+//		 j$('#padwidthid').val(core.COORD_TO_MM(this.target.width));
+//	        if(this.target.getShape()==PadShape.CIRCULAR||this.target.getShape()==PadShape.POLYGON){
+//	        	j$('#padheightid').prop('disabled',true);
+//	        	j$('#padheightid').val('');
+//	        }else{
+//	        	j$('#padheightid').prop('disabled',false);
+//	        	j$('#padheightid').val(core.COORD_TO_MM(this.target.height));  
+//	        }
+//	        j$('#typeid').val(this.target.type);  
+//	        j$('#shapeid').val(this.target.getShape());  
+//	        //-------number---------
+//	        j$('#numberid').val(this.target.getTextureByTag("number").shape.text); 
+//	        j$('#numbersizeid').val(core.COORD_TO_MM(this.target.getTextureByTag("number").shape.fontSize)); 
+//	        
+//	        if(this.target.getTextureByTag("number").isEmpty()){
+//	            j$('#numberxid').val('');
+//				j$('#numberyid').val('');
+//	        }else{ 
+//	         j$('#numberxid').val(this.toUnitX(this.target.getTextureByTag("number").shape.anchorPoint.x));
+//			 j$('#numberyid').val(this.toUnitY(this.target.getTextureByTag("number").shape.anchorPoint.y));
+//	        }	       	        
+//
+//	        //-------netvalue--------
+//	        j$('#netvalueid').val(this.target.getTextureByTag("netvalue").shape.text); 
+//	        j$('#netvaluesizeid').val(core.COORD_TO_MM(this.target.getTextureByTag("netvalue").shape.fontSize)); 
+//	        
+//	        if(this.target.getTextureByTag("netvalue").isEmpty()){
+//	            j$('#netvaluexid').val('');
+//				j$('#netvalueyid').val('');
+//	        }else{ 
+//	         j$('#netvaluexid').val(this.toUnitX(this.target.getTextureByTag("netvalue").shape.anchorPoint.x));
+//			 j$('#netvalueyid').val(this.toUnitY(this.target.getTextureByTag("netvalue").shape.anchorPoint.y));
+//	        }
+//	        
+//	        //-----drill and offset------
+//	        j$('#drillwidthid').val(core.COORD_TO_MM(this.target.drill==null?0:this.target.drill.getWidth()));
+//	        j$('#offsetxid').val(core.COORD_TO_MM(this.target.offset.x));
+//			j$('#offsetyid').val(core.COORD_TO_MM(this.target.offset.y));
+//			
+//	        if(this.target.type== PadType.SMD){
+//	        	 j$('#drillwidthid').prop('disabled',true);
+//	        	 j$('#offsetxid').prop('disabled',true);
+//	        	 j$('#offsetyid').prop('disabled',true);
+//	        }else{
+//	        	 j$('#drillwidthid').prop('disabled',false);
+//	        	 j$('#offsetxid').prop('disabled',false);
+//	        	 j$('#offsetyid').prop('disabled',false);	        	
+//	        }	       
+	},
+	render:function(){
+		j$(this.el).empty();
+		j$(this.el).append(
+				"<table width='100%' height='100%'>"+
+				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"layerid\">"+
+				this.fillComboBox([{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'},{id:'Cu',value:'Cu'}])+
+			    "</select>" +
+				"</td></tr>"+
+				"<tr><td style='padding:7px'>X</td><td><input type='text' id='padxid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='padyid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Width</td><td><input type='text' id='padwidthid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='padheightid' value='' class='form-control input-sm\'></td></tr>"+							
+				"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='width:50%;padding:7px'>Pad Type</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"typeid\">"+
+				this.fillComboBox([{id:0,value:'THROUGH_HOLE',selected:true},{id:1,value:'SMD'},{id:2,value:'CONNECTOR'}])+
+			    "</select>" +
+				"</td></tr>"+
+				"<tr><td style='width:50%;padding:7px'>Pad Shape</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"shapeid\">"+
+				this.fillComboBox([{id:0,value:'RECTANGULAR',selected:true},{id:1,value:'CIRCULAR'},{id:2,value:'OVAL'},{id:3,value:'POLYGON'}])+
+			    "</select>" +
+				"</td></tr>"+
+				"<tr><td style='padding:7px'>Drill Width</td><td><input type='text' id='drillwidthid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Offset X</td><td><input type='text' id='offsetxid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Offset Y</td><td><input type='text' id='offsetyid' value='' class='form-control input-sm\'></td></tr>"+				
+				
+				"<tr><td style='padding:7px'>Number</td><td><input type='text' id='numberid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='numbersizeid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>X</td><td><input type='text' id='numberxid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='numberyid' value='' class='form-control input-sm\'></td></tr>"+				
+				        
+				"<tr><td style='padding:7px'>Net name</td><td><input type='text' id='netvalueid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='netvaluesizeid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>X</td><td><input type='text' id='netvaluexid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='netvalueyid' value='' class='form-control input-sm\'></td></tr>"+				
+				        
+		
+		"</table>");
+			
+		return this;
+	}    
 });
 var ArcPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
@@ -663,7 +848,7 @@ var SymbolsInspector=Backbone.View.extend({
 		                                         new SymbolPanelBuilder(this.symbolComponent),
 		                                         new LinePanelBuilder(this.symbolComponent),
 		                                         new RectPanelBuilder(this.symbolComponent),
-		                                         //new PadPanelBuilder(this.symbolComponent),
+		                                         new PinPanelBuilder(this.symbolComponent),
 		                                         new LabelPanelBuilder(this.symbolComponent),
 		                                         new ComponentPanelBuilder(this.symbolComponent),
 		                                         new EllipsePanelBuilder(this.symbolComponent),
@@ -764,14 +949,14 @@ var SymbolsInspector=Backbone.View.extend({
 				this.render();
 		    }
 		}
-//		if(event.target instanceof Pad){
-//			if(this.panel.id!='padpanelbuilder'){
-//				this.panel.attributes.remove();
-//				this.panel=this.collection.get('padpanelbuilder');
-//				this.panel.attributes.delegateEvents();
-//				this.render();
-//		    }
-//		}
+		if(event.target instanceof Pin){
+			if(this.panel.id!='pinpanelbuilder'){
+				this.panel.attributes.remove();
+				this.panel=this.collection.get('pinpanelbuilder');
+				this.panel.attributes.delegateEvents();
+				this.render();
+		    }
+		}
 		if(event.target instanceof Line){
 			if(this.panel.id!='linepanelbuilder'){
 				this.panel.attributes.remove();
