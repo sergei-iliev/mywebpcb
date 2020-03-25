@@ -54,39 +54,43 @@ var PinPanelBuilder=BaseBuilder.extend({
 		this.id="pinpanelbuilder";   
     },	
     events: {
-        'keypress #padxid' : 'onenter',	
-        'keypress #padyid' : 'onenter',
-        'keypress #padwidthid' : 'onenter',
-        'keypress #padheightid' : 'onenter',
-        'keypress #rotateid' : 'onenter',
+//        'keypress #padxid' : 'onenter',	
+//        'keypress #padyid' : 'onenter',
+//        'keypress #padwidthid' : 'onenter',
+//        'keypress #padheightid' : 'onenter',
+//        'keypress #rotateid' : 'onenter',
         'keypress #numberid' : 'onenter',	
-        'keypress #numbersizeid' : 'onenter',
-        'keypress #numberxid' : 'onenter',	
-        'keypress #numberyid' : 'onenter',
-        'keypress #netvalueid' : 'onenter',	
-        'keypress #netvaluesizeid' : 'onenter',
-        'keypress #netvaluexid' : 'onenter',	
-        'keypress #netvalueyid' : 'onenter',
-        'keypress #drillwidthid' : 'onenter',
-        'keypress #offsetxid' : 'onenter',
-        'keypress #offsetyid' : 'onenter',
-        'change #layerid': 'onchange',
-        'change #typeid': 'onchange', 
-        'change #shapeid': 'onchange', 
+//        'keypress #numbersizeid' : 'onenter',
+//        'keypress #numberxid' : 'onenter',	
+//        'keypress #numberyid' : 'onenter',
+        'keypress #nameid' : 'onenter',	
+//        'keypress #netvaluesizeid' : 'onenter',
+//        'keypress #netvaluexid' : 'onenter',	
+//        'keypress #netvalueyid' : 'onenter',
+//        'keypress #drillwidthid' : 'onenter',
+//        'keypress #offsetxid' : 'onenter',
+//        'keypress #offsetyid' : 'onenter',
+        'change #nameorientationid': 'onchange',
+        'change #numberorientationid': 'onchange', 
+        'change #orientationid': 'onchange',
+        'change #styleid': 'onchange', 
     },
     onchange:function(event){
-        if(event.target.id=='layerid'){
-        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        if(event.target.id=='nameorientationid'){
+        	this.target.getTextureByTag("name").setOrientation(parseInt(j$("#nameorientationid").val()));        	
         }
-        if(event.target.id=='typeid'){        
-        	this.target.setType(PadType.parse(j$('#typeid').find('option:selected').text()));
+        if(event.target.id=='numberorientationid'){
+        	this.target.getTextureByTag("number").setOrientation(parseInt(j$("#numberorientationid").val()));        	
+        }
+        if(event.target.id=='orientationid'){        
+        	this.target.setOrientation(parseInt(j$('#orientationid').val()));
         	this.updateui();
         }
-        if(event.target.id=='shapeid'){        
-        	this.target.setShape(PadShape.parse(j$('#shapeid').find('option:selected').text()));
+
+        if(event.target.id=='styleid'){        
+        	this.target.style=(parseInt(j$('#styleid').val()));
         	this.updateui();
         }
-        
        this.component.repaint(); 
       },
     onenter:function(event){
@@ -113,8 +117,8 @@ var PinPanelBuilder=BaseBuilder.extend({
 			 
 		 }
 		 //--------netvalue-------
-		 if(event.target.id=='netvalueid'){ 
-			 this.target.getTextureByTag("netvalue").setText(j$('#netvalueid').val()); 
+		 if(event.target.id=='nameid'){ 
+			 this.target.getTextureByTag("name").setText(j$('#nameid').val()); 
 		 }
 		 if(event.target.id=='netvaluesizeid'){ 
 			 this.target.getTextureByTag("netvalue").setSize(core.MM_TO_COORD(parseFloat(j$('#netvaluesizeid').val()))); 
@@ -135,11 +139,11 @@ var PinPanelBuilder=BaseBuilder.extend({
     },
 	updateui:function(){
 
-//		 j$('#layerid').val(this.target.copper.getName());
+		 j$('#orientationid').val(this.target.orientation);
 //		 j$('#padxid').val(this.toUnitX(this.target.getCenter().x));
 //		 j$('#padyid').val(this.toUnitY(this.target.getCenter().y));
-//		 j$("#rotateid").val(this.target.rotate);  
-//		 j$('#padwidthid').val(core.COORD_TO_MM(this.target.width));
+		 j$("#nameid").val(this.target.getTextureByTag("name").shape.text); 
+		 j$('#styleid').val(this.target.style);
 //	        if(this.target.getShape()==PadShape.CIRCULAR||this.target.getShape()==PadShape.POLYGON){
 //	        	j$('#padheightid').prop('disabled',true);
 //	        	j$('#padheightid').val('');
@@ -150,7 +154,7 @@ var PinPanelBuilder=BaseBuilder.extend({
 //	        j$('#typeid').val(this.target.type);  
 //	        j$('#shapeid').val(this.target.getShape());  
 //	        //-------number---------
-//	        j$('#numberid').val(this.target.getTextureByTag("number").shape.text); 
+	        j$('#numberid').val(this.target.getTextureByTag("number").shape.text); 
 //	        j$('#numbersizeid').val(core.COORD_TO_MM(this.target.getTextureByTag("number").shape.fontSize)); 
 //	        
 //	        if(this.target.getTextureByTag("number").isEmpty()){
@@ -192,40 +196,33 @@ var PinPanelBuilder=BaseBuilder.extend({
 		j$(this.el).empty();
 		j$(this.el).append(
 				"<table width='100%' height='100%'>"+
-				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"layerid\">"+
-				this.fillComboBox([{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'},{id:'Cu',value:'Cu'}])+
+				"<tr><td style='width:50%;padding:7px'>Pin Type</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"pintypeid\">"+
+				this.fillComboBox([{id:'COMPLEX',value:'COMPLEX',selected:true},{id:'SIMPLE',value:'SIMPLE'}])+
 			    "</select>" +
 				"</td></tr>"+
-				"<tr><td style='padding:7px'>X</td><td><input type='text' id='padxid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='padyid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Width</td><td><input type='text' id='padwidthid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='padheightid' value='' class='form-control input-sm\'></td></tr>"+							
-				"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='width:50%;padding:7px'>Pad Type</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"typeid\">"+
-				this.fillComboBox([{id:0,value:'THROUGH_HOLE',selected:true},{id:1,value:'SMD'},{id:2,value:'CONNECTOR'}])+
-			    "</select>" +
-				"</td></tr>"+
-				"<tr><td style='width:50%;padding:7px'>Pad Shape</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"shapeid\">"+
-				this.fillComboBox([{id:0,value:'RECTANGULAR',selected:true},{id:1,value:'CIRCULAR'},{id:2,value:'OVAL'},{id:3,value:'POLYGON'}])+
-			    "</select>" +
-				"</td></tr>"+
-				"<tr><td style='padding:7px'>Drill Width</td><td><input type='text' id='drillwidthid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Offset X</td><td><input type='text' id='offsetxid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Offset Y</td><td><input type='text' id='offsetyid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='width:50%;padding:7px'>Orientation</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"orientationid\">"+
+				this.fillComboBox([{id:0,value:'NORTH',selected:true},{id:1,value:'SOUTH'},{id:2,value:'WEST'},{id:3,value:'EAST'}])+
+			    "</select></td></tr>"+	
+				"<tr><td style='width:50%;padding:7px'>Style</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"styleid\">"+
+				this.fillComboBox([{id:0,value:'LINE',selected:true},{id:1,value:'INVERTED'},{id:2,value:'CLOCK'},
+				                   {id:3,value:'INVERTED_CLOCK'},{id:4,value:'INPUT_LOW'},{id:5,value:'CLOCK_LOW'},
+				                   {id:6,value:'OUTPUT_LOW'},{id:7,value:'FALLING_EDGE_CLOCK'}])+
+				"</select></td></tr>"+				
+				"<tr><td style='padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='width:50%;padding:7px'>Text Orientation</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"nameorientationid\">"+
+				this.fillComboBox([{id:0,value:'HORIZONTAL',selected:true},{id:1,value:'VERTICAL'}])+
+			    "</select></td></tr>"+
 				
-				"<tr><td style='padding:7px'>Number</td><td><input type='text' id='numberid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='numbersizeid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>X</td><td><input type='text' id='numberxid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='numberyid' value='' class='form-control input-sm\'></td></tr>"+				
-				        
-				"<tr><td style='padding:7px'>Net name</td><td><input type='text' id='netvalueid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='netvaluesizeid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>X</td><td><input type='text' id='netvaluexid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='netvalueyid' value='' class='form-control input-sm\'></td></tr>"+				
-				        
+				"<tr><td style='padding:7px'>Number</td><td><input type='text' id='numberid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='width:50%;padding:7px'>Text Orientation</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"numberorientationid\">"+
+				this.fillComboBox([{id:0,value:'HORIZONTAL',selected:true},{id:1,value:'VERTICAL'}])+
+			    "</select>" +
+				"</td></tr>"+		        
 		
 		"</table>");
 			
@@ -535,21 +532,22 @@ var LabelPanelBuilder=BaseBuilder.extend({
         'keypress #rotateid' : 'onenter',
         'keypress #sizeid' : 'onenter',	
         'keypress #thicknessid' : 'onenter',	
-		'change #layerid':'onchange',
+		'change #orientationid':'onchange',
+		'change #colorid':'onchange',
     },
     onchange:function(event){      
-	  if(event.target.id=='layerid'){
-		  this.target.setCopper(core.Layer.Copper.valueOf(j$('#layerid').val()));
+	  if(event.target.id=='orientationid'){
+		  this.target.texture.setOrientation(parseInt(j$("#orientationid").val()));
       }
+	  if(event.target.id=='colorid'){
+		  this.target.texture.fillColor=(j$('#colorid').val());			  
+	  }
       this.component.repaint(); 
     },
     onenter:function(event){
 		 if(event.keyCode != 13){
 				return; 
 		 }
-		  if(event.target.id=='rotateid'){
-		      this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val()))); 
-		  }			 
 		 if(event.target.id=='textid'){
 			 this.target.texture.setText(j$('#textid').val());			  
 		 }
@@ -568,6 +566,8 @@ var LabelPanelBuilder=BaseBuilder.extend({
 	 j$('#textid').val(this.target.texture.shape.text);	
 	 j$('#xid').val((this.target.texture.shape.anchorPoint.x));
 	 j$('#yid').val((this.target.texture.shape.anchorPoint.y));	 
+	 j$("#orientationid").val(this.target.texture.getOrientation());
+	 j$('#colorid').val(this.target.texture.fillColor);	
 //	 j$('#sizeid').val(core.COORD_TO_MM(this.target.texture.size));
 //	 j$('#thicknessid').val(core.COORD_TO_MM(this.target.texture.thickness));
 	},
@@ -578,7 +578,12 @@ var LabelPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Text</td><td><input type='text' id='textid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='width:50%;padding:7px'>Text Orientation</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"orientationid\">"+
+				this.fillComboBox([{id:0,value:'HORIZONTAL',selected:true},{id:1,value:'VERTICAL'}])+
+			    "</select>" +
+				"</td></tr>"+				
+				"<tr><td style='padding:7px'>Color</td><td><input type='color' id='colorid' value='#ff0000'></td></tr>"+
 				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='sizeid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
 		        "</table>");

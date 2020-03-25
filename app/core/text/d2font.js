@@ -125,7 +125,10 @@ fromXML(node){
     
 }
 }
-
+TextOrientation={
+        HORIZONTAL:0,
+        VERTICAL:1,        
+}
 class SymbolFontTexture extends FontTexture{
 constructor(tag,text,x,y,fontSize,rotation) {
        super(tag,text,x,y,fontSize,rotation);
@@ -136,6 +139,26 @@ clone(){
     copy.fillColor=this.fillColor;
     return copy;	 
 } 
+setOrientation(orientation){
+    switch (orientation) {
+    case TextOrientation.HORIZONTAL:
+       if(this.shape.rotation==90){
+    	this.rotate({angle:-90,originx:this.shape.anchorPoint.x,originy:this.shape.anchorPoint.y});
+       }
+       break;
+    case TextOrientation.VERTICAL:
+    	if(this.shape.rotation==0){	
+          this.rotate({angle:90,originx:this.shape.anchorPoint.x,originy:this.shape.anchorPoint.y});
+    	}       
+    }	
+}
+getOrientation(){
+	if(this.shape.rotation==90){
+		return TextOrientation.VERTICAL;
+	}else{
+		return TextOrientation.HORIZONTAL
+	}
+}
 rotate(rotation){	
     //redesign!!!!!!!!
  	this.shape.anchorPoint.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
@@ -163,6 +186,7 @@ var utilities=require('core/utilities');
 
 
 module.exports ={
+   TextOrientation,
    FontTexture,
    SymbolFontTexture
 }

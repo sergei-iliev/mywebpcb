@@ -106,6 +106,7 @@ class FontLabel extends Shape{
 		super(x, y, 0, 0, 1,core.Layer.LAYER_ALL);
 		this.setDisplayName("Label");		
 		this.texture=new font.SymbolFontTexture("Label","label",x,y,8,0);
+		this.texture.fillColor = '#000000';
 		this.rotate=0;
 	}
 	clone(){
@@ -123,7 +124,7 @@ class FontLabel extends Shape{
 			return false;
 	}    
     setSelected(selected) {
-        this.texture.setSelected(selected);
+        this.texture.selection=selected;
     }
     
     isSelected() {
@@ -146,12 +147,6 @@ paint(g2, viewportWindow, scale,layersmask) {
 	  rect.scale(scale.getScale());
 	  if (!rect.intersects(viewportWindow)) {
 	  	return;
-	  }
-
-	  if (this.selection) {
-	  		this.texture.fillColor = "gray";
-	  } else {
-	  		this.texture.fillColor = 'black';
 	  }
 
 	  this.texture.paint(g2, viewportWindow, scale);
@@ -559,14 +554,13 @@ constructor() {
 		this.selectionRectWidth=4;
 		this.resizingPoint = null;
 		this.fillColor='black';	
-        this.orientation = Orientation.EAST;
+	    this.segment=new d2.Segment(0,0,0,0);        
         this.type = PinType.COMPLEX;
-        this.style = Style.LINE;
+        this.style = Style.FALLING_EDGE_CLOCK;
  	    
  	    this.name=new font.SymbolFontTexture("XXX","name",-8,0,8,0);
-	    this.number=new font.SymbolFontTexture("1","number",6,-4,8,0);
-	    this.segment=new d2.Segment(0,0,0,0);
-	    this.createPinLine();
+	    this.number=new font.SymbolFontTexture("1","number",10,-4,8,0);
+	    this.setOrientation(Orientation.EAST);
 	}
 clone(){
     var copy=new Pin();
@@ -626,25 +620,30 @@ Move(xoffset,yoffset) {
 calculateShape() {
 	return this.segment.box;
 } 
-createPinLine(){
+setOrientation(orientation){
+	this.orientation=orientation;
     switch (this.orientation) {
     case Orientation.EAST:        
-        this.segment.pe.set(this.getX() + (this.type == PinType.COMPLEX ? PIN_LENGTH : PIN_LENGTH / 2), this.getY());
+        this.segment.pe.set(this.segment.ps.x + (this.type == PinType.COMPLEX ? PIN_LENGTH : PIN_LENGTH / 2), this.segment.ps.y);
         break;
     case Orientation.WEST:
-    	this.segment.pe.set(this.getX() - (this.type == PinType.COMPLEX ? PIN_LENGTH : PIN_LENGTH / 2), this.getY());    	
+    	this.segment.pe.set(this.segment.ps.x - (this.type == PinType.COMPLEX ? PIN_LENGTH : PIN_LENGTH / 2), this.segment.ps.y);    	
         break;
     case Orientation.NORTH:
-    	this.segment.pe.set(this.getX(), this.getY() - (this.type == PinType.COMPLEX ? PIN_LENGTH : PIN_LENGTH / 2));    	
+    	this.segment.pe.set(this.segment.ps.x, this.segment.ps.y - (this.type == PinType.COMPLEX ? PIN_LENGTH : PIN_LENGTH / 2));    	
         break;
     case Orientation.SOUTH:    	
-    	this.segment.pe.set(this.getX(), this.getY() + (this.type == PinType.COMPLEX ? PIN_LENGTH : PIN_LENGTH / 2));
+    	this.segment.pe.set(this.segment.ps.x, this.segment.ps.y + (this.type == PinType.COMPLEX ? PIN_LENGTH : PIN_LENGTH / 2));
     }   
 }
 getCenter(){
 	return this.segment.ps;
 }
-
+setSelected (selection) {
+	super.setSelected(selection);
+	this.number.setSelected(selection);
+	this.name.setSelected(selection);
+}
 
 paint(g2, viewportWindow, scale,layersmask) {
 	var rect = this.segment.box;
@@ -652,8 +651,10 @@ paint(g2, viewportWindow, scale,layersmask) {
 	if (!rect.intersects(viewportWindow)) {
 		return;
 	}
-	g2.lineWidth = this.thickness * scale.getScale();
+	
+	
 
+	g2.lineWidth = this.thickness ;
 	if (this.selection) {
 		g2.strokeStyle = "gray";
 	  	this.name.fillColor = "gray";
@@ -663,18 +664,244 @@ paint(g2, viewportWindow, scale,layersmask) {
 	  	this.name.fillColor = 'black';
 		this.number.fillColor = 'black';
 	}
+	
+	switch(this.style){
+	case Style.LINE:
+		this.drawPinLine(g2, viewportWindow, scale,0);
+		break;
+	case Style.INVERTED:
+		this.drawPinLine(g2, viewportWindow, scale,(PIN_LENGTH / 3));
+		this.drawInverted(g2, viewportWindow, scale);
+		break;	  
+	case Style.CLOCK:
+		this.drawPinLine(g2, viewportWindow, scale,0);
+		this.drawTriState(g2, viewportWindow, scale);
+		break;
+	case Style.INVERTED_CLOCK:
+		this.drawPinLine(g2, viewportWindow, scale,(PIN_LENGTH / 3));
+		this.drawInverted(g2, viewportWindow, scale);
+		this.drawTriState(g2, viewportWindow, scale);
+		break;
+	case Style.INPUT_LOW:
+		this.drawPinLine(g2, viewportWindow, scale,0);
+		this.drawInputLow(g2, viewportWindow, scale);
+		break;
+	case Style.CLOCK_LOW:
+		this.drawPinLine(g2, viewportWindow, scale,0);
+		this.drawInputLow(g2, viewportWindow, scale);
+		this.drawTriState(g2, viewportWindow, scale);
+		break;
+	case  Style.OUTPUT_LOW:
+		this.drawPinLine(g2, viewportWindow, scale,0);
+		this.drawOutputLow(g2, viewportWindow, scale);
+		break;
+	case  Style.FALLING_EDGE_CLOCK:
+		this.drawPinLine(g2, viewportWindow, scale,PIN_LENGTH/ 6);
+		this.drawFallingEdgeClock(g2, viewportWindow, scale);
+		break;
+		  
+	}
+	
 
 
-	let r=this.segment.clone();	
-	r.scale(scale.getScale());
-    r.move(-viewportWindow.x,- viewportWindow.y);
-	r.paint(g2);
 	
 	  
     this.name.paint(g2, viewportWindow, scale);
     this.number.paint(g2, viewportWindow, scale);	
 }
-	
+drawPinLine(g2,viewportWindow, scale,offset){	
+    let line=this.segment.clone();            
+        
+    switch (this.orientation) {
+    case Orientation.SOUTH:
+    	line.ps.set(line.ps.x,line.ps.y+offset);
+        break;
+    case Orientation.NORTH:
+    	line.ps.set(line.ps.x,line.ps.y-offset);
+        break;
+    case Orientation.WEST:
+    	line.ps.set(line.ps.x-offset,line.ps.y);  
+        break;
+    case Orientation.EAST:
+    	line.ps.set(line.ps.x+offset,line.ps.y);    	
+        break;
+    }
+	line.scale(scale.getScale());
+    line.move(-viewportWindow.x,- viewportWindow.y);
+    
+    line.paint(g2);
+}
+drawFallingEdgeClock( g2, viewportWindow,scale) {
+	let pinlength = PIN_LENGTH *scale.getScale(); 
+    let line=new d2.Segment(0,0,0,0);
+    let x=this.segment.ps.x*scale.getScale();
+    let y=this.segment.ps.y*scale.getScale();
+    switch (this.orientation) {
+    case Orientation.SOUTH:
+        line.set(x - pinlength / 6 - viewportWindow.x, y - viewportWindow.y, x - viewportWindow.x,
+                      y + pinlength / 6 - viewportWindow.y);
+        line.paint(g2);
+        line.set(x + pinlength / 6 - viewportWindow.x, y - viewportWindow.y, x - viewportWindow.x,
+                      y + pinlength / 6 - viewportWindow.y);
+        line.paint(g2);
+        break;
+    case Orientation.NORTH:
+        line.set(x - pinlength / 6 - viewportWindow.x, y - viewportWindow.y, x - viewportWindow.x,
+                      y - pinlength / 6 - viewportWindow.y);
+        line.paint(g2);
+        line.set(x + pinlength / 6 - viewportWindow.x, y - viewportWindow.y, x - viewportWindow.x,
+                      y - pinlength / 6 - viewportWindow.y);
+        line.paint(g2);
+        break;
+    case Orientation.WEST:
+        line.set(x - viewportWindow.x, y - pinlength / 6 - viewportWindow.y,
+                      x - pinlength / 6 - viewportWindow.x, y - viewportWindow.y);
+        line.paint(g2);
+        line.set(x - viewportWindow.x, y + pinlength / 6 - viewportWindow.y,
+                      x - pinlength / 6 - viewportWindow.x, y - viewportWindow.y);
+        line.paint(g2);
+        break;
+    case Orientation.EAST:
+        line.set(x - viewportWindow.x, y - pinlength / 6 - viewportWindow.y,
+                      x + pinlength / 6 - viewportWindow.x, y - viewportWindow.y);
+        line.paint(g2);
+        line.set(x - viewportWindow.x, y + pinlength / 6 - viewportWindow.y,
+                      x + pinlength / 6 - viewportWindow.x, y - viewportWindow.y);
+        line.paint(g2);
+        break;
+    }
+}
+drawOutputLow(g2,viewportWindow, scale) {
+	let pinlength = PIN_LENGTH *scale.getScale(); 
+    let line=new d2.Segment(0,0,0,0);
+    let x=this.segment.ps.x*scale.getScale();
+    let y=this.segment.ps.y*scale.getScale();
+    switch (this.orientation) {
+    case Orientation.SOUTH:
+        line.set(x - viewportWindow.x, y+ (pinlength / 3) - viewportWindow.y, x - (pinlength / 6) - viewportWindow.x,
+                      y  - viewportWindow.y);
+        line.paint(g2);
+        break;
+    case Orientation.NORTH:
+        line.set(x - viewportWindow.x, y- (pinlength / 3) - viewportWindow.y, x - (pinlength / 6) - viewportWindow.x,
+                      y - viewportWindow.y);
+        line.paint(g2);
+        break;
+    case Orientation.WEST:
+        line.set(x - viewportWindow.x, y- (pinlength / 6) - viewportWindow.y, x - (pinlength / 3) - viewportWindow.x,
+                      y - viewportWindow.y);
+        line.paint(g2);
+        break;
+    case Orientation.EAST:
+        line.set(x - viewportWindow.x, y - (pinlength / 6) - viewportWindow.y, x + (pinlength / 3) - viewportWindow.x,
+                      y  - viewportWindow.y);
+        line.paint(g2);
+        break;
+    }
+
+}
+drawInputLow(g2,viewportWindow, scale) {
+	let pinlength = PIN_LENGTH *scale.getScale(); 
+    let line=new d2.Segment(0,0,0,0);
+    let x=this.segment.ps.x*scale.getScale();
+    let y=this.segment.ps.y*scale.getScale();
+    switch (this.orientation) {
+    case Orientation.SOUTH:
+        line.set(x - viewportWindow.x, y - viewportWindow.y, x - (pinlength / 6) - viewportWindow.x,
+                      y + (pinlength / 3) - viewportWindow.y);
+        line.paint(g2);
+        line.set(x - (pinlength / 6) - viewportWindow.x, y + (pinlength / 3) - viewportWindow.y,
+                      x - viewportWindow.x, y + (pinlength / 3) - viewportWindow.y);
+        line.paint(g2);
+        break;
+    case Orientation.NORTH:
+        line.set(x - viewportWindow.x, y - viewportWindow.y, x - (pinlength / 6) - viewportWindow.x,
+                      y - (pinlength / 3) - viewportWindow.y);
+        line.paint(g2);
+        line.set(x - (pinlength / 6) - viewportWindow.x, y - (pinlength / 3) - viewportWindow.y,
+                      x - viewportWindow.x, y - (pinlength / 3) - viewportWindow.y);
+        line.paint(g2);
+        break;
+    case Orientation.WEST:
+        line.set(x - viewportWindow.x, y - viewportWindow.y, x - (pinlength / 3) - viewportWindow.x,
+                      y - (pinlength / 6) - viewportWindow.y);
+        line.paint(g2);
+        line.set(x - (pinlength / 3) - viewportWindow.x, y - (pinlength / 6) - viewportWindow.y,
+                      x - (pinlength / 3) - viewportWindow.x, y - viewportWindow.y);
+        line.paint(g2);
+        break;
+    case Orientation.EAST:
+        line.set(x - viewportWindow.x, y - viewportWindow.y, x + (pinlength / 3) - viewportWindow.x,
+                      y - (pinlength / 6) - viewportWindow.y);
+        line.paint(g2);
+        line.set(x + (pinlength / 3) - viewportWindow.x, y - (pinlength / 6) - viewportWindow.y,
+                      x + (pinlength / 3) - viewportWindow.x, y - viewportWindow.y);
+        line.paint(g2);
+        break;
+    }
+
+}
+drawTriState(g2, viewportWindow, scale){
+    let pinlength = PIN_LENGTH *scale.getScale();    
+    let line=new d2.Segment(0,0,0,0);
+    let x=this.segment.ps.x*scale.getScale();
+    let y=this.segment.ps.y*scale.getScale();
+    switch (this.orientation) {
+      case Orientation.EAST:
+          line.set(x - viewportWindow.x, y - pinlength / 6 - viewportWindow.y,
+                  x - pinlength / 6 - viewportWindow.x, y - viewportWindow.y);
+          line.paint(g2);
+          line.set(x - viewportWindow.x, y + pinlength / 6 - viewportWindow.y,
+                  x - pinlength / 6 - viewportWindow.x, y - viewportWindow.y);
+          line.paint(g2);
+    	  break;
+      case Orientation.WEST:
+          line.set(x - viewportWindow.x, y - pinlength / 6 - viewportWindow.y,
+                  x + pinlength / 6 - viewportWindow.x, y - viewportWindow.y);
+          line.paint(g2);
+          line.set(x - viewportWindow.x, y + pinlength / 6 - viewportWindow.y,
+                  x + pinlength / 6 - viewportWindow.x, y - viewportWindow.y);
+          line.paint(g2);
+    	  break;
+      case Orientation.NORTH:
+          line.set(x - pinlength / 6 - viewportWindow.x, y - viewportWindow.y, x - viewportWindow.x,
+                  y + pinlength / 6 - viewportWindow.y);
+          line.paint(g2);
+          line.set(x + pinlength / 6 - viewportWindow.x, y - viewportWindow.y, x - viewportWindow.x,
+                  y + pinlength / 6 - viewportWindow.y);
+          line.paint(g2);
+    	  break;
+      case Orientation.SOUTH:
+          line.set(x - pinlength / 6 - viewportWindow.x, y - viewportWindow.y, x - viewportWindow.x,
+                  y - pinlength / 6 - viewportWindow.y);
+          line.paint(g2);
+          line.set(x + pinlength / 6 - viewportWindow.x, y - viewportWindow.y, x - viewportWindow.x,
+                  y - pinlength / 6 - viewportWindow.y);
+          line.paint(g2);
+    	  break;	    	  	    
+    }
+}
+drawInverted(g2, viewportWindow, scale){
+    let invertCircleRadios = (PIN_LENGTH / 6);
+    let circle=new d2.Circle(new d2.Point(this.segment.ps.x,this.segment.ps.y),invertCircleRadios);
+    switch (this.orientation) {
+      case Orientation.EAST:
+    	  circle.move(invertCircleRadios,0);
+    	  break;
+      case Orientation.WEST:
+    	  circle.move(-invertCircleRadios,0);
+    	  break;
+      case Orientation.NORTH:
+    	  circle.move(0,-invertCircleRadios);
+    	  break;
+      case Orientation.SOUTH:
+    	  circle.move(0,invertCircleRadios);
+    	  break;	    	  	    
+    }
+	circle.scale(scale.getScale());
+	circle.move(-viewportWindow.x,- viewportWindow.y);
+	circle.paint(g2);	
+}	
 }
 module.exports ={
 		Arc,
