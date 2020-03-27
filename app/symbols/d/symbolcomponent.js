@@ -11,6 +11,7 @@ var Ellipse=require('symbols/shapes').Ellipse;
 var Line=require('symbols/shapes').Line;
 var Arc=require('symbols/shapes').Arc;
 var Pin=require('symbols/shapes').Pin;
+var ArrowLine=require('symbols/shapes').ArrowLine;
 var SymbolContextMenu=require('symbols/popup/symbolpopup').SymbolContextMenu;
 var SymbolShapeFactory=require('symbols/shapes').SymbolShapeFactory;
 var SymbolEventMgr = require('symbols/events').SymbolEventMgr;
@@ -155,8 +156,8 @@ setMode(_mode){
 	 switch (this.mode) {
      		case core.ModeEnum.SOLID_REGION:
          	break;	 
-	        case core.ModeEnum.PAD_MODE:
-	            shape=new Pad(0,0,core.MM_TO_COORD(1.52),core.MM_TO_COORD(2.52));	            	            		                        
+	        case core.ModeEnum.ARROW_MODE:
+	            shape=new ArrowLine();	            	            		                        
 	            this.setContainerCursor(shape);               
 	            this.getEventMgr().setEventHandle("cursor",shape);  
 	          break;

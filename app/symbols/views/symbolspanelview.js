@@ -10,6 +10,7 @@ var	FontLabel=require('symbols/shapes').FontLabel;
 var	Line=require('symbols/shapes').Line;
 var	Arc=require('symbols/shapes').Arc;
 var	Pin=require('symbols/shapes').Pin;
+var	ArrowLine=require('symbols/shapes').ArrowLine;
 
 var ComponentPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
@@ -97,100 +98,23 @@ var PinPanelBuilder=BaseBuilder.extend({
 		 if(event.keyCode != 13){
 				return; 
 		 }
-	     if(event.target.id=='padwidthid'){	    	
-	        this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#padwidthid').val()))); 
-	     }
-	     if(event.target.id=='padheightid'){
-	    	this.target.setHeight(core.MM_TO_COORD(parseFloat(j$('#padheightid').val()))); 
-	     }
-	     if(event.target.id=='rotateid'){
-		        this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val()))); 
-		     }	     
+	     
 		 if(event.target.id=='numberid'){ 
 			 this.target.getTextureByTag("number").setText(j$('#numberid').val());			   
 		 }
-		 if(event.target.id=='numbersizeid'){ 
-			 this.target.getTextureByTag("number").setSize(core.MM_TO_COORD(parseFloat(j$('#numbersizeid').val())));  
-		 }
-		 if(event.target.id=='numberxid'||event.target.id=='numberyid'){ 
-			 this.targetgetTextureByTag("number").setLocation(this.fromUnitX(parseFloat(j$('#numberxid').val())),this.fromUnitY(parseFloat(j$('#numberyid').val())));
-			 
-		 }
-		 //--------netvalue-------
 		 if(event.target.id=='nameid'){ 
 			 this.target.getTextureByTag("name").setText(j$('#nameid').val()); 
-		 }
-		 if(event.target.id=='netvaluesizeid'){ 
-			 this.target.getTextureByTag("netvalue").setSize(core.MM_TO_COORD(parseFloat(j$('#netvaluesizeid').val()))); 
-		 }
-		 if(event.target.id=='netvaluexid'||event.target.id=='netvalueyid'){ 
-			 this.target.getTextureByTag("netvalue").setLocation(this.fromUnitX(parseFloat(j$('#netvaluexid').val())),this.fromUnitY(parseFloat(j$('#netvalueyid').val()))); 
-		 }
-		 if(event.target.id=='drillwidthid'){ 
-			 this.target.drill.setWidth(core.MM_TO_COORD(parseFloat(j$('#drillwidthid').val())));   
-		 }
-		 if(event.target.id=='offsetxid'){ 
-			 this.target.offset.x=(core.MM_TO_COORD(parseFloat(j$('#offsetxid').val())));   
-		 }
-		 if(event.target.id=='offsetyid'){ 
-			 this.target.offset.y=(core.MM_TO_COORD(parseFloat(j$('#offsetyid').val())));   
 		 }
 		 this.component.repaint(); 
     },
 	updateui:function(){
 
 		 j$('#orientationid').val(this.target.orientation);
-//		 j$('#padxid').val(this.toUnitX(this.target.getCenter().x));
-//		 j$('#padyid').val(this.toUnitY(this.target.getCenter().y));
 		 j$("#nameid").val(this.target.getTextureByTag("name").shape.text); 
 		 j$('#styleid').val(this.target.style);
-//	        if(this.target.getShape()==PadShape.CIRCULAR||this.target.getShape()==PadShape.POLYGON){
-//	        	j$('#padheightid').prop('disabled',true);
-//	        	j$('#padheightid').val('');
-//	        }else{
-//	        	j$('#padheightid').prop('disabled',false);
-//	        	j$('#padheightid').val(core.COORD_TO_MM(this.target.height));  
-//	        }
-//	        j$('#typeid').val(this.target.type);  
-//	        j$('#shapeid').val(this.target.getShape());  
-//	        //-------number---------
-	        j$('#numberid').val(this.target.getTextureByTag("number").shape.text); 
-//	        j$('#numbersizeid').val(core.COORD_TO_MM(this.target.getTextureByTag("number").shape.fontSize)); 
-//	        
-//	        if(this.target.getTextureByTag("number").isEmpty()){
-//	            j$('#numberxid').val('');
-//				j$('#numberyid').val('');
-//	        }else{ 
-//	         j$('#numberxid').val(this.toUnitX(this.target.getTextureByTag("number").shape.anchorPoint.x));
-//			 j$('#numberyid').val(this.toUnitY(this.target.getTextureByTag("number").shape.anchorPoint.y));
-//	        }	       	        
-//
-//	        //-------netvalue--------
-//	        j$('#netvalueid').val(this.target.getTextureByTag("netvalue").shape.text); 
-//	        j$('#netvaluesizeid').val(core.COORD_TO_MM(this.target.getTextureByTag("netvalue").shape.fontSize)); 
-//	        
-//	        if(this.target.getTextureByTag("netvalue").isEmpty()){
-//	            j$('#netvaluexid').val('');
-//				j$('#netvalueyid').val('');
-//	        }else{ 
-//	         j$('#netvaluexid').val(this.toUnitX(this.target.getTextureByTag("netvalue").shape.anchorPoint.x));
-//			 j$('#netvalueyid').val(this.toUnitY(this.target.getTextureByTag("netvalue").shape.anchorPoint.y));
-//	        }
-//	        
-//	        //-----drill and offset------
-//	        j$('#drillwidthid').val(core.COORD_TO_MM(this.target.drill==null?0:this.target.drill.getWidth()));
-//	        j$('#offsetxid').val(core.COORD_TO_MM(this.target.offset.x));
-//			j$('#offsetyid').val(core.COORD_TO_MM(this.target.offset.y));
-//			
-//	        if(this.target.type== PadType.SMD){
-//	        	 j$('#drillwidthid').prop('disabled',true);
-//	        	 j$('#offsetxid').prop('disabled',true);
-//	        	 j$('#offsetyid').prop('disabled',true);
-//	        }else{
-//	        	 j$('#drillwidthid').prop('disabled',false);
-//	        	 j$('#offsetxid').prop('disabled',false);
-//	        	 j$('#offsetyid').prop('disabled',false);	        	
-//	        }	       
+	     j$('#numberid').val(this.target.getTextureByTag("number").shape.text); 
+	     j$('#nameorientationid').val(this.target.getTextureByTag("name").getOrientation()); 
+	     j$('#numberorientationid').val(this.target.getTextureByTag("number").getOrientation()); 
 	},
 	render:function(){
 		j$(this.el).empty();
@@ -228,6 +152,59 @@ var PinPanelBuilder=BaseBuilder.extend({
 			
 		return this;
 	}    
+});
+var ArrowLinePanelBuilder=BaseBuilder.extend({
+	initialize:function(component){
+		ArcPanelBuilder.__super__.initialize(component);
+		this.id="arrowlinepanelbuilder";  
+    },	
+    events: {
+        'keypress #xid' : 'onenter',	
+        'keypress #yid' : 'onenter',
+        'keypress #thicknessid' : 'onenter',
+        'keypress #headsizeid' : 'onenter',
+        'change #fillid': 'onchange', 
+    },
+    onchange:function(event){
+        if(event.target.id=='fillid'){        
+        	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
+        }        
+        this.component.repaint(); 
+    }, 
+    onenter:function(event){
+		 if(event.keyCode != 13){
+				return; 
+		 }
+		 if(event.target.id=='thicknessid'){
+			 this.target.thickness=(parseFloat(j$('#thicknessid').val()));			 
+		 } 
+		 if(event.target.id=='headsizeid'){
+		   this.target.setHeadSize((parseInt(j$('#headsizeid').val())));			 
+		 } 
+		 this.component.repaint(); 	
+    },
+	updateui:function(){	
+		j$('#thicknessid').val(this.target.thickness);
+		j$("#headsizeid").val((this.target.headSize));
+		j$("#fillid").val(this.target.fill);
+	},
+	render:function(){
+						
+		j$(this.el).empty();
+		j$(this.el).append(
+				"<table width='100%'>"+			
+				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+			
+				"<tr><td style='padding:7px'>Fill</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"fillid\">"+
+				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+			    "</select>" +
+				"</td></tr>"+
+				"<tr><td style='padding:7px'>Head Size</td><td><input type='text' id='headsizeid' value='' class='form-control input-sm\'></td></tr>"+
+		"</table>");
+		return this;
+	}
 });
 var ArcPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
@@ -857,7 +834,7 @@ var SymbolsInspector=Backbone.View.extend({
 		                                         new LabelPanelBuilder(this.symbolComponent),
 		                                         new ComponentPanelBuilder(this.symbolComponent),
 		                                         new EllipsePanelBuilder(this.symbolComponent),
-		                                         //new SolidRegionPanelBuilder(this.symbolComponent),
+		                                         new ArrowLinePanelBuilder(this.symbolComponent),
 		                                         new ArcPanelBuilder(this.symbolComponent)
 		                                         ]);
 		this.el= '#symbolsinspectorid';	
@@ -984,16 +961,16 @@ var SymbolsInspector=Backbone.View.extend({
 				this.panel=this.collection.get('arcpanelbuilder');
 				this.panel.attributes.delegateEvents();
 				this.render();
+			}	
 		}	
-		}	
-//		}if(event.target instanceof SolidRegion){
-//			if(this.panel.id!='solidregionpanelbuilder'){
-//				this.panel.attributes.remove();
-//				this.panel=this.collection.get('solidregionpanelbuilder');
-//				this.panel.attributes.delegateEvents();
-//				this.render();
-//			}				
-//		}
+		if(event.target instanceof ArrowLine){
+			if(this.panel.id!='arrowlinepanelbuilder'){
+				this.panel.attributes.remove();
+				this.panel=this.collection.get('arrowlinepanelbuilder');
+				this.panel.attributes.delegateEvents();
+				this.render();
+			}				
+		}
 		//update panel ui values
 		this.panel.attributes.setTarget(event.target);
 		this.panel.attributes.updateui();

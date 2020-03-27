@@ -57,6 +57,7 @@ var ModeEnum=(function(){
 		   HOLE_MODE:15,
 		   SOLID_REGION_MODE:16,
 		   PIN_MODE:17,
+		   ARROW_MODE:18,
 	}
 })();
 

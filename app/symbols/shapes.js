@@ -240,6 +240,9 @@ class Arc extends Shape{
     Move(xoffset,yoffset) {
         this.arc.move(xoffset, yoffset);
     }
+	Resize(xoffset, yoffset,clickedPoint){
+		this.arc.resize(xoffset, yoffset,clickedPoint);
+	}
 	paint(g2, viewportWindow, scale,layersmask) {	
 	  	  var rect = this.arc.box;
 	  	  rect.scale(scale.getScale());
@@ -278,6 +281,12 @@ class Arc extends Shape{
 drawControlPoints(g2, viewportWindow, scale){
 		utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.arc.vertices); 		
 }	
+setResizingPoint(pt){
+	this.resizingPoint=pt;
+}
+getResizingPoint() {
+	return this.resizingPoint;
+}
 }
 class Ellipse extends Shape{
 	constructor(w, h) {
@@ -496,6 +505,130 @@ class RoundRect extends Shape{
 drawControlPoints(g2, viewportWindow, scale){
 		utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.roundRect.vertices); 		
 }		
+}
+
+class ArrowLine extends Shape{
+	constructor() {
+		super(0, 0, 0,0, 1,core.Layer.LAYER_ALL);
+		this.setDisplayName("Arrow");		
+		this.selectionRectWidth=4;
+		this.resizingPoint = null;
+		this.fillColor='black';	
+	    this.line=new d2.Segment(0,0,20,20);
+	    this.arrow=new d2.Polygon();
+	    this.arrow.points=[new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0)];
+	    this.headSize;
+	    this.resizingPoint;
+	    this.setHeadSize(3);
+}
+clone(){
+    var copy=new ArrowLine();
+    copy.headSize=this.headSize;
+    copy.line=this.line.clone();
+    copy.arrow=this.arrow.clone();    
+    return copy;
+}
+calculateShape() {
+	return this.line.box;		
+}
+isClicked(x, y) {
+	if (this.arrow.contains(new d2.Point(x, y))){
+		return true;
+	}else{
+		  var rect = d2.Box.fromRect(x
+					- (this.selectionRectWidth / 2), y
+					- (this.selectionRectWidth / 2), this.selectionRectWidth,
+					this.selectionRectWidth);
+		  
+			if (utilities.intersectLineRectangle(
+					this.line.ps,this.line.pe, rect.min, rect.max)) {			
+				return true;
+			}else{
+				return false
+			}
+	}
+}
+isControlRectClicked(x, y) {
+	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
+	
+		if (rect.contains(this.line.ps)){
+		  return this.line.ps;	
+		}else if(rect.contains(this.line.pe)) {					
+		  return this.line.pe;
+		}else{
+		  return null;
+		}
+}
+setHeadSize(headSize) {
+
+    this.headSize = headSize;
+    this.arrow.points[0].set(this.line.pe.x,this.line.pe.y);
+    this.arrow.points[1].set(this.line.pe.x-2*headSize,this.line.pe.y -headSize);
+    this.arrow.points[2].set(this.line.pe.x-2*headSize,this.line.pe.y+headSize);  
+    let angle = Math.atan2(((this.line.pe.y) - (this.line.ps.y)),((this.line.pe.x - this.line.ps.x)));
+    let deg=-1*utilities.degrees(angle);
+    
+    this.arrow.rotate(deg,this.line.pe);
+}	
+Resize(xoffset,yoffset,clickedPoint) {    
+    clickedPoint.set(clickedPoint.x + xoffset, 
+                             clickedPoint.y + yoffset);
+    this.setHeadSize(this.headSize);
+}
+Move(xoffset, yoffset) {
+	this.line.move(xoffset,yoffset);
+	this.arrow.move(xoffset,yoffset);
+}
+paint(g2, viewportWindow, scale,layersmask) {
+	g2.lineWidth = this.thickness * scale.getScale();
+
+	if (this.selection) {
+		g2.strokeStyle = "gray";
+	} else {
+		g2.strokeStyle = this.fillColor;
+	}
+
+
+	
+	let l=this.line.clone();
+	l.pe.set((this.arrow.points[1].x + this.arrow.points[2].x)/2, (this.arrow.points[1].y + this.arrow.points[2].y)/2);
+	l.scale(scale.getScale());
+    l.move(-viewportWindow.x,- viewportWindow.y);
+	l.paint(g2);
+	
+	if (this.fill == core.Fill.EMPTY) {
+		if (this.selection) {
+			g2.strokeStyle = "gray";
+		} else {
+			g2.strokeStyle = this.fillColor;
+		}
+	} else {
+		g2._fill=true;
+		if (this.selection) {
+			g2.fillStyle = "gray";
+		} else {
+			g2.fillStyle = this.fillColor;
+		}			
+	}
+	let a=this.arrow.clone();	
+	a.scale(scale.getScale());
+    a.move(-viewportWindow.x,- viewportWindow.y);
+	a.paint(g2);
+	g2._fill=false;	
+	
+	if (this.isSelected()) {
+		this.drawControlPoints(g2, viewportWindow, scale);
+	}
+}	
+drawControlPoints(g2, viewportWindow, scale){
+	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,[this.line.ps,this.line.pe]); 		
+}	
+setResizingPoint(pt){
+	this.resizingPoint=pt;
+}
+getResizingPoint() {
+	return this.resizingPoint;
+}
 }
 
 Style ={
@@ -904,6 +1037,7 @@ drawInverted(g2, viewportWindow, scale){
 }	
 }
 module.exports ={
+		ArrowLine,
 		Arc,
 		Pin,
 		Ellipse,

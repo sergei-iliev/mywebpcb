@@ -41,6 +41,7 @@ var SymbolComponent=require('symbols/d/symbolcomponent').SymbolComponent;
 			 new togglebutton.ToggleButtonModel({id:'arcid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'lineid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'pinid',group:'lefttogglegroup'}),
+			 new togglebutton.ToggleButtonModel({id:'arrowid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'labelid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'anchorid'}),
 			 new togglebutton.ToggleButtonModel({id:'originid'}),

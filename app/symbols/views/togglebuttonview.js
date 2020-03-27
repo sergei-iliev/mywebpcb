@@ -148,7 +148,10 @@ var ToggleButtonView=Backbone.View.extend({
 		
 		if(event.data.model.id=='pinid'){ 
 			this.symbolComponent.setMode(core.ModeEnum.PIN_MODE);
-		}		
+		}	
+		if(event.data.model.id=='arrowid'){ 
+			this.symbolComponent.setMode(core.ModeEnum.ARROW_MODE);
+		}
 		if(event.data.model.id=='measureid'){ 
 			this.symbolComponent.setMode(core.ModeEnum.MEASUMENT_MODE);
 		}
