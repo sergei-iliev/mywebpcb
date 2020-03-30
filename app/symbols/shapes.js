@@ -517,8 +517,7 @@ class ArrowLine extends Shape{
 	    this.line=new d2.Segment(0,0,20,20);
 	    this.arrow=new d2.Polygon();
 	    this.arrow.points=[new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0)];
-	    this.headSize;
-	    this.resizingPoint;
+	    this.headSize;	    
 	    this.setHeadSize(3);
 }
 clone(){
@@ -575,11 +574,21 @@ Resize(xoffset,yoffset,clickedPoint) {
                              clickedPoint.y + yoffset);
     this.setHeadSize(this.headSize);
 }
+Rotate(rotation){		
+	this.arrow.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	this.line.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+}
 Move(xoffset, yoffset) {
 	this.line.move(xoffset,yoffset);
 	this.arrow.move(xoffset,yoffset);
 }
 paint(g2, viewportWindow, scale,layersmask) {
+	var rect = this.line.box;
+	rect.scale(scale.getScale());
+	if (!rect.intersects(viewportWindow)) {
+		return;
+	}
+	
 	g2.lineWidth = this.thickness * scale.getScale();
 
 	if (this.selection) {
@@ -630,7 +639,103 @@ getResizingPoint() {
 	return this.resizingPoint;
 }
 }
+class Triangle extends Shape{
+	constructor() {
+		super(0, 0, 0,0, 1,core.Layer.LAYER_ALL);
+		this.setDisplayName("Triangle");		
+		this.selectionRectWidth=4;
+		this.resizingPoint = null;
+		this.fillColor='black';	
+	    this.shape=new d2.Polygon();
+	    this.shape.points=[new d2.Point(0,0),new d2.Point(20,20),new d2.Point(0,40)];	    	    	    
+}
+clone(){
+    var copy=new Triangle();
+    copy.shape=this.shape.clone();    
+    return copy;
+}
+alignResizingPointToGrid(targetPoint){
+    let point=this.owningUnit.getGrid().positionOnGrid(targetPoint.x,targetPoint.y);  
+    this.Resize(point.x -targetPoint.x,point.y-targetPoint.y,targetPoint);     
+}
+calculateShape() {
+  return this.shape.box;		
+}
+getCenter(){
+	return this.shape.box.center;
+}
+isClicked(x, y) {
+  return this.shape.contains(new d2.Point(x, y));	
+}
+isControlRectClicked(x, y) {
+	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
+	let point = null;
 
+	this.shape.points.some(function(wirePoint) {
+		if (rect.contains(wirePoint)) {
+		  point = wirePoint;
+		  return true;
+		}else{
+		  return false;
+		}
+	});
+
+	return point;
+}
+Resize(xoffset, yoffset, clickedPoint) {
+	clickedPoint.set(clickedPoint.x + xoffset,
+								clickedPoint.y + yoffset);
+}
+Rotate(rotation){		
+	this.shape.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	
+}
+Move(xoffset, yoffset) {
+	this.shape.move(xoffset,yoffset);	
+}
+paint(g2, viewportWindow, scale,layersmask) {
+	var rect = this.shape.box;
+	rect.scale(scale.getScale());
+	if (!rect.intersects(viewportWindow)) {
+		return;
+	}
+	
+	g2.lineWidth = this.thickness * scale.getScale();
+	
+	if (this.fill == core.Fill.EMPTY) {
+		if (this.selection) {
+			g2.strokeStyle = "gray";
+		} else {
+			g2.strokeStyle = this.fillColor;
+		}
+	} else {
+		g2._fill=true;
+		if (this.selection) {
+			g2.fillStyle = "gray";
+		} else {
+			g2.fillStyle = this.fillColor;
+		}			
+	}
+	let a=this.shape.clone();	
+	a.scale(scale.getScale());
+    a.move(-viewportWindow.x,- viewportWindow.y);
+	a.paint(g2);
+	g2._fill=false;	
+	
+	if (this.isSelected()) {
+		this.drawControlPoints(g2, viewportWindow, scale);
+	}
+}
+
+drawControlPoints(g2, viewportWindow, scale){
+	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.shape.points); 		
+}
+setResizingPoint(pt){
+	this.resizingPoint=pt;
+}
+getResizingPoint() {
+	return this.resizingPoint;
+}
+}
 Style ={
     LINE:0, /*default*/
     INVERTED:1,
@@ -646,7 +751,28 @@ Orientation={
         NORTH:0,
         SOUTH:1,
         WEST:2,
-        EAST:3
+        EAST:3,
+rotate:function(isClockwise,orientation) {
+       if (isClockwise) {
+               if (orientation == Orientation.NORTH)
+                    return Orientation.EAST;
+                else if (orientation == Orientation.EAST)
+                    return Orientation.SOUTH;
+                else if (orientation == Orientation.SOUTH)
+                    return Orientation.WEST;
+                else
+                    return Orientation.NORTH;
+        } else {
+                if (orientation == Orientation.NORTH)
+                    return Orientation.WEST;
+                else if (orientation == Orientation.WEST)
+                    return Orientation.SOUTH;
+                else if (orientation == Orientation.SOUTH)
+                    return Orientation.EAST;
+                else
+                    return Orientation.NORTH;
+        }
+  }        
 }
 PinType={
 		SIMPLE:0,
@@ -689,7 +815,7 @@ constructor() {
 		this.fillColor='black';	
 	    this.segment=new d2.Segment(0,0,0,0);        
         this.type = PinType.COMPLEX;
-        this.style = Style.FALLING_EDGE_CLOCK;
+        this.style = Style.LINE;
  	    
  	    this.name=new font.SymbolFontTexture("XXX","name",-8,0,8,0);
 	    this.number=new font.SymbolFontTexture("1","number",10,-4,8,0);
@@ -744,6 +870,19 @@ isClicked(x, y) {
 			return false
 		}
 		
+}
+Rotate(rotation){
+	//read current position	
+	let opos= utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
+	this.segment.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	this.orientation=Orientation.rotate(rotation.angle>0?false:true,this.orientation);
+	this.name.rotate(rotation);
+	this.number.rotate(rotation);
+	//read new position
+	let npos=utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
+	if(opos!=npos){
+		console.log("fix");
+	}
 }
 Move(xoffset,yoffset) {
     this.segment.move(xoffset,yoffset);
@@ -1038,6 +1177,7 @@ drawInverted(g2, viewportWindow, scale){
 }
 module.exports ={
 		ArrowLine,
+		Triangle,
 		Arc,
 		Pin,
 		Ellipse,

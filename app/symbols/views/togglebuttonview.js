@@ -2,11 +2,11 @@ var mywebpcb=require('core/core').mywebpcb;
 var core=require('core/core');
 var shape=require('core/shapes');
 var events=require('core/events');
-//var FootprintLoadView=require('pads/views/footprintloadview');
-//var FootprintSaveView=require('pads/views/footprintsaveview');
-var Footprint=require('symbols/d/symbolcomponent').Symbol;
+var SymbolLoadView=require('pads/views/footprintloadview');
+var SymbolSaveView=require('pads/views/footprintsaveview');
+var Symbol=require('symbols/d/symbolcomponent').Symbol;
 var UnitMgr = require('core/unit').UnitMgr;
-var FootprintContainer=require('symbols/d/symbolcomponent').SymbolContainer;
+var SymbolContainer=require('symbols/d/symbolcomponent').SymbolContainer;
 
 var ToggleButtonView=Backbone.View.extend({
 
@@ -94,7 +94,7 @@ var ToggleButtonView=Backbone.View.extend({
 		}
 
 		if(event.data.model.id=='loadid'){
-			 new FootprintLoadView({enabled:false}).render();			
+			 new SymbolLoadView({enabled:false}).render();			
 			 
 			/**
 		    j$.ajax({
@@ -137,7 +137,7 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='originid'){	
 			event.data.model.setActive(!event.data.model.isActive());
 			if(event.data.model.isActive()){
-			  this.symbolComponent.getModel().getUnit().coordinateSystem=new shape.CoordinateSystem(this.footprintComponent.getModel().getUnit());
+			  this.symbolComponent.getModel().getUnit().coordinateSystem=new shape.CoordinateSystem(this.symbolComponent.getModel().getUnit());
 			  this.symbolComponent.setMode(core.ModeEnum.ORIGIN_SHIFT_MODE);
 			}else{
 			  this.symbolComponent.getModel().getUnit().coordinateSystem=null;
@@ -152,6 +152,9 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='arrowid'){ 
 			this.symbolComponent.setMode(core.ModeEnum.ARROW_MODE);
 		}
+		if(event.data.model.id=='triangleid'){ 
+			this.symbolComponent.setMode(core.ModeEnum.TRIANGLE_MODE);
+		}		
 		if(event.data.model.id=='measureid'){ 
 			this.symbolComponent.setMode(core.ModeEnum.MEASUMENT_MODE);
 		}

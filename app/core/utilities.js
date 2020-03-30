@@ -16,6 +16,30 @@ var QUADRANT=(function(){
         FORTH:4
 	}
 })();
+
+var POSITION=(function(){
+	return{
+        TOP_LEFT:1,
+        BOTTOM_RIGHT:2,
+        findPositionToLine:function(x,y,l1,l2){
+        	if(l1.y==l2.y){ //horizontal line
+        	   if(y<l1.y){
+        		   return POSITION.TOP_LEFT;
+        	   }else{
+        		   return POSITION.BOTTOM_RIGHT;
+        	   }	
+        	}else{ 	//vertical line
+         	   if(x<l1.x){
+        		   return POSITION.TOP_LEFT;
+        	   }else{
+        		   return POSITION.BOTTOM_RIGHT;
+        	   }	        		
+        	}
+        }
+	}
+})();
+
+
 var POINT_TO_POINT=8;
 
 var roundDouble=function(number){
@@ -182,5 +206,6 @@ module.exports = {
   radians,
   QUADRANT,
   POINT_TO_POINT,
+  POSITION,
   mirrorPoint
 }

@@ -12,6 +12,7 @@ var Line=require('symbols/shapes').Line;
 var Arc=require('symbols/shapes').Arc;
 var Pin=require('symbols/shapes').Pin;
 var ArrowLine=require('symbols/shapes').ArrowLine;
+var Triangle=require('symbols/shapes').Triangle;
 var SymbolContextMenu=require('symbols/popup/symbolpopup').SymbolContextMenu;
 var SymbolShapeFactory=require('symbols/shapes').SymbolShapeFactory;
 var SymbolEventMgr = require('symbols/events').SymbolEventMgr;
@@ -158,6 +159,11 @@ setMode(_mode){
          	break;	 
 	        case core.ModeEnum.ARROW_MODE:
 	            shape=new ArrowLine();	            	            		                        
+	            this.setContainerCursor(shape);               
+	            this.getEventMgr().setEventHandle("cursor",shape);  
+	          break;
+	        case core.ModeEnum.TRIANGLE_MODE:
+	            shape=new Triangle();	            	            		                        
 	            this.setContainerCursor(shape);               
 	            this.getEventMgr().setEventHandle("cursor",shape);  
 	          break;
