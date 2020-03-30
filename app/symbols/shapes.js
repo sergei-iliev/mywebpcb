@@ -873,16 +873,34 @@ isClicked(x, y) {
 }
 Rotate(rotation){
 	//read current position	
-	let opos= utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
+	let oposname= utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
+	let oposnumber= utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
+	
 	this.segment.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	this.orientation=Orientation.rotate(rotation.angle>0?false:true,this.orientation);
 	this.name.rotate(rotation);
 	this.number.rotate(rotation);
+	
 	//read new position
-	let npos=utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
-	if(opos!=npos){
-		console.log("fix");
+	let nposname=utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);	
+	this.normalizeText(this.name,oposname,nposname);
+
+	
+	let nposnumber=utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);	
+	this.normalizeText(this.number,oposnumber,nposnumber);
+	
+}
+normalizeText(text,opos,npos){
+	if(opos==npos){
+	   return;	
 	}
+	if(this.orientation==Orientation.EAST||this.orientation==Orientation.WEST){	//horizontal
+	  let off=this.segment.ps.y-text.shape.anchorPoint.y;
+	  text.Move(0,2*off);
+	}else{	//vertical
+	  let off=this.segment.ps.x-text.shape.anchorPoint.x;
+	  text.Move(2*off,0);		  
+	}	
 }
 Move(xoffset,yoffset) {
     this.segment.move(xoffset,yoffset);

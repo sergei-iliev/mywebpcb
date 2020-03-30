@@ -32,6 +32,12 @@ module.exports = function(d2) {
                 Math.max(this.ps.y, this.pe.y)
             )
         }
+		get isHorizontal(){						
+			return d2.utils.EQ(this.ps.y,this.pe.y);			
+		}
+		get isVertical(){
+			return d2.utils.EQ(this.ps.x,this.pe.x);
+		}        
         middle() {
             return new d2.Point((this.ps.x + this.pe.x)/2, (this.ps.y + this.pe.y)/2);
         }
