@@ -32,8 +32,42 @@ app.get('/rest/boards/workspaces/CardReader/CR_v2', (req, res, next) => {
 		res.send(data);
   });
 });
+//***************SYMBOLS****************************************
+app.get('/rest/symbols/libraries', (req, res, next) => {
+	  res.send(
+	  '<?xml version="1.0" encoding="UTF-8"?><workspace>'+
+	  '<name>Atmel</name>'+	  
+	  '<name>General</name>'+	  
+	  '<name>Microchip</name>'+	  
+	  '</workspace>'
+	);
+});
+app.get('/rest/symbols/libraries/Atmel/categories', (req, res, next) => {
+  res.send(
+'<?xml version="1.0" encoding="UTF-8"?><category>'+
+'<name library="Atmel" category="CPU">CPU</name>'+
+'<name library="Atmel" category="Memory">Memory</name>'+
+'<name library="Atmel" category="USB">USB</name>'+
+'</category>'
+);
+});
+
+app.get('/rest/symbols/libraries/Atmel/categories/CPU', (req, res, next) => {
+  res.send(
+'<?xml version="1.0" encoding="UTF-8"?><units>'+
+'<name fullname="ATtiny26" category="CPU"  library="Atmel">ATtiny26</name>'+
+'<name fullname="ATtiny2313" category="CPU"  library="Atmel">ATtiny2313</name>'+
+'</units>'
+);
+});
+app.get('/rest/symbols/libraries/Atmel/categories/CPU/ATtiny26', (req, res, next) => {
+    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\library\\symbols\\Atmel\\CPU\\ATtiny26.xml','utf8', function(err, data) {
+		res.send(data);
+  });
+});
+
 //***************PADS****************************************
-// AJAX to /action.
+
 app.get('/rest/footprints/libraries', (req, res, next) => {
   res.send(
   '<?xml version="1.0" encoding="UTF-8"?><library>'+

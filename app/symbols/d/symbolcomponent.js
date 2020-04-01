@@ -40,32 +40,26 @@ clone(){
 	  //copy.silent=false;
 	  return copy;
 	}	
-//parse(data){
-//	 	   this.unitName=j$(data).find("name").text();
-//	 	   this.grid.setGridUnits(j$(data).find("units").attr("raster"),core.Units.MM);
-//	 	   
-//	 	   var reference=j$(data).find("reference");
-//	 	   var value=j$(data).find("value");
-//	 	   if(reference!=null&&reference.text()!=''){
-//	           var label = new GlyphLabel(0,0,0);
-//	           label.fromXML(reference[0]);
-//	           label.texture.tag="reference";
-//	           this.add(label);      
-//	 	   }
-//	 	   if(value!=null&&value.text()!=''){
-//	           var label = new GlyphLabel(0,0,0);
-//	           label.fromXML(value[0]);
-//	           label.texture.tag="value";
-//	           this.add(label);	 		   
-//	 	   }
-//	 	   var that=this;
-//	 	   j$(data).find('shapes').children().each(function(){
-//               var shape=that.shapeFactory.createShape(this);
-//               that.add(shape);
-//	 	   });
-//
-//
-//	}	
+parse(data){
+	 	   this.unitName=j$(data).find("name").text();
+	 	   
+	 	   var reference=j$(data).find("reference");
+	 	   var value=j$(data).find("unit");
+	 	   
+	 	   if(reference!=null&&reference.text()!=''){
+	                
+	 	   }
+	 	   if(value!=null&&value.text()!=''){
+	           	 		   
+	 	   }
+	 	   var that=this;
+	 	   j$(data).find('elements').children().each(function(){
+               var shape=that.shapeFactory.createShape(this);
+               that.add(shape);
+	 	   });
+
+
+	}	
 //format(){   
 //   var xml="<footprint width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
 //   xml+="<name>"+this.unitName+"</name>\r\n";
@@ -103,22 +97,22 @@ class SymbolContainer extends UnitContainer{
        this.formatedFileName="Symbols"
 	}
 
-//    parse(xml){
-//    	  this.setFileName(j$(xml).find("filename").text());
-//    	  this.libraryname=(j$(xml).find("library").text());
-//    	  this.categoryname=(j$(xml).find("category").text());    	  
-//    	  
-//    	  var that=this;
-//	      j$(xml).find("footprint").each(j$.proxy(function(){
-//	    	var footprint=new Footprint(j$(this).attr("width"),j$(this).attr("height"));
-//	    	    footprint.unitName=j$(this).find("name").text();
-//	    	//silent mode
-//	    	//footprint.silent=that.silent;
-//	    	//need to have a current unit
-//            that.add(footprint);
-//            footprint.parse(this);
-//	    }),that);	
-//    }
+    parse(xml){
+    	  this.setFileName(j$(xml).find("filename").text());
+    	  this.libraryname=(j$(xml).find("library").text());
+    	  this.categoryname=(j$(xml).find("category").text());    	  
+    	  console.log(xml);
+    	  var that=this;
+	      j$(xml).find("module").each(j$.proxy(function(){
+	    	var symbol=new Symbol(j$(this).attr("width"),j$(this).attr("height"));
+	    	    symbol.unitName=j$(this).find("name").text();
+	    	//silent mode
+	    	//footprint.silent=that.silent;
+	    	//need to have a current unit
+            that.add(symbol);
+            symbol.parse(this);
+	    }),that);	
+    }
 //    format() {
 //        var xml="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n"; 
 //        xml+="<footprints identity=\"Footprint\" version=\"1.0\">\r\n";      

@@ -66,23 +66,23 @@ var SymbolComponent=require('symbols/d/symbolcomponent').SymbolComponent;
 			 sc.componentResized();
 			 sc.repaint();
 			
-//			//init load dialog
-//				j$('#FootprintLoadDialog').jqxWindow({
-//				    resizable: false,
-//				    position: 'center',
-//		            width: 520,
-//		            height: 400,
-//		            autoOpen:false
-//                });
-//				
-//			//init save dialog
-//				j$('#FootprintSaveDialog').jqxWindow({
-//				    resizable: false,
-//				    position: 'center',
-//		            width: 350,
-//		            height: 270,
-//		            autoOpen:false
-//                });	
+			//init load dialog
+				j$('#SymbolLoadDialog').jqxWindow({
+				    resizable: false,
+				    position: 'center',
+		            width: 520,
+		            height: 400,
+		            autoOpen:false
+                });
+				
+			//init save dialog
+				j$('#SymbolSaveDialog').jqxWindow({
+				    resizable: false,
+				    position: 'center',
+		            width: 350,
+		            height: 270,
+		            autoOpen:false
+                });	
 		   //load demo footprint
 			    	//loadDemo(fc);
 	});	

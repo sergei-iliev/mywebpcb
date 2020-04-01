@@ -15,7 +15,7 @@ class SymbolShapeFactory{
 			return pad;
 		}
 		if (data.tagName.toLowerCase() == 'rectangle') {
-			var roundRect = new RoundRect(0, 0, 0, 0, 0,0, core.Layer.SILKSCREEN_LAYER_FRONT);
+			var roundRect = new RoundRect(0,0,0,0, 0,0);
 			roundRect.fromXML(data);
 			return roundRect;
 		}
@@ -504,7 +504,16 @@ class RoundRect extends Shape{
 	}	
 drawControlPoints(g2, viewportWindow, scale){
 		utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.roundRect.vertices); 		
-}		
+}	
+fromXML(data){
+	 var tokens = data.textContent.split(",");
+	 this.roundRect.setRect(parseInt(tokens[0]),parseInt(tokens[1]),parseInt(tokens[2]),parseInt(tokens[3]));
+	    
+     //setThickness(Byte.parseByte(st.nextToken()));
+     //setFill(Fill.byIndex(Byte.parseByte(st.nextToken()))); 
+	 this.roundRect.setRounding(parseInt(tokens[6]));
+}
+
 }
 
 class ArrowLine extends Shape{
