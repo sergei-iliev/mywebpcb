@@ -413,7 +413,7 @@ var SymbolPanelBuilder=BaseBuilder.extend({
         'keypress #nameid' : 'onenter',
         'keypress #widthid':'onenter',
         'keypress #heightid':'onenter',
-        'change #gridrasterid': 'onchange',
+        'change #textlayoutvisibilityid': 'onchange',
         'change #referenceid':'onchange',
         'change #valueid':'onchange',
         'keypress #originxid':'onenter',
@@ -424,7 +424,7 @@ var SymbolPanelBuilder=BaseBuilder.extend({
 			return; 
 	     }
 		 if(event.target.id=='widthid'||event.target.id=='heightid'){           
-		    this.component.getModel().getUnit().setSize(core.MM_TO_COORD(parseFloat(j$('#widthid').val())),core.MM_TO_COORD(parseFloat(j$('#heightid').val())));  
+		    this.component.getModel().getUnit().setSize((parseFloat(j$('#widthid').val())),(parseFloat(j$('#heightid').val())));  
 		    this.component.componentResized();     
 		    this.component.repaint();
 		 }
@@ -434,7 +434,7 @@ var SymbolPanelBuilder=BaseBuilder.extend({
 		 }
 		 if(event.target.id=='originxid'||event.target.id=='originyid'){   
 			 if(this.component.getModel().getUnit().getCoordinateSystem()!=null){
-			    this.component.getModel().getUnit().getCoordinateSystem().reset(core.MM_TO_COORD(parseFloat(j$('#originxid').val())),core.MM_TO_COORD(parseFloat(j$('#originyid').val())));  
+			    this.component.getModel().getUnit().getCoordinateSystem().reset((parseFloat(j$('#originxid').val())),(parseFloat(j$('#originyid').val())));  
 			    this.component.componentResized();     
 			    this.component.repaint();
 			 }
@@ -443,8 +443,8 @@ var SymbolPanelBuilder=BaseBuilder.extend({
 		
 	},
 	onchange:function(event){
-		if(event.target.id=='gridrasterid'){
-			this.target.grid.setGridValue(parseFloat(j$("#gridrasterid").val()));
+		if(event.target.id=='textlayoutvisibilityid'){
+			this.target.setTextLayoutVisibility((j$("#textlayoutvisibilityid").val()==='true'));
 			this.component.repaint();
 		}		
 		if(event.target.id=='referenceid'){
@@ -474,12 +474,14 @@ var SymbolPanelBuilder=BaseBuilder.extend({
 	},
 	updateui:function(){
 	   j$("#nameid").val(this.target.unitName);
-	   j$("#widthid").val(core.COORD_TO_MM( this.target.width));    
-	   j$("#heightid").val(core.COORD_TO_MM(this.target.height));
-	   j$("#gridrasterid").val(this.target.grid.getGridValue());
+	   j$("#widthid").val(( this.target.width));    
+	   j$("#heightid").val((this.target.height));
+	   j$("#textlayoutvisibilityid").val(this.target.isTextLayoutVisible.toString());
+	   
+	   
 	   if(this.component.getModel().getUnit().coordinateSystem!=null){
-	     j$("#originxid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getX()));    
-	     j$("#originyid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getY()));
+	     j$("#originxid").val((this.component.getModel().getUnit().getCoordinateSystem().getX()));    
+	     j$("#originyid").val((this.component.getModel().getUnit().getCoordinateSystem().getY()));
 	   }
 	   //reference
 //	   var labels=this.target.getShapes(GlyphLabel);
@@ -513,16 +515,6 @@ var SymbolPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Width</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='heightid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Units</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"unitsid\">"+
-			    this.fillComboBox([{id:'mm',value:'MM',selected:true},{id:'inch',value:'INCH'}])+
-			    "</select>" +
-				"</td></tr>"+
-				"<tr><td style='padding:7px'>Grid</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"gridrasterid\">"+
-			    this.fillComboBox(core.GridRaster)+
-			    "</select>" +
-				"</td></tr>"+
 				"<tr><td style='padding:7px'>Reference</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"referenceid\">"+
 			    
@@ -531,6 +523,11 @@ var SymbolPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>Value</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"valueid\">"+
 			    
+			    "</select>" +
+				"</td></tr>"+
+				"<tr><td style='padding:7px'>Text Layout Visible</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"textlayoutvisibilityid\">"+
+				this.fillComboBox([{id:false,value:'false',selected:true},{id:true,value:'true'}])+
 			    "</select>" +
 				"</td></tr>"+
 				"<tr><td style='width:50%;padding:7px'>Origin X</td><td><input type='text' id='originxid' value='' class='form-control input-sm\'></td></tr>"+

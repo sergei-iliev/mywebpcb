@@ -22,11 +22,14 @@ class FontTexture{
 	this.selectionRectWidth=3000;
 	this.constSize=false;
 	this.fillColor='white'; 
+    this.style='PLAIN';
+    this.isTextLayoutVisible=false;
 	//this.cache=new TextureCache(this);
  }
 clone(){
      var copy=new FontTexture(this.shape.text,this.tag,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.fontSize,this.shape.rotation);     
      copy.fillColor=this.fillColor;
+     copy.isTextLayoutVisible=this.isTextLayoutVisible;
      return copy;	 
  } 
 isEmpty() {
@@ -43,7 +46,10 @@ getBoundingRect(){
     if (this.shape.text == null || this.shape.text.length == 0){
         return null;
     } 
-    
+    let box=this.shape.box;
+    let rect= new d2.Rectangle(box.x,box.y,box.width,box.height);
+    rect.rotate(this.shape.rotation,this.shape.anchorPoint);
+    return rect;
 }
 getBoundingShape() {
     if (this.shape.text == null || this.shape.text.length == 0) {
@@ -94,7 +100,14 @@ paint(g2,viewportWindow,scale){
 //     t.paint(g2);
   
 	 this.shape.scalePaint(g2,viewportWindow,scale.getScale());
-		 
+	 if(this.isTextLayoutVisible){
+		let box=this.getBoundingRect();
+	  	box.scale(scale.getScale());
+	  	box.move(-viewportWindow.x,- viewportWindow.y);
+		g2.lineWidth =1;
+ 		g2.strokeStyle = 'blue';
+	  	box.paint(g2);
+	 }
      if(this.selection){
  		 g2.lineWidth =1;
  		 g2.strokeStyle = 'blue';
@@ -133,6 +146,7 @@ class SymbolFontTexture extends FontTexture{
 constructor(tag,text,x,y,fontSize,rotation) {
        super(tag,text,x,y,fontSize,rotation);
        this.selectionRectWidth=4;
+       this.fillColor='black'; 
 }
 clone(){
     var copy=new SymbolFontTexture(this.shape.text,this.tag,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.fontSize,this.shape.rotation);     
@@ -168,18 +182,25 @@ rotate(rotation){
  	}else{
  		this.shape.rotation=90;
  	}
- } 
+ } 	    
 
-isHorizontal(){	 
-	return (this.texture.shape.rotation==0);
-} 
-setHorizontal(){
-	
+fromXML(node){
+    if (node == null || node.length==0) {
+        this.text = "";
+        return;
+    }
+    var tokens=node.split(',');
+    this.shape.setText(tokens[0]);
+    this.shape.anchorPoint.set(parseInt(tokens[1]),
+            parseInt(tokens[2]));     
+    this.style=tokens[4];    
+    this.shape.setSize(parseInt(tokens[5]));
+    //TOP, BOTTOM alignment
+    if(tokens[3]=='TOP'||tokens[3]=='BOTTOM'){
+    	this.shape.rotation=90;	
+    }
 }
-setVertical(){
-	
-}
-	    
+
 }
 var core=require('core/core');
 var utilities=require('core/utilities');

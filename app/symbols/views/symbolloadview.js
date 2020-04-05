@@ -8,6 +8,13 @@ var SymbolLoadView=Backbone.View.extend({
 			j$('#SymbolLoadDialog').off('close', j$.proxy(this.onclose,this)); 
 			j$('#SymbolLoadDialog').on('close', j$.proxy(this.onclose,this)); 			
 			this.unitSelectionPanel=new core.UnitSelectionPanel({selectorid:'unitselectionpanel',canvasprefixid:'f',enabled:opt.enabled});
+			this.unitSelectionPanel.textColor='black';
+			this.unitSelectionPanel.backColor='white';
+		    this.unitSelectionPanel.unitSelectionGrid.scaleFactor=0;
+		    this.unitSelectionPanel.unitSelectionGrid.scaleRatio=1.2;    
+		    this.unitSelectionPanel.unitSelectionGrid.minScaleFactor=0;
+		    this.unitSelectionPanel.unitSelectionGrid.maxScaleFactor=10;
+		    
 			this.libraryview=new LibraryView({unitSelectionPanel:this.unitSelectionPanel});  
 	    	this.buttonview=new ButtonView({unitSelectionPanel:this.unitSelectionPanel});  
 	    	j$('#loadtitle').html("Load Symbol");

@@ -90,7 +90,7 @@ var ToggleButtonView=Backbone.View.extend({
 //		        	j$('#mywebpadsid').unblock();
 //		        }
 //		    });
-			new FootprintSaveView({footprintComponent:this.footprintComponent}).render();			
+			new SymbolSaveView({symbolComponent:this.symbolComponent}).render();			
 		}
 
 		if(event.data.model.id=='loadid'){
@@ -138,6 +138,7 @@ var ToggleButtonView=Backbone.View.extend({
 			event.data.model.setActive(!event.data.model.isActive());
 			if(event.data.model.isActive()){
 			  this.symbolComponent.getModel().getUnit().coordinateSystem=new shape.CoordinateSystem(this.symbolComponent.getModel().getUnit());
+			  this.symbolComponent.getModel().getUnit().coordinateSystem.selectionRectWidth=4;
 			  this.symbolComponent.setMode(core.ModeEnum.ORIGIN_SHIFT_MODE);
 			}else{
 			  this.symbolComponent.getModel().getUnit().coordinateSystem=null;
@@ -193,18 +194,18 @@ var ToggleButtonView=Backbone.View.extend({
             this.symbolComponent.repaint();
 		}
 		if(event.data.model.id=='zoominid'){
-			this.symbolComponent.ZoomIn(parseInt(this.footprintComponent.width/2),parseInt(this.footprintComponent.height/2));
+			this.symbolComponent.ZoomIn(parseInt(this.symbolComponent.width/2),parseInt(this.symbolComponent.height/2));
 		}
 		if(event.data.model.id=='zoomoutid'){
-			this.symbolComponent.ZoomOut(parseInt(this.footprintComponent.width/2),parseInt(this.footprintComponent.height/2));
+			this.symbolComponent.ZoomOut(parseInt(this.symbolComponent.width/2),parseInt(this.symbolComponent.height/2));
 		}	
 		if(event.data.model.id=='grabid'){
 			 this.symbolComponent.setMode(core.ModeEnum.DRAGHEAND_MODE);
 		}	
 		if(event.data.model.id=='tocenterid'){
 			
-            this.symbolComponent.setScrollPosition(parseInt(this.footprintComponent.getModel().getUnit().width/2),
-            		parseInt(this.footprintComponent.getModel().getUnit().height/2));
+            this.symbolComponent.setScrollPosition(parseInt(this.symbolComponent.getModel().getUnit().width/2),
+            		parseInt(this.symbolComponent.getModel().getUnit().height/2));
 		}		
         if (event.data.model.id=='measureid') {
             this.symbolComponent.setMode(core.ModeEnum.MEASUMENT_MODE);
@@ -227,26 +228,26 @@ var ToggleButtonView=Backbone.View.extend({
 		  
 		  
 		  
-		  this.footprintComponent.getModel().setActiveUnit(0);
-		  this.footprintComponent.getModel().formatedFileName=selectedModel.formatedFileName;
-		  this.footprintComponent.getModel().libraryname=selectedModel.libraryname;
-		  this.footprintComponent.getModel().categoryname=selectedModel.categoryname;
+		  this.symbolComponent.getModel().setActiveUnit(0);
+		  this.symbolComponent.getModel().formatedFileName=selectedModel.formatedFileName;
+		  this.symbolComponent.getModel().libraryname=selectedModel.libraryname;
+		  this.symbolComponent.getModel().categoryname=selectedModel.categoryname;
 		  
-		  this.footprintComponent.componentResized();
+		  this.symbolComponent.componentResized();
         //position on center
-          let rect=this.footprintComponent.getModel().getUnit().getBoundingRect();
-          this.footprintComponent.setScrollPosition(rect.center.x,rect.center.y);
-          this.footprintComponent.fireContainerEvent({target:null,type: events.Event.RENAME_CONTAINER});
-          this.footprintComponent.getModel().fireUnitEvent({target:this.footprintComponent.getModel().getUnit(),type: events.Event.SELECT_UNIT});
-		  this.footprintComponent.repaint();
+          let rect=this.symbolComponent.getModel().getUnit().getBoundingRect();
+          this.symbolComponent.setScrollPosition(rect.center.x,rect.center.y);
+          this.symbolComponent.fireContainerEvent({target:null,type: events.Event.RENAME_CONTAINER});
+          this.symbolComponent.getModel().fireUnitEvent({target:this.symbolComponent.getModel().getUnit(),type: events.Event.SELECT_UNIT});
+		  this.symbolComponent.repaint();
 		  //set button group
-		  this.footprintComponent.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
+		  this.symbolComponent.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
 		  
 	        //position all to symbol center
-		  for(let unit of this.footprintComponent.getModel().getUnits()){			   
+		  for(let unit of this.symbolComponent.getModel().getUnits()){			   
 	            let r=unit.getBoundingRect();
-	            var x=unit.getScalableTransformation().getScale()*r.x-(this.footprintComponent.viewportWindow.width-unit.getScalableTransformation().getScale()*r.width)/2;
-	            var y=unit.getScalableTransformation().getScale()*r.y-(this.footprintComponent.viewportWindow.height-unit.getScalableTransformation().getScale()*r.height)/2;;
+	            var x=unit.getScalableTransformation().getScale()*r.x-(this.symbolComponent.viewportWindow.width-unit.getScalableTransformation().getScale()*r.width)/2;
+	            var y=unit.getScalableTransformation().getScale()*r.y-(this.symbolComponent.viewportWindow.height-unit.getScalableTransformation().getScale()*r.height)/2;;
 	            unit.setScrollPositionValue(x,y);            			  
 		  }		
 

@@ -9,10 +9,10 @@ var d2=require('d2/d2');
 class SymbolShapeFactory{
 	
 	createShape(data){
-		if (data.tagName.toLowerCase() == 'pad') {
-			var pad = new Pad(0, 0, 0, 0);
-			pad.fromXML(data);
-			return pad;
+		if (data.tagName.toLowerCase() == 'pin') {
+			var pin = new Pin();
+			pin.fromXML(data);
+			return pin;
 		}
 		if (data.tagName.toLowerCase() == 'rectangle') {
 			var roundRect = new RoundRect(0,0,0,0, 0,0);
@@ -151,7 +151,9 @@ paint(g2, viewportWindow, scale,layersmask) {
 
 	  this.texture.paint(g2, viewportWindow, scale);
 }
-	    
+fromXML(data){
+     this.texture.fromXML(data);  	
+}	    
     
 }
 class Arc extends Shape{
@@ -825,7 +827,7 @@ constructor() {
 	    this.segment=new d2.Segment(0,0,0,0);        
         this.type = PinType.COMPLEX;
         this.style = Style.LINE;
- 	    
+
  	    this.name=new font.SymbolFontTexture("XXX","name",-8,0,8,0);
 	    this.number=new font.SymbolFontTexture("1","number",10,-4,8,0);
 	    this.setOrientation(Orientation.EAST);
@@ -1000,13 +1002,31 @@ paint(g2, viewportWindow, scale,layersmask) {
 		break;
 		  
 	}
-	
-
-
-	
-	  
+		  
     this.name.paint(g2, viewportWindow, scale);
     this.number.paint(g2, viewportWindow, scale);	
+}
+fromXML(data){
+	this.type=parseInt(j$(data).attr("type"));
+	this.style=parseInt(j$(data).attr("style"));
+	
+	let a=j$(data).find("a").text();
+	var tokens = a.split(",");
+	this.segment.ps.set(parseFloat(tokens[0]),parseFloat(tokens[1]));
+	this.setOrientation(parseInt(tokens[3]));
+	
+    var number=(j$(data).find("number").text()); 
+	var name=(j$(data).find("name").text());
+	if(number==''){
+	  this.number.shale.anchorPoint.set(this.segment.ps.x,this.segment.ps.y);
+	}else{
+	  this.number.fromXML(number);
+	}
+	if(name==''){
+	  this.name.shape.anchorPoint.set(this.segment.ps.x,this.segment.ps.y);
+	}else{
+	  this.name.fromXML(name);
+	}	
 }
 drawPinLine(g2,viewportWindow, scale,offset){	
     let line=this.segment.clone();            

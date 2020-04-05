@@ -21,17 +21,20 @@ var d2=require('d2/d2');
 
 class Symbol extends Unit{
 constructor(width,height) {
-       super(width,height); 
+       super(width,height);
        this.scalableTransformation.reset(1.2,2,2,15);
 	   this.shapeFactory = new SymbolShapeFactory();
        this.grid.setGridUnits(8, core.Units.PIXEL);
        this.grid.pointsColor='black'; 
+       this.isTextLayoutVisible = false;
+       this.frame.color='black';
 	}
 clone(){
 	  var copy=new Symbol(this.width,this.height);
 	  //copy.silent=true;
 	  copy.unitName=this.unitName;
 	  copy.grid=this.grid.clone();
+
       var len=this.shapes.length;
 	  for(var i=0;i<len;i++){
            var clone=this.shapes[i].clone();
@@ -41,25 +44,37 @@ clone(){
 	  return copy;
 	}	
 parse(data){
-	 	   this.unitName=j$(data).find("name").text();
-	 	   
+	 	   this.unitName=j$(data).find("name").first().text();
 	 	   var reference=j$(data).find("reference");
 	 	   var value=j$(data).find("unit");
-	 	   
+	 	  
 	 	   if(reference!=null&&reference.text()!=''){
-	                
+		        var label = new FontLabel(0,0);
+		        label.fromXML(reference.text());
+		        label.texture.tag="reference";
+		        this.add(label);      		 	      
 	 	   }
 	 	   if(value!=null&&value.text()!=''){
-	           	 		   
+		        var label = new FontLabel(0,0);
+		        label.fromXML(value.text());
+		        label.texture.tag="unit";
+		        this.add(label);  
 	 	   }
 	 	   var that=this;
 	 	   j$(data).find('elements').children().each(function(){
                var shape=that.shapeFactory.createShape(this);
                that.add(shape);
 	 	   });
-
-
 	}	
+setTextLayoutVisibility( isTextLayoutVisible) {
+    this.isTextLayoutVisible = isTextLayoutVisible;
+    this.shapes.forEach((shape)=>{            
+        if(shape instanceof Pin){
+          shape.name.isTextLayoutVisible=isTextLayoutVisible;
+          shape.number.isTextLayoutVisible=isTextLayoutVisible;
+        }  
+       });
+}
 //format(){   
 //   var xml="<footprint width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
 //   xml+="<name>"+this.unitName+"</name>\r\n";
@@ -101,11 +116,10 @@ class SymbolContainer extends UnitContainer{
     	  this.setFileName(j$(xml).find("filename").text());
     	  this.libraryname=(j$(xml).find("library").text());
     	  this.categoryname=(j$(xml).find("category").text());    	  
-    	  console.log(xml);
+    	 
     	  var that=this;
 	      j$(xml).find("module").each(j$.proxy(function(){
-	    	var symbol=new Symbol(j$(this).attr("width"),j$(this).attr("height"));
-	    	    symbol.unitName=j$(this).find("name").text();
+	    	var symbol=new Symbol(j$(this).attr("width"),j$(this).attr("height"));	    	    
 	    	//silent mode
 	    	//footprint.silent=that.silent;
 	    	//need to have a current unit

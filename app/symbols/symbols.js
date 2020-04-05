@@ -59,7 +59,7 @@ var SymbolComponent=require('symbols/d/symbolcomponent').SymbolComponent;
 			 var symbolsPanel=new SymbolsPanelView({symbolComponent:sc,name:'jqxTree'});
 			 symbolsPanel.render();
 				//***add footprint
-			 sc.getModel().add(new Symbol(1200,800));
+			 sc.getModel().add(new Symbol(500,500));
 			 sc.getModel().setActiveUnit(0);
 			 sc.getModel().fireUnitEvent({target:sc.getModel().getUnit(),type:events.Event.SELECT_UNIT});
 				

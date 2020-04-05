@@ -52,11 +52,19 @@ app.get('/rest/symbols/libraries/Atmel/categories', (req, res, next) => {
 );
 });
 
+app.get('/rest/symbols/libraries/General/categories', (req, res, next) => {
+  res.send(
+'<?xml version="1.0" encoding="UTF-8"?><category>'+
+'<name library="General">Diod</name>'+
+'</category>'
+);
+});
+
 app.get('/rest/symbols/libraries/Atmel/categories/CPU', (req, res, next) => {
   res.send(
 '<?xml version="1.0" encoding="UTF-8"?><units>'+
 '<name fullname="ATtiny26" category="CPU"  library="Atmel">ATtiny26</name>'+
-'<name fullname="ATtiny2313" category="CPU"  library="Atmel">ATtiny2313</name>'+
+'<name fullname="test" category="CPU"  library="Atmel">test</name>'+
 '</units>'
 );
 });
@@ -65,7 +73,16 @@ app.get('/rest/symbols/libraries/Atmel/categories/CPU/ATtiny26', (req, res, next
 		res.send(data);
   });
 });
-
+app.get('/rest/symbols/libraries/Atmel/categories/CPU/test', (req, res, next) => {
+    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\library\\symbols\\Atmel\\CPU\\test.xml','utf8', function(err, data) {
+		res.send(data);
+  });
+});
+app.get('/rest/symbols/libraries/General/categories/null/Diod', (req, res, next) => {
+    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\library\\symbols\\General\\Diod.xml','utf8', function(err, data) {
+		res.send(data);
+  });
+});
 //***************PADS****************************************
 
 app.get('/rest/footprints/libraries', (req, res, next) => {

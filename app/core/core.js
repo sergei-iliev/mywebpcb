@@ -511,6 +511,7 @@ class Grid{
  }
  clone(){
 	var copy=new Grid(this.value,this.units);
+	copy.pointsColor=this.pointsColor;
 	return copy;
  }
 getGridPointToPoint(){
@@ -563,7 +564,6 @@ COORD_TO_UNIT(coord){
     }            
   }
 paint(g2,viewportWindow,scalableTransformation){
-    
 	if(this.paintable){
 	 this.drawPoints(g2, viewportWindow, scalableTransformation);
     }
@@ -578,13 +578,11 @@ paint(g2,viewportWindow,scalableTransformation){
     
     let position=this.positionOnGrid(r.x,r.y);
 	
-	
-	if(!this.isGridDrawable(position,scalableTransformation)){
-        return;
+	if(!this.isGridDrawable(position,scalableTransformation)){        		  
+		return;
     }
 		
 	let point=new d2.Point();  
-	 
 	g2.strokeStyle = this.pointsColor;				 
     g2.lineWidth = 1;
      
@@ -636,7 +634,8 @@ class UnitFrame{
 constructor(width,height) {
 	      this.rectangle=new d2.Box(0,0,0,0);
 	      this.offset=0;
-	      this.setSize(width,height);   
+	      this.setSize(width,height); 
+	      this.color="white";
 }
 setSize(width,height) {
     this.width=width;
@@ -653,7 +652,7 @@ paint(g2, viewportWindow, scale) {
       }
       g2.beginPath();
       g2.lineWidth="1";
-      g2.strokeStyle = "white";
+      g2.strokeStyle = this.color;
       g2.rect(rect.x-viewportWindow.x, rect.y-viewportWindow.y, rect.width, rect.height);      
       g2.stroke(); 
 }
@@ -686,6 +685,9 @@ var UnitSelectionGrid = Backbone.Model.extend({
     this.model=null;
     this.cells=[];
     this.scaleFactor=10;
+    this.scaleRatio=0.5;    
+    this.minScaleFactor=4;
+    this.maxScaleFactor=13;
   },
 setModel:function(model){
 		this.model=model;
@@ -709,8 +711,9 @@ build:function(){
 		 //hide frame
 		 unit.frame=null;
 		 //make it smaller
-		 unit.scalableTransformation=new ScalableTransformation(this.scaleFactor,4,13);
-	     var w=Math.round(unit.getBoundingRect().width*unit.scalableTransformation.getScale());
+		 //unit.scalableTransformation=new ScalableTransformation(this.scaleFactor,4,13);
+	     unit.scalableTransformation.reset(this.scaleRatio,this.scaleFactor,this.minScaleFactor,this.maxScaleFactor);
+		 var w=Math.round(unit.getBoundingRect().width*unit.scalableTransformation.getScale());
 		 width=Math.max(width,w);
        
 	  }
@@ -718,7 +721,7 @@ build:function(){
 		 var r=unit.getBoundingRect();
 		 var x=Math.round(r.x*unit.scalableTransformation.getScale());
 		 var y=Math.round(r.y*unit.scalableTransformation.getScale());
-         var height=Math.round(r.height*unit.getScalableTransformation().getScale());             
+         var height=Math.round(r.height*unit.getScalableTransformation().getScale());
          var cell=UnitSelectionCell(unit.getUUID(),x,y,width,height,unit.unitName);
          cell.selected=( this.model.getUnit()==unit?true:false);
          this.cells.push(cell);        
@@ -736,6 +739,8 @@ var UnitSelectionPanel=Backbone.View.extend({
 	this.unitSelectionGrid=new UnitSelectionGrid();
 	this.canvasprefixid=opt.canvasprefixid;
     this.enabled=opt.enabled;
+    this.textColor='white';
+    this.backColor='black';
   },
   events: {
 	  'click [type="checkbox"]': 'checkBoxClick',
@@ -784,7 +789,7 @@ var UnitSelectionPanel=Backbone.View.extend({
   	        var cell=this.unitSelectionGrid.cells[i];
   			var canvas = j$('#'+this.canvasprefixid+(i));
   	  	    var ctx = canvas[0].getContext("2d");
-  	        ctx.fillStyle = "rgb(0,0,0)";
+  	        ctx.fillStyle = this.backColor;
   	        ctx.fillRect(0, 0, cell.width, cell.height);  
   	        unit.paint(ctx,d2.Box.fromRect(cell.x,cell.y,cell.width,cell.height));
   	        i++;
@@ -803,12 +808,12 @@ var UnitSelectionPanel=Backbone.View.extend({
 		        "</canvas></div>"+
 		        "<div><input type=checkbox name='cb' id='"+cell.uuid+"' style='vertical-align: -2px;margin-left:10px;margin-right:5px;' "+
 		        (cell.selected?" checked ":(this.enabled?" ":" checked "))+
-		        (this.enabled?'':'disabled')+"><label for='"+cell.uuid+"' style='color:white'>"+cell.name+"</label></div>";		       
+		        (this.enabled?'':'disabled')+"><label for='"+cell.uuid+"' style='color:"+this.textColor+"'>"+cell.name+"</label></div>";		       
 			   }
 		      }
 			 j$(this.el).empty();
 			 j$(this.el).append(
-				"<div style=\"background-color:black\">"+panel+
+				"<div style=\"background-color:"+this.backColor+"\">"+panel+
 				"</div>"				
 		     );	
 			 this.repaint();
