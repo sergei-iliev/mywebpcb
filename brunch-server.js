@@ -79,7 +79,7 @@ app.get('/rest/symbols/libraries/Atmel/categories/CPU/test', (req, res, next) =>
   });
 });
 app.get('/rest/symbols/libraries/General/categories/null/Diod', (req, res, next) => {
-    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\library\\symbols\\General\\Diod.xml','utf8', function(err, data) {
+    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\library\\symbols\\General\\Test_Diod.xml','utf8', function(err, data) {
 		res.send(data);
   });
 });

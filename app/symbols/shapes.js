@@ -30,7 +30,7 @@ class SymbolShapeFactory{
 			return circle;
 		}
 		if (data.tagName.toLowerCase() == 'line') {
-			var line = new Line( 0, 0, 0, 0, 0);
+			var line = new Line(0);
 			line.fromXML(data);
 			return line;
 		}
@@ -44,12 +44,16 @@ class SymbolShapeFactory{
 			label.fromXML(data);		
 			return label;
 		}
-		if (data.tagName.toLowerCase() == 'solidregion') {
-			var region = new SolidRegion(0);
-			region.fromXML(data);		
-			return region;
+		if (data.tagName.toLowerCase() == 'triangle') {
+			var triangle = new Triangle(0);
+			triangle.fromXML(data);		
+			return triangle;
 		}	
-
+		if (data.tagName.toLowerCase() == 'arrow') {
+			var arrow = new ArrowLine();
+			arrow.fromXML(data);		
+			return arrow;
+		}	
 	}
 }
 
@@ -59,7 +63,21 @@ constructor(thickness) {
 	this.fillColor='black';
 	this.selectionRectWidth=4;
 }
-
+clone() {
+	  var copy = new Line(this.thickness);
+	  copy.polyline=this.polyline.clone();
+	  copy.thickness=this.thickness;
+	  return copy;
+	}
+alignToGrid(isRequired) {
+if (isRequired) {
+  this.polyline.points.forEach(function(wirePoint){
+      let point = this.owningUnit.getGrid().positionOnGrid(wirePoint.x, wirePoint.y);
+        wirePoint.set(point.x,point.y);
+  }.bind(this));
+}
+return null;
+}
 paint(g2, viewportWindow, scale,layersmask) {			
 		var rect = this.polyline.box;
 		rect.scale(scale.getScale());		
@@ -98,6 +116,18 @@ paint(g2, viewportWindow, scale,layersmask) {
 			this.drawControlPoints(g2, viewportWindow, scale);
 		}
 
+}
+fromXML(data){
+	   this.thickness = (parseInt(j$(data).attr("thickness")));
+   	   var tokens = data.textContent.split(",");
+	   var len = Math.floor(tokens.length / 2) * 2;
+	   for (var index = 0; index < len; index += 2) {
+			var x = parseInt(tokens[index]);
+			var y = parseInt(tokens[index + 1]);
+			this.polyline.points.push(new d2.Point(x, y));
+	   }
+	   console.log(tokens);
+	   this.thickness=parseInt(tokens[tokens.length-1]);
 }
 
 }
@@ -511,8 +541,8 @@ fromXML(data){
 	 var tokens = data.textContent.split(",");
 	 this.roundRect.setRect(parseInt(tokens[0]),parseInt(tokens[1]),parseInt(tokens[2]),parseInt(tokens[3]));
 	    
-     //setThickness(Byte.parseByte(st.nextToken()));
-     //setFill(Fill.byIndex(Byte.parseByte(st.nextToken()))); 
+     this.thickness=(parseInt(tokens[4]));
+     this.fill=parseInt(tokens[5]); 
 	 this.roundRect.setRounding(parseInt(tokens[6]));
 }
 
@@ -534,6 +564,8 @@ class ArrowLine extends Shape{
 clone(){
     var copy=new ArrowLine();
     copy.headSize=this.headSize;
+    copy.fill=this.fill;
+    copy.thinkness=this.thickness;
     copy.line=this.line.clone();
     copy.arrow=this.arrow.clone();    
     return copy;
@@ -649,6 +681,15 @@ setResizingPoint(pt){
 getResizingPoint() {
 	return this.resizingPoint;
 }
+fromXML(data) { 
+	console.log(data);
+	var tokens = data.textContent.split(",");	
+	this.line.ps.set(parseInt(tokens[0]),parseInt(tokens[1]));	
+	this.line.pe.set(parseInt(tokens[2]),parseInt(tokens[3]));
+	this.thickness=parseInt(tokens[4]);
+	this.setHeadSize(parseInt(tokens[5]));
+	this.fill=parseInt(tokens[6]);
+}
 }
 class Triangle extends Shape{
 	constructor() {
@@ -662,7 +703,8 @@ class Triangle extends Shape{
 }
 clone(){
     var copy=new Triangle();
-    copy.shape=this.shape.clone();    
+    copy.shape=this.shape.clone();  
+    copy.fill = this.fill;
     return copy;
 }
 alignResizingPointToGrid(targetPoint){
@@ -736,7 +778,42 @@ paint(g2, viewportWindow, scale,layersmask) {
 		this.drawControlPoints(g2, viewportWindow, scale);
 	}
 }
-
+//***pld schema
+//DIRECTION_WEST = 0x01;
+//DIRECTION_NORTH = 0x02;
+//DIRECTION_EAST = 0x04;
+//DIRECTION_SOUTH = 0x08;
+initPoints(orientation,x,y,width,height){     
+    if(orientation==0x01){   
+    	this.shape.points[0].set(x,y+height/2);        
+    	this.shape.points[1].set(x+width,y);    	
+    	this.shape.points[2].set(x+width,y+height);    	       
+    }else if(orientation==0x02){    	
+    	this.shape.points[0].set(x+width/2, y);
+    	this.shape.points[1].set(x+width, y+height);
+    	this.shape.points[2].set(x, y+height);            
+    }else if(orientation==0x04){                  
+    	this.shape.points[0].set(x+width,y+height/2);
+    	this.shape.points[1].set(x,y+height);
+    	this.shape.points[2].set(x,y);            
+    }else{      
+    	this.shape.points[0].set(x+width/2,y+height);
+    	this.shape.points[1].set(x,y);
+    	this.shape.points[2].set(x+width,y);
+      
+    }
+    
+}
+fromXML(data){
+	var thickness=j$(data).attr("thickness");
+	var tokens = data.textContent.split(",");	
+	var orientation=parseInt(tokens[0]);
+	
+	this.initPoints(orientation,parseInt(tokens[1]),parseInt(tokens[2]),parseInt(tokens[3]),parseInt(tokens[4]));
+    this.thickness=parseInt(tokens[5]);
+    this.fill=parseInt(tokens[6]);
+    
+}
 drawControlPoints(g2, viewportWindow, scale){
 	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.shape.points); 		
 }
@@ -850,6 +927,9 @@ alignToGrid(isRequired) {
     return new d2.Point(point.x - center.x, point.y - center.y);  
 }
 getClickedTexture(x,y) {
+	if(this.type==PinType.SIMPLE){
+		return null;
+	}
     if(this.name.isClicked(x, y))
         return this.name;
     else if(this.number.isClicked(x, y))
@@ -937,6 +1017,10 @@ setOrientation(orientation){
     	this.segment.pe.set(this.segment.ps.x, this.segment.ps.y + (this.type == PinType.COMPLEX ? PIN_LENGTH : PIN_LENGTH / 2));
     }   
 }
+setPinType(type){
+	this.type=type;
+	this.setOrientation(this.orientation);
+}
 getCenter(){
 	return this.segment.ps;
 }
@@ -1002,9 +1086,10 @@ paint(g2, viewportWindow, scale,layersmask) {
 		break;
 		  
 	}
-		  
-    this.name.paint(g2, viewportWindow, scale);
-    this.number.paint(g2, viewportWindow, scale);	
+	if (this.type == PinType.COMPLEX) {		  
+      this.name.paint(g2, viewportWindow, scale);
+      this.number.paint(g2, viewportWindow, scale);
+	}
 }
 fromXML(data){
 	this.type=parseInt(j$(data).attr("type"));
@@ -1018,7 +1103,7 @@ fromXML(data){
     var number=(j$(data).find("number").text()); 
 	var name=(j$(data).find("name").text());
 	if(number==''){
-	  this.number.shale.anchorPoint.set(this.segment.ps.x,this.segment.ps.y);
+	  this.number.shape.anchorPoint.set(this.segment.ps.x,this.segment.ps.y);
 	}else{
 	  this.number.fromXML(number);
 	}

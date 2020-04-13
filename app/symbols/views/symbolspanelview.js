@@ -56,26 +56,13 @@ var PinPanelBuilder=BaseBuilder.extend({
 		this.id="pinpanelbuilder";   
     },	
     events: {
-//        'keypress #padxid' : 'onenter',	
-//        'keypress #padyid' : 'onenter',
-//        'keypress #padwidthid' : 'onenter',
-//        'keypress #padheightid' : 'onenter',
-//        'keypress #rotateid' : 'onenter',
         'keypress #numberid' : 'onenter',	
-//        'keypress #numbersizeid' : 'onenter',
-//        'keypress #numberxid' : 'onenter',	
-//        'keypress #numberyid' : 'onenter',
         'keypress #nameid' : 'onenter',	
-//        'keypress #netvaluesizeid' : 'onenter',
-//        'keypress #netvaluexid' : 'onenter',	
-//        'keypress #netvalueyid' : 'onenter',
-//        'keypress #drillwidthid' : 'onenter',
-//        'keypress #offsetxid' : 'onenter',
-//        'keypress #offsetyid' : 'onenter',
         'change #nameorientationid': 'onchange',
         'change #numberorientationid': 'onchange', 
         'change #orientationid': 'onchange',
         'change #styleid': 'onchange', 
+        'change #pintypeid': 'onchange',
     },
     onchange:function(event){
         if(event.target.id=='nameorientationid'){
@@ -86,12 +73,12 @@ var PinPanelBuilder=BaseBuilder.extend({
         }
         if(event.target.id=='orientationid'){        
         	this.target.setOrientation(parseInt(j$('#orientationid').val()));
-        	this.updateui();
         }
-
+        if(event.target.id=='pintypeid'){        
+        	this.target.setPinType(parseInt(j$('#pintypeid').val()));
+        }
         if(event.target.id=='styleid'){        
         	this.target.style=(parseInt(j$('#styleid').val()));
-        	this.updateui();
         }
        this.component.repaint(); 
       },
@@ -113,6 +100,7 @@ var PinPanelBuilder=BaseBuilder.extend({
 		 j$('#orientationid').val(this.target.orientation);
 		 j$("#nameid").val(this.target.getTextureByTag("name").shape.text); 
 		 j$('#styleid').val(this.target.style);
+		 j$('#pintypeid').val(this.target.type);
 	     j$('#numberid').val(this.target.getTextureByTag("number").shape.text); 
 	     j$('#nameorientationid').val(this.target.getTextureByTag("name").getOrientation()); 
 	     j$('#numberorientationid').val(this.target.getTextureByTag("number").getOrientation()); 
@@ -123,7 +111,7 @@ var PinPanelBuilder=BaseBuilder.extend({
 				"<table width='100%' height='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Pin Type</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"pintypeid\">"+
-				this.fillComboBox([{id:'COMPLEX',value:'COMPLEX',selected:true},{id:'SIMPLE',value:'SIMPLE'}])+
+				this.fillComboBox([{id:0,value:'SIMPLE'},{id:1,value:'COMPLEX',selected:true}])+
 			    "</select>" +
 				"</td></tr>"+
 				"<tr><td style='width:50%;padding:7px'>Orientation</td><td>" +
