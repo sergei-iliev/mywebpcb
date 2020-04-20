@@ -20,12 +20,12 @@ class SymbolShapeFactory{
 			return roundRect;
 		}
 		if (data.tagName.toLowerCase() == 'circle') {
-			var circle = new Circle(0, 0, 0, 0, 0);
+			var circle = new Ellipse(0, 0);
 			circle.fromXML(data);
 			return circle;
 		}
 		if (data.tagName.toLowerCase() == 'ellipse') {
-			var circle = new Circle(0, 0, 0, 0, 0);
+			var circle = new Ellipse(0, 0);
 			circle.fromXML(data);
 			return circle;
 		}
@@ -319,6 +319,9 @@ setResizingPoint(pt){
 getResizingPoint() {
 	return this.resizingPoint;
 }
+fromXML(data) {
+  console.log(data);	
+}
 }
 class Ellipse extends Shape{
 	constructor(w, h) {
@@ -332,7 +335,8 @@ class Ellipse extends Shape{
 	clone(){
 		var copy = new Ellipse(this.ellipse.w,this.ellipse.h);
 		copy.ellipse=this.ellipse.clone();
-				
+		copy.thickness=this.thickness;
+		copy.fill=this.fill;
 		return copy;
 	}
 	calculateShape() {
@@ -421,6 +425,18 @@ setResizingPoint(pt){
 }
 getResizingPoint() {
 	return this.resizingPoint;
+}
+fromXML(data) {
+	console.log(data);
+	var tokens = data.textContent.split(",");
+	let x=parseInt(tokens[0]);
+	let y=parseInt(tokens[1]);
+	let w=parseInt(tokens[2]);
+	let h=parseInt(tokens[3]);
+	this.ellipse.pc.set(x+w/2,y+h/2);
+	this.ellipse.w=w/2;
+	this.ellipse.h=h/2;
+	this.thickness=parseInt(tokens[4]);	
 }
 }
 class RoundRect extends Shape{
@@ -682,7 +698,6 @@ getResizingPoint() {
 	return this.resizingPoint;
 }
 fromXML(data) { 
-	console.log(data);
 	var tokens = data.textContent.split(",");	
 	this.line.ps.set(parseInt(tokens[0]),parseInt(tokens[1]));	
 	this.line.pe.set(parseInt(tokens[2]),parseInt(tokens[3]));
