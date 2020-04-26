@@ -288,6 +288,7 @@ class RoundRect extends Shape{
 		
 		this.thickness = (parseInt(j$(data).attr("thickness")));
 		this.fill = parseInt(j$(data).attr("fill"));
+		this.fill=(this.fill==0?1:this.fill);
 	}
 	paint(g2, viewportWindow, scale,layersmask) {
 	    if((this.copper.getLayerMaskID()&layersmask)==0){
@@ -302,7 +303,7 @@ class RoundRect extends Shape{
 		g2.lineWidth = this.thickness * scale.getScale();
 		g2.lineCap = 'round';
 		g2.lineJoin = 'round';
-		
+		console.log(this.fill);
 		if (this.fill == core.Fill.EMPTY) {
 			g2.globalCompositeOperation = 'lighter';
 			if (this.selection) {
@@ -410,7 +411,8 @@ fromXML(data) {
  		 
          
  		 this.thickness = (parseInt(j$(data).attr("thickness")));
- 		 this.fill = parseInt(j$(data).attr("fill")); 		
+ 		 this.fill = parseInt(j$(data).attr("fill")); 
+ 		 this.fill=(this.fill==0?1:this.fill);
 	}
 	Mirror(line){
 	   this.circle.mirror(line);	
@@ -557,15 +559,12 @@ fromXML(data){
  			let radius=parseInt(parseInt(j$(data).attr("radius")));
  	        this.arc.pc.set(xx,yy);
  	        this.arc.r=radius; 			 		
- 		}
-		//let diameter=parseInt(parseInt(j$(data).attr("width"))); 		
-        //this.arc.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
-        //this.arc.r = parseInt(diameter/2);
-        
+ 		}        
 		this.arc.startAngle = parseInt(j$(data).attr("start"));
         this.arc.endAngle = parseInt(j$(data).attr("extend"));        
 		this.thickness = (parseInt(j$(data).attr("thickness")));
-		this.fill = (parseInt(j$(data).attr("fill"))||0);
+		this.fill = (parseInt(j$(data).attr("fill"))||1);
+		this.fill=(this.fill==0?1:this.fill);
 }
 toXML() {
     return '<arc copper="'+this.copper.getName()+'"  x="'+utilities.roundFloat(this.arc.pc.x,4)+'" y="'+utilities.roundFloat(this.arc.pc.y,4)+'" radius="'+utilities.roundFloat(this.arc.r,4)+'"  thickness="'+this.thickness+'" start="'+utilities.roundFloat(this.arc.startAngle,2)+'" extend="'+utilities.roundFloat(this.arc.endAngle,2)+'" fill="'+this.fill+'" />';

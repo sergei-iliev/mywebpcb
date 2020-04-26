@@ -120,7 +120,7 @@ paint(g2,viewportWindow,scale){
 }
 toXML(){
     return (this.text=="" ? "" :
-        this.shape.text + "," + this.shape.anchorPoint.x + "," + this.shape.anchorPoint.y +
+        this.shape.text + "," + utilities.roundFloat(this.shape.anchorPoint.x,2) + "," + utilities.roundFloat(this.shape.anchorPoint.y,2) +
         ",,,"+this.shape.fontSize+"," +this.shape.rotation);	 
 }
 fromXML(node){
@@ -189,6 +189,7 @@ fromXML(node){
         this.text = "";
         return;
     }
+
     var tokens=node.split(',');
     this.shape.setText(tokens[0]);
     this.shape.anchorPoint.set(parseInt(tokens[1]),
@@ -200,7 +201,11 @@ fromXML(node){
     	this.shape.rotation=90;	
     }
 }
-
+toXML(){
+    return (this.shape.text==="" ? "" :
+        this.shape.text + "," + utilities.roundFloat(this.shape.anchorPoint.x,1) + "," + utilities.roundFloat(this.shape.anchorPoint.y,1) +
+        ",,PLAIN,"+this.shape.fontSize+"," +this.shape.rotation);	
+}
 }
 var core=require('core/core');
 var utilities=require('core/utilities');

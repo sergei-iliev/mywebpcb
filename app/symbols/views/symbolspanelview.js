@@ -178,7 +178,7 @@ var TrianglePanelBuilder=BaseBuilder.extend({
 				"<tr><td style='width:50%;padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+			
 				"<tr><td style='padding:7px'>Fill</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"fillid\">"+
-				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+				this.fillComboBox([{id:1,value:'EMPTY',selected:true},{id:2,value:'FILLED'}])+
 			    "</select>" +
 				"</td></tr>"+				
 		"</table>");
@@ -230,7 +230,7 @@ var ArrowLinePanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+			
 				"<tr><td style='padding:7px'>Fill</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"fillid\">"+
-				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+				this.fillComboBox([{id:1,value:'EMPTY',selected:true},{id:2,value:'FILLED'}])+
 			    "</select>" +
 				"</td></tr>"+
 				"<tr><td style='padding:7px'>Head Size</td><td><input type='text' id='headsizeid' value='' class='form-control input-sm\'></td></tr>"+
@@ -303,7 +303,7 @@ var ArcPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+			
 				"<tr><td style='padding:7px'>Fill</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"fillid\">"+
-				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+				this.fillComboBox([{id:1,value:'EMPTY',selected:true},{id:2,value:'FILLED'}])+
 			    "</select>" +
 				"</td></tr>"+
 				"<tr><td style='padding:7px'>Radius X</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+								
@@ -359,11 +359,11 @@ var EllipsePanelBuilder=BaseBuilder.extend({
 	updateui:function(){
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
         j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
-        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
-        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
+        j$('#xid').val(utilities.roundFloat(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x),1));
+        j$('#yid').val(utilities.roundFloat(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y),1)); 
 		j$('#thicknessid').val(this.target.thickness);
-		j$("#radiusxid").val((this.target.ellipse.w));    
-		j$("#radiusyid").val((this.target.ellipse.h));
+		j$("#radiusxid").val(utilities.roundFloat((this.target.ellipse.w),1));    
+		j$("#radiusyid").val(utilities.roundFloat((this.target.ellipse.h),1));
 		j$("#fillid").val(this.target.fill);		
 	},
 	render:function(){
@@ -380,7 +380,7 @@ var EllipsePanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Fill</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"fillid\">"+
-				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+				this.fillComboBox([{id:1,value:'EMPTY',selected:true},{id:2,value:'FILLED'}])+
 			    "</select>" +
 				"</td></tr>"+				
 				
@@ -558,11 +558,8 @@ var LabelPanelBuilder=BaseBuilder.extend({
 			 this.target.texture.setText(j$('#textid').val());			  
 		 }
 		 if(event.target.id=='sizeid'){
-			 this.target.texture.setSize(core.MM_TO_COORD(parseFloat(j$('#sizeid').val())));			 
-		 }
-		 if(event.target.id=='thicknessid'){
-			 this.target.texture.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
-		 }		          
+			 this.target.texture.setSize((parseInt(j$('#sizeid').val())));			 
+		 }	          
 		 if((event.target.id=='yid')||(event.target.id=='xid')){	            
 			 this.target.texture.setLocation(this.fromUnitX(j$('#xid').val()),this.fromUnitY(j$('#yid').val()));  
 	     }		 
@@ -570,12 +567,11 @@ var LabelPanelBuilder=BaseBuilder.extend({
     },
 	updateui:function(){
 	 j$('#textid').val(this.target.texture.shape.text);	
-	 j$('#xid').val((this.target.texture.shape.anchorPoint.x));
-	 j$('#yid').val((this.target.texture.shape.anchorPoint.y));	 
+	 j$('#xid').val(utilities.roundFloat(this.target.texture.shape.anchorPoint.x,1));
+	 j$('#yid').val(utilities.roundFloat(this.target.texture.shape.anchorPoint.y,1));	 
 	 j$("#orientationid").val(this.target.texture.getOrientation());
-	 j$('#colorid').val(this.target.texture.fillColor);	
-//	 j$('#sizeid').val(core.COORD_TO_MM(this.target.texture.size));
-//	 j$('#thicknessid').val(core.COORD_TO_MM(this.target.texture.thickness));
+	 j$('#colorid').val(this.target.texture.fillColor);		
+	 j$('#sizeid').val(this.target.texture.shape.fontSize);
 	},
 	render:function(){
 		j$(this.el).empty();
@@ -590,8 +586,7 @@ var LabelPanelBuilder=BaseBuilder.extend({
 			    "</select>" +
 				"</td></tr>"+				
 				"<tr><td style='padding:7px'>Color</td><td><input type='color' id='colorid' value='#ff0000'></td></tr>"+
-				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='sizeid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='sizeid' value='' class='form-control input-sm\'></td></tr>"+				
 		        "</table>");
 			
 		return this;
@@ -702,7 +697,7 @@ var RectPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Fill</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"fillid\">"+
-				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+				this.fillComboBox([{id:1,value:'EMPTY',selected:true},{id:2,value:'FILLED'}])+
 			    "</select>" +
 				"</td></tr>"+
 				//"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+

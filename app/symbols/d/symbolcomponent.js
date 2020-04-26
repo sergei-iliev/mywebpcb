@@ -18,6 +18,7 @@ var SymbolShapeFactory=require('symbols/shapes').SymbolShapeFactory;
 var SymbolEventMgr = require('symbols/events').SymbolEventMgr;
 var LineEventHandle=require('core/events').LineEventHandle;
 var d2=require('d2/d2');
+var utilities=require('core/utilities');
 
 class Symbol extends Unit{
 constructor(width,height) {
@@ -50,13 +51,13 @@ parse(data){
 	 	  
 	 	   if(reference!=null&&reference.text()!=''){
 		        var label = new FontLabel(0,0);
-		        label.fromXML(reference.text());
+		        label.fromXML(reference[0]);
 		        label.texture.tag="reference";
 		        this.add(label);      		 	      
 	 	   }
 	 	   if(value!=null&&value.text()!=''){
 		        var label = new FontLabel(0,0);
-		        label.fromXML(value.text());
+		        label.fromXML(value[0]);
 		        label.texture.tag="unit";
 		        this.add(label);  
 	 	   }
@@ -75,35 +76,35 @@ setTextLayoutVisibility( isTextLayoutVisible) {
         }  
        });
 }
-//format(){   
-//   var xml="<footprint width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
-//   xml+="<name>"+this.unitName+"</name>\r\n";
-//   //***reference
-//   var text=UnitMgr.getInstance().getLabelByTag(this,'reference');
-//   if(text!=null){
-//       xml+="<reference>";
-//       xml+=text.getTexture().toXML();
-//       xml+="</reference>\r\n";
-//   } 
-//   //value
-//   text=UnitMgr.getInstance().getLabelByTag(this,'value');
-//   if(text!=null){
-//       xml+="<value>";
-//       xml+=text.getTexture().toXML();
-//       xml+="</value>\r\n";
-//   }    
-//   xml+="<units raster=\""+this.grid.getGridValue()+"\">MM</units>\r\n"; 
-//   xml+="<shapes>\r\n";
-//   this.shapes.forEach(function(shape) {
-//	   if(!((shape instanceof GlyphLabel)&&(shape.texture.tag=='reference'||shape.texture.tag=='value'))){
-//		   xml+=shape.toXML();
-//		   xml+='\r\n';   
-//	   }
-//   });
-//   xml+="</shapes>\r\n";   
-//   xml+="</footprint>";
-//   return xml;
-//}	
+format(){   
+   var xml="<symbol width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
+   xml+="<name>"+this.unitName+"</name>\r\n";
+   //***reference
+   var text=UnitMgr.getInstance().getLabelByTag(this,'reference');
+   if(text!=null){
+       xml+="<reference>";
+       xml+=text.getTexture().toXML();
+       xml+="</reference>\r\n";
+   } 
+   //value
+   text=UnitMgr.getInstance().getLabelByTag(this,'unit');
+   if(text!=null){
+       xml+="<unit>";
+       xml+=text.getTexture().toXML();
+       xml+="</unit>\r\n";
+   }    
+ 
+   xml+="<shapes>\r\n";
+   this.shapes.forEach(function(shape) {
+	   if(!((shape instanceof FontLabel)&&(shape.texture.tag=='reference'||shape.texture.tag=='unit'))){
+		   xml+=shape.toXML();
+		   xml+='\r\n';   
+	   }
+   });
+   xml+="</shapes>\r\n";   
+   xml+="</symbol>";
+   return xml;
+}	
 }
 
 class SymbolContainer extends UnitContainer{
@@ -127,19 +128,19 @@ class SymbolContainer extends UnitContainer{
             symbol.parse(this);
 	    }),that);	
     }
-//    format() {
-//        var xml="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n"; 
-//        xml+="<footprints identity=\"Footprint\" version=\"1.0\">\r\n";      
-//    	let units=this.unitsmap.values();
-//  	    for(let i=0;i<this.unitsmap.size;i++){
-//          let unit=units.next().value;
-//          xml+=unit.format();
-//  		  xml+="\r\n";
-//  	    }    	    	
-//        xml+="</footprints>";
-//        
-//        return xml;
-//    }
+    format() {
+        var xml="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n"; 
+        xml+="<symbols identity=\"Symbol\" version=\""+utilities.version.SYMBOL_VERSION+"\">\r\n";      
+    	let units=this.unitsmap.values();
+  	    for(let i=0;i<this.unitsmap.size;i++){
+          let unit=units.next().value;
+          xml+=unit.format();
+  		  xml+="\r\n";
+  	    }    	    	
+        xml+="</symbols>";
+        
+        return xml;
+    }
 	
 }
 

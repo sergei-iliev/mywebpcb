@@ -20,6 +20,7 @@ var SolidRegionEventHandle=require('pads/events').SolidRegionEventHandle;
 var FootprintContextMenu=require('pads/popup/footprintpopup').FootprintContextMenu;
 var GlyphManager=require('core/text/d2glyph').GlyphManager;
 var d2=require('d2/d2');
+var utilities=require('core/utilities');
 
 class Footprint extends Unit{
 constructor(width,height) {
@@ -120,7 +121,7 @@ class FootprintContainer extends UnitContainer{
     }
     format() {
         var xml="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n"; 
-        xml+="<footprints identity=\"Footprint\" version=\"1.0\">\r\n";      
+        xml+="<footprints identity=\"Footprint\" version=\""+utilities.version.FOOTPRINT_VERSION+"\">\r\n";      
     	let units=this.unitsmap.values();
   	    for(let i=0;i<this.unitsmap.size;i++){
           let unit=units.next().value;

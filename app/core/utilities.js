@@ -186,10 +186,10 @@ var Max=function(p1,p2){
 version=(function(){
 	return {
 		MYWEBPCB_VERSION:"8.0",
-	    SYMBOL_VERSION:"3.0",
-        CIRCUIT_VERSION:"1.2",     
-        FOOTPRINT_VERSION:"3.0", 
-        BOARD_VERSION:"3.0" 
+	    SYMBOL_VERSION:"8.0",
+        CIRCUIT_VERSION:"8.0",     
+        FOOTPRINT_VERSION:"8.0", 
+        BOARD_VERSION:"8.0" 
 	};
 })();
 

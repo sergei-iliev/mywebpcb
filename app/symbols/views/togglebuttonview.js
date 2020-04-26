@@ -42,12 +42,12 @@ var ToggleButtonView=Backbone.View.extend({
 	},
 	onimport:function(event){
 		navigator.clipboard.readText().then(data =>{ 
-		      let footprintContainer=new FootprintContainer(true);
+		      let symbolContainer=new SymbolContainer(true);
 		      //disable 
 		      core.isEventEnabled=false;
-		      footprintContainer.parse(data);
+		      symbolContainer.parse(data);
 		      core.isEventEnabled=true;
-		  	  mywebpcb.trigger('libraryview:load',footprintContainer);
+		  	  mywebpcb.trigger('libraryview:load',symbolContainer);
 			});
 	},
 	onclick:function(event){

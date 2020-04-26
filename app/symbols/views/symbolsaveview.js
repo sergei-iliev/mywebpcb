@@ -1,16 +1,17 @@
 var mywebpcb=require('core/core').mywebpcb;
 var core=require('core/core');
-var FootprintContainer=require('pads/d/footprintcomponent').FootprintContainer;
+var SymbolContainer=require('symbols/d/symbolcomponent').SymbolContainer;
 
 
-var FootprintSaveView=Backbone.View.extend({
+var SymbolSaveView=Backbone.View.extend({
 	el:"#savedialogcontentslot",
 	initialize:function(opt){
-			this.footprintComponent=opt.footprintComponent; 
-			j$('#FootprintSaveDialog').jqxWindow({height: 300, width: 420});
-			j$('#FootprintSaveDialog').jqxWindow('open');
-			j$('#FootprintSaveDialog').off('close', j$.proxy(this.onclose,this)); 
-			j$('#FootprintSaveDialog').on('close', j$.proxy(this.onclose,this)); 				    	
+			this.symbolComponent=opt.symbolComponent; 
+			console.log(this.symbolComponent.getModel().format());
+			j$('#SymbolSaveDialog').jqxWindow({height: 300, width: 420});
+			j$('#SymbolSaveDialog').jqxWindow('open');
+			j$('#SymbolSaveDialog').off('close', j$.proxy(this.onclose,this)); 
+			j$('#SymbolSaveDialog').on('close', j$.proxy(this.onclose,this)); 				    	
 			this.delegateEvents();	
 			this.loadlibrary();
 	},
@@ -18,17 +19,16 @@ var FootprintSaveView=Backbone.View.extend({
     events: {
        "click  #savebutton" : "onsave",	
 	   "click  #closebutton" : "onremove",
-       //"change #savelibrarycombo": "onchangelibrary",
        "select #savelibrarycombo": "onchangelibrary",
 	},	
     loadlibrary:function(){
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/rest/footprints/libraries',
+	        url: '/rest/symbols/libraries',
 	        dataType: "xml",
 	        beforeSend:function(){
-		          j$('#FootprintSaveDialog').block({message:'<h5>Loading...</h5>'});	
+		          j$('#SymbolSaveDialog').block({message:'<h5>Loading...</h5>'});	
 		        },
 	        success: j$.proxy(this.onloadlibraries,this),
 	        
@@ -36,7 +36,7 @@ var FootprintSaveView=Backbone.View.extend({
 	            	alert(errorThrown+":"+jqXHR.responseText);
 	        },
 	        complete:function(jqXHR, textStatus){
-	        	j$('#FootprintSaveDialog').unblock();
+	        	j$('#SymbolSaveDialog').unblock();
 	        }
 	    });
 	    
@@ -48,7 +48,7 @@ var FootprintSaveView=Backbone.View.extend({
 		  j$('#savelibrarycombo').editableSelect('add',j$(this).text());  //('<option value=' +j$(this).text()+ '>' +  j$(this).text() + '</option>');
 		}),that);
 		//set library
-		j$('#savelibrarycombo').val(this.footprintComponent.getModel().libraryname);
+		j$('#savelibrarycombo').val(this.symbolComponent.getModel().libraryname);
 		//category load	
         if (j$('#savelibrarycombo').val()!=""&&j$('#savelibrarycombo').val()!=null) {
           this.loadcategories(j$('#savelibrarycombo').val());
@@ -62,10 +62,10 @@ var FootprintSaveView=Backbone.View.extend({
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/rest/footprints/libraries/'+library+'/categories?includefiles=false',
+	        url: '/rest/symbols/libraries/'+library+'/categories?includefiles=false',
 	        dataType: "xml",
 	        beforeSend:function(){
-		          j$('#FootprintSaveDialog').block({message:'<h5>Loading...</h5>'});	
+		          j$('#SymbolSaveDialog').block({message:'<h5>Loading...</h5>'});	
 		        },
 	        success: j$.proxy(this.onloadcategories,this),
 	        
@@ -73,7 +73,7 @@ var FootprintSaveView=Backbone.View.extend({
 	            	alert(errorThrown+":"+jqXHR.responseText);
 	        },
 	        complete:function(jqXHR, textStatus){
-	        	j$('#FootprintSaveDialog').unblock();
+	        	j$('#SymbolSaveDialog').unblock();
 	        }
 	    });		
 	},	
@@ -86,7 +86,7 @@ var FootprintSaveView=Backbone.View.extend({
 		}),that);
 		
 		//set category
-		j$('#savecategorycombo').val(this.footprintComponent.getModel().categoryname);
+		j$('#savecategorycombo').val(this.symbolComponent.getModel().categoryname);
 
 	},	
     onclose:function(){
@@ -100,11 +100,11 @@ var FootprintSaveView=Backbone.View.extend({
     	j$.ajax({
 	        type: 'POST',
 	        contentType: 'application/xml',
-	        url: '/rest/footprints/libraries/'+library+'/categories/'+category+'?footprintName='+name+'&overwrite='+j$('#overrideCheck').is(":checked"),
+	        url: '/rest/symbols/libraries/'+library+'/categories/'+category+'?symbolName='+name+'&overwrite='+j$('#overrideCheck').is(":checked"),
 	        dataType: "xml",
-	        data:this.footprintComponent.getModel().format(),
+	        data:this.symbolComponent.getModel().format(),
 	        beforeSend:function(){
-		          j$('#FootprintSaveDialog').block({message:'<h5>Saving...</h5>'});	
+		          j$('#SymbolSaveDialog').block({message:'<h5>Saving...</h5>'});	
 		        },
 	        success: j$.proxy(this.onremove,this), 
 	        		        
@@ -121,12 +121,12 @@ var FootprintSaveView=Backbone.View.extend({
 	            //}
 	        },
 	        complete:function(jqXHR, textStatus){
-	        	j$('#FootprintSaveDialog').unblock();
+	        	j$('#SymbolSaveDialog').unblock();
 	        }
 	    });
     },
     onremove:function(){
-      j$('#FootprintSaveDialog').jqxWindow('close'); 	
+      j$('#SymbolSaveDialog').jqxWindow('close'); 	
     },  
     render:function(){
 		j$(this.el).html(    	
@@ -135,7 +135,7 @@ var FootprintSaveView=Backbone.View.extend({
         "Name" +
         "</div>"+
         "<div class=\"col-md-6\">"+        
-        "<input type='text' id='name' value='"+this.footprintComponent.getModel().formatedFileName+"' class='form-control input-sm\'>" +
+        "<input type='text' id='name' value='"+this.symbolComponent.getModel().formatedFileName+"' class='form-control input-sm\'>" +
         "</div>"+                       
         "</div>"+
         
@@ -179,4 +179,4 @@ var FootprintSaveView=Backbone.View.extend({
 		  
 });
 
-module.exports =FootprintSaveView
+module.exports =SymbolSaveView

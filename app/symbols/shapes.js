@@ -35,12 +35,13 @@ class SymbolShapeFactory{
 			return line;
 		}
 		if (data.tagName.toLowerCase() == 'arc') {
-			var arc = new Arc(0, 0, 0, 0, 0);
+			var arc = new Arc(0, 0, 0, 0);			
 			arc.fromXML(data);
 			return arc;
 		}
 		if (data.tagName.toLowerCase() == 'label') {
 			var label = new FontLabel(0,0);
+			console.log(data);
 			label.fromXML(data);		
 			return label;
 		}
@@ -126,10 +127,16 @@ fromXML(data){
 			var y = parseInt(tokens[index + 1]);
 			this.polyline.points.push(new d2.Point(x, y));
 	   }
-	   console.log(tokens);
 	   this.thickness=parseInt(tokens[tokens.length-1]);
 }
-
+toXML(){
+	var result = "<line  thickness=\"" + this.thickness + "\">";
+	this.polyline.points.forEach(function(point) {
+		result += utilities.roundFloat(point.x,1) + "," + utilities.roundFloat(point.y,1) + ",";
+	},this);
+	result += "</line>";
+	return result;	
+}
 }
 class FontLabel extends Shape{
 	constructor(x, y) {
@@ -181,10 +188,15 @@ paint(g2, viewportWindow, scale,layersmask) {
 
 	  this.texture.paint(g2, viewportWindow, scale);
 }
-fromXML(data){
-     this.texture.fromXML(data);  	
+fromXML(data){	 
+    this.texture.fromXML(j$(data).text());  	
 }	    
-    
+toXML(){
+    if(this.texture!=null&&!this.texture.isEmpty())
+        return "<label color=\""+this.texture.fillColor+"\">"+this.texture.toXML()+"</label>\r\n";
+      else
+        return "";  	
+}    
 }
 class Arc extends Shape{
 	constructor(x,y,w,h) {
@@ -320,7 +332,23 @@ getResizingPoint() {
 	return this.resizingPoint;
 }
 fromXML(data) {
-  console.log(data);	
+	
+	var tokens = data.textContent.split(",");
+
+	let x=parseInt(tokens[0]);
+	let y=parseInt(tokens[1]);
+	let w=parseInt(tokens[2]);
+	let h=parseInt(tokens[3]);
+	this.arc.pc.set(x+w/2,y+h/2);
+	this.arc.w=w/2;
+	this.arc.h=h/2;
+	
+	
+    this.arc.endAngle = parseInt(tokens[4]);        
+    this.arc.startAngle = parseInt(tokens[5]);
+    
+    this.thickness = parseInt(tokens[6]);
+	this.fill = parseInt(tokens[7]);
 }
 }
 class Ellipse extends Shape{
@@ -427,7 +455,6 @@ getResizingPoint() {
 	return this.resizingPoint;
 }
 fromXML(data) {
-	console.log(data);
 	var tokens = data.textContent.split(",");
 	let x=parseInt(tokens[0]);
 	let y=parseInt(tokens[1]);
@@ -1118,11 +1145,13 @@ fromXML(data){
     var number=(j$(data).find("number").text()); 
 	var name=(j$(data).find("name").text());
 	if(number==''){
+	  this.number.setText('');
 	  this.number.shape.anchorPoint.set(this.segment.ps.x,this.segment.ps.y);
 	}else{
 	  this.number.fromXML(number);
 	}
 	if(name==''){
+	  this.name.setText('');
 	  this.name.shape.anchorPoint.set(this.segment.ps.x,this.segment.ps.y);
 	}else{
 	  this.name.fromXML(name);

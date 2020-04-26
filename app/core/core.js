@@ -14,17 +14,17 @@ var  UUID=(function(){
 GridRaster=[{id:2.54,value:2.54},{id:1.27,value:1.27},{id:0.635,value:0.635},{id:0.508,value:0.508},{id:0.254,value:0.254},{id:0.127,value:0.127},{id:0.0635,value:0.0635},{id:0.0508,value:0.0508},{id:0.0254,value:0.0254},{id:0.0127,value:0.0127},{id:5.0,value:5.0},{id:2.5,value:2.5},{id:1.0,value:1.0},{id:0.5,value:0.5},{id:0.25,value:0.25},{id:0.8,value:0.8},{id:0.2,value:0.2},{id:0.1,value:0.1},{id:0.05,value:0.05},{id:0.025,value:0.025},{id:0.01,value:0.01}];
 
 Fill = {
-		EMPTY : 0,
-		FILLED : 1,
-		GRADIENT : 2,
+		EMPTY : 1,
+		FILLED : 2,
+		GRADIENT : 3,
 		toString : {
-			0 : {
+			1 : {
 				name : "EMPTY"
 			},
-			1 : {
+			2 : {
 				name : "FILLED"
 			},
-			2 : {
+			3 : {
 				name : "GRADIENT"
 			}
 		},
