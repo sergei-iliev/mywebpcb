@@ -350,6 +350,9 @@ fromXML(data) {
     this.thickness = parseInt(tokens[6]);
 	this.fill = parseInt(tokens[7]);
 }
+toXML(){
+ return '<arc  x="'+utilities.roundFloat(this.arc.pc.x,1)+'" y="'+utilities.roundFloat(this.arc.pc.y,1)+'" width="'+utilities.roundFloat(this.arc.w,1)+ '" height="'+utilities.roundFloat(this.arc.h,1)+ '"  thickness="'+this.thickness+'" start="'+utilities.roundFloat(this.arc.startAngle,1)+'" extend="'+utilities.roundFloat(this.arc.endAngle,1)+'" fill="'+this.fill+'" />';
+}
 }
 class Ellipse extends Shape{
 	constructor(w, h) {
@@ -464,6 +467,9 @@ fromXML(data) {
 	this.ellipse.w=w/2;
 	this.ellipse.h=h/2;
 	this.thickness=parseInt(tokens[4]);	
+}
+toXML() {
+    return "<ellipse x=\""+utilities.roundFloat(this.ellipse.pc.x,1)+"\" y=\""+utilities.roundFloat(this.ellipse.pc.y,1)+"\" width=\""+utilities.roundFloat(this.ellipse.w,1)+"\" height=\""+utilities.roundFloat(this.ellipse.h,1)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
 }
 }
 class RoundRect extends Shape{
@@ -588,7 +594,16 @@ fromXML(data){
      this.fill=parseInt(tokens[5]); 
 	 this.roundRect.setRounding(parseInt(tokens[6]));
 }
-
+toXML() {
+	let points="";
+	this.roundRect.points.forEach(function(point) {
+		points += utilities.roundFloat(point.x,1) + "," + utilities.roundFloat(point.y,1) + ",";
+	},this);
+	return "<rectangle  thickness=\"" + this.thickness
+			+ "\" fill=\"" + this.fill + "\" arc=\"" + this.roundRect.rounding
+			+"\" points=\"" + points
+			+ "\"></rectangle>";
+}
 }
 
 class ArrowLine extends Shape{
@@ -949,7 +964,7 @@ constructor() {
 
  	    this.name=new font.SymbolFontTexture("XXX","name",-8,0,8,0);
 	    this.number=new font.SymbolFontTexture("1","number",10,-4,8,0);
-	    this.setOrientation(Orientation.EAST);
+	    this.init(Orientation.EAST);
 	}
 clone(){
     var copy=new Pin();
@@ -1042,8 +1057,39 @@ Move(xoffset,yoffset) {
 }
 calculateShape() {
 	return this.segment.box;
-} 
+}
+/*
+ * keep text orientation too, observing text normalization
+ */
 setOrientation(orientation){
+ let o=this.orientation;
+ let r={originx:this.segment.ps.x,
+	       originy:this.segment.ps.y,
+	       angle:-90};
+ 
+ while(o!=orientation){
+	 switch (o) {
+	 case Orientation.EAST:        
+		 o=Orientation.SOUTH;
+		 this.Rotate(r);
+     break;
+	 case Orientation.WEST:
+		 o=Orientation.NORTH;
+		 this.Rotate(r);
+     break;
+	 case Orientation.NORTH:
+		 o=Orientation.EAST;
+		 this.Rotate(r);
+     break;
+	 case Orientation.SOUTH:    	
+		 o=Orientation.WEST;
+		 this.Rotate(r);
+  }   
+ }
+this.orientation=orientation;
+}
+
+init(orientation){
 	this.orientation=orientation;
     switch (this.orientation) {
     case Orientation.EAST:        
@@ -1061,7 +1107,7 @@ setOrientation(orientation){
 }
 setPinType(type){
 	this.type=type;
-	this.setOrientation(this.orientation);
+	this.init(this.orientation);
 }
 getCenter(){
 	return this.segment.ps;
@@ -1140,7 +1186,7 @@ fromXML(data){
 	let a=j$(data).find("a").text();
 	var tokens = a.split(",");
 	this.segment.ps.set(parseFloat(tokens[0]),parseFloat(tokens[1]));
-	this.setOrientation(parseInt(tokens[3]));
+	this.init(parseInt(tokens[3]));
 	
     var number=(j$(data).find("number").text()); 
 	var name=(j$(data).find("name").text());
