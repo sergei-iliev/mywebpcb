@@ -86,11 +86,13 @@ module.exports = function(d2) {
 			this.text=text;
 			this.fontSize=fontSize;
 		    this.rotation=rotation;	
+		    this.style='plain';
 		    this.metrics=new TextMetrics();  
 		    this.metrics.calculateMetrics(this.fontSize,this.text);
 		}
 		clone(){
 			let copy=new FontText(this.anchorPoint.x,this.anchorPoint.y,this.text,this.fontSize,this.rotation);		
+			copy.style=this.style;
 			return copy;
 		}
 		setText(text){
@@ -119,7 +121,7 @@ module.exports = function(d2) {
         	this.metrics.calculateMetrics(this.fontSize,this.text);
         }
 		mirror(line){
-			this.anchorPoint.mirror(line);  	
+			 this.anchorPoint.mirror(line); 	
 		}
 		//anchor point is text center
 		get box(){
@@ -176,12 +178,12 @@ module.exports = function(d2) {
 			let scaledFontSize=parseInt(this.fontSize*alpha);
 			
 			
-			g2.font = ""+(scaledFontSize)+"px Monospace";
+			g2.font =(this.style==='plain'?'':this.style)+" "+(scaledFontSize)+"px Monospace";
 			g2.textBaseline='middle';
 			g2.textAlign='center';
 			g2.save();
 			g2.translate(scaledAnchorPoint.x,scaledAnchorPoint.y);
-
+			
 			g2.rotate(d2.utils.radians(360-this.rotation));
 			
 //			if(0<=this.rotation&&this.rotation<90){
@@ -200,12 +202,11 @@ module.exports = function(d2) {
 			
 		}		
 		paint(g2){					
-			g2.font = ""+(this.fontSize)+"px Monospace";
+			g2.font =(this.style==='plain'?'':this.style)+" "+(this.fontSize)+"px Monospace";
 			g2.textBaseline='middle';
 			g2.textAlign='center';
 			g2.save();
 			g2.translate(this.anchorPoint.x,this.anchorPoint.y);
-		
 			g2.rotate(d2.utils.radians(360-this.rotation));
 //			if(0<=this.rotation&&this.rotation<90){
 //			  g2.rotate(d2.utils.radians(360-this.rotation));

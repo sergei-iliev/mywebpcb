@@ -19,11 +19,6 @@ class SymbolShapeFactory{
 			roundRect.fromXML(data);
 			return roundRect;
 		}
-		if (data.tagName.toLowerCase() == 'circle') {
-			var circle = new Ellipse(0, 0);
-			circle.fromXML(data);
-			return circle;
-		}
 		if (data.tagName.toLowerCase() == 'ellipse') {
 			var circle = new Ellipse(0, 0);
 			circle.fromXML(data);
@@ -193,7 +188,7 @@ fromXML(data){
 }	    
 toXML(){
     if(this.texture!=null&&!this.texture.isEmpty())
-        return "<label color=\""+this.texture.fillColor+"\">"+this.texture.toXML()+"</label>\r\n";
+        return "<label color=\""+this.texture.fillColor+"\">"+this.texture.toXML()+"</label>";
       else
         return "";  	
 }    
@@ -747,6 +742,9 @@ fromXML(data) {
 	this.setHeadSize(parseInt(tokens[5]));
 	this.fill=parseInt(tokens[6]);
 }
+toXML(){
+    return "<arrow thickness=\"" + this.thickness + "\" fill=\"" + this.fill + "\"  head=\"" + this.headSize+ "\">" + utilities.roundFloat(this.line.ps.x,1) + "," + utilities.roundFloat(this.line.ps.y,1) + "," + utilities.roundFloat(this.line.pe.x,1) + "," + utilities.roundFloat(this.line.pe.y,1) + "</arrow>";	
+}
 }
 class Triangle extends Shape{
 	constructor() {
@@ -835,7 +833,7 @@ paint(g2, viewportWindow, scale,layersmask) {
 		this.drawControlPoints(g2, viewportWindow, scale);
 	}
 }
-//***pld schema
+//***old schema
 //DIRECTION_WEST = 0x01;
 //DIRECTION_NORTH = 0x02;
 //DIRECTION_EAST = 0x04;
@@ -870,6 +868,13 @@ fromXML(data){
     this.thickness=parseInt(tokens[5]);
     this.fill=parseInt(tokens[6]);
     
+}
+toXML(){
+	let points="";
+	this.shape.points.forEach(function(point) {
+	   points += utilities.roundFloat(point.x,1) + "," + utilities.roundFloat(point.y,1) + ",";
+	});	
+    return "<triangle thickness=\"" + this.thickness + "\" fill=\"" + this.fill + "\">"+points+"</triangle>";	
 }
 drawControlPoints(g2, viewportWindow, scale){
 	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.shape.points); 		
@@ -922,32 +927,6 @@ rotate:function(isClockwise,orientation) {
 PinType={
 		SIMPLE:0,
 		COMPLEX:1,
-
-//		   parse:function(type){
-//			  switch(type){
-//			  case 'THROUGH_HOLE':
-//				     return this.THROUGH_HOLE;
-//					 break;
-//			  case 'SMD':
-//					 return this.SMD;
-//					 break; 
-//			  case 'CONNECTOR':
-//					 return this.CONNECTOR;
-//					 break;	
-//			  default:
-//				  throw new TypeError('Unrecognized pad Type:'+type+' to parse');  
-//			  } 
-//		   },
-//		   format:function(type){
-//			  if(type==this.THROUGH_HOLE)
-//				 return 'THROUGH_HOLE';
-//			  if(type==this.SMD)
-//					 return 'SMD';
-//			  if(type==this.CONNECTOR)
-//					 return 'CONNECTOR';
-//			  else
-//				  return '';
-//		   }
 };
 var PIN_LENGTH = 2 * utilities.POINT_TO_POINT;
 
@@ -1202,6 +1181,22 @@ fromXML(data){
 	}else{
 	  this.name.fromXML(name);
 	}	
+}
+toXML(){
+	let xml="<pin type=\"" + this.type + "\"  style=\"" + this.style + "\">\r\n";
+	xml+="<a x=\""+utilities.roundFloat(this.segment.ps.x,1)+"\" y=\""+utilities.roundFloat(this.segment.ps.y,1)+"\" orientation=\""+this.orientation+"\" />\r\n";
+    if(this.type == PinType.COMPLEX){
+	 if (!this.number.isEmpty())
+    	xml+="<number>" +
+                  this.number.toXML() +
+             "</number>\r\n";
+     if (!this.name.isEmpty())
+       xml+="<name>" +
+                  this.name.toXML() +
+             "</name>\r\n";	
+    }
+	xml+="</pin>";
+	return xml;
 }
 drawPinLine(g2,viewportWindow, scale,offset){	
     let line=this.segment.clone();            

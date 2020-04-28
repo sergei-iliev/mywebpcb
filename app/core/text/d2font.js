@@ -22,13 +22,14 @@ class FontTexture{
 	this.selectionRectWidth=3000;
 	this.constSize=false;
 	this.fillColor='white'; 
-    this.style='PLAIN';
+    this.shape.style='plain';
     this.isTextLayoutVisible=false;
 	//this.cache=new TextureCache(this);
  }
 clone(){
      var copy=new FontTexture(this.shape.text,this.tag,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.fontSize,this.shape.rotation);     
      copy.fillColor=this.fillColor;
+     copy.shape.style=this.shape.style;
      copy.isTextLayoutVisible=this.isTextLayoutVisible;
      return copy;	 
  } 
@@ -121,7 +122,7 @@ paint(g2,viewportWindow,scale){
 toXML(){
     return (this.text=="" ? "" :
         this.shape.text + "," + utilities.roundFloat(this.shape.anchorPoint.x,2) + "," + utilities.roundFloat(this.shape.anchorPoint.y,2) +
-        ",,,"+this.shape.fontSize+"," +this.shape.rotation);	 
+        ",,PLAIN,"+this.shape.fontSize+"," +this.shape.rotation);	 
 }
 fromXML(node){
     if (node == null || node.length==0) {
@@ -204,7 +205,7 @@ fromXML(node){
 toXML(){
     return (this.shape.text==="" ? "" :
         this.shape.text + "," + utilities.roundFloat(this.shape.anchorPoint.x,1) + "," + utilities.roundFloat(this.shape.anchorPoint.y,1) +
-        ",,PLAIN,"+this.shape.fontSize+"," +this.shape.rotation);	
+        ",,"+this.shape.style.toUpperCase()+","+this.shape.fontSize+"," +this.shape.rotation);	
 }
 }
 var core=require('core/core');

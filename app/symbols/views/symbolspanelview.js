@@ -540,6 +540,7 @@ var LabelPanelBuilder=BaseBuilder.extend({
         'keypress #thicknessid' : 'onenter',	
 		'change #orientationid':'onchange',
 		'change #colorid':'onchange',
+        'change #styleid': 'onchange', 
     },
     onchange:function(event){      
 	  if(event.target.id=='orientationid'){
@@ -548,6 +549,9 @@ var LabelPanelBuilder=BaseBuilder.extend({
 	  if(event.target.id=='colorid'){
 		  this.target.texture.fillColor=(j$('#colorid').val());			  
 	  }
+	  if(event.target.id=='styleid'){
+		  this.target.texture.shape.style=(j$('#styleid').val());			  
+	  }	  
       this.component.repaint(); 
     },
     onenter:function(event){
@@ -572,6 +576,7 @@ var LabelPanelBuilder=BaseBuilder.extend({
 	 j$("#orientationid").val(this.target.texture.getOrientation());
 	 j$('#colorid').val(this.target.texture.fillColor);		
 	 j$('#sizeid').val(this.target.texture.shape.fontSize);
+	 j$('#styleid').val(this.target.texture.shape.style);
 	},
 	render:function(){
 		j$(this.el).empty();
@@ -586,6 +591,11 @@ var LabelPanelBuilder=BaseBuilder.extend({
 			    "</select>" +
 				"</td></tr>"+				
 				"<tr><td style='padding:7px'>Color</td><td><input type='color' id='colorid' value='#ff0000'></td></tr>"+
+				"<tr><td style='width:50%;padding:7px'>Text Orientation</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"styleid\">"+
+				this.fillComboBox([{id:'plain',value:'PLAIN',selected:true},{id:'bold',value:'BOLD'},{id:'italic',value:'ITALIC'}])+
+			    "</select>" +
+				"</td></tr>"+								
 				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='sizeid' value='' class='form-control input-sm\'></td></tr>"+				
 		        "</table>");
 			
