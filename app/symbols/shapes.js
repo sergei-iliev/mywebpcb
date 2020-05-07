@@ -492,7 +492,7 @@ class RoundRect extends Shape{
     }	
 	getCenter() {
 		let box=this.roundRect.box;
-	    return new d2.Point(box.center.x,box.center.y);
+	    return box.center;
 	}
 	setSelected (selection) {
 		super.setSelected(selection);
@@ -661,8 +661,7 @@ setHeadSize(headSize) {
     this.arrow.points[1].set(this.line.pe.x-2*headSize,this.line.pe.y -headSize);
     this.arrow.points[2].set(this.line.pe.x-2*headSize,this.line.pe.y+headSize);  
     let angle = Math.atan2(((this.line.pe.y) - (this.line.ps.y)),((this.line.pe.x - this.line.ps.x)));
-    let deg=-1*utilities.degrees(angle);
-    
+    let deg=-1*utilities.degrees(angle);    
     this.arrow.rotate(deg,this.line.pe);
 }	
 Resize(xoffset,yoffset,clickedPoint) {    

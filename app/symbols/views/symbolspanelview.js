@@ -323,13 +323,11 @@ var EllipsePanelBuilder=BaseBuilder.extend({
         'keypress #xid' : 'onenter',	
         'keypress #yid' : 'onenter',
         'keypress #thicknessid' : 'onenter',        
-        'keypress #radiusid' : 'onenter',
+        'keypress #radiusxid' : 'onenter',
+        'keypress #radiusyid' : 'onenter',
         'change #fillid': 'onchange',
     },
     onchange:function(event){
-        if(event.target.id=='layerid'){
-        	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
-        }
         if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
         }
@@ -342,9 +340,12 @@ var EllipsePanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='thicknessid'){
 			this.target.thickness=parseFloat(j$('#thicknessid').val());			 
 		 } 
-		 if(event.target.id=='radiusid'){
-		   this.target.circle.r=(core.MM_TO_COORD(parseFloat(j$('#radiusid').val())));			 
+		 if(event.target.id=='radiusxid'){
+		   this.target.ellipse.w=((parseFloat(j$('#radiusxid').val())));			 
 		 } 
+		 if(event.target.id=='radiusyid'){
+			   this.target.ellipse.h=((parseFloat(j$('#radiusyid').val())));			 
+		 } 		 
 		 if(event.target.id=='xid'){			 
 	         var x=this.fromUnitX(j$('#xid').val()); 
 	         this.target.Resize(x-this.target.resizingPoint.x, 0, this.target.resizingPoint);			   
@@ -369,12 +370,7 @@ var EllipsePanelBuilder=BaseBuilder.extend({
 	render:function(){
 		j$(this.el).empty();
 		j$(this.el).append(
-				"<table width='100%'>"+
-				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"layerid\">"+
-				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
-			    "</select>" +
-				"</td></tr>"+				
+				"<table width='100%'>"+			
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
