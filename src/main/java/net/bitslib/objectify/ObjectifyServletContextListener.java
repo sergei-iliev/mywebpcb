@@ -12,6 +12,8 @@ import net.bitslib.entity.BoardWorkspace;
 import net.bitslib.entity.FileObject;
 import net.bitslib.entity.Footprint;
 import net.bitslib.entity.FootprintLibrary;
+import net.bitslib.entity.Symbol;
+import net.bitslib.entity.SymbolLibrary;
 import net.bitslib.entity.User;
 
 
@@ -30,7 +32,8 @@ public class ObjectifyServletContextListener implements ServletContextListener{
             ));
         
         
-        
+         ObjectifyService.register(Symbol.class);
+         ObjectifyService.register(SymbolLibrary.class);
 		 ObjectifyService.register(User.class);
 		 ObjectifyService.register(FileObject.class);
 		 ObjectifyService.register(Footprint.class);

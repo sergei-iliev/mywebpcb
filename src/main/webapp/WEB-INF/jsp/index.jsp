@@ -38,7 +38,7 @@
         <div class="col-lg-3 d-flex align-items-center justify-content-center">
           <div class=" mx-auto mb-5 mb-lg-0 mb-lg-3">
             <div class="media-middle">
-               <a href="apps/pads.html" >
+               <a href="apps/symbols.html" >
                 <img src="../img/symbol_icon.png">
                </a>
              </div>

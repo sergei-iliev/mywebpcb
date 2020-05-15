@@ -149,7 +149,13 @@
                                     <different targetdir="${basedir}/src/main/webapp/apps/board"/>
                                     <include name="board.js" />
                                 </fileset>
-                            </copy>                            
+                            </copy> 
+                            <copy todir="${basedir}/src/main/webapp/apps/symbols" overwrite="true" flatten="true">
+                                <fileset dir="../mywebpcb-v2/public/symbols" >
+                                    <different targetdir="${basedir}/src/main/webapp/apps/symbols"/>
+                                    <include name="symbols.js" />
+                                </fileset>
+                            </copy>
                             <copy todir="${basedir}/src/main/webapp/apps/pads" overwrite="true" flatten="true">
                                 <fileset dir="../mywebpcb-v2/public/pads" >
                                     <different targetdir="${basedir}/src/main/webapp/apps/pads"/>

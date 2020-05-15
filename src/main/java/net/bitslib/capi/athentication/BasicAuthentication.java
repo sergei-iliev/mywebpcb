@@ -1,4 +1,4 @@
-package net.bitslib.capi;
+package net.bitslib.capi.athentication;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
