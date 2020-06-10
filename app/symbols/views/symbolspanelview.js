@@ -284,13 +284,13 @@ var ArcPanelBuilder=BaseBuilder.extend({
 
 		j$("#startangleid").val(this.target.arc.startAngle);    
 		j$("#extendangleid").val(this.target.arc.endAngle);		
-//        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
-//        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
-//        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:(this.target.resizingPoint.x)));
-//        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:(this.target.resizingPoint.y))); 
+        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
+        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
+        j$('#xid').val(utilities.roundFloat(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x),1));
+        j$('#yid').val(utilities.roundFloat(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y),1)); 
 		j$('#thicknessid').val(this.target.thickness);
-		j$("#widthid").val((this.target.arc.w));
-		j$("#heightid").val((this.target.arc.h));
+		j$("#radiusxid").val(utilities.roundFloat((this.target.arc.w),1));    
+		j$("#radiusyid").val(utilities.roundFloat((this.target.arc.h),1));
 		j$("#fillid").val(this.target.fill);
 	},
 	render:function(){
@@ -306,8 +306,8 @@ var ArcPanelBuilder=BaseBuilder.extend({
 				this.fillComboBox([{id:1,value:'EMPTY',selected:true},{id:2,value:'FILLED'}])+
 			    "</select>" +
 				"</td></tr>"+
-				"<tr><td style='padding:7px'>Radius X</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+								
-				"<tr><td style='padding:7px'>Radius Y</td><td><input type='text' id='heightid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Radius X</td><td><input type='text' id='radiusxid' value='' class='form-control input-sm\'></td></tr>"+								
+				"<tr><td style='padding:7px'>Radius Y</td><td><input type='text' id='radiusyid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Start&deg</td><td><input type='text' id='startangleid' value='' class='form-control input-sm\'></td></tr>"+	
 				"<tr><td style='padding:7px'>Extend&deg</td><td><input type='text' id='extendangleid' value='' class='form-control input-sm\'></td></tr>"+
 		"</table>");

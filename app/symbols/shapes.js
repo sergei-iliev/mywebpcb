@@ -934,7 +934,6 @@ constructor() {
 		super(0, 0, 0,0, 1,core.Layer.LAYER_ALL);
 		this.setDisplayName("Pin");		
 		this.selectionRectWidth=4;
-		this.resizingPoint = null;
 		this.fillColor='black';	
 	    this.segment=new d2.Segment(0,0,0,0);        
         this.type = PinType.COMPLEX;

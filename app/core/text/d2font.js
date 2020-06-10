@@ -144,8 +144,8 @@ TextOrientation={
         VERTICAL:1,        
 }
 class SymbolFontTexture extends FontTexture{
-constructor(tag,text,x,y,fontSize,rotation) {
-       super(tag,text,x,y,fontSize,rotation);
+constructor(text,tag,x,y,fontSize,rotation) {
+       super(text,tag,x,y,fontSize,rotation);
        this.selectionRectWidth=4;
        this.fillColor='black'; 
 }
