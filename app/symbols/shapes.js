@@ -328,22 +328,40 @@ getResizingPoint() {
 }
 fromXML(data) {
 	
-	var tokens = data.textContent.split(",");
-
-	let x=parseInt(tokens[0]);
-	let y=parseInt(tokens[1]);
-	let w=parseInt(tokens[2]);
-	let h=parseInt(tokens[3]);
-	this.arc.pc.set(x+w/2,y+h/2);
-	this.arc.w=w/2;
-	this.arc.h=h/2;
+	
+    if(data.textContent.length>0){
+    	var tokens = data.textContent.split(",");
+    	let x=parseInt(tokens[0]);
+    	let y=parseInt(tokens[1]);
+    	let w=parseInt(tokens[2]);
+    	let h=parseInt(tokens[3]);
+    	this.arc.pc.set(x+w/2,y+h/2);
+    	this.arc.w=w/2;
+    	this.arc.h=h/2;
 	
 	
-    this.arc.endAngle = parseInt(tokens[4]);        
-    this.arc.startAngle = parseInt(tokens[5]);
+    	this.arc.endAngle = parseInt(tokens[4]);        
+    	this.arc.startAngle = parseInt(tokens[5]);
     
-    this.thickness = parseInt(tokens[6]);
-	this.fill = parseInt(tokens[7]);
+    	this.thickness = parseInt(tokens[6]);
+		this.fill = parseInt(tokens[7]);
+    }else{    	
+        let x=parseFloat(j$(data).attr("x"));
+        let y=parseFloat(j$(data).attr("y"));
+        let w=parseFloat(j$(data).attr("width"));
+        let h=parseFloat(j$(data).attr("height"));
+        
+        this.arc.pc.set(x,y);
+        this.arc.w=w;
+        this.arc.h=h;
+        
+        this.arc.startAngle = parseFloat(j$(data).attr("start"));       
+        this.arc.endAngle = parseFloat(j$(data).attr("extend"));
+        
+        this.thickness=(parseInt(j$(data).attr("thickness")));
+		this.fill = (parseInt(j$(data).attr("fill"))||1);  	
+    	
+    }
 }
 toXML(){
  return '<arc  x="'+utilities.roundFloat(this.arc.pc.x,1)+'" y="'+utilities.roundFloat(this.arc.pc.y,1)+'" width="'+utilities.roundFloat(this.arc.w,1)+ '" height="'+utilities.roundFloat(this.arc.h,1)+ '"  thickness="'+this.thickness+'" start="'+utilities.roundFloat(this.arc.startAngle,1)+'" extend="'+utilities.roundFloat(this.arc.endAngle,1)+'" fill="'+this.fill+'" />';
@@ -597,7 +615,7 @@ toXML() {
 	return "<rectangle  thickness=\"" + this.thickness
 			+ "\" fill=\"" + this.fill + "\" arc=\"" + this.roundRect.rounding
 			+"\" points=\"" + points
-			+ "\"></rectangle>";
+			+ "\"/>";
 }
 }
 
@@ -1155,16 +1173,26 @@ paint(g2, viewportWindow, scale,layersmask) {
       this.name.paint(g2, viewportWindow, scale);
       this.number.paint(g2, viewportWindow, scale);
 	}
+    if (this.isSelected()) {
+        let c=new d2.Circle(this.segment.pe.clone(), 2);
+        c.scale(scale.getScale());
+        c.move(-viewportWindow.x,- viewportWindow.y);
+        c.paint(g2,false);        
+    }
 }
 fromXML(data){
 	this.type=parseInt(j$(data).attr("type"));
 	this.style=parseInt(j$(data).attr("style"));
 	
-	let a=j$(data).find("a").text();
-	var tokens = a.split(",");
-	this.segment.ps.set(parseFloat(tokens[0]),parseFloat(tokens[1]));
-	this.init(parseInt(tokens[3]));
-	
+	let a=j$(data).find("a");
+	if(a.length>0){   //old schema
+	  var tokens = a.text().split(",");
+	  this.segment.ps.set(parseFloat(tokens[0]),parseFloat(tokens[1]));
+	  this.init(parseInt(tokens[3]));
+	}else{
+        this.segment.ps.set(parseFloat(j$(data).attr("x")),parseFloat(j$(data).attr("y")));   
+        this.init(parseInt(j$(data).attr("orientation")));	
+	}
     var number=(j$(data).find("number").text()); 
 	var name=(j$(data).find("name").text());
 	if(number==''){
@@ -1181,8 +1209,7 @@ fromXML(data){
 	}	
 }
 toXML(){
-	let xml="<pin type=\"" + this.type + "\"  style=\"" + this.style + "\">\r\n";
-	xml+="<a x=\""+utilities.roundFloat(this.segment.ps.x,1)+"\" y=\""+utilities.roundFloat(this.segment.ps.y,1)+"\" orientation=\""+this.orientation+"\" />\r\n";
+	let xml="<pin type=\"" + this.type + "\"  style=\"" + this.style + "\"   x=\""+utilities.roundFloat(this.segment.ps.x,1)+"\" y=\""+utilities.roundFloat(this.segment.ps.y,1)+"\" orientation=\""+this.orientation+"\">\r\n";	
     if(this.type == PinType.COMPLEX){
 	 if (!this.number.isEmpty())
     	xml+="<number>" +

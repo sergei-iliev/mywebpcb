@@ -20,6 +20,21 @@ var LineEventHandle=require('core/events').LineEventHandle;
 var d2=require('d2/d2');
 var utilities=require('core/utilities');
 
+
+
+Type={
+		SYMBOL:0,
+		GROUND:1,
+		POWER:2,
+		valueOf:function(v){
+		   switch(v){
+		   case 0:return "SYMBOL";
+		   case 1:return "GROUND";
+		   case 2:return "POWER";
+		   }	
+		},
+	 };
+
 class Symbol extends Unit{
 constructor(width,height) {
        super(width,height);
@@ -27,6 +42,7 @@ constructor(width,height) {
 	   this.shapeFactory = new SymbolShapeFactory();
        this.grid.setGridUnits(8, core.Units.PIXEL);
        this.grid.pointsColor='black'; 
+       this.type=Type.SYMBOL;
        this.isTextLayoutVisible = false;
        this.frame.color='black';
 	}
@@ -77,7 +93,7 @@ setTextLayoutVisibility( isTextLayoutVisible) {
        });
 }
 format(){   
-   var xml="<symbol width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
+   var xml="<module width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
    xml+="<name>"+this.unitName+"</name>\r\n";
    //***reference
    var text=UnitMgr.getInstance().getLabelByTag(this,'reference');
@@ -94,15 +110,15 @@ format(){
        xml+="</unit>\r\n";
    }    
  
-   xml+="<shapes>\r\n";
+   xml+="<elements>\r\n";
    this.shapes.forEach(function(shape) {
 	   if(!((shape instanceof FontLabel)&&(shape.texture.tag=='reference'||shape.texture.tag=='unit'))){
 		   xml+=shape.toXML();
 		   xml+='\r\n';   
 	   }
    });
-   xml+="</shapes>\r\n";   
-   xml+="</symbol>";
+   xml+="</elements>\r\n";   
+   xml+="</module>";
    return xml;
 }	
 }
@@ -112,7 +128,21 @@ class SymbolContainer extends UnitContainer{
        super();
        this.formatedFileName="Symbols"
 	}
-
+    getType() {
+        if(this.unitsmap.size==0){
+          return Type.SYMBOL;  //default
+        }else{    		
+          return this.getUnits().next().value.type; 
+        }
+    }
+    
+    setType(type) {
+      let units=this.unitsmap.values();
+  	  for(let i=0;i<this.unitsmap.size;i++){
+          let aunit=units.next();
+  		  aunit.value.type=type;
+  	  }
+    }
     parse(xml){
     	  this.setFileName(j$(xml).find("filename").text());
     	  this.libraryname=(j$(xml).find("library").text());
@@ -130,14 +160,14 @@ class SymbolContainer extends UnitContainer{
     }
     format() {
         var xml="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n"; 
-        xml+="<symbols identity=\"Symbol\" version=\""+utilities.version.SYMBOL_VERSION+"\">\r\n";      
+        xml+="<modules identity=\"Symbol\" type=\""+Type.valueOf(this.getType())+"\" version=\""+utilities.version.SYMBOL_VERSION+"\">\r\n";      
     	let units=this.unitsmap.values();
   	    for(let i=0;i<this.unitsmap.size;i++){
           let unit=units.next().value;
           xml+=unit.format();
   		  xml+="\r\n";
   	    }    	    	
-        xml+="</symbols>";
+        xml+="</modules>";
         
         return xml;
     }
@@ -357,6 +387,7 @@ mouseWheelMoved(event){
 
 
 module.exports ={
+	   Type,
 	   SymbolContainer,
 	   Symbol,
 	   SymbolComponent	   

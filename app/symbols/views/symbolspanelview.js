@@ -20,7 +20,7 @@ var ComponentPanelBuilder=BaseBuilder.extend({
     },
     events: {
         'keypress #nameid' : 'onenter',	
-       
+        'change #symboltypeid': 'onchange',
     },
 	
 	onenter:function(event){
@@ -31,21 +31,30 @@ var ComponentPanelBuilder=BaseBuilder.extend({
 			 this.target.getModel().setFileName(j$("#nameid").val()); 
 			 this.target.fireContainerEvent({target:null,type:events.Event.RENAME_CONTAINER});
 		 }
-		 if(event.target.id=='importid'){
-			 console.log(34);
-		 }
-		 //mycanvas.focus();
 		
 	},
+    onchange:function(event){
+		 if(event.target.id=='symboltypeid'){
+			 this.target.getModel().setType(parseInt(j$('#symboltypeid').val())); 
+		 }
+		 
+    },
 	updateui:function(){
 		j$("#nameid").val(this.target.getModel().formatedFileName);
+		j$("#symboltypeid").val(this.target.getModel().getType());
 	},
 	render:function(){
 		j$(this.el).empty();
 		j$(this.el).append(
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
-				"</td></tr></table>"
+				"</td></tr>" +
+				"<tr><td style='width:50%;padding:7px'>Symbol Type</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"symboltypeid\">"+
+				this.fillComboBox([{id:0,value:'SYMBOL'},{id:1,value:'GROUND'},{id:2,value:'POWER'}])+
+			    "</select>" +
+				"</td></tr>"+				
+				"</table>"
 		);	
 		return this;
 	}
@@ -247,8 +256,8 @@ var ArcPanelBuilder=BaseBuilder.extend({
         'keypress #xid' : 'onenter',	
         'keypress #yid' : 'onenter',
         'keypress #thicknessid' : 'onenter',
-        'keypress #widthid' : 'onenter',
-        'keypress #heightid' : 'onenter',
+        'keypress #radiusxid' : 'onenter',
+        'keypress #radiusyid' : 'onenter',
         'keypress #startangleid' : 'onenter',
         'keypress #extendangleid' : 'onenter',
         'change #fillid': 'onchange', 
@@ -266,11 +275,11 @@ var ArcPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='thicknessid'){
 			 this.target.thickness=(parseFloat(j$('#thicknessid').val()));			 
 		 } 
-		 if(event.target.id=='widthid'){
-			   this.target.arc.w=(parseFloat(j$('#widthid').val()));			 
+		 if(event.target.id=='radiusxid'){
+			   this.target.arc.w=(parseFloat(j$('#radiusxid').val()));			 
 		 } 
-		 if(event.target.id=='heightid'){
-			   this.target.arc.h=(parseFloat(j$('#heightid').val()));			 
+		 if(event.target.id=='radiusyid'){
+			   this.target.arc.h=(parseFloat(j$('#radiusyid').val()));			 
 		 } 
 		 if(event.target.id=='startangleid'){
 			   this.target.setStartAngle(j$('#startangleid').val());			 

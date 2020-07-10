@@ -10,7 +10,7 @@ module.exports = function(d2) {
     d2.Arcellipse = class Arcellipse extends d2.Ellipse {
         constructor(pc,w,h) {
       	    super(pc,w,h);    	
-            this.startAngle = -20;
+            this.startAngle = 20;
             this.rotation=0;
             this.endAngle = 90;
             this.vert=[new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0)]; 
