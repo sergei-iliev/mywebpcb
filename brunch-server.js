@@ -65,12 +65,18 @@ app.get('/rest/symbols/libraries/Atmel/categories/CPU', (req, res, next) => {
   res.send(
 '<?xml version="1.0" encoding="UTF-8"?><units>'+
 '<name fullname="ATtiny26" category="CPU"  library="Atmel">ATtiny26</name>'+
+'<name fullname="ATtiny26" category="CPU"  library="Atmel">ATMega2560</name>'+
 '<name fullname="test" category="CPU"  library="Atmel">test</name>'+
 '</units>'
 );
 });
 app.get('/rest/symbols/libraries/Atmel/categories/CPU/ATtiny26', (req, res, next) => {
     fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy_8\\library\\symbols\\Atmel\\CPU\\ATtiny26.xml','utf8', function(err, data) {
+		res.send(data);
+  });
+});
+app.get('/rest/symbols/libraries/Atmel/categories/CPU/ATMega2560', (req, res, next) => {
+    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy_8\\library\\symbols\\Atmel\\CPU\\MEGA2560.xml','utf8', function(err, data) {
 		res.send(data);
   });
 });

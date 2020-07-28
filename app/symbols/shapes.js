@@ -471,15 +471,26 @@ getResizingPoint() {
 	return this.resizingPoint;
 }
 fromXML(data) {
-	var tokens = data.textContent.split(",");
-	let x=parseInt(tokens[0]);
-	let y=parseInt(tokens[1]);
-	let w=parseInt(tokens[2]);
-	let h=parseInt(tokens[3]);
-	this.ellipse.pc.set(x+w/2,y+h/2);
-	this.ellipse.w=w/2;
-	this.ellipse.h=h/2;
-	this.thickness=parseInt(tokens[4]);	
+    if(j$(data).attr("width")!=undefined){
+        let x=(parseFloat(j$(data).attr("x")));
+        let y=(parseFloat(j$(data).attr("y")));
+        this.ellipse.pc.set(x,y);
+        this.ellipse.w=parseFloat(j$(data).attr("width"));
+        this.ellipse.h=parseFloat(j$(data).attr("height"));  
+        this.thickness=(parseInt(j$(data).attr("thickness")));
+        this.fill=parseInt(j$(data).attr("fill"));  
+        this.fill=(this.fill==0?1:this.fill);
+    }else{			
+    	var tokens = data.textContent.split(",");
+    	let x=parseInt(tokens[0]);
+    	let y=parseInt(tokens[1]);
+    	let w=parseInt(tokens[2]);
+    	let h=parseInt(tokens[3]);
+    	this.ellipse.pc.set(x+w/2,y+h/2);
+    	this.ellipse.w=w/2;
+    	this.ellipse.h=h/2;
+    	this.thickness=parseInt(tokens[4]);	
+    }
 }
 toXML() {
     return "<ellipse x=\""+utilities.roundFloat(this.ellipse.pc.x,1)+"\" y=\""+utilities.roundFloat(this.ellipse.pc.y,1)+"\" width=\""+utilities.roundFloat(this.ellipse.w,1)+"\" height=\""+utilities.roundFloat(this.ellipse.h,1)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
@@ -600,12 +611,28 @@ drawControlPoints(g2, viewportWindow, scale){
 		utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.roundRect.vertices); 		
 }	
 fromXML(data){
+    if(j$(data).attr("points")!=undefined){                
+        this.roundRect.rounding=(parseInt(j$(data).attr("arc")));
+        var tokens = j$(data).attr("points").split(",");
+ 	    var len = Math.floor(tokens.length / 2) * 2;
+ 	    var points=[]
+	    for (var index = 0; index < len; index += 2) {
+			var x = parseInt(tokens[index]);
+			var y = parseInt(tokens[index + 1]);
+			points.push(new d2.Point(x, y));
+	    }   
+ 	   this.roundRect.setPoints(points);
+        this.thickness=(parseInt(j$(data).attr("thickness")));
+        this.fill=parseInt(j$(data).attr("fill"));  
+        this.fill=(this.fill==0?1:this.fill);
+    }else{
 	 var tokens = data.textContent.split(",");
 	 this.roundRect.setRect(parseInt(tokens[0]),parseInt(tokens[1]),parseInt(tokens[2]),parseInt(tokens[3]));
 	    
      this.thickness=(parseInt(tokens[4]));
      this.fill=parseInt(tokens[5]); 
 	 this.roundRect.setRounding(parseInt(tokens[6]));
+	}
 }
 toXML() {
 	let points="";

@@ -157,6 +157,8 @@ var TrianglePanelBuilder=BaseBuilder.extend({
 		this.id="trianglepanelbuilder";  
     },	
     events: {
+        'keypress #xid' : 'onenter',	
+        'keypress #yid' : 'onenter',
         'keypress #thicknessid' : 'onenter',        
         'change #fillid': 'onchange', 
     },
@@ -173,9 +175,21 @@ var TrianglePanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='thicknessid'){
 			 this.target.thickness=(parseFloat(j$('#thicknessid').val()));			 
 		 } 
+		 if(event.target.id=='xid'){			 
+	         var x=this.fromUnitX(j$('#xid').val()); 
+	         this.target.Resize(x-this.target.resizingPoint.x, 0, this.target.resizingPoint);			   
+		 } 
+	     if(event.target.id=='yid'){		
+	         var y=this.fromUnitY(j$('#yid').val()); 
+	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
+		 }		 
 		 this.component.repaint(); 	
     },
 	updateui:function(){	
+        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
+        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
+        j$('#xid').val(utilities.roundFloat(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x),1));
+        j$('#yid').val(utilities.roundFloat(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y),1)); 
 		j$('#thicknessid').val(this.target.thickness);
 		j$("#fillid").val(this.target.fill);
 	},
@@ -183,7 +197,9 @@ var TrianglePanelBuilder=BaseBuilder.extend({
 						
 		j$(this.el).empty();
 		j$(this.el).append(
-				"<table width='100%'>"+			
+				"<table width='100%'>"+	
+				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+					
 				"<tr><td style='width:50%;padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+			
 				"<tr><td style='padding:7px'>Fill</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"fillid\">"+
@@ -222,12 +238,24 @@ var ArrowLinePanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='headsizeid'){
 		   this.target.setHeadSize((parseInt(j$('#headsizeid').val())));			 
 		 } 
+		 if(event.target.id=='xid'){			 
+	         var x=this.fromUnitX(j$('#xid').val()); 
+	         this.target.Resize(x-this.target.resizingPoint.x, 0, this.target.resizingPoint);			   
+		 } 
+	     if(event.target.id=='yid'){		
+	         var y=this.fromUnitY(j$('#yid').val()); 
+	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
+		 } 		 
 		 this.component.repaint(); 	
     },
 	updateui:function(){	
 		j$('#thicknessid').val(this.target.thickness);
 		j$("#headsizeid").val((this.target.headSize));
 		j$("#fillid").val(this.target.fill);
+        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
+        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
+        j$('#xid').val(utilities.roundFloat(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x),1));
+        j$('#yid').val(utilities.roundFloat(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y),1)); 
 	},
 	render:function(){
 						
@@ -638,8 +666,8 @@ var LinePanelBuilder=BaseBuilder.extend({
 	updateui:function(){
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
         j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
-        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
-        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
+        j$('#xid').val(utilities.roundFloat(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x),1));
+        j$('#yid').val(utilities.roundFloat(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y),1)); 
         j$('#thicknessid').val(this.target.thickness);
 	},
 	render:function(){
