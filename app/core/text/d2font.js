@@ -139,81 +139,219 @@ fromXML(node){
     
 }
 }
+TextAlignment={
+		  LEFT:0,
+		  RIGHT:1,
+		  TOP:2,
+		  BOTTOM:3,
+		  parse:function(align){
+			  switch(align){
+			  case 'LEFT':
+				     return this.LEFT;
+			  case 'RIGHT':
+					 return this.RIGHT; 
+			  case 'TOP':
+					 return this.TOP;
+			  case 'BOTTOM':
+					 return this.BOTTOM;			 
+			  default:
+				  throw new TypeError('Unrecognized align type:'+align+' to parse');  
+			  } 	  
+		  },
+		  format:function(align){
+			 switch(align){
+			 case 0:return 'LEFT';
+			 case 1:return 'RIGHT';
+			 case 2:return 'TOP';
+			 case 3:return 'BOTTOM';
+			 } 
+		  }
+}
 TextOrientation={
         HORIZONTAL:0,
         VERTICAL:1,        
 }
-class SymbolFontTexture extends FontTexture{
-constructor(text,tag,x,y,fontSize,rotation) {
-       super(text,tag,x,y,fontSize,rotation);
-       this.selectionRectWidth=4;
-       this.fillColor='black'; 
-}
-clone(){
-    var copy=new SymbolFontTexture(this.shape.text,this.tag,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.fontSize,this.shape.rotation);     
-    copy.fillColor=this.fillColor;
-    return copy;	 
-} 
-setOrientation(orientation){
-    switch (orientation) {
-    case TextOrientation.HORIZONTAL:
-       if(this.shape.rotation==90){
-    	this.rotate({angle:-90,originx:this.shape.anchorPoint.x,originy:this.shape.anchorPoint.y});
-       }
-       break;
-    case TextOrientation.VERTICAL:
-    	if(this.shape.rotation==0){	
-          this.rotate({angle:90,originx:this.shape.anchorPoint.x,originy:this.shape.anchorPoint.y});
-    	}       
-    }	
-}
-getOrientation(){
-	if(this.shape.rotation==90){
-		return TextOrientation.VERTICAL;
-	}else{
-		return TextOrientation.HORIZONTAL
+
+
+class SymbolFontTexture{
+	constructor(text,tag,x,y,alignment,fontSize) {
+	    this.tag=tag;
+		this.shape=new d2.BaseFontText(x,y,text,alignment,fontSize);    
+		this.selection=false;
+		this.selectionRectWidth=3000;
+		this.constSize=false;		    
+		this.selectionRectWidth=4;
+		this.fillColor='black';
+	    this.isTextLayoutVisible=false;
 	}
-}
-rotate(rotation){	
-    //redesign!!!!!!!!
- 	this.shape.anchorPoint.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
- 	this.shape.metrics.calculateMetrics(this.shape.fontSize,this.shape.text);
- 	if(this.shape.rotation==90){
- 		this.shape.rotation=0;
- 	}else{
- 		this.shape.rotation=90;
- 	}
- } 	    
+	clone(){
+	    var copy=new SymbolFontTexture(this.shape.text,this.tag,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.alignment,this.shape.fontSize);     
+	    copy.fillColor=this.fillColor;
+	    return copy;	 
+	} 
+	isEmpty() {
+	     return this.shape.text==null||this.shape.text.length==0;
+	}	
+	isClicked(x,y){
+	    if (this.shape.text == null || this.shape.text.length == 0){
+	        return false;
+	    } 
+	    return this.shape.box.contains(x,y);
+	    
+	}	
+	getBoundingShape() {
+	    if (this.shape.text == null || this.shape.text.length == 0) {
+	          return null;
+	    }
+	    return this.shape.box;
+	}	
+	setText(text){
+		this.shape.setText(text);
+	}
+	setSize(size){
+		this.shape.setSize(size);
+	}	
+	setSelected(selection){
+		this.selection=selection;
+	}	
+	setOrientation(orientation){
 
-fromXML(node){
-    if (node == null || node.length==0) {
-        this.text = "";
-        return;
-    }
+	}
+	getOrientation(){
 
-    var tokens=node.split(',');
-    this.shape.setText(tokens[0]);
-    this.shape.anchorPoint.set(parseInt(tokens[1]),
-            parseInt(tokens[2]));     
-    this.style=tokens[4];    
-    this.shape.setSize(parseInt(tokens[5]));
-    //TOP, BOTTOM alignment
-    if(tokens[3]=='TOP'||tokens[3]=='BOTTOM'){
-    	this.shape.rotation=90;	
-    }
-}
-toXML(){
-    return (this.shape.text==="" ? "" :
-        this.shape.text + "," + utilities.roundFloat(this.shape.anchorPoint.x,1) + "," + utilities.roundFloat(this.shape.anchorPoint.y,1) +
-        ",,"+this.shape.style.toUpperCase()+","+this.shape.fontSize+"," +this.shape.rotation);	
-}
-}
+	}
+	rotate(rotation){	
+
+	 } 	    
+	Move(xoffset, yoffset){
+		   this.shape.move(xoffset, yoffset);  
+	}
+	paint(g2,viewportWindow,scale){
+		 if(this.isEmpty()){
+			   return;	 
+			 }
+			 if(this.constSize){
+			   g2.font = ""+parseInt(this.shape.fontSize)+"px Monospace";
+			 }else{	 
+				 if(this.shape.fontSize*scale.getScale()<8){
+					 return;
+				 }
+				 g2.font = ""+parseInt(this.shape.fontSize*scale.getScale())+"px Monospace";
+			 }
+			 g2.fillStyle = this.fillColor;			 			 
+		  
+			 this.shape.scalePaint(g2,viewportWindow,scale.getScale());
+			 if(this.isTextLayoutVisible){
+				let box=this.shape.box;
+			  	box.scale(scale.getScale());
+			  	box.move(-viewportWindow.x,- viewportWindow.y);
+				g2.lineWidth =1;
+		 		g2.strokeStyle = 'blue';
+			  	box.paint(g2);
+			 }
+
+	     if(this.selection){
+	 		 g2.lineWidth =1;
+	 		 g2.strokeStyle = 'blue';
+	 		 let p=this.shape.anchorPoint.clone();
+	         p.scale(scale.getScale());
+	         p.move(-viewportWindow.x,- viewportWindow.y);
+	         p.paint(g2);    	 
+	     }
+		
+	}	
+	fromXML(node){
+	    if (node == null || node.length==0) {
+	        this.text = "";
+	        return;
+	    }
+	    var tokens=node.split(',');
+	    this.shape.alignment=(TextAlignment.parse(tokens[3]));
+	    this.shape.setText(tokens[0]);
+	    this.shape.anchorPoint.set(parseInt(tokens[1]),
+	            parseInt(tokens[2]));     
+	    this.style=tokens[4];    
+	    this.shape.setSize(parseInt(tokens[5]));
+
+	}
+	toXML(){
+	    return (this.shape.text==="" ? "" :
+	        this.shape.text + "," + utilities.roundFloat(this.shape.anchorPoint.x,1) + "," + utilities.roundFloat(this.shape.anchorPoint.y,1) +
+	        ",,"+this.shape.style.toUpperCase()+","+this.shape.fontSize+"," +this.shape.rotation);	
+	}
+	}
+
+//class SymbolFontTexture extends FontTexture{
+//constructor(text,tag,x,y,fontSize,rotation) {
+//       super(text,tag,x,y,fontSize,rotation);
+//       this.selectionRectWidth=4;
+//       this.fillColor='black'; 
+//}
+//clone(){
+//    var copy=new SymbolFontTexture(this.shape.text,this.tag,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.fontSize,this.shape.rotation);     
+//    copy.fillColor=this.fillColor;
+//    return copy;	 
+//} 
+//setOrientation(orientation){
+//    switch (orientation) {
+//    case TextOrientation.HORIZONTAL:
+//       if(this.shape.rotation==90){
+//    	this.rotate({angle:-90,originx:this.shape.anchorPoint.x,originy:this.shape.anchorPoint.y});
+//       }
+//       break;
+//    case TextOrientation.VERTICAL:
+//    	if(this.shape.rotation==0){	
+//          this.rotate({angle:90,originx:this.shape.anchorPoint.x,originy:this.shape.anchorPoint.y});
+//    	}       
+//    }	
+//}
+//getOrientation(){
+//	if(this.shape.rotation==90){
+//		return TextOrientation.VERTICAL;
+//	}else{
+//		return TextOrientation.HORIZONTAL
+//	}
+//}
+//rotate(rotation){	
+//    //redesign!!!!!!!!
+// 	this.shape.anchorPoint.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+// 	this.shape.metrics.calculateMetrics(this.shape.fontSize,this.shape.text);
+// 	if(this.shape.rotation==90){
+// 		this.shape.rotation=0;
+// 	}else{
+// 		this.shape.rotation=90;
+// 	}
+// } 	    
+//
+//fromXML(node){
+//    if (node == null || node.length==0) {
+//        this.text = "";
+//        return;
+//    }
+//
+//    var tokens=node.split(',');
+//    this.shape.setText(tokens[0]);
+//    this.shape.anchorPoint.set(parseInt(tokens[1]),
+//            parseInt(tokens[2]));     
+//    this.style=tokens[4];    
+//    this.shape.setSize(parseInt(tokens[5]));
+//    //TOP, BOTTOM alignment
+//    if(tokens[3]=='TOP'||tokens[3]=='BOTTOM'){
+//    	this.shape.rotation=90;	
+//    }
+//}
+//toXML(){
+//    return (this.shape.text==="" ? "" :
+//        this.shape.text + "," + utilities.roundFloat(this.shape.anchorPoint.x,1) + "," + utilities.roundFloat(this.shape.anchorPoint.y,1) +
+//        ",,"+this.shape.style.toUpperCase()+","+this.shape.fontSize+"," +this.shape.rotation);	
+//}
+//}
 var core=require('core/core');
 var utilities=require('core/utilities');
 
 
 module.exports ={
-   TextOrientation,
+   TextAlignment,TextOrientation,
    FontTexture,
    SymbolFontTexture
 }

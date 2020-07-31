@@ -80,6 +80,145 @@ calculateMetrics(fontSize,text) {
 }
 
 module.exports = function(d2) {
+	d2.BaseFontText = class BaseFontText{
+		constructor(x,y,text,alignment,fontSize){
+			this.anchorPoint=new d2.Point(x,y);
+			this.text=text;
+			this.fontSize=fontSize;
+		    this.alignment=alignment;	
+		    this.style='plain';
+		    this.metrics=new TextMetrics();  
+		    this.metrics.calculateMetrics(this.fontSize,this.text);
+		}
+clone(){
+			let copy=new BaseFontText(this.anchorPoint.x,this.anchorPoint.y,this.text,this.alignment,this.fontSize);		
+			copy.style=this.style;
+			return copy;
+		}
+setText(text){
+			this.text=text;
+			this.metrics.calculateMetrics(this.fontSize,this.text);
+		}	
+setSize(size){
+	this.fontSize=size;
+	this.metrics.calculateMetrics(this.fontSize,this.text);
+}
+scale(alpha){
+  	this.anchorPoint.scale(alpha);
+	this.fontSize=parseInt(this.fontSize*alpha);
+	this.metrics.calculateMetrics(this.fontSize,this.text);
+	
+}
+setLocation(x,y){
+	this.anchorPoint.set(x,y);			
+}
+move(offsetX,offsetY){
+	this.anchorPoint.move(offsetX,offsetY);
+}
+get box(){
+    if (this.text == null || this.text.length == 0){
+        return null;
+    }   
+    //recalculate or buffer
+    this.metrics.calculateMetrics(this.fontSize, this.text);
+    var b=null;
+	 switch(this.alignment){
+	   case 0:
+		  b= d2.Box.fromRect(this.anchorPoint.x,this.anchorPoint.y-this.metrics.ascent,this.metrics.width,this.metrics.height);	    
+	    break;
+	   case 1:
+		  b= d2.Box.fromRect(this.anchorPoint.x-this.metrics.width,this.anchorPoint.y-this.metrics.ascent,this.metrics.width,this.metrics.height);
+	   break;
+	   case 2:
+	    b=d2.Box.fromRect(this.anchorPoint.x - this.metrics.ascent,
+                          this.anchorPoint.y, this.metrics.height,this.metrics.width);
+	   break;
+	   case 3:
+	   	 b= d2.Box.fromRect(this.anchorPoint.x - this.metrics.ascent,
+                          this.anchorPoint.y - this.metrics.width,
+                          this.metrics.height, this.metrics.width);
+
+	 }
+	 
+	 return b;
+	 
+}		
+scalePaint(g2,viewportWindow,alpha){
+	let scaledAnchorPoint=this.anchorPoint.clone();			
+  	scaledAnchorPoint.scale(alpha);
+  	scaledAnchorPoint.move(-viewportWindow.x,- viewportWindow.y);
+  	
+	let scaledFontSize=parseInt(this.fontSize*alpha);
+	
+	
+	g2.font =(this.style==='plain'?'':this.style)+" "+(scaledFontSize)+"px Monospace";
+	g2.textBaseline='alphabetic'; 
+    switch(this.alignment){
+	   case 0:
+	   	 g2.textAlign = 'left';				   	 
+		 g2.fillText(this.text, scaledAnchorPoint.x, scaledAnchorPoint.y); 
+	   break;
+	   case 1:
+	   	 g2.textAlign = 'right';
+		 g2.fillText(this.text, scaledAnchorPoint.x, scaledAnchorPoint.y);
+	   break;
+	   case 2:
+	   g2.save();
+	   g2.textAlign = 'left';
+	   g2.translate(scaledAnchorPoint.x, scaledAnchorPoint.y);
+	   g2.rotate(-0.5*Math.PI);
+	   g2.fillText(this.text , 0, 0);
+	   g2.restore();
+	   break;
+	   case 3:
+	   g2.save();
+	   g2.textAlign = 'right';
+	   g2.translate(scaledAnchorPoint.x, scaledAnchorPoint.y);
+	   g2.rotate(-0.5*Math.PI);
+	   g2.fillText(this.text , 0, 0);
+	   g2.restore();	   	   
+	}	
+}	
+paint(g2){				 
+		
+		g2.font =(this.style==='plain'?'':this.style)+" "+(this.fontSize)+"px Monospace";
+				 let r=this.box;
+				 g2.lineWidth=1;
+				 r.paint(g2);
+				 
+	    g2.textBaseline='alphabetic'; 
+	    switch(this.alignment){
+				   case 0:
+				   	 g2.textAlign = 'left';				   	 
+					 g2.fillText(this.text, this.anchorPoint.x, this.anchorPoint.y); 
+				   break;
+				   case 1:
+				   	 g2.textAlign = 'right';
+					 g2.fillText(this.text, this.anchorPoint.x, this.anchorPoint.y);
+				   break;
+				   case 2:
+				   g2.save();
+				   g2.textAlign = 'left';
+				   g2.translate(this.anchorPoint.x, this.anchorPoint.y);
+			       g2.rotate(-0.5*Math.PI);
+			       g2.fillText(this.text , 0, 0);
+			       g2.restore();
+				   break;
+				   case 3:
+				   g2.save();
+				   g2.textAlign = 'right';
+				   g2.translate(this.anchorPoint.x, this.anchorPoint.y);
+			       g2.rotate(-0.5*Math.PI);
+			       g2.fillText(this.text , 0, 0);
+			       g2.restore();	   	   
+				 }
+				 
+	     d2.utils.drawCrosshair(g2,6,[this.anchorPoint]);
+	     
+	}		
+		
+};		
+/*******************************************************************************************/	
 	d2.FontText = class FontText{
 		constructor(x,y,text,fontSize,rotation){
 			this.anchorPoint=new d2.Point(x,y);

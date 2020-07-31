@@ -137,7 +137,7 @@ class FontLabel extends Shape{
 	constructor(x, y) {
 		super(x, y, 0, 0, 1,core.Layer.LAYER_ALL);
 		this.setDisplayName("Label");		
-		this.texture=new font.SymbolFontTexture("Label","label",x,y,8,0);
+		this.texture=new font.SymbolFontTexture("Label","label",x,y,1,8);
 		this.texture.fillColor = '#000000';
 		this.rotate=0;
 	}
@@ -984,8 +984,8 @@ constructor() {
         this.type = PinType.COMPLEX;
         this.style = Style.LINE;
 
- 	    this.name=new font.SymbolFontTexture("XXX","name",-8,0,8,0);
-	    this.number=new font.SymbolFontTexture("1","number",10,-4,8,0);
+ 	    this.name=new font.SymbolFontTexture("XXX","name",-8,0,0,8);
+	    this.number=new font.SymbolFontTexture("1","number",10,-4,0,8);
 	    this.init(Orientation.EAST);
 	}
 clone(){
