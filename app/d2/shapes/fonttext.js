@@ -120,7 +120,7 @@ get box(){
         return null;
     }   
     //recalculate or buffer
-    this.metrics.calculateMetrics(this.fontSize, this.text);
+    //this.metrics.calculateMetrics(this.fontSize, this.text);
     var b=null;
 	 switch(this.alignment){
 	   case 0:
@@ -130,19 +130,19 @@ get box(){
 		  b= d2.Box.fromRect(this.anchorPoint.x-this.metrics.width,this.anchorPoint.y-this.metrics.ascent,this.metrics.width,this.metrics.height);
 	   break;
 	   case 2:
-	    b=d2.Box.fromRect(this.anchorPoint.x - this.metrics.ascent,
-                          this.anchorPoint.y, this.metrics.height,this.metrics.width);
-	   break;
+		    b=d2.Box.fromRect(this.anchorPoint.x - this.metrics.ascent,
+	                          this.anchorPoint.y, this.metrics.height,this.metrics.width);
+	   break;	   
 	   case 3:
-	   	 b= d2.Box.fromRect(this.anchorPoint.x - this.metrics.ascent,
-                          this.anchorPoint.y - this.metrics.width,
-                          this.metrics.height, this.metrics.width);
-
+		   	 b= d2.Box.fromRect(this.anchorPoint.x - this.metrics.ascent,
+	                          this.anchorPoint.y - this.metrics.width,
+	                          this.metrics.height, this.metrics.width);
+	   break;	   	 
 	 }
 	 
 	 return b;
 	 
-}		
+}	
 scalePaint(g2,viewportWindow,alpha){
 	let scaledAnchorPoint=this.anchorPoint.clone();			
   	scaledAnchorPoint.scale(alpha);
@@ -162,7 +162,7 @@ scalePaint(g2,viewportWindow,alpha){
 	   	 g2.textAlign = 'right';
 		 g2.fillText(this.text, scaledAnchorPoint.x, scaledAnchorPoint.y);
 	   break;
-	   case 2:
+	   case 3:
 	   g2.save();
 	   g2.textAlign = 'left';
 	   g2.translate(scaledAnchorPoint.x, scaledAnchorPoint.y);
@@ -170,7 +170,7 @@ scalePaint(g2,viewportWindow,alpha){
 	   g2.fillText(this.text , 0, 0);
 	   g2.restore();
 	   break;
-	   case 3:
+	   case 2:
 	   g2.save();
 	   g2.textAlign = 'right';
 	   g2.translate(scaledAnchorPoint.x, scaledAnchorPoint.y);

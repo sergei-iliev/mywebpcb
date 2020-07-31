@@ -169,7 +169,7 @@ class FontLabel extends Shape{
        this.texture.rotate(rotation);
     }    
     Move(xoffset,yoffset) {
-        this.texture.Move(xoffset, yoffset);
+        this.texture.move(xoffset, yoffset);
     }
    getCenter() {        
         return this.texture.shape.anchorPoint;
@@ -1043,8 +1043,8 @@ isClicked(x, y) {
 }
 Rotate(rotation){
 	//read current position	
-	let oposname= utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
-	let oposnumber= utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
+	//let oposname= utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
+	//let oposnumber= utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
 	
 	this.segment.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	this.orientation=Orientation.rotate(rotation.angle>0?false:true,this.orientation);
@@ -1052,30 +1052,30 @@ Rotate(rotation){
 	this.number.rotate(rotation);
 	
 	//read new position
-	let nposname=utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);	
-	this.normalizeText(this.name,oposname,nposname);
+	//let nposname=utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);	
+	//this.normalizeText(this.name,oposname,nposname);
 
 	
-	let nposnumber=utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);	
-	this.normalizeText(this.number,oposnumber,nposnumber);
+	//let nposnumber=utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);	
+	//this.normalizeText(this.number,oposnumber,nposnumber);
 	
 }
 normalizeText(text,opos,npos){
-	if(opos==npos){
-	   return;	
-	}
-	if(this.orientation==Orientation.EAST||this.orientation==Orientation.WEST){	//horizontal
-	  let off=this.segment.ps.y-text.shape.anchorPoint.y;
-	  text.Move(0,2*off);
-	}else{	//vertical
-	  let off=this.segment.ps.x-text.shape.anchorPoint.x;
-	  text.Move(2*off,0);		  
-	}	
+//	if(opos==npos){
+//	   return;	
+//	}
+//	if(this.orientation==Orientation.EAST||this.orientation==Orientation.WEST){	//horizontal
+//	  let off=this.segment.ps.y-text.shape.anchorPoint.y;
+//	  text.move(0,2*off);
+//	}else{	//vertical
+//	  let off=this.segment.ps.x-text.shape.anchorPoint.x;
+//	  text.move(2*off,0);		  
+//	}	
 }
 Move(xoffset,yoffset) {
     this.segment.move(xoffset,yoffset);
-	this.name.Move(xoffset,yoffset);
-	this.number.Move(xoffset,yoffset);
+	this.name.move(xoffset,yoffset);
+	this.number.move(xoffset,yoffset);
 }
 calculateShape() {
 	return this.segment.box;

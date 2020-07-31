@@ -70,7 +70,7 @@ setSize(size){
 setRotation(rotate,pt){	
   this.shape.rotate(rotate,pt);
 }
-Move(xoffset, yoffset){
+move(xoffset, yoffset){
    this.shape.move(xoffset, yoffset);  
 }
 setSide(side,  line,  angle) { 
@@ -158,6 +158,39 @@ TextAlignment={
 				  throw new TypeError('Unrecognized align type:'+align+' to parse');  
 			  } 	  
 		  },
+	       rotate:function(align,isClockwise){       
+	           if(align==this.LEFT){
+	              if(isClockwise)
+	                return this.TOP;
+	              else
+	                return this.BOTTOM;
+	           }else if(align==this.RIGHT){
+	                if(isClockwise)
+	                  return this.BOTTOM;
+	                else
+	                  return this.TOP;           
+	            }else if(align==this.TOP){
+	               if(isClockwise) 
+	                   return this.RIGHT;
+	               else
+	                   return this.LEFT;           
+	               }               
+	               else if(align==this.BOTTOM){
+	                if(isClockwise)
+	                    return this.LEFT;
+	                else
+	                   return this.RIGHT;
+	               }
+	                      
+	      },		  
+	      getOrientation:function(align){
+	    	  if(align==0||align==1){
+	    		return  TextOrientation.HORIZONTAL; 
+	    	  }else{
+	    		return  TextOrientation.VERTICAL;  
+	    	  }
+	           
+	      },
 		  format:function(align){
 			 switch(align){
 			 case 0:return 'LEFT';
@@ -221,10 +254,23 @@ class SymbolFontTexture{
 
 	}
 	rotate(rotation){	
-
-	 } 	    
-	Move(xoffset, yoffset){
-		   this.shape.move(xoffset, yoffset);  
+	   this.shape.anchorPoint.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	   let oldorientation=TextAlignment.getOrientation(this.shape.alignment);
+	   if(rotation.angle<0){  //clockwise
+		   this.shape.alignment=TextAlignment.rotate(this.shape.alignment,true);
+		   if(oldorientation == TextOrientation.HORIZONTAL){
+			    	this.shape.anchorPoint.set(this.shape.anchorPoint.x+(this.shape.metrics.ascent-this.shape.metrics.descent),this.shape.anchorPoint.y);            
+		   }
+	   }else{
+		   this.shape.alignment=TextAlignment.rotate(this.shape.alignment,false); 
+		    if(oldorientation == TextOrientation.VERTICAL){
+			        this.shape.anchorPoint.set(this.shape.anchorPoint.x,this.shape.anchorPoint.y+(this.shape.metrics.ascent-this.shape.metrics.descent));	           
+		    }
+	   }			 	
+		
+	} 	    
+	move(xoffset, yoffset){
+		this.shape.move(xoffset, yoffset);  
 	}
 	paint(g2,viewportWindow,scale){
 		 if(this.isEmpty()){
