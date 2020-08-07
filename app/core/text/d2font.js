@@ -158,7 +158,24 @@ TextAlignment={
 				  throw new TypeError('Unrecognized align type:'+align+' to parse');  
 			  } 	  
 		  },
-	       rotate:function(align,isClockwise){       
+		  mirror:function(align,isHorizontal){	          	               	                 
+	               if(isHorizontal){
+	                   if(align==this.LEFT)
+	                     return this.RIGHT;
+	                   else if(align==this.RIGHT)
+	                     return this.LEFT;
+	                   else
+	                     return align;
+	                  }else{
+	                   if(align==this.BOTTOM)
+	                     return this.TOP;
+	                   else if(align==this.TOP)
+	                     return this.BOTTOM;
+	                   else
+	                     return align;  
+	                  }  
+		  },
+	      rotate:function(align,isClockwise){       
 	           if(align==this.LEFT){
 	              if(isClockwise)
 	                return this.TOP;
@@ -254,21 +271,37 @@ class SymbolFontTexture{
 
 	}
 	rotate(rotation){	
+	   let oldorientation=TextAlignment.getOrientation(this.shape.alignment);	
 	   this.shape.anchorPoint.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
-	   let oldorientation=TextAlignment.getOrientation(this.shape.alignment);
 	   if(rotation.angle<0){  //clockwise
 		   this.shape.alignment=TextAlignment.rotate(this.shape.alignment,true);
 		   if(oldorientation == TextOrientation.HORIZONTAL){
-			    	this.shape.anchorPoint.set(this.shape.anchorPoint.x+(this.shape.metrics.ascent-this.shape.metrics.descent),this.shape.anchorPoint.y);            
+			//    	this.shape.anchorPoint.set(this.shape.anchorPoint.x+(this.shape.metrics.ascent-this.shape.metrics.descent),this.shape.anchorPoint.y);            
 		   }
 	   }else{
 		   this.shape.alignment=TextAlignment.rotate(this.shape.alignment,false); 
 		    if(oldorientation == TextOrientation.VERTICAL){
-			        this.shape.anchorPoint.set(this.shape.anchorPoint.x,this.shape.anchorPoint.y+(this.shape.metrics.ascent-this.shape.metrics.descent));	           
+			//        this.shape.anchorPoint.set(this.shape.anchorPoint.x,this.shape.anchorPoint.y+(this.shape.metrics.ascent-this.shape.metrics.descent));	           
 		    }
 	   }			 	
 		
-	} 	    
+	}
+	mirror(line){
+        let oldalignment = this.shape.alignment;
+        this.shape.mirror(line);
+        if (line.isVertical) { //right-left mirroring
+        	this.shape.alignment = TextAlignment.mirror(oldalignment,true);
+            //if (this.shape.alignment == oldalignment) {
+                //this.shape.anchorPoint.set(this.shape.anchorPoint.x +
+                //                        (this.shape.metrics.ascent - this.shape.metrics.descent),this.shape.anchorPoint.y);
+            //}
+        } else { //***top-botom mirroring
+        	this.shape.alignment = TextAlignment.mirror(oldalignment,false);            
+            //if (this.shape.alignment == oldalignment) {
+            	//this.shape.anchorPoint.set(this.shape.anchorPoint.x,this.shape.anchorPoint.y +(this.shape.metrics.ascent - this.shape.metrics.descent));
+            //}
+        }
+	}
 	move(xoffset, yoffset){
 		this.shape.move(xoffset, yoffset);  
 	}

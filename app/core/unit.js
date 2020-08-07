@@ -48,9 +48,9 @@ class manager{
          		shape.Move(xoffset,yoffset);
                });
          }    
-        mirrorBlock(shapes,A,B){
+        mirrorBlock(shapes,line){	
      	   shapes.forEach(function(shape) {
-        		shape.Mirror(A,B);
+        		shape.mirror(line);
            });
         }
         rotateBlock(shapes, rotation){

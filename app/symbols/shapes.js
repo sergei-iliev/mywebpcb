@@ -166,8 +166,34 @@ class FontLabel extends Shape{
 		  return this.texture;
 		}
     Rotate(rotation){
-       this.texture.rotate(rotation);
-    }    
+ 	   let oldorientation=TextAlignment.getOrientation(this.texture.shape.alignment);	
+ 	   this.texture.rotate(rotation);
+	   if(rotation.angle<0){  //clockwise		   
+		   if(oldorientation == TextOrientation.HORIZONTAL){
+			   this.texture.shape.anchorPoint.set(this.texture.shape.anchorPoint.x+(this.texture.shape.metrics.ascent-this.texture.shape.metrics.descent),this.texture.shape.anchorPoint.y);            
+		   }
+	   }else{		    
+		   if(oldorientation == TextOrientation.VERTICAL){
+			   this.texture.shape.anchorPoint.set(this.texture.shape.anchorPoint.x,this.texture.shape.anchorPoint.y+(this.texture.shape.metrics.ascent-this.texture.shape.metrics.descent));	           
+		   }
+	   }	
+       
+    }
+    mirror(line){
+    	let oldalignment = this.texture.shape.alignment;
+    	this.texture.mirror(line);	
+        if (line.isVertical) { //right-left mirroring
+            if (this.texture.shape.alignment == oldalignment) {
+                this.texture.shape.anchorPoint.set(this.texture.shape.anchorPoint.x +
+                                        (this.texture.shape.metrics.ascent - this.texture.shape.metrics.descent),this.texture.shape.anchorPoint.y);
+            }
+        } else { //***top-botom mirroring          
+            if (this.texture.shape.alignment == oldalignment) {
+            	this.texture.shape.anchorPoint.set(this.texture.shape.anchorPoint.x,this.texture.shape.anchorPoint.y +(this.texture.shape.metrics.ascent - this.texture.shape.metrics.descent));
+            }
+        }        
+      
+    }
     Move(xoffset,yoffset) {
         this.texture.move(xoffset, yoffset);
     }
@@ -562,7 +588,10 @@ class RoundRect extends Shape{
 	}
 	Rotate(rotation){		
 		this.roundRect.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
-	}	
+	}
+    mirror(line){
+    	this.roundRect.mirror(line);
+    }	
 	Resize(xoffset, yoffset,clickedPoint){
 		this.roundRect.resize(xoffset, yoffset,clickedPoint);
 	}
@@ -946,6 +975,23 @@ Orientation={
         SOUTH:1,
         WEST:2,
         EAST:3,
+mirror:function(isHorizontal,orientation){
+    if (isHorizontal) {
+        if (orientation == Orientation.EAST)
+            return Orientation.WEST;
+        else if (orientation == Orientation.WEST)
+            return Orientation.EAST;
+        else
+            return orientation;
+    } else {
+        if (orientation == Orientation.NORTH)
+            return Orientation.SOUTH;
+        else if (orientation == Orientation.SOUTH)
+            return Orientation.NORTH;
+        else
+            return orientation;
+    }	
+},      
 rotate:function(isClockwise,orientation) {
        if (isClockwise) {
                if (orientation == Orientation.NORTH)
@@ -1041,10 +1087,30 @@ isClicked(x, y) {
 		}
 		
 }
+mirror(line){
+  let oposname= utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
+  let oposnumber= utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
+	
+  this.segment.mirror(line);	
+  if(line.isVertical){ //left-right 	 	  
+	  this.orientation = Orientation.mirror(true,this.orientation);	  
+  }else{	  
+	  this.orientation = Orientation.mirror(false,this.orientation);
+  }	
+  this.name.mirror(line);
+  this.number.mirror(line);
+  
+	//read new position
+  let nposname=utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);		
+  let nposnumber=utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);	
+  
+  this.normalizeText(this.name,oposname,nposname);
+  this.normalizeText(this.number,oposnumber,nposnumber);  
+}
 Rotate(rotation){
 	//read current position	
-	//let oposname= utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
-	//let oposnumber= utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
+	let oposname= utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
+	let oposnumber= utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
 	
 	this.segment.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	this.orientation=Orientation.rotate(rotation.angle>0?false:true,this.orientation);
@@ -1052,25 +1118,19 @@ Rotate(rotation){
 	this.number.rotate(rotation);
 	
 	//read new position
-	//let nposname=utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);	
-	//this.normalizeText(this.name,oposname,nposname);
-
+	let nposname=utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);		
+	let nposnumber=utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
 	
-	//let nposnumber=utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);	
-	//this.normalizeText(this.number,oposnumber,nposnumber);
+	this.normalizeText(this.name,oposname,nposname);
+	this.normalizeText(this.number,oposnumber,nposnumber);
+	
 	
 }
 normalizeText(text,opos,npos){
-//	if(opos==npos){
-//	   return;	
-//	}
-//	if(this.orientation==Orientation.EAST||this.orientation==Orientation.WEST){	//horizontal
-//	  let off=this.segment.ps.y-text.shape.anchorPoint.y;
-//	  text.move(0,2*off);
-//	}else{	//vertical
-//	  let off=this.segment.ps.x-text.shape.anchorPoint.x;
-//	  text.move(2*off,0);		  
-//	}	
+	if(opos==npos){
+	   return;	
+	}
+	text.mirror(new d2.Line(this.segment.ps,this.segment.pe));
 }
 Move(xoffset,yoffset) {
     this.segment.move(xoffset,yoffset);
@@ -1092,23 +1152,24 @@ setOrientation(orientation){
  while(o!=orientation){
 	 switch (o) {
 	 case Orientation.EAST:        
-		 o=Orientation.SOUTH;
+		 //o=Orientation.SOUTH;
 		 this.Rotate(r);
      break;
 	 case Orientation.WEST:
-		 o=Orientation.NORTH;
+		 //o=Orientation.NORTH;
 		 this.Rotate(r);
      break;
 	 case Orientation.NORTH:
-		 o=Orientation.EAST;
+		 //o=Orientation.EAST;
 		 this.Rotate(r);
      break;
 	 case Orientation.SOUTH:    	
-		 o=Orientation.WEST;
+		 //o=Orientation.WEST;
 		 this.Rotate(r);
-  }   
+  
+	 }
+	 o=this.orientation; 
  }
-this.orientation=orientation;
 }
 
 init(orientation){

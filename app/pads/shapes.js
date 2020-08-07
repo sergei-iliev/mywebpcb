@@ -1319,8 +1319,8 @@ Move(xoffset, yoffset){
 	   if(this.drill!=null){
 	     this.drill.Move(xoffset, yoffset);
 	   }
-	   this.number.Move(xoffset,yoffset);
-	   this.netvalue.Move(xoffset,yoffset);
+	   this.number.move(xoffset,yoffset);
+	   this.netvalue.move(xoffset,yoffset);
 	   
 	}
 

@@ -99,9 +99,15 @@ setText(text){
 			this.text=text;
 			this.metrics.calculateMetrics(this.fontSize,this.text);
 		}	
+mirror(line){
+	 this.anchorPoint.mirror(line); 	
+}
 setSize(size){
 	this.fontSize=size;
 	this.metrics.calculateMetrics(this.fontSize,this.text);
+}
+mirror(line){
+	 this.anchorPoint.mirror(line); 	
 }
 scale(alpha){
   	this.anchorPoint.scale(alpha);
