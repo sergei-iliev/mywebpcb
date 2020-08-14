@@ -67,18 +67,18 @@ var PinPanelBuilder=BaseBuilder.extend({
     events: {
         'keypress #numberid' : 'onenter',	
         'keypress #nameid' : 'onenter',	
-        'change #nameorientationid': 'onchange',
-        'change #numberorientationid': 'onchange', 
+        'change #namealignmentid': 'onchange',
+        'change #numberalignmentid': 'onchange', 
         'change #orientationid': 'onchange',
         'change #styleid': 'onchange', 
         'change #pintypeid': 'onchange',
     },
     onchange:function(event){
-        if(event.target.id=='nameorientationid'){
-        	this.target.getTextureByTag("name").setOrientation(parseInt(j$("#nameorientationid").val()));        	
+        if(event.target.id=='namealignmentid'){
+        	this.target.getTextureByTag("name").setAlignment(parseInt(j$("#namealignmentid").val()));        	
         }
-        if(event.target.id=='numberorientationid'){
-        	this.target.getTextureByTag("number").setOrientation(parseInt(j$("#numberorientationid").val()));        	
+        if(event.target.id=='numberalignmentid'){
+        	this.target.getTextureByTag("number").setAlignment(parseInt(j$("#numberalignmentid").val()));        	
         }
         if(event.target.id=='orientationid'){        
         	this.target.setOrientation(parseInt(j$('#orientationid').val()));
@@ -111,8 +111,8 @@ var PinPanelBuilder=BaseBuilder.extend({
 		 j$('#styleid').val(this.target.style);
 		 j$('#pintypeid').val(this.target.type);
 	     j$('#numberid').val(this.target.getTextureByTag("number").shape.text); 
-	     j$('#nameorientationid').val(this.target.getTextureByTag("name").getOrientation()); 
-	     j$('#numberorientationid').val(this.target.getTextureByTag("number").getOrientation()); 
+	     j$('#namealignmentid').val(this.target.getTextureByTag("name").getAlignment()); 
+	     j$('#numberalignmentid').val(this.target.getTextureByTag("number").getAlignment()); 
 	},
 	render:function(){
 		j$(this.el).empty();
@@ -134,16 +134,16 @@ var PinPanelBuilder=BaseBuilder.extend({
 				                   {id:6,value:'OUTPUT_LOW'},{id:7,value:'FALLING_EDGE_CLOCK'}])+
 				"</select></td></tr>"+				
 				"<tr><td style='padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='width:50%;padding:7px'>Text Orientation</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"nameorientationid\">"+
-				this.fillComboBox([{id:0,value:'HORIZONTAL',selected:true},{id:1,value:'VERTICAL'}])+
+				"<tr><td style='width:50%;padding:7px'>Text Alignment</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"namealignmentid\">"+
+				this.fillComboBox([{id:0,value:'RIGHT',selected:true},{id:1,value:'TOP',selected:true},{id:2,value:'LEFT',selected:true},{id:3,value:'BOTTOM'}])+
 			    "</select></td></tr>"+
 				
 				"<tr><td style='padding:7px'>Number</td><td><input type='text' id='numberid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='width:50%;padding:7px'>Text Orientation</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"numberorientationid\">"+
-				this.fillComboBox([{id:0,value:'HORIZONTAL',selected:true},{id:1,value:'VERTICAL'}])+
-			    "</select>" +
+				"<tr><td style='width:50%;padding:7px'>Text Alignment</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"numberalignmentid\">"+				
+				this.fillComboBox([{id:0,value:'RIGHT',selected:true},{id:1,value:'TOP',selected:true},{id:2,value:'LEFT',selected:true},{id:3,value:'BOTTOM'}])+
+				"</select>" +
 				"</td></tr>"+		        
 		
 		"</table>");

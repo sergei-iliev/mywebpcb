@@ -78,7 +78,14 @@ calculateMetrics(fontSize,text) {
         this.updated=true; 	
 }
 }
-
+/*
+TextAlignment={
+		  RIGHT:0,
+		  TOP:1,
+		  LEFT:2,
+		  BOTTOM:3;
+}
+*/
 module.exports = function(d2) {
 	d2.BaseFontText = class BaseFontText{
 		constructor(x,y,text,alignment,fontSize){
@@ -95,19 +102,16 @@ clone(){
 			copy.style=this.style;
 			return copy;
 		}
+mirror(line){
+	 this.anchorPoint.mirror(line); 	
+}
 setText(text){
 			this.text=text;
 			this.metrics.calculateMetrics(this.fontSize,this.text);
 		}	
-mirror(line){
-	 this.anchorPoint.mirror(line); 	
-}
 setSize(size){
 	this.fontSize=size;
 	this.metrics.calculateMetrics(this.fontSize,this.text);
-}
-mirror(line){
-	 this.anchorPoint.mirror(line); 	
 }
 scale(alpha){
   	this.anchorPoint.scale(alpha);
@@ -129,13 +133,13 @@ get box(){
     //this.metrics.calculateMetrics(this.fontSize, this.text);
     var b=null;
 	 switch(this.alignment){
-	   case 0:
+	   case 2:
 		  b= d2.Box.fromRect(this.anchorPoint.x,this.anchorPoint.y-this.metrics.ascent,this.metrics.width,this.metrics.height);	    
 	    break;
-	   case 1:
+	   case 0:
 		  b= d2.Box.fromRect(this.anchorPoint.x-this.metrics.width,this.anchorPoint.y-this.metrics.ascent,this.metrics.width,this.metrics.height);
 	   break;
-	   case 2:
+	   case 1:
 		    b=d2.Box.fromRect(this.anchorPoint.x - this.metrics.ascent,
 	                          this.anchorPoint.y, this.metrics.height,this.metrics.width);
 	   break;	   
@@ -148,7 +152,7 @@ get box(){
 	 
 	 return b;
 	 
-}	
+}		
 scalePaint(g2,viewportWindow,alpha){
 	let scaledAnchorPoint=this.anchorPoint.clone();			
   	scaledAnchorPoint.scale(alpha);
@@ -160,29 +164,29 @@ scalePaint(g2,viewportWindow,alpha){
 	g2.font =(this.style==='plain'?'':this.style)+" "+(scaledFontSize)+"px Monospace";
 	g2.textBaseline='alphabetic'; 
     switch(this.alignment){
-	   case 0:
-	   	 g2.textAlign = 'left';				   	 
-		 g2.fillText(this.text, scaledAnchorPoint.x, scaledAnchorPoint.y); 
+	   case 2:
+	   	 	g2.textAlign = 'left';				   	 
+	   	 	g2.fillText(this.text, scaledAnchorPoint.x, scaledAnchorPoint.y); 
 	   break;
-	   case 1:
-	   	 g2.textAlign = 'right';
-		 g2.fillText(this.text, scaledAnchorPoint.x, scaledAnchorPoint.y);
+	   case 0:
+	   	 	g2.textAlign = 'right';
+	   	 	g2.fillText(this.text, scaledAnchorPoint.x, scaledAnchorPoint.y);
 	   break;
 	   case 3:
-	   g2.save();
-	   g2.textAlign = 'left';
-	   g2.translate(scaledAnchorPoint.x, scaledAnchorPoint.y);
-	   g2.rotate(-0.5*Math.PI);
-	   g2.fillText(this.text , 0, 0);
-	   g2.restore();
+		   	g2.save();
+		   	g2.textAlign = 'left';
+		   	g2.translate(scaledAnchorPoint.x, scaledAnchorPoint.y);
+		   	g2.rotate(-0.5*Math.PI);
+		   	g2.fillText(this.text , 0, 0);
+		   	g2.restore();
 	   break;
-	   case 2:
-	   g2.save();
-	   g2.textAlign = 'right';
-	   g2.translate(scaledAnchorPoint.x, scaledAnchorPoint.y);
-	   g2.rotate(-0.5*Math.PI);
-	   g2.fillText(this.text , 0, 0);
-	   g2.restore();	   	   
+	   case 1:
+		   g2.save();
+		   g2.textAlign = 'right';
+		   g2.translate(scaledAnchorPoint.x, scaledAnchorPoint.y);
+		   g2.rotate(-0.5*Math.PI);
+		   g2.fillText(this.text , 0, 0);
+		   g2.restore();	   	   
 	}	
 }	
 paint(g2){				 
@@ -194,15 +198,15 @@ paint(g2){
 				 
 	    g2.textBaseline='alphabetic'; 
 	    switch(this.alignment){
-				   case 0:
+				   case 2:
 				   	 g2.textAlign = 'left';				   	 
 					 g2.fillText(this.text, this.anchorPoint.x, this.anchorPoint.y); 
 				   break;
-				   case 1:
+				   case 0:
 				   	 g2.textAlign = 'right';
 					 g2.fillText(this.text, this.anchorPoint.x, this.anchorPoint.y);
 				   break;
-				   case 2:
+				   case 1:
 				   g2.save();
 				   g2.textAlign = 'left';
 				   g2.translate(this.anchorPoint.x, this.anchorPoint.y);

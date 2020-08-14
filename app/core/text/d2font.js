@@ -140,9 +140,9 @@ fromXML(node){
 }
 }
 TextAlignment={
-		  LEFT:0,
-		  RIGHT:1,
-		  TOP:2,
+		  RIGHT:0,
+		  TOP:1,
+		  LEFT:2,
 		  BOTTOM:3,
 		  parse:function(align){
 			  switch(align){
@@ -201,7 +201,7 @@ TextAlignment={
 	                      
 	      },		  
 	      getOrientation:function(align){
-	    	  if(align==0||align==1){
+	    	  if(align==0||align==2){
 	    		return  TextOrientation.HORIZONTAL; 
 	    	  }else{
 	    		return  TextOrientation.VERTICAL;  
@@ -210,9 +210,9 @@ TextAlignment={
 	      },
 		  format:function(align){
 			 switch(align){
-			 case 0:return 'LEFT';
-			 case 1:return 'RIGHT';
-			 case 2:return 'TOP';
+			 case 0:return 'RIGHT';
+			 case 1:return 'TOP';
+			 case 2:return 'LEFT';
 			 case 3:return 'BOTTOM';
 			 } 
 		  }
@@ -264,12 +264,12 @@ class SymbolFontTexture{
 	setSelected(selection){
 		this.selection=selection;
 	}	
-	setOrientation(orientation){
-
+	setAlignment(align){
+		this.shape.alignment=align;
 	}
-	getOrientation(){
-
-	}
+	getAlignment(){
+      return this.shape.alignment;
+	}	
 	rotate(rotation){	
 	   let oldorientation=TextAlignment.getOrientation(this.shape.alignment);	
 	   this.shape.anchorPoint.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
