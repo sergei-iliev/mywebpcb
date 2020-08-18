@@ -270,19 +270,12 @@ class SymbolFontTexture{
 	getAlignment(){
       return this.shape.alignment;
 	}	
-	rotate(rotation){	
-	   let oldorientation=TextAlignment.getOrientation(this.shape.alignment);	
+	rotate(rotation){		   
 	   this.shape.anchorPoint.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
 	   if(rotation.angle<0){  //clockwise
 		   this.shape.alignment=TextAlignment.rotate(this.shape.alignment,true);
-		   if(oldorientation == TextOrientation.HORIZONTAL){
-			//    	this.shape.anchorPoint.set(this.shape.anchorPoint.x+(this.shape.metrics.ascent-this.shape.metrics.descent),this.shape.anchorPoint.y);            
-		   }
 	   }else{
 		   this.shape.alignment=TextAlignment.rotate(this.shape.alignment,false); 
-		    if(oldorientation == TextOrientation.VERTICAL){
-			//        this.shape.anchorPoint.set(this.shape.anchorPoint.x,this.shape.anchorPoint.y+(this.shape.metrics.ascent-this.shape.metrics.descent));	           
-		    }
 	   }			 	
 		
 	}
@@ -291,15 +284,8 @@ class SymbolFontTexture{
         this.shape.mirror(line);
         if (line.isVertical) { //right-left mirroring
         	this.shape.alignment = TextAlignment.mirror(oldalignment,true);
-            //if (this.shape.alignment == oldalignment) {
-                //this.shape.anchorPoint.set(this.shape.anchorPoint.x +
-                //                        (this.shape.metrics.ascent - this.shape.metrics.descent),this.shape.anchorPoint.y);
-            //}
         } else { //***top-botom mirroring
         	this.shape.alignment = TextAlignment.mirror(oldalignment,false);            
-            //if (this.shape.alignment == oldalignment) {
-            	//this.shape.anchorPoint.set(this.shape.anchorPoint.x,this.shape.anchorPoint.y +(this.shape.metrics.ascent - this.shape.metrics.descent));
-            //}
         }
 	}
 	move(xoffset, yoffset){

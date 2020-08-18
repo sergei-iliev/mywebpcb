@@ -571,13 +571,13 @@ var LabelPanelBuilder=BaseBuilder.extend({
         'keypress #rotateid' : 'onenter',
         'keypress #sizeid' : 'onenter',	
         'keypress #thicknessid' : 'onenter',	
-		'change #orientationid':'onchange',
+		'change #alignmentid':'onchange',
 		'change #colorid':'onchange',
         'change #styleid': 'onchange', 
     },
     onchange:function(event){      
-	  if(event.target.id=='orientationid'){
-		  this.target.texture.setOrientation(parseInt(j$("#orientationid").val()));
+	  if(event.target.id=='alignmentid'){
+		  this.target.texture.shape.alignment= (parseInt(j$("#alignmentid").val()));
       }
 	  if(event.target.id=='colorid'){
 		  this.target.texture.fillColor=(j$('#colorid').val());			  
@@ -606,7 +606,7 @@ var LabelPanelBuilder=BaseBuilder.extend({
 	 j$('#textid').val(this.target.texture.shape.text);	
 	 j$('#xid').val(utilities.roundFloat(this.target.texture.shape.anchorPoint.x,1));
 	 j$('#yid').val(utilities.roundFloat(this.target.texture.shape.anchorPoint.y,1));	 
-	 j$("#orientationid").val(this.target.texture.getOrientation());
+	 j$("#alignmentid").val(this.target.texture.shape.alignment);
 	 j$('#colorid').val(this.target.texture.fillColor);		
 	 j$('#sizeid').val(this.target.texture.shape.fontSize);
 	 j$('#styleid').val(this.target.texture.shape.style);
@@ -619,8 +619,8 @@ var LabelPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Text</td><td><input type='text' id='textid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='width:50%;padding:7px'>Text Orientation</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"orientationid\">"+
-				this.fillComboBox([{id:0,value:'HORIZONTAL',selected:true},{id:1,value:'VERTICAL'}])+
+				"<select class=\"form-control input-sm\" id=\"alignmentid\">"+
+				this.fillComboBox([{id:0,value:'RIGHT',selected:true},{id:1,value:'TOP',selected:true},{id:2,value:'LEFT',selected:true},{id:3,value:'BOTTOM'}])+
 			    "</select>" +
 				"</td></tr>"+				
 				"<tr><td style='padding:7px'>Color</td><td><input type='color' id='colorid' value='#ff0000'></td></tr>"+
