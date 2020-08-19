@@ -141,7 +141,7 @@ class GlyphTexture{
 		this.fillColor='gray';
 	    this.layermaskId=core.Layer.SILKSCREEN_LAYER_FRONT;	
 	    this.selection=false;	
-	    this.rotate=0;
+	    this.rotation=0;
 	    this.mirrored=false;
 }
 clone(){
@@ -154,7 +154,7 @@ clone(){
 	            copy.glyphs.push(glyph.clone());
 	       });
 		   copy.mirrored=this.mirrored;
-		   copy.rotate=this.rotate;
+		   copy.rotation=this.rotation;
 	       copy.thickness = this.thickness;
 		   copy.fillColor=this.fillColor;
 	       copy.layermaskId=this.layermaskId;		
@@ -165,7 +165,7 @@ copy( _copy){
     this.anchorPoint.set(_copy.anchorPoint.x,_copy.anchorPoint.y); 
     this.text = _copy.text;
     this.tag = _copy.tag;
-    this.rotate=_copy.rotate;
+    this.rotation=_copy.rotation;
     this.mirrored=_copy.mirrored;
     this.fillColor=_copy.fillColor;    
     this.thickness=_copy.thickness;
@@ -242,7 +242,7 @@ reset(){
     this.resetGlyphsLine();
     //rotate
 	this.glyphs.forEach(function(glyph){		  
-		glyph.rotate(this.rotate,this.anchorPoint);		     
+		glyph.rotate(this.rotation,this.anchorPoint);		     
     }.bind(this));
 }
 setSize(size) {
@@ -275,11 +275,11 @@ getBoundingShape() {
 getBoundingRect(){
     if(this.mirrored){
         let rect= new d2.Rectangle(this.anchorPoint.x-this.width,this.anchorPoint.y-this.height,this.width,this.height);
-        rect.rotate(this.rotate,this.anchorPoint);
+        rect.rotate(this.rotation,this.anchorPoint);
         return rect;
      }else{    	
         let rect= new d2.Rectangle(this.anchorPoint.x,this.anchorPoint.y-this.height,this.width,this.height);
-        rect.rotate(this.rotate,this.anchorPoint);
+        rect.rotate(this.rotation,this.anchorPoint);
         return rect;
      }	
 }
@@ -307,7 +307,7 @@ mirror(mirrored,line){
        if(this.mirrored){
     	glyph.mirror(line);    	        
        } 
-       glyph.rotate(this.rotate,this.anchorPoint);
+       glyph.rotate(this.rotation,this.anchorPoint);
         
     }.bind(this));
         
@@ -336,10 +336,10 @@ setSide(side,  line, angle) {
     let copper=core.Layer.Side.change(this.layermaskId);
     this.fillColor=copper.getColor();
     this.layermaskId=copper.getLayerMaskID();
-    this.rotate=angle;
+    this.rotation=angle;
 }
 
-Move(xoffset,yoffset) {
+move(xoffset,yoffset) {
     this.anchorPoint.move(xoffset,yoffset);
     this.glyphs.forEach(function(glyph){
         glyph.move(xoffset,yoffset);
@@ -351,23 +351,23 @@ setLocation(x,y){
 	this.move(xx,yy);
 }
 setRotation(rotate,pt){
-	let alpha=rotate-this.rotate;
+	let alpha=rotate-this.rotation;
 	this.anchorPoint.rotate(alpha,pt);
 	this.glyphs.forEach(function(glyph){
 		glyph.rotate(alpha,pt);   
 	}.bind(this));	
-	this.rotate=rotate;   	
+	this.rotation=rotate;   	
 }
-Rotate(rotate,pt){
+rotate(rotate,pt){
 	//fix angle
-	let alpha=this.rotate+rotate;
+	let alpha=this.rotation+rotate;
 	if(alpha>=360){
 		alpha-=360
 	}
 	if(alpha<0){
 	 alpha+=360; 
 	}	
-	this.rotate=alpha;
+	this.rotation=alpha;
 	//rotate anchor point
 	this.anchorPoint.rotate(rotate,pt);
 	//rotate glyphs
@@ -417,7 +417,7 @@ drawControlShape(g2, viewportWindow,scale){
 toXML(){
     return (this.isEmpty()? "" :
         this.text + "," + utilities.roundFloat(this.anchorPoint.x,4) + "," + utilities.roundFloat(this.anchorPoint.y,4) +
-        ",,"+utilities.roundFloat(this.thickness,2)+","+utilities.roundFloat(this.size,2)+","+utilities.roundFloat(this.rotate,2));	
+        ",,"+utilities.roundFloat(this.thickness,2)+","+utilities.roundFloat(this.size,2)+","+utilities.roundFloat(this.rotation,2));	
 }
 fromXML(node){	
 	if (node == null || j$(node).text().length==0) {
@@ -452,7 +452,7 @@ fromXML(node){
      if(isNaN(rotate)){
     	 rotate=0;
      }
-	 this.rotate=rotate;
+	 this.rotation=rotate;
 	 
 	 //mirror?
      let side=core.Layer.Side.resolve(this.layermaskId);

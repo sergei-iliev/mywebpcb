@@ -165,7 +165,7 @@ class FontLabel extends Shape{
     getTexture(){
 		  return this.texture;
 		}
-    Rotate(rotation){
+    rotate(rotation){
  	   let oldorientation=TextAlignment.getOrientation(this.texture.shape.alignment);	
  	   this.texture.rotate(rotation);
 	   if(rotation.angle<0){  //clockwise		   
@@ -194,7 +194,7 @@ class FontLabel extends Shape{
         }        
       
     }
-    Move(xoffset,yoffset) {
+    move(xoffset,yoffset) {
         this.texture.move(xoffset, yoffset);
     }
    getCenter() {        
@@ -289,7 +289,7 @@ class Arc extends Shape{
 	setStartAngle(startAngle){        
 	    this.arc.startAngle=utilities.round(startAngle);
 	}	
-	Rotate(rotation){	
+	rotate(rotation){	
 		   this.arc.pc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 		   let w=this.arc.w;
 		   this.arc.w=this.arc.h;
@@ -305,7 +305,7 @@ class Arc extends Shape{
 	mirror(line) {
 	    this.arc.mirror(line);
 	}
-    Move(xoffset,yoffset) {
+	move(xoffset,yoffset) {
         this.arc.move(xoffset, yoffset);
     }
 	Resize(xoffset, yoffset,clickedPoint){
@@ -443,13 +443,13 @@ class Ellipse extends Shape{
 	   	});
 	   	return result;
 	}	
-    Move(xoffset,yoffset) {
+	move(xoffset,yoffset) {
         this.ellipse.move(xoffset, yoffset);
     }
     mirror(line){
        this.ellipse.mirror(line);	
     }
-	Rotate(rotation){			   
+    rotate(rotation){			   
 	   this.ellipse.pc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	   let w=this.ellipse.w;
 	   this.ellipse.w=this.ellipse.h;
@@ -589,10 +589,10 @@ class RoundRect extends Shape{
 	getResizingPoint() {
 			return this.resizingPoint;
 		}	
-	Move(xoffset, yoffset) {
+	move(xoffset, yoffset) {
 		this.roundRect.move(xoffset,yoffset);
 	}
-	Rotate(rotation){		
+	rotate(rotation){		
 		this.roundRect.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	}
     mirror(line){
@@ -749,11 +749,11 @@ Resize(xoffset,yoffset,clickedPoint) {
                              clickedPoint.y + yoffset);
     this.setHeadSize(this.headSize);
 }
-Rotate(rotation){		
+rotate(rotation){		
 	this.arrow.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	this.line.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 }
-Move(xoffset, yoffset) {
+move(xoffset, yoffset) {
 	this.line.move(xoffset,yoffset);
 	this.arrow.move(xoffset,yoffset);
 }
@@ -877,10 +877,10 @@ Resize(xoffset, yoffset, clickedPoint) {
 	clickedPoint.set(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);
 }
-Rotate(rotation){		
+rotate(rotation){		
 	this.shape.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	
 }
-Move(xoffset, yoffset) {
+move(xoffset, yoffset) {
 	this.shape.move(xoffset,yoffset);	
 }
 mirror(line){
@@ -1061,7 +1061,7 @@ clone(){
 alignToGrid(isRequired) {
     var center=this.segment.ps;
     var point=this.owningUnit.getGrid().positionOnGrid(center.x,center.y);
-    this.Move(point.x - center.x,point.y - center.y);
+    this.move(point.x - center.x,point.y - center.y);
     return new d2.Point(point.x - center.x, point.y - center.y);  
 }
 getClickedTexture(x,y) {
@@ -1123,7 +1123,7 @@ mirror(line){
   this.normalizeText(this.name,oposname,nposname);
   this.normalizeText(this.number,oposnumber,nposnumber);  
 }
-Rotate(rotation){
+rotate(rotation){
 	//read current position	
 	let oposname= utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
 	let oposnumber= utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
@@ -1148,7 +1148,7 @@ normalizeText(text,opos,npos){
 	}
 	text.mirror(new d2.Line(this.segment.ps,this.segment.pe));
 }
-Move(xoffset,yoffset) {
+move(xoffset,yoffset) {
     this.segment.move(xoffset,yoffset);
 	this.name.move(xoffset,yoffset);
 	this.number.move(xoffset,yoffset);
@@ -1169,19 +1169,19 @@ setOrientation(orientation){
 	 switch (o) {
 	 case Orientation.EAST:        
 		 //o=Orientation.SOUTH;
-		 this.Rotate(r);
+		 this.rotate(r);
      break;
 	 case Orientation.WEST:
 		 //o=Orientation.NORTH;
-		 this.Rotate(r);
+		 this.rotate(r);
      break;
 	 case Orientation.NORTH:
 		 //o=Orientation.EAST;
-		 this.Rotate(r);
+		 this.rotate(r);
      break;
 	 case Orientation.SOUTH:    	
 		 //o=Orientation.WEST;
-		 this.Rotate(r);
+		 this.rotate(r);
   
 	 }
 	 o=this.orientation; 

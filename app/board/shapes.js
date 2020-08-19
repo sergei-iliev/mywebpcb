@@ -77,12 +77,12 @@ constructor(layermaskId){
 	    this.value=(new glyph.GlyphTexture("","value", 8,8,core.MM_TO_COORD(1.2)));		 	    
         this.units=core.Units.MM;
         this.val=2.54;  
-        this.rotate=0;
+        this.rotation=0;
 	}
 clone(){
         var copy=new PCBFootprint(this.copper.getLayerMaskID());
         copy.shapes=[];
-        copy.rotate=this.rotate;
+        copy.rotation=this.rotation;
         copy.units=this.units;
         copy.val=this.val;
         copy.value =this.value.clone();
@@ -128,13 +128,13 @@ setSide(side){
     let line= new d2.Line(new d2.Point(p.x,p.y-10),new d2.Point(p.x,p.y+10));
     
     this.shapes.forEach(shape=>{
-        shape.setSide(side,line,(360-this.rotate));
+        shape.setSide(side,line,(360-this.rotation));
     });  
-    this.reference.setSide(side,line,(360-this.rotate));       
-    this.value.setSide(side,line,(360-this.rotate));       
+    this.reference.setSide(side,line,(360-this.rotation));       
+    this.value.setSide(side,line,(360-this.rotation));       
     
     this.copper=(core.Layer.Side.change(this.copper.getLayerMaskID()));
-    this.rotate=360-this.rotate;	
+    this.rotation=360-this.rotation;	
 }
 getSide(){
     return core.Layer.Side.resolve(this.copper.getLayerMaskID());       
@@ -229,13 +229,13 @@ calculateShape() {
     r.setRect(x1, y1, x2 - x1, y2 - y1);
     return r;
 }	
-Move(xoffset,yoffset){
+move(xoffset,yoffset){
 	   var len=this.shapes.length;
 	   for(var i=0;i<len;i++){
-		   this.shapes[i].Move(xoffset,yoffset);  
+		   this.shapes[i].move(xoffset,yoffset);  
 	   }	
-	   this.reference.Move(xoffset,yoffset);
-	   this.value.Move(xoffset,yoffset);
+	   this.reference.move(xoffset,yoffset);
+	   this.value.move(xoffset,yoffset);
 }
 setRotation(rotate){
 	let center=this.getBoundingShape().center;
@@ -246,11 +246,11 @@ setRotation(rotate){
 	}	
     this.value.setRotation(rotate,center);
     this.reference.setRotation(rotate,center);
-	this.rotate=rotate;
+	this.rotation=rotate;
 }
-Rotate(rotation){
+rotate(rotation){
 	//fix angle
-	   let alpha=this.rotate+rotation.angle;
+	   let alpha=this.rotation+rotation.angle;
 	   if(alpha>=360){
 		 alpha-=360
 	   }
@@ -260,12 +260,12 @@ Rotate(rotation){
 
 	   var len=this.shapes.length;
 	   for(var i=0;i<len;i++){
-		   this.shapes[i].Rotate(rotation);  
+		   this.shapes[i].rotate(rotation);  
 	   }
 	  
-	   this.value.Rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
-	   this.reference.Rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
-	   this.rotate=alpha;
+	   this.value.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	   this.reference.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	   this.rotation=alpha;
 }
 drawClearence(g2,viewportWindow,scale,source){
     let rect=this.getBoundingShape();
@@ -615,7 +615,7 @@ alignToGrid(isRequired) {
 	        return null;
 	    }
 	}
-Move(xoffset, yoffset) {
+move(xoffset, yoffset) {
 	this.circle.move(xoffset,yoffset);
 }
 getOrderWeight() {
@@ -710,11 +710,11 @@ alignToGrid(isRequired) {
         return null;
     }
 }
-Move(xoffset, yoffset) {
+move(xoffset, yoffset) {
    this.outer.move(xoffset,yoffset);
    this.inner.move(xoffset,yoffset);
 }
-Rotate(rotation) {
+rotate(rotation) {
 	this.inner.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
 	this.outer.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
 }
@@ -913,7 +913,7 @@ resetToPoint(p){
     this.floatingStartPoint.set(p.x,p.y);
     this.floatingEndPoint.set(p.x,p.y); 
 }
-Rotate(rotation) {
+rotate(rotation) {
 	this.polygon.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
 }
 Resize(xoffset, yoffset, clickedPoint) {

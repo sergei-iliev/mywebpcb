@@ -105,7 +105,7 @@ class MoveEventHandle extends EventHandle{
 	 	let new_mx = event.x;
 	    let new_my = event.y;
 		
-	    this.target.Move(new_mx - this.mx, new_my - this.my);
+	    this.target.move(new_mx - this.mx, new_my - this.my);
 	    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
 	    this.mx = new_mx;
 	    this.my = new_my;
@@ -281,7 +281,7 @@ mouseMove(event){
 	        let new_mx = event.x;
 	        let new_my = event.y;
 	       
-	        this.component.getModel().getUnit().getCoordinateSystem().Move((new_mx - this.mx), (new_my - this.my));
+	        this.component.getModel().getUnit().getCoordinateSystem().move((new_mx - this.mx), (new_my - this.my));
 	        this.component.getModel().fireUnitEvent({target:this.component.getModel().getUnit(),type:Event.PROPERTY_CHANGE});
 
 	        this.mx = new_mx;
@@ -325,7 +325,7 @@ class CursorEventHandle extends EventHandle{
 		    let   new_my = event.y;
 		    
 			
-		    this.target.Move(new_mx - this.mx, new_my - this.my);
+		    this.target.move(new_mx - this.mx, new_my - this.my);
 
 		    this.mx = new_mx;
 		    this.my = new_my;

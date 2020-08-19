@@ -107,21 +107,21 @@ isSelected() {
 		return this.selection;
 	}
 
-Move(xoffset,yoffset) {
+move(xoffset,yoffset) {
       this.setX(this.getX() + xoffset);
       this.setY(this.getY() + yoffset);    
 }
 
-Mirror(line) {
+mirror(line) {
 
 }
 setSide(side, line, angle) {
     this.copper=(core.Layer.Side.change(this.copper.getLayerMaskID()));
-    this.Mirror(line);
-    this.rotate=angle;
+    this.mirror(line);
+    this.rotation=angle;
 }     
 
-Rotate(rotation) {
+rotate(rotation) {
 //		let point = new Point(this.getX(), this.getY());
 //		point = utilities.rotate(point, rotation.originx,rotation.originy, rotation.angle);
 //	
@@ -232,7 +232,7 @@ class AbstractLine extends Shape{
 																		// degree
 																		// forming
 		this.floatingEndPoint = new d2.Point();
-		this.rotate=0;
+		this.rotation=0;
 		
 }
 get vertices(){
@@ -451,32 +451,32 @@ isControlRectClicked(x, y) {
 	return point;
 }
 
-Move(xoffset, yoffset) {
+move(xoffset, yoffset) {
 	this.polyline.move(xoffset,yoffset);
 }
 mirror(line) {
     this.polyline.mirror(line);
 }
 setRotation(rotate,center){
-	let alpha=rotate-this.rotate;
+	let alpha=rotate-this.rotation;
 	let box=this.polyline.box;
 	if(center==undefined){
 		this.polyline.rotate(alpha,box.center);
 	}else{
 		this.polyline.rotate(alpha,center);	 	
 	}
-	this.rotate=rotate;
+	this.rotation=rotate;
 }
-Rotate(rotation) {
+rotate(rotation) {
 	//fix angle
-	let alpha=this.rotate+rotation.angle;
+	let alpha=this.rotation+rotation.angle;
 	if(alpha>=360){
 	  alpha-=360
 	}
 	if(alpha<0){
 	 alpha+=360; 
 	}	
-	this.rotate=alpha;	
+	this.rotation=alpha;	
 	this.polyline.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
 }
 calculateShape() {

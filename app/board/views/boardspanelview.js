@@ -446,7 +446,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 	updateui:function(){
 		   j$("#nameid").val(this.target.displayName);
 		   
-		   j$("#rotateid").val(this.target.rotate); 	
+		   j$("#rotateid").val(this.target.rotation); 	
 		   
 		   var texture=this.target.reference;
 		   j$("#referenceid").val(texture==null?"":texture.text);
@@ -817,7 +817,7 @@ var LabelPanelBuilder=BaseBuilder.extend({
 		 this.component.repaint();     		    	
     },
 	updateui:function(){
-	 j$("#rotateid").val(this.target.texture.rotate); 	
+	 j$("#rotateid").val(this.target.texture.rotation); 	
 	 j$('#controllayerid').val(this.target.copper.getName());	
 	 j$('#textid').val(this.target.texture.text);	
 	 j$('#xid').val(this.toUnitX(this.target.texture.anchorPoint.x));

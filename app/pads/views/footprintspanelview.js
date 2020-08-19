@@ -279,7 +279,7 @@ var PadPanelBuilder=BaseBuilder.extend({
 		 j$('#layerid').val(this.target.copper.getName());
 		 j$('#padxid').val(this.toUnitX(this.target.getCenter().x));
 		 j$('#padyid').val(this.toUnitY(this.target.getCenter().y));
-		 j$("#rotateid").val(this.target.rotate);  
+		 j$("#rotateid").val(this.target.rotation);  
 		 j$('#padwidthid').val(core.COORD_TO_MM(this.target.width));
 	        if(this.target.getShape()==PadShape.CIRCULAR||this.target.getShape()==PadShape.POLYGON){
 	        	j$('#padheightid').prop('disabled',true);
@@ -741,7 +741,7 @@ var LabelPanelBuilder=BaseBuilder.extend({
 		 this.component.repaint();     		    	
     },
 	updateui:function(){
-	 j$("#rotateid").val(this.target.texture.rotate); 	
+	 j$("#rotateid").val(this.target.texture.rotation); 	
 	 j$('#layerid').val(this.target.copper.getName());	
 	 j$('#textid').val(this.target.texture.text);	
 	 j$('#xid').val(this.toUnitX(this.target.texture.anchorPoint.x));

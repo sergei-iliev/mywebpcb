@@ -40,12 +40,12 @@ class manager{
             let point =grid.positionOnGrid(r.x, r.y); 
             
       	   shapes.forEach(function(shape) {
-      		 shape.Move((point.x - r.x),(point.y - r.y));
+      		 shape.move((point.x - r.x),(point.y - r.y));
            });
         }
         moveBlock(shapes, xoffset,yoffset){
         	   shapes.forEach(function(shape) {
-         		shape.Move(xoffset,yoffset);
+         		shape.move(xoffset,yoffset);
                });
          }    
         mirrorBlock(shapes,line){	
@@ -55,7 +55,7 @@ class manager{
         }
         rotateBlock(shapes, rotation){
        	   shapes.forEach(function(shape) {
-        		shape.Rotate(rotation);
+        		shape.rotate(rotation);
                 });
         }
         deleteBlock(unit,shapes){

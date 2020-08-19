@@ -179,7 +179,7 @@ var ToggleButtonView=Backbone.View.extend({
 		  var pcbfootprint=BoardMgr.getInstance().createPCBFootprint(selectedModel.getUnit());
 		  
           //            //***set chip cursor
-          pcbfootprint.Move(-1 * pcbfootprint.getBoundingShape().center.x,
+          pcbfootprint.move(-1 * pcbfootprint.getBoundingShape().center.x,
                          -1 * pcbfootprint.getBoundingShape().center.y);
           
           //pcbfootprint.Move(scaledEvent.x,
