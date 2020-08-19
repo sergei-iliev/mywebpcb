@@ -205,20 +205,22 @@ module.exports = function(d2) {
     	    	}
     	    	g2.closePath(); 
     	    	g2.fill();    	    	       		
-
-    	    	this.arcs.forEach(arc=>{
+    	    	if(this.rounding!=0){
+    	    	 this.arcs.forEach(arc=>{
     				var circle=new d2.Circle(arc.pc,arc.r);
     	    		circle.paint(g2);
-    			});
+    			 });
+    	    	}
     		}else{
 			 this.segments.forEach(segment=>{
 				segment.paint(g2);
 			 });
 			
-    		
-			 this.arcs.forEach(arc=>{
+			 if(this.rounding!=0){
+			  this.arcs.forEach(arc=>{
 				arc.paint(g2);
-			 });
+			  });
+			 }
     		}
     	}
     }

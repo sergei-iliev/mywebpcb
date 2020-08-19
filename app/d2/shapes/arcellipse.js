@@ -69,6 +69,20 @@ module.exports = function(d2) {
     		 }		 
     		}
     		return  [s,e];
+        } 
+        mirror(line){
+        	this.pc.mirror(line);
+        	this.endAngle=-1*this.endAngle;
+        	if(line.isVertical){
+        		if(this.startAngle>=0&&this.startAngle<=180){
+        		  this.startAngle=180-this.startAngle;  
+        		}else{
+        		  this.startAngle=180+(360-this.startAngle);		
+        		}
+        	}else{
+        		this.startAngle=360-this.startAngle; 
+        	}	
+        	
         }        
         paint(g2){
         	g2.beginPath();  

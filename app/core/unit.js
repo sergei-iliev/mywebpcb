@@ -15,18 +15,18 @@ var UnitMgr=(function(){
         var isPinnable=false;        
         
         shapes.forEach(function(shape) {            
-            if(typeof shape.getPinsRect === 'function'){
-                r=shape.getPinsRect();
-                x1=Math.min(x1,r.x );
-                y1=Math.min(y1,r.y);
-                x2=Math.max(x2,r.x+r.width);
-                y2=Math.max(y2,r.y +r.height);             
+            if(typeof shape.getPinPoint === 'function'){
+                let point=shape.getPinPoint();                
+                x1 = Math.min(x1, point.x);
+                y1 = Math.min(y1, point.y);
+                x2 = Math.max(x2, point.x);
+                y2 = Math.max(y2, point.y);                
                 isPinnable=true;	
             }  
            });
         
         if(isPinnable)
-            return  d2.Box.fromRect(x1,y1,x2-x1,y2-y1);            
+            return  d2.Box.fromRect(x1,y1,x2-x1,y2-y1);          
         else
             return null;  
         };

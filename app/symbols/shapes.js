@@ -302,6 +302,9 @@ class Arc extends Shape{
     		 this.arc.startAngle+=360; 
     	   }
 	} 	
+	mirror(line) {
+	    this.arc.mirror(line);
+	}
     Move(xoffset,yoffset) {
         this.arc.move(xoffset, yoffset);
     }
@@ -442,6 +445,9 @@ class Ellipse extends Shape{
 	}	
     Move(xoffset,yoffset) {
         this.ellipse.move(xoffset, yoffset);
+    }
+    mirror(line){
+       this.ellipse.mirror(line);	
     }
 	Rotate(rotation){			   
 	   this.ellipse.pc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
@@ -751,6 +757,10 @@ Move(xoffset, yoffset) {
 	this.line.move(xoffset,yoffset);
 	this.arrow.move(xoffset,yoffset);
 }
+mirror(line){
+	this.line.mirror(line);
+	this.arrow.mirror(line);
+}
 paint(g2, viewportWindow, scale,layersmask) {
 	var rect = this.line.box;
 	rect.scale(scale.getScale());
@@ -872,6 +882,9 @@ Rotate(rotation){
 }
 Move(xoffset, yoffset) {
 	this.shape.move(xoffset,yoffset);	
+}
+mirror(line){
+	this.shape.mirror(line);
 }
 paint(g2, viewportWindow, scale,layersmask) {
 	var rect = this.shape.box;
@@ -1061,6 +1074,9 @@ getClickedTexture(x,y) {
         return this.number;
     else
     return null;
+}
+getPinPoint(){
+	return this.segment.ps;
 }
 isClickedTexture(x,y) {
     return this.getClickedTexture(x, y)!=null;

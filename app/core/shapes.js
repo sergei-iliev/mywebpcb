@@ -454,7 +454,7 @@ isControlRectClicked(x, y) {
 Move(xoffset, yoffset) {
 	this.polyline.move(xoffset,yoffset);
 }
-Mirror(line) {
+mirror(line) {
     this.polyline.mirror(line);
 }
 setRotation(rotate,center){

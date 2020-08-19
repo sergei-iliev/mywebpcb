@@ -111,6 +111,9 @@ module.exports = function(d2) {
         move(offsetX,offsetY){
             this.pc.move(offsetX,offsetY);       	
         }
+        mirror(line){
+        	this.pc.mirror(line);	
+        }
         convert(a){
           return -1*d2.utils.radians(a);	
         }
