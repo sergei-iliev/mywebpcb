@@ -208,7 +208,7 @@ TextAlignment={
 	    	  }
 	           
 	      },
-		  format:function(align){
+		  from:function(align){
 			 switch(align){
 			 case 0:return 'RIGHT';
 			 case 1:return 'TOP';
@@ -239,6 +239,13 @@ class SymbolFontTexture{
 	    copy.fillColor=this.fillColor;
 	    return copy;	 
 	} 
+	copy( _copy){    
+	    this.shape.anchorPoint.set(_copy.shape.anchorPoint.x,_copy.shape.anchorPoint.y); 
+	    this.shape.alignment = _copy.shape.alignment;
+	    this.shape.text=_copy.shape.text;
+	    this.shape.style=_copy.shape.style;
+	    this.shape.setSize(_copy.shape.size);                
+	}	
 	isEmpty() {
 	     return this.shape.text==null||this.shape.text.length==0;
 	}	
@@ -342,75 +349,10 @@ class SymbolFontTexture{
 	toXML(){
 	    return (this.shape.text==="" ? "" :
 	        this.shape.text + "," + utilities.roundFloat(this.shape.anchorPoint.x,1) + "," + utilities.roundFloat(this.shape.anchorPoint.y,1) +
-	        ",,"+this.shape.style.toUpperCase()+","+this.shape.fontSize+"," +this.shape.rotation);	
+	        ","+ TextAlignment.from(this.shape.alignment)+","+this.shape.style.toUpperCase()+","+this.shape.fontSize);	
 	}
 	}
 
-//class SymbolFontTexture extends FontTexture{
-//constructor(text,tag,x,y,fontSize,rotation) {
-//       super(text,tag,x,y,fontSize,rotation);
-//       this.selectionRectWidth=4;
-//       this.fillColor='black'; 
-//}
-//clone(){
-//    var copy=new SymbolFontTexture(this.shape.text,this.tag,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.fontSize,this.shape.rotation);     
-//    copy.fillColor=this.fillColor;
-//    return copy;	 
-//} 
-//setOrientation(orientation){
-//    switch (orientation) {
-//    case TextOrientation.HORIZONTAL:
-//       if(this.shape.rotation==90){
-//    	this.rotate({angle:-90,originx:this.shape.anchorPoint.x,originy:this.shape.anchorPoint.y});
-//       }
-//       break;
-//    case TextOrientation.VERTICAL:
-//    	if(this.shape.rotation==0){	
-//          this.rotate({angle:90,originx:this.shape.anchorPoint.x,originy:this.shape.anchorPoint.y});
-//    	}       
-//    }	
-//}
-//getOrientation(){
-//	if(this.shape.rotation==90){
-//		return TextOrientation.VERTICAL;
-//	}else{
-//		return TextOrientation.HORIZONTAL
-//	}
-//}
-//rotate(rotation){	
-//    //redesign!!!!!!!!
-// 	this.shape.anchorPoint.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
-// 	this.shape.metrics.calculateMetrics(this.shape.fontSize,this.shape.text);
-// 	if(this.shape.rotation==90){
-// 		this.shape.rotation=0;
-// 	}else{
-// 		this.shape.rotation=90;
-// 	}
-// } 	    
-//
-//fromXML(node){
-//    if (node == null || node.length==0) {
-//        this.text = "";
-//        return;
-//    }
-//
-//    var tokens=node.split(',');
-//    this.shape.setText(tokens[0]);
-//    this.shape.anchorPoint.set(parseInt(tokens[1]),
-//            parseInt(tokens[2]));     
-//    this.style=tokens[4];    
-//    this.shape.setSize(parseInt(tokens[5]));
-//    //TOP, BOTTOM alignment
-//    if(tokens[3]=='TOP'||tokens[3]=='BOTTOM'){
-//    	this.shape.rotation=90;	
-//    }
-//}
-//toXML(){
-//    return (this.shape.text==="" ? "" :
-//        this.shape.text + "," + utilities.roundFloat(this.shape.anchorPoint.x,1) + "," + utilities.roundFloat(this.shape.anchorPoint.y,1) +
-//        ",,"+this.shape.style.toUpperCase()+","+this.shape.fontSize+"," +this.shape.rotation);	
-//}
-//}
 var core=require('core/core');
 var utilities=require('core/utilities');
 

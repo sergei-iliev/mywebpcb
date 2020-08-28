@@ -28,6 +28,9 @@ exports.files = {
       'app/pads/pads.js':{
     	'pads/pads.js': /^app/        
       },
+	  'app/circuit/circuit.js':{
+      	'circuit/circuit.js': /^app/  
+      },
       'app/board/board.js':{
       	'board/board.js': /^app/  
       }

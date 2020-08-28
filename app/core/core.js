@@ -59,6 +59,7 @@ var ModeEnum=(function(){
 		   PIN_MODE:17,
 		   ARROW_MODE:18,
 		   TRIANGLE_MODE:19,
+		   SYMBOL_MODE:20,
 	}
 })();
 
