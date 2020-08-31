@@ -137,9 +137,8 @@ class FontLabel extends Shape{
 	constructor(x, y) {
 		super(x, y, 0, 0, 1,core.Layer.LAYER_ALL);
 		this.setDisplayName("Label");		
-		this.texture=new font.SymbolFontTexture("Label","label",x,y,1,8);
+		this.texture=new font.SymbolFontTexture("Label","label",x,y,0,8);
 		this.texture.fillColor = '#000000';
-		this.rotate=0;
 	}
 	clone(){
 		var copy = new FontLabel(this.x,this.y);

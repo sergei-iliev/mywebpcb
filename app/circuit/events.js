@@ -15,7 +15,7 @@ class SymbolEventHandle extends EventHandle{
 				    this.component.getModel().getUnit().setSelected(false);
 				    this.target.setSelected(true);
 					this.component.repaint();
-					this.component.popup.registerFootprintPopup(this.target,event);            
+					this.component.popup.registerSymbolPopup(this.target,event);            
 		            return;
 		   }
 		   if(event.data.ctrlKey){

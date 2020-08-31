@@ -56,6 +56,7 @@ var ToggleButtonView=Backbone.View.extend({
 	},	
 	onclick:function(event){
 	    event.preventDefault();
+	    
 	    //is this a group button
 	    if(event.data.model.attributes.active&&event.data.model.attributes.group!=''){
 	    	return;
@@ -111,13 +112,7 @@ var ToggleButtonView=Backbone.View.extend({
 		}
 		if(event.data.model.id=='labelid'){
 			this.circuitComponent.setMode(core.ModeEnum.LABEL_MODE);
-		}
-		if(event.data.model.id=='viaid'){
-			this.circuitComponent.setMode(core.ModeEnum.VIA_MODE);
-		}
-		if(event.data.model.id=='holeid'){
-			this.circuitComponent.setMode(core.ModeEnum.HOLE_MODE);
-		}		
+		}	
 		if(event.data.model.id=='selectionid'){
 		  //Board mode
 		   this.circuitComponent.setMode(core.ModeEnum.COMPONENT_MODE);

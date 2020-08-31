@@ -11,7 +11,7 @@ var d2=require('d2/d2');
 var CircuitContextMenu=require('circuit/popup/circuitpopup').CircuitContextMenu;
 var shapes=require('symbols/shapes');
 var SCHSymbol=require('circuit/shapes').SCHSymbol;
-
+var SCHFontLabel=require('circuit/shapes').SCHFontLabel;
 //**********************UnitMgr***************************************
 var CircuitMgr=(function(){
 	var instance=null;
@@ -93,7 +93,7 @@ class CircuitComponent extends UnitComponent{
 	      
 	      switch (this.mode) {
 	      case  core.ModeEnum.LABEL_MODE:
-	          shape=new PCBLabel(core.Layer.SILKSCREEN_LAYER_FRONT);
+	          shape=new SCHFontLabel(0,0);
 	          this.setContainerCursor(shape);               
 	          this.getEventMgr().setEventHandle("cursor",shape); 
 	        break;
@@ -156,8 +156,8 @@ mouseDown(event){
 			     if(shape!=null){
 				   if ((UnitMgr.getInstance().isBlockSelected(this.getModel().getUnit().shapes)&& shape.isSelected())||event.ctrlKey){					   
 	                 this.getEventMgr().setEventHandle("block", shape);						 
-			       //}else if ((!(shape instanceof PCBLabel))&&(undefined !=shape['getTextureByTag'])&&shape.getClickedTexture(scaledEvent.x, scaledEvent.y)!=null){
-				   //  this.getEventMgr().setEventHandle("texture",shape);
+			       }else if ((!(shape instanceof SCHFontLabel))&&(undefined !=shape['getTextureByTag'])&&shape.getClickedTexture(scaledEvent.x, scaledEvent.y)!=null){
+				     this.getEventMgr().setEventHandle("texture",shape);
 	               }else if(shape instanceof SCHSymbol){
 	            	 this.getEventMgr().setEventHandle("symbol",shape);
 			       }else
@@ -180,6 +180,19 @@ mouseDown(event){
 	    } 
 		
 	  }	
+mouseWheelMoved(event){
+    event.preventDefault();
+	  if (this.getModel().getUnit() == null) { 
+		return; 
+	  }
+	var e=this.getScaledEvent(event);
+	if(event.originalEvent.wheelDelta /120 > 0) {
+		   this.ZoomIn(e.windowx,e.windowy);
+    }
+    else{
+		   this.ZoomOut(e.windowx,e.windowy);
+    }
+} 
 }
 module.exports ={
 		   CircuitContainer,

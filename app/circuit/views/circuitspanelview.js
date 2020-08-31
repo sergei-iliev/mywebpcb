@@ -5,6 +5,7 @@ var core=require('core/core');
 var utilities =require('core/utilities');
 var BaseBuilder = require('core/views/panelview').BaseBuilder;
 var SCHSymbol=require('circuit/shapes').SCHSymbol;
+var SCHFontLabel=require('circuit/shapes').SCHFontLabel;
 
 var ComponentPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
@@ -39,6 +40,82 @@ var ComponentPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
 				"</td></tr>"+
 		"</table>");
+			
+		return this;
+	}
+});
+var LabelPanelBuilder=BaseBuilder.extend({
+	initialize:function(component){
+		LabelPanelBuilder.__super__.initialize(component);	
+		this.id="labelpanelbuilder";   
+    },
+    events: {
+        'keypress #xid' : 'onenter',	
+        'keypress #yid' : 'onenter',
+        'keypress #textid' : 'onenter',	
+        'keypress #rotateid' : 'onenter',
+        'keypress #sizeid' : 'onenter',	
+        'keypress #thicknessid' : 'onenter',	
+		'change #alignmentid':'onchange',
+		'change #colorid':'onchange',
+        'change #styleid': 'onchange', 
+    },
+    onchange:function(event){      
+	  if(event.target.id=='alignmentid'){
+		  this.target.texture.shape.alignment= (parseInt(j$("#alignmentid").val()));
+      }
+	  if(event.target.id=='colorid'){
+		  this.target.texture.fillColor=(j$('#colorid').val());			  
+	  }
+	  if(event.target.id=='styleid'){
+		  this.target.texture.shape.style=(j$('#styleid').val());			  
+	  }	  
+      this.component.repaint(); 
+    },
+    onenter:function(event){
+		 if(event.keyCode != 13){
+				return; 
+		 }
+		 if(event.target.id=='textid'){
+			 this.target.texture.setText(j$('#textid').val());			  
+		 }
+		 if(event.target.id=='sizeid'){
+			 this.target.texture.setSize((parseInt(j$('#sizeid').val())));			 
+		 }	          
+		 if((event.target.id=='yid')||(event.target.id=='xid')){	            
+			 this.target.texture.setLocation(this.fromUnitX(j$('#xid').val()),this.fromUnitY(j$('#yid').val()));  
+	     }		 
+		 this.component.repaint();     		    	
+    },
+	updateui:function(){
+	 j$('#textid').val(this.target.texture.shape.text);	
+	 j$('#xid').val(utilities.roundFloat(this.target.texture.shape.anchorPoint.x,1));
+	 j$('#yid').val(utilities.roundFloat(this.target.texture.shape.anchorPoint.y,1));	 
+	 j$("#alignmentid").val(this.target.texture.shape.alignment);
+	 j$('#colorid').val(this.target.texture.fillColor);		
+	 j$('#sizeid').val(this.target.texture.shape.fontSize);
+	 j$('#styleid').val(this.target.texture.shape.style);
+	},
+	render:function(){
+		j$(this.el).empty();
+		j$(this.el).append(
+				"<table width='100%'>"+
+				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Text</td><td><input type='text' id='textid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='width:50%;padding:7px'>Text Orientation</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"alignmentid\">"+
+				this.fillComboBox([{id:0,value:'RIGHT',selected:true},{id:1,value:'TOP',selected:true},{id:2,value:'LEFT',selected:true},{id:3,value:'BOTTOM'}])+
+			    "</select>" +
+				"</td></tr>"+				
+				"<tr><td style='padding:7px'>Color</td><td><input type='color' id='colorid' value='#ff0000'></td></tr>"+
+				"<tr><td style='width:50%;padding:7px'>Text Orientation</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"styleid\">"+
+				this.fillComboBox([{id:'plain',value:'PLAIN',selected:true},{id:'bold',value:'BOLD'},{id:'italic',value:'ITALIC'}])+
+			    "</select>" +
+				"</td></tr>"+								
+				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='sizeid' value='' class='form-control input-sm\'></td></tr>"+				
+		        "</table>");
 			
 		return this;
 	}
@@ -535,77 +612,6 @@ var CircuitPanelBuilder=BaseBuilder.extend({
 	}
 });
 
-var LabelPanelBuilder=BaseBuilder.extend({
-	initialize:function(component){
-		LabelPanelBuilder.__super__.initialize(component);	
-		this.id="labelpanelbuilder";   
-    },
-    events: {
-        'keypress #xid' : 'onenter',	
-        'keypress #yid' : 'onenter',
-        'keypress #textid' : 'onenter',	
-        'keypress #rotateid' : 'onenter',
-        'keypress #sizeid' : 'onenter',	
-        'keypress #thicknessid' : 'onenter',	
-		'change #controllayerid':'onchange',
-    },
-    onchange:function(event){      
-	  if(event.target.id=='controllayerid'){
-		  this.target.setCopper(core.Layer.Copper.valueOf(j$('#controllayerid').val()));
-      }
-      this.component.repaint(); 
-    },
-    onenter:function(event){
-		 if(event.keyCode != 13){
-				return; 
-		 }
-		  if(event.target.id=='rotateid'){
-		      this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val()))); 
-		  }			 
-		 if(event.target.id=='textid'){
-			 this.target.texture.setText(j$('#textid').val());			  
-		 }
-		 if(event.target.id=='sizeid'){
-			 this.target.texture.setSize(core.MM_TO_COORD(parseFloat(j$('#sizeid').val())));			 
-		 }
-		 if(event.target.id=='thicknessid'){
-			 this.target.texture.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
-		 }		 
-		 if((event.target.id=='yid')||(event.target.id=='xid')){	            
-			 this.target.texture.setLocation(this.fromUnitX(j$('#xid').val()),this.fromUnitY(j$('#yid').val()));  
-	     }	 
-		 this.component.repaint();     		    	
-    },
-	updateui:function(){
-	 j$("#rotateid").val(this.target.texture.rotation); 	
-	 j$('#controllayerid').val(this.target.copper.getName());	
-	 j$('#textid').val(this.target.texture.text);	
-	 j$('#xid').val(this.toUnitX(this.target.texture.anchorPoint.x));
-	 j$('#yid').val(this.toUnitY(this.target.texture.anchorPoint.y));	 
-	 j$('#sizeid').val(core.COORD_TO_MM(this.target.texture.size));
-	 j$('#thicknessid').val(core.COORD_TO_MM(this.target.texture.thickness));
-	},
-	render:function(){
-		j$(this.el).empty();
-		j$(this.el).append(
-				"<table width='100%'>"+
-				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
-				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
-			    "</select>" +
-				"</td></tr>"+
-				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Text</td><td><input type='text' id='textid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='sizeid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
-		        "</table>");
-			
-		return this;
-	}
-});
-
 var CircuitsTree=Backbone.View.extend({	
 	initialize:function(opt){		
 	    //creat tree
@@ -757,7 +763,7 @@ var CircuitsInspector=Backbone.View.extend({
 		                                         new SymbolPanelBuilder(this.circuitComponent),
 		                                         new ComponentPanelBuilder(this.circuitComponent)
 		                                         ]);
-		this.el= '#boardsinspectorid';	
+		this.el= '#circuitsinspectorid';	
 		//select container
 		this.panel=this.collection.get('componentpanelbuilder');
 		this.panel.attributes.delegateEvents();
@@ -843,14 +849,14 @@ var CircuitsInspector=Backbone.View.extend({
 					this.render();
 		    }
 		}			
-//		if(event.target instanceof PCBLabel){
-//			if(this.panel.id!='labelpanelbuilder'){
-//				this.panel.attributes.remove();
-//				this.panel=this.collection.get('labelpanelbuilder');
-//				this.panel.attributes.delegateEvents();
-//				this.render();
-//		    }
-//		}
+		if(event.target instanceof SCHFontLabel){
+			if(this.panel.id!='labelpanelbuilder'){
+				this.panel.attributes.remove();
+				this.panel=this.collection.get('labelpanelbuilder');
+				this.panel.attributes.delegateEvents();
+				this.render();
+		    }
+		}
 //		if(event.target instanceof PCBTrack){
 //			if(this.panel.id!='trackpanelbuilder'){
 //				this.panel.attributes.remove();

@@ -566,7 +566,7 @@ COORD_TO_UNIT(coord){
   }
 paint(g2,viewportWindow,scalableTransformation){
 	if(this.paintable){
-	 this.drawPoints(g2, viewportWindow, scalableTransformation);
+	// this.drawPoints(g2, viewportWindow, scalableTransformation);
     }
  }
  drawPoints(g2, viewportWindow, scalableTransformation){

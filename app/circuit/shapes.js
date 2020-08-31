@@ -5,7 +5,7 @@ var ResizeableShape=require('core/core').ResizeableShape;
 var SymbolFontTexture=require('core/text/d2font').SymbolFontTexture;
 var SymbolShapeFactory=require('symbols/shapes').SymbolShapeFactory;
 var Pin=require('symbols/shapes').Pin;
-
+var FontLabel=require('symbols/shapes').FontLabel;
 var d2=require('d2/d2');
 
 class CircuitShapeFactory{
@@ -109,6 +109,15 @@ move(xoffset,yoffset){
 	   this.reference.move(xoffset,yoffset);
 	   this.unit.move(xoffset,yoffset);
 }
+rotate(rotation){
+	   var len=this.shapes.length;
+	   for(var i=0;i<len;i++){
+		   this.shapes[i].rotate(rotation);  
+	   }
+	  
+	   this.unit.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	   this.reference.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+}
 paint(g2, viewportWindow, scale,layersmask) {        
     
 	var rect = this.getBoundingShape();		
@@ -126,7 +135,32 @@ paint(g2, viewportWindow, scale,layersmask) {
     this.reference.paint(g2, viewportWindow, scale, layersmask);
  } 
 }
+class SCHFontLabel extends FontLabel{
+	constructor(x, y) {
+		super(x, y, 0, 0, 1,core.Layer.LAYER_ALL);		
+	}
+	clone(){
+		var copy = new SCHFontLabel(this.x,this.y);
+		copy.texture = this.texture.clone();  				
+		return copy;
+	}
+	
+	
+}
+class SCHJunction extends Shape{
+	constructor(){
+	  this.selectionRectWidth=4;	
+	  this.shape=new d2.Circle(new d2.Point(0,0),this.selectionRectWidth);	
+	}
+	
+paint(g2, viewportWindow, scale,layersmask) {  
+		
+}
+
+}
 module.exports ={
-		SCHSymbol
+		SCHSymbol,
+		SCHFontLabel,
+		SCHJunction,
 		
 }
