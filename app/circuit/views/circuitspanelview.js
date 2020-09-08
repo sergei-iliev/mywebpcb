@@ -6,6 +6,8 @@ var utilities =require('core/utilities');
 var BaseBuilder = require('core/views/panelview').BaseBuilder;
 var SCHSymbol=require('circuit/shapes').SCHSymbol;
 var SCHFontLabel=require('circuit/shapes').SCHFontLabel;
+var SCHJunction=require('circuit/shapes').SCHJunction;
+var SCHWire=require('circuit/shapes').SCHWire;
 
 var ComponentPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
@@ -530,7 +532,7 @@ var SymbolPanelBuilder=BaseBuilder.extend({
 var CircuitPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
 	  CircuitPanelBuilder.__super__.initialize(component);
-      this.id="boardpanelbuilder";
+      this.id="circuitpanelbuilder";
     },
     events: {
         'keypress #nameid' : 'onenter',
@@ -585,12 +587,7 @@ var CircuitPanelBuilder=BaseBuilder.extend({
 		j$(this.el).empty();
 		j$(this.el).append(
 				"<table width='100%'>"+			
-				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Side</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"sideid\">"+
-			    this.fillComboBox([{id:1,value:'TOP',selected:true},{id:2,value:'BOTTOM'}])+
-			    "</select>" +
-				"</td></tr>"+					
+				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+					
 				"<tr><td style='padding:7px'>Width</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='heightid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Units</td><td>" +
@@ -803,9 +800,9 @@ var CircuitsInspector=Backbone.View.extend({
     onunitevent:function(event){	
 	 	   if(event.type==events.Event.ADD_UNIT){
 	 		   //add unit to tree
-		 		  if(this.panel.id!='boardpanelbuilder'){	
+		 		  if(this.panel.id!='circuitpanelbuilder'){	
 			 			this.panel.attributes.remove();
-			 			this.panel=this.collection.get('boardpanelbuilder');
+			 			this.panel=this.collection.get('circuitpanelbuilder');
 			 			this.panel.attributes.delegateEvents();
 			 			this.render(); 
 			 	  }
@@ -815,9 +812,9 @@ var CircuitsInspector=Backbone.View.extend({
 	 	  }
 	 	  if(event.type==events.Event.SELECT_UNIT){
 	 		   //select unit
-	 		  if(this.panel.id!='boardpanelbuilder'){	
+	 		  if(this.panel.id!='circuitpanelbuilder'){	
 	 			this.panel.attributes.remove();
-	 			this.panel=this.collection.get('boardpanelbuilder');
+	 			this.panel=this.collection.get('circuitpanelbuilder');
 	 			this.panel.attributes.delegateEvents();
 	 			this.render(); 
 	 		  }
@@ -857,22 +854,28 @@ var CircuitsInspector=Backbone.View.extend({
 				this.render();
 		    }
 		}
-//		if(event.target instanceof PCBTrack){
-//			if(this.panel.id!='trackpanelbuilder'){
-//				this.panel.attributes.remove();
-//				this.panel=this.collection.get('trackpanelbuilder');
-//				this.panel.attributes.delegateEvents();
-//				this.render();
-//		    }
-//		}
-//		if(event.target instanceof PCBRoundRect){
-//			if(this.panel.id!='rectpanelbuilder'){
-//				this.panel.attributes.remove();
-//				this.panel=this.collection.get('rectpanelbuilder');
-//				this.panel.attributes.delegateEvents();
-//				this.render();
-//		    }
-//		}		
+		if(event.target instanceof SCHJunction){			
+			if(this.panel.id!='circuitpanelbuilder'){
+				this.panel.attributes.remove();
+				this.panel=this.collection.get('circuitpanelbuilder');
+				this.panel.attributes.delegateEvents();
+				this.panel.setTarget(event.target.owningUnit);
+				this.render();
+				this.panel.attributes.updateui();
+		    }
+			return;
+		}
+		if(event.target instanceof SCHWire){
+			if(this.panel.id!='circuitpanelbuilder'){
+				this.panel.attributes.remove();
+				this.panel=this.collection.get('circuitpanelbuilder');
+				this.panel.attributes.delegateEvents();
+				this.panel.setTarget(event.target.owningUnit);
+				this.render();
+				this.panel.attributes.updateui();
+		    }
+			return;
+		}		
 //		if(event.target instanceof PCBLine){
 //			if(this.panel.id!='linepanelbuilder'){
 //				this.panel.attributes.remove();

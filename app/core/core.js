@@ -60,6 +60,8 @@ var ModeEnum=(function(){
 		   ARROW_MODE:18,
 		   TRIANGLE_MODE:19,
 		   SYMBOL_MODE:20,
+		   JUNCTION_MODE:21,
+		   WIRE_MODE:22,
 	}
 })();
 

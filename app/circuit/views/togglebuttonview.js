@@ -90,8 +90,8 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='lineid'){
 		    this.circuitComponent.setMode(core.ModeEnum.LINE_MODE);
 		}
-		if(event.data.model.id=='solidregionid'){
-			this.circuitComponent.setMode(core.ModeEnum.SOLID_REGION);
+		if(event.data.model.id=='junctionid'){
+			this.circuitComponent.setMode(core.ModeEnum.JUNCTION_MODE);
 		}		
 		if(event.data.model.id=='trackid'){
 		  //Track mode
@@ -104,8 +104,8 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='rectid'){
 			this.circuitComponent.setMode(core.ModeEnum.RECT_MODE);
 		}
-		if(event.data.model.id=='ellipseid'){
-			this.circuitComponent.setMode(core.ModeEnum.ELLIPSE_MODE);
+		if(event.data.model.id=='wireid'){
+			this.circuitComponent.setMode(core.ModeEnum.WIRE_MODE);
 		}
 		if(event.data.model.id=='arcid'){
 			this.circuitComponent.setMode(core.ModeEnum.ARC_MODE);

@@ -7,6 +7,7 @@ var SymbolShapeFactory=require('symbols/shapes').SymbolShapeFactory;
 var Pin=require('symbols/shapes').Pin;
 var FontLabel=require('symbols/shapes').FontLabel;
 var d2=require('d2/d2');
+var AbstractLine=require('core/shapes').AbstractLine;
 
 class CircuitShapeFactory{
 	
@@ -147,20 +148,113 @@ class SCHFontLabel extends FontLabel{
 	
 	
 }
+class SCHWire extends AbstractLine{
+	constructor(){
+		   super(1,core.Layer.LAYER_ALL);
+	       this.displayName = "Wire";	
+	   	   this.selectionRectWidth=4;
+		}
+	clone() {
+		var copy = new SCHWire();		
+		copy.polyline=this.polyline.clone();
+		return copy;
+	}
+	paint(g2, viewportWindow, scale,layersmask) {		
+		var rect = this.polyline.box;
+		rect.scale(scale.getScale());		
+		if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
+			return;
+		}
+
+		
+		
+
+		g2.lineWidth = this.thickness * scale.getScale();
+
+		if (this.selection)
+			g2.strokeStyle = "gray";
+		else
+			g2.strokeStyle = "black";
+
+		let a=this.polyline.clone();
+		a.scale(scale.getScale());
+		a.move( - viewportWindow.x, - viewportWindow.y);		
+		a.paint(g2);
+		
+		// draw floating point
+		if (this.isFloating()) {
+				let p = this.floatingMidPoint.clone();
+				p.scale(scale.getScale());
+				p.move( - viewportWindow.x, - viewportWindow.y);
+				g2.lineTo(p.x, p.y);									
+				g2.stroke();							    		
+			
+				p = this.floatingEndPoint.clone();
+				p.scale(scale.getScale());
+				p.move( - viewportWindow.x, - viewportWindow.y);
+				g2.lineTo(p.x, p.y);									
+				g2.stroke();					
+		}
+		if (this.selection&&this.isControlPointVisible) {
+			this.drawControlPoints(g2, viewportWindow, scale);
+		}
+
+	}	
+	
+}
 class SCHJunction extends Shape{
 	constructor(){
-	  this.selectionRectWidth=4;	
-	  this.shape=new d2.Circle(new d2.Point(0,0),this.selectionRectWidth);	
+	  super(0, 0, 0, 0, 1,core.Layer.LAYER_ALL);	
+	  this.selectionRectWidth=2;	
+	  this.circle=new d2.Circle(new d2.Point(0,0),this.selectionRectWidth);	
 	}
-	
+	clone(){
+	   	var copy = new SCHJunction();
+		 copy.circle.pc.x=this.circle.pc.x;
+		 copy.circle.pc.y=this.circle.pc.y;
+		 copy.circle.r=this.circle.r;	        	        
+	     return copy;
+	}		
+alignToGrid(isRequired) {
+    let point=this.owningUnit.getGrid().positionOnGrid(this.circle.pc.x, this.circle.pc.y);
+    this.circle.pc.set(point.x,point.y);    
+    return null;
+}
+move(xoffset, yoffset) {
+	this.circle.move(xoffset,yoffset);
+} 
+rotate(rotation){	  
+	this.circle.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	   
+}
+calculateShape() {
+    return this.circle.box;
+}
 paint(g2, viewportWindow, scale,layersmask) {  
-		
+	  var rect = this.circle.box;
+  	  rect.scale(scale.getScale());
+  	  if (!rect.intersects(viewportWindow)) {
+  		  return;
+  	  }		
+  	  g2.lineWidth=(scale.getScale())*this.thickness;
+  	  if (this.selection) {
+  		 g2.fillStyle = "gray";
+  	  } else {
+		 g2.fillStyle = "blue";
+  	  }
+
+    let c=this.circle.clone();
+	c.scale(scale.getScale());
+    c.move(-viewportWindow.x,- viewportWindow.y);
+    g2._fill=true;
+    c.paint(g2);
+  	  
 }
 
 }
 module.exports ={
 		SCHSymbol,
-		SCHFontLabel,
+		SCHWire,
+		SCHFontLabel,		
 		SCHJunction,
 		
 }

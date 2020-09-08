@@ -59,6 +59,72 @@ class SymbolEventHandle extends EventHandle{
 		 }	 
 		
 }
+class WireEventHandle extends EventHandle{
+	constructor(component) {
+		 super(component);
+}
+
+Attach() {        
+   super.Attach();
+   this.component.lineBendingProcessor.initialize(this.target);
+}
+mousePressed(event){
+   if(this.isRightMouseButton(event)){           
+		this.component.popup.registerTrackPopup(this.target,event);            
+       return;
+   }
+   
+   this.component.getModel().getUnit().setSelected(false);
+   this.target.setSelected(true); 
+   
+   let p;      
+   if(this.component.getParameter("snaptogrid")){        
+       p=this.component.getModel().getUnit().getGrid().positionOnGrid(event.x,event.y);  
+       this.component.lineBendingProcessor.isGridAlignable=true;
+   }else{
+   	p=new d2.Point(event.x,event.y);
+       this.component.lineBendingProcessor.isGridAlignable=false;
+   }
+   
+   //this.component.getModel().getUnit().fireShapeEvent(new ShapeEvent(this.target, ShapeEvent.PROPERTY_CHANGE)); 
+   
+   let justcreated=this.target.getLinePoints().length==1; 
+       
+   if(this.component.lineBendingProcessor.addLinePoint(p)){
+       if(justcreated){
+           //getComponent().getModel().getUnit().registerMemento(getTarget().getState(MementoType.CREATE_MEMENTO));   
+           //getComponent().getModel().getUnit().registerMemento(getTarget().getState(MementoType.MOVE_MEMENTO));    
+       }
+       if(this.target.getLinePoints().length>=2){
+          //this.component.getModel().getUnit().registerMemento(getTarget().getState(MementoType.MOVE_MEMENTO));    
+       }            
+   }
+   this.component.repaint(); 
+}
+mouseReleased(event){
+	
+}
+mouseMove(event){
+	this.component.lineBendingProcessor.moveLinePoint(event.x,event.y);    
+	this.component.repaint();   	 
+}	
+mouseDragged(event){
+	
+}
+dblClick(){
+	this.target.reset();
+   this.target.setSelected(false);
+   this.component.getEventMgr().resetEventHandle();
+   this.component.repaint();	 
+} 
+Detach() {
+   this.target.reset(); 
+   if(this.target.getLinePoints().length<2){
+       this.target.owningUnit.remove(this.target.uuid);
+   }
+   super.Detach();
+}
+}
 
 class CircuitEventMgr{
 	 constructor(component) {
@@ -69,7 +135,7 @@ class CircuitEventMgr{
 		this.hash.set("resize",new events.ResizeEventHandle(component));
 	    this.hash.set("component",new events.UnitEventHandle(component));
 		this.hash.set("block",new events.BlockEventHandle(component));
-		this.hash.set("line",new events.LineEventHandle(component));
+		this.hash.set("wire",new WireEventHandle(component));
 		this.hash.set("cursor",new events.CursorEventHandle(component));
 		this.hash.set("symbol",new SymbolEventHandle(component));
 		this.hash.set("texture",new events.TextureEventHandle(component));
@@ -115,5 +181,6 @@ class CircuitEventMgr{
 	}
 
 module.exports ={
-		CircuitEventMgr
+		CircuitEventMgr,
+		WireEventHandle
 	}

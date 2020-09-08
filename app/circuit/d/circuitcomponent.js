@@ -10,8 +10,12 @@ var events=require('core/events');
 var d2=require('d2/d2');
 var CircuitContextMenu=require('circuit/popup/circuitpopup').CircuitContextMenu;
 var shapes=require('symbols/shapes');
+var WireEventHandle=require('circuit/events').WireEventHandle;
 var SCHSymbol=require('circuit/shapes').SCHSymbol;
+var SCHWire=require('circuit/shapes').SCHWire;
 var SCHFontLabel=require('circuit/shapes').SCHFontLabel;
+var SCHJunction=require('circuit/shapes').SCHJunction;
+var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').DefaultLineBendingProcessor;
 //**********************UnitMgr***************************************
 var CircuitMgr=(function(){
 	var instance=null;
@@ -79,7 +83,7 @@ class CircuitComponent extends UnitComponent{
 		this.eventMgr=new CircuitEventMgr(this); 
 		this.model=new CircuitContainer();
 		this.popup=new CircuitContextMenu(this,popup);
-	    //this.lineBendingProcessor=new DefaultLineBendingProcessor(); 
+	    this.lineBendingProcessor=new DefaultLineBendingProcessor(); 
 		this.backgroundColor='white';  
 	}
 	setMode(_mode){
@@ -94,6 +98,11 @@ class CircuitComponent extends UnitComponent{
 	      switch (this.mode) {
 	      case  core.ModeEnum.LABEL_MODE:
 	          shape=new SCHFontLabel(0,0);
+	          this.setContainerCursor(shape);               
+	          this.getEventMgr().setEventHandle("cursor",shape); 
+	        break;
+	      case  core.ModeEnum.JUNCTION_MODE:
+	          shape=new SCHJunction();
 	          this.setContainerCursor(shape);               
 	          this.getEventMgr().setEventHandle("cursor",shape); 
 	        break;
@@ -167,7 +176,19 @@ mouseDown(event){
 			     }
 			  }
 			  break;
-    
+	    	 case core.ModeEnum.WIRE_MODE:
+	    		
+	            //***is this a new wire
+	            if ((this.getEventMgr().getTargetEventHandle() == null) ||
+	                !(this.getEventMgr().getTargetEventHandle() instanceof WireEventHandle)) {
+	               	if(event.which!=1){
+	            		return;
+	            	}
+	                shape = new SCHWire();
+	                this.getModel().getUnit().add(shape);                
+	            	this.getEventMgr().setEventHandle("wire", shape);
+	            }
+		    break;
 	    
     
    	  
