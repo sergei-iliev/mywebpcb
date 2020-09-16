@@ -138,7 +138,6 @@ class FontLabel extends Shape{
 		super(x, y, 0, 0, 1,core.Layer.LAYER_ALL);
 		this.setDisplayName("Label");		
 		this.texture=new font.SymbolFontTexture("Label","label",x,y,0,8);
-		this.texture.fillColor = '#000000';
 	}
 	clone(){
 		var copy = new FontLabel(this.x,this.y);
@@ -205,11 +204,12 @@ paint(g2, viewportWindow, scale,layersmask) {
 	  if (!rect.intersects(viewportWindow)) {
 	  	return;
 	  }
-
 	  this.texture.paint(g2, viewportWindow, scale);
 }
 fromXML(data){	 
-    this.texture.fromXML(j$(data).text());  	
+	
+    this.texture.fromXML(j$(data).text());
+    this.texture.fillColor ="#" +(j$(data).attr("color") & 0x00FFFFFF).toString(16).padStart(6, '0');
 }	    
 toXML(){
     if(this.texture!=null&&!this.texture.isEmpty())

@@ -108,7 +108,7 @@ loadDemo=function(bc){
      success: function(data, textStatus, jqXHR){
 
    //****load it    	
-   		  bc.Clear();
+   		  bc.clear();
    		  bc.getModel().parse(data);
    		  bc.getModel().setActiveUnit(0);
    		  bc.componentResized();

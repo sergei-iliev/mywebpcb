@@ -45,13 +45,13 @@ var ToggleButtonView=Backbone.View.extend({
 	},
 	onimport:function(event){
 		navigator.clipboard.readText().then(data =>{ 
-		      let boardContainer=new BoardContainer(true);
+		      let circuitContainer=new CircuitContainer(true);
 		      let xml=(j$.parseXML(data));		    	  
 		      //disable 
 		      core.isEventEnabled=false;
-		      boardContainer.parse(xml);
+		      circuitContainer.parse(xml);
 		      core.isEventEnabled=true;
-		  	  mywebpcb.trigger('workspaceview:load',boardContainer);
+		  	  mywebpcb.trigger('workspaceview:load',circuitContainer);
 			});
 	},	
 	onclick:function(event){
@@ -107,8 +107,8 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='wireid'){
 			this.circuitComponent.setMode(core.ModeEnum.WIRE_MODE);
 		}
-		if(event.data.model.id=='arcid'){
-			this.circuitComponent.setMode(core.ModeEnum.ARC_MODE);
+		if(event.data.model.id=='busid'){
+			this.circuitComponent.setMode(core.ModeEnum.BUS_MODE);
 		}
 		if(event.data.model.id=='labelid'){
 			this.circuitComponent.setMode(core.ModeEnum.LABEL_MODE);
@@ -177,7 +177,7 @@ var ToggleButtonView=Backbone.View.extend({
           //this.circuitComponent.Repaint();
 	},
 	oncircuitload:function(selectedModel){
-		  this.circuitComponent.Clear();
+		  this.circuitComponent.clear();
 		  this.circuitComponent.setMode(core.ModeEnum.COMPONENT_MODE);
 		  
 		  for(let unit of selectedModel.getUnits()){

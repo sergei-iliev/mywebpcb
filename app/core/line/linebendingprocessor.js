@@ -235,8 +235,100 @@ moveLinePoint( x,  y) {
 
 }
 
+class HorizontalToVerticalProcessor extends LineBendingProcessor{
+  constructor () {
+		super();
+  }
+  addLinePoint( point) {
+      if(this.line.getLinePoints().length==0){
+          this.line.resetToPoint(point);
+     }               
+     let result=false;
+     if(!this.isOverlappedPoint(point)){
+         if(!this.isPointOnLine(point)) {
+             let midP,endP;
+            
+             if(this.isGridAlignable){
+               midP=this.line.owningUnit.getGrid().positionOnGrid(this.line.floatingMidPoint.x,this.line.floatingMidPoint.y);
+               endP=this.line.owningUnit.getGrid().positionOnGrid(this.line.floatingEndPoint.x,this.line.floatingEndPoint.y);
+             }else{
+               midP=new d2.Point(this.line.floatingMidPoint.x,this.line.floatingMidPoint.y);
+               endP=new d2.Point(this.line.floatingEndPoint.x,this.line.floatingEndPoint.y);
+               
+             }
+             if(this.isOverlappedPoint(midP)){
+                this.line.addPoint(endP);
+                result=true;  
+             }else if(!this.isPointOnLine(midP)){
+                this.line.addPoint(midP);
+                result=true;
+             } 
+         }  
+     }  
+ 
+     this.line.shiftFloatingPoints(); 
+     return result;
+  }	
+  moveLinePoint(x,y){
+		
+	    if(this.line.getLinePoints().length>1){
+	        //line is resumed if line end is not slope then go on from previous segment
+	    	let lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
+	        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+	        if(this.isHorizontalInterval(lastPoint, lastlastPoint)){
+	           this.handleVertical(x, y);
+	        }else{
+	           this.handleHorizontal(x, y); 
+	        }
+	        
+	    }else{
+	        this.handleHorizontal(x, y);
+	    }	
+	}  
+  handleVertical( x,  y){
+	  this.line.floatingEndPoint.set(x,y);
+	  this.line.floatingMidPoint.set(this.line.floatingStartPoint.x,this.line.floatingEndPoint.y); 
+  }
+  handleHorizontal( x,  y){        
+      this.line.floatingEndPoint.set(x,y);
+      this.line.floatingMidPoint.set(this.line.floatingEndPoint.x,this.line.floatingStartPoint.y); 
+                        
+  }	
+  isHorizontalInterval(p1,p2){
+		if(d2.utils.EQ(p1.x,p2.x)){
+			return false;
+		}		
+		return true;	
+	}  
+}
+
+class VerticalToHorizontalProcessor extends HorizontalToVerticalProcessor{
+constructor () {
+			super();
+	  }
+addLinePoint( point) {
+			super.addLinePoint(point);
+		}
+moveLinePoint(x,y){
+    if(this.line.getLinePoints().length>1){
+        //line is resumed if line end is not slope then go on from previous segment
+    	let lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
+        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+        if(this.isHorizontalInterval(lastPoint, lastlastPoint)){
+           this.handleVertical(x, y);
+        }else{
+           this.handleHorizontal(x, y); 
+        }
+        
+    }else{
+        this.handleVertical(x, y);
+    }		
+	}	  
+}
 module.exports ={
 		SlopLineBendingProcessor,
 		LineSlopBendingProcessor,
-		DefaultLineBendingProcessor
+		DefaultLineBendingProcessor,
+		HorizontalToVerticalProcessor,
+		VerticalToHorizontalProcessor,
 }

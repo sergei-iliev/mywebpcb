@@ -241,7 +241,7 @@ get vertices(){
 getLinePoints(){
 		return this.polyline.points;
 	}
-Clear(){
+clear(){
 		this.polyline.points=null;		
 	}
 alignResizingPointToGrid(targetPoint) {
@@ -250,10 +250,11 @@ alignResizingPointToGrid(targetPoint) {
 isClicked(x, y) {
 	  var result = false;
 		// build testing rect
+	  var width=this.thickness<4?4:this.thickness;
 	  var rect = d2.Box.fromRect(x
-								- (this.thickness / 2), y
-								- (this.thickness / 2), this.thickness,
-								this.thickness);
+								- (width / 2), y
+								- (width / 2), width,
+								width);
 	  var r1 = rect.min;
 	  var r2 = rect.max;
 

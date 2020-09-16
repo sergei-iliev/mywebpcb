@@ -192,7 +192,7 @@ var ToggleButtonView=Backbone.View.extend({
           //this.boardComponent.Repaint();
 	},
 	onboardload:function(selectedModel){
-		  this.boardComponent.Clear();
+		  this.boardComponent.clear();
 		  this.boardComponent.setMode(core.ModeEnum.COMPONENT_MODE);
 		  
 		  for(let unit of selectedModel.getUnits()){

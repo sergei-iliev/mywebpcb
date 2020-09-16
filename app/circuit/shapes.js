@@ -6,11 +6,46 @@ var SymbolFontTexture=require('core/text/d2font').SymbolFontTexture;
 var SymbolShapeFactory=require('symbols/shapes').SymbolShapeFactory;
 var Pin=require('symbols/shapes').Pin;
 var FontLabel=require('symbols/shapes').FontLabel;
+var SymbolShapeFactory=require('symbols/shapes').SymbolShapeFactory;
 var d2=require('d2/d2');
 var AbstractLine=require('core/shapes').AbstractLine;
+var SymbolType = require('core/core').SymbolType;
 
-class CircuitShapeFactory{
-	
+class CircuitShapeFactory{		
+		createShape(data){
+			if (data.tagName.toLowerCase() == 'module') {
+				var symbol = new SCHSymbol();
+				symbol.fromXML(data);
+				return symbol;
+			}
+			if (data.tagName.toLowerCase() == 'wire') {
+				var symbol = new SCHWire();
+				symbol.fromXML(data);
+				return symbol;
+			}
+			if (data.tagName.toLowerCase() == 'bus') {
+				var symbol = new SCHBus();
+				symbol.fromXML(data);
+				return symbol;
+			}
+			if (data.tagName.toLowerCase() == 'buspin') {
+				var symbol = new SCHBusPin();
+				symbol.fromXML(data);
+				return symbol;
+			}
+			if (data.tagName.toLowerCase() == 'junction') {
+				var symbol = new SCHJunction();
+				symbol.fromXML(data);
+				return symbol;
+			}
+			if (data.tagName.toLowerCase() == 'label') {
+				var symbol = new SCHFontLabel();
+				symbol.fromXML(data);
+				return symbol;
+			}			
+			return null;
+		}
+		
 }
 
 class SCHSymbol extends  Shape{
@@ -24,6 +59,8 @@ constructor(){
 	    
 	    this.reference.fillColor='black';
 	    this.unit.fillColor='black';
+	    
+	    this.type=SymbolType.SYMBOL;
 }
 clone(){
     var copy=new SCHSymbol();
@@ -102,6 +139,25 @@ calculateShape() {
     r.setRect(x1, y1, x2 - x1, y2 - y1);
     return r;
 }
+getClickedTexture(x,y) {
+    if(this.reference.isClicked(x, y))
+        return this.reference;
+    else if(this.unit.isClicked(x, y))
+        return this.unit;
+    else
+    return null;
+}
+isClickedTexture(x,y) {
+    return this.getClickedTexture(x, y)!=null;
+}
+getTextureByTag(tag) {
+    if(tag===(this.reference.tag))
+        return this.reference;
+    else if(tag===(this.unit.tag))
+        return this.value;
+    else
+    return null;
+}
 move(xoffset,yoffset){
 	   var len=this.shapes.length;
 	   for(var i=0;i<len;i++){
@@ -132,9 +188,54 @@ paint(g2, viewportWindow, scale,layersmask) {
 		  this.shapes[i].paint(g2,viewportWindow,scale,layersmask);  
 	}    
 	
-    this.unit.paint(g2, viewportWindow, scale, layersmask);
-    this.reference.paint(g2, viewportWindow, scale, layersmask);
- } 
+    
+    if(this.isSelected()){
+    	g2.globalCompositeOperation = 'lighter';
+    	rect.move(-viewportWindow.x,- viewportWindow.y);
+    	g2.fillStyle = "blue";
+        g2._fill=true;
+        rect.paint(g2);
+        g2._fill=false;
+        g2.globalCompositeOperation = 'source-over';
+        
+        this.unit.fillColor = "blue";
+        this.unit.paint(g2, viewportWindow, scale, layersmask);
+        this.reference.fillColor = "blue";
+        this.reference.paint(g2, viewportWindow, scale, layersmask);
+    }else{
+        this.unit.fillColor = "black";
+        this.unit.paint(g2, viewportWindow, scale, layersmask);
+        this.reference.fillColor = "black";
+        this.reference.paint(g2, viewportWindow, scale, layersmask);
+    	
+    }
+ }
+fromXML(data){
+	this.type=SymbolType.parse(j$(data).attr("type"));
+	this.displayName=j$(data).find("name")[0].textContent;	
+	
+	var reference=j$(data).find("reference")[0];
+	var label=j$(reference).find("label")[0];
+	
+	if(label!=undefined){
+	  this.reference.fromXML(label.textContent);
+	}
+	var unit=j$(data).find("unit")[0];
+	var label=j$(unit).find("label")[0];
+	
+	if(label!=undefined){
+	  this.unit.fromXML(label.textContent);
+	}
+	
+	var that=this;
+	var shapeFactory=new SymbolShapeFactory();
+	 
+	j$(data).find('elements').children().each(function(){
+         var shape=shapeFactory.createShape(this);
+         that.add(shape);
+	});	
+	
+}
 }
 class SCHFontLabel extends FontLabel{
 	constructor(x, y) {
@@ -145,7 +246,6 @@ class SCHFontLabel extends FontLabel{
 		copy.texture = this.texture.clone();  				
 		return copy;
 	}
-	
 	
 }
 class SCHWire extends AbstractLine{
@@ -195,12 +295,121 @@ class SCHWire extends AbstractLine{
 				g2.lineTo(p.x, p.y);									
 				g2.stroke();					
 		}
-		if (this.selection&&this.isControlPointVisible) {
-			this.drawControlPoints(g2, viewportWindow, scale);
+
+	    if((this.isSelected())/*&&(!this.isSublineSelected())*/){
+	    	this.drawControlPoints(g2, viewportWindow, scale);
+		}
+		    
+		    
+	}	
+	fromXML(data){
+		
+		var points= j$(data).find('wirepoints')[0];
+		var tokens = points.textContent.split("|");
+		
+		for (var index = 0; index < tokens.length; index ++) {
+			if(tokens[index].length>1){
+				let points =tokens[index].split(",");
+				let x = parseFloat(points[0]);
+			    let y = parseFloat(points[1]);
+			    this.polyline.points.push(new d2.Point(x, y));
+			}
+		}
+	}
+}
+
+class SCHBus extends SCHWire{
+	constructor(){
+		   super(1,core.Layer.LAYER_ALL);
+	       this.displayName = "Bus";	
+	   	   this.selectionRectWidth=4;
+	   	   this.thickness=4;
+		}
+	clone() {
+		var copy = new SCHBus();		
+		copy.polyline=this.polyline.clone();
+		return copy;
+	}	
+}
+class SCHBusPin extends AbstractLine{
+	constructor(){
+		   super(1,core.Layer.LAYER_ALL);
+	       this.displayName = "BusPin";	
+	   	   this.selectionRectWidth=4;	
+	   	   this.polyline.points.push(new d2.Point(0, 0));
+	   	   this.polyline.points.push(new d2.Point(-8, -8));
+		   this.name=new SymbolFontTexture("","name", 0, 0,1,8);
+		}
+	clone() {
+		var copy = new SCHBusPin();		
+		copy.name =this.name.clone();  
+		copy.polyline=this.polyline.clone();
+		return copy;
+	}
+	move(xoffset,yoffset){
+		   super.move(xoffset,yoffset);
+		   this.name.move(xoffset,yoffset);
+	}	
+	paint(g2, viewportWindow, scale,layersmask) {		
+		var rect = this.polyline.box;
+		rect.scale(scale.getScale());		
+		if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
+			return;
 		}
 
+		
+		
+
+		g2.lineWidth = this.thickness * scale.getScale();
+
+		if (this.selection)
+			g2.strokeStyle = "gray";
+		else
+			g2.strokeStyle = "black";
+
+		let a=this.polyline.clone();
+		a.scale(scale.getScale());
+		a.move( - viewportWindow.x, - viewportWindow.y);		
+		a.paint(g2);
+		
+		
+		// draw floating point
+		if (this.isFloating()) {
+				let p = this.floatingMidPoint.clone();
+				p.scale(scale.getScale());
+				p.move( - viewportWindow.x, - viewportWindow.y);
+				g2.lineTo(p.x, p.y);									
+				g2.stroke();							    		
+			
+				p = this.floatingEndPoint.clone();
+				p.scale(scale.getScale());
+				p.move( - viewportWindow.x, - viewportWindow.y);
+				g2.lineTo(p.x, p.y);									
+				g2.stroke();					
+		}
+		
+        this.name.paint(g2, viewportWindow, scale, layersmask);
+		    
+		    
 	}	
-	
+	fromXML(data){
+		var points= j$(data).find('wirepoints')[0];
+		var tokens = points.textContent.split("|");		
+			
+		let pt =tokens[0].split(",");
+		let x = parseFloat(pt[0]);
+		let y = parseFloat(pt[1]);
+		this.polyline.points[0].set(x, y);
+		
+		pt =tokens[1].split(",");
+		x = parseFloat(pt[0]);
+		y = parseFloat(pt[1]);
+		this.polyline.points[1].set(x, y);
+		
+		var name=j$(data).find("name")[0];	
+		this.name.fromXML(name.textContent);
+	    
+	}
 }
 class SCHJunction extends Shape{
 	constructor(){
@@ -247,14 +456,20 @@ paint(g2, viewportWindow, scale,layersmask) {
     c.move(-viewportWindow.x,- viewportWindow.y);
     g2._fill=true;
     c.paint(g2);
+    g2._fill=false;
   	  
 }
-
+fromXML(data){
+	var tokens = data.textContent.split(",");	
+	this.circle.pc.set(parseFloat(tokens[0]),parseFloat(tokens[1]));
+}
 }
 module.exports ={
 		SCHSymbol,
 		SCHWire,
+		SCHBus,
 		SCHFontLabel,		
 		SCHJunction,
+		CircuitShapeFactory,
 		
 }

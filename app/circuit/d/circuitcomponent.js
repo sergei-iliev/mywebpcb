@@ -13,9 +13,14 @@ var shapes=require('symbols/shapes');
 var WireEventHandle=require('circuit/events').WireEventHandle;
 var SCHSymbol=require('circuit/shapes').SCHSymbol;
 var SCHWire=require('circuit/shapes').SCHWire;
+var SCHBus=require('circuit/shapes').SCHBus;
 var SCHFontLabel=require('circuit/shapes').SCHFontLabel;
 var SCHJunction=require('circuit/shapes').SCHJunction;
-var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').DefaultLineBendingProcessor;
+var CircuitShapeFactory=require('circuit/shapes').CircuitShapeFactory;
+var HorizontalToVerticalProcessor=require('core/line/linebendingprocessor').HorizontalToVerticalProcessor;
+var VerticalToHorizontalProcessor=require('core/line/linebendingprocessor').VerticalToHorizontalProcessor;
+
+
 //**********************UnitMgr***************************************
 var CircuitMgr=(function(){
 	var instance=null;
@@ -62,12 +67,72 @@ class Circuit extends Unit{
 	constructor(width,height) {
 	  super(width,height); 
       this.scalableTransformation.reset(1.2,2,2,15);
-	  //this.shapeFactory = new SymbolShapeFactory();
+	  this.shapeFactory = new CircuitShapeFactory();
       this.grid.setGridUnits(8, core.Units.PIXEL);
       this.grid.pointsColor='black';             
       this.frame.color='black';
 	}
-	
+	clone(){
+		 var copy=new Circuit(this.width,this.height);
+		 copy.silent=true;	 
+		 copy.grid=this.grid.clone();
+		 copy.unitName=this.unitName;
+	     var len=this.shapes.length;
+		 for(var i=0;i<len;i++){
+	         var clone=this.shapes[i].clone();
+		       copy.add(clone);
+		 }
+		 copy.silent=false;
+		 return copy;		
+	}
+	parse(data){
+		this.unitName=j$(data).find("name").first().text();
+
+		var that=this;
+		
+	   	j$(data).find('chips').children().each(function(){
+	   		var shape=that.shapeFactory.createShape(this); 
+	   		if(shape!=null){
+	   			that.add(shape);
+	   		} 	   	   
+	   	   	  
+	   	});	
+	   	j$(data).find('wires').children().each(function(){
+	   		var shape=that.shapeFactory.createShape(this); 
+	   		if(shape!=null){
+	   			that.add(shape);
+	   		} 	   	   
+	   	   	  
+	   	});		
+	   	j$(data).find('busses').children().each(function(){
+	   		var shape=that.shapeFactory.createShape(this); 
+	   		if(shape!=null){
+	   			that.add(shape);
+	   		} 	   	   
+	   	   	  
+	   	});	
+	   	j$(data).find('buspins').children().each(function(){
+	   		var shape=that.shapeFactory.createShape(this); 
+	   		if(shape!=null){
+	   			that.add(shape);
+	   		} 	   	   
+	   	   	  
+	   	});	
+	   	j$(data).find('junctions').children().each(function(){
+	   		var shape=that.shapeFactory.createShape(this); 
+	   		if(shape!=null){
+	   			that.add(shape);
+	   		} 	   	   
+	   	   	  
+	   	});	 
+	   	j$(data).find('labels').children().each(function(){
+	   		var shape=that.shapeFactory.createShape(this); 
+	   		if(shape!=null){
+	   			that.add(shape);
+	   		} 	   	   
+	   	   	  
+	   	});		   	
+	}	
 	
 }
 class CircuitContainer extends UnitContainer{
@@ -75,6 +140,19 @@ class CircuitContainer extends UnitContainer{
 	  super();
 	  this.formatedFileName="Circuit";
 	}
+	parse(data){
+		//this.unitName=j$(data).find("name").first().text();
+		var that=this;
+		
+	   	
+
+	    j$(data).find("circuit").each(j$.proxy(function(){
+	      	var circuit=new Circuit(j$(this).attr("width"),j$(this).attr("height"));
+	      	//need to have a current unit 
+	          that.add(circuit);
+	          circuit.parse(this);
+	    }),that);	   	
+	}	
 }
 class CircuitComponent extends UnitComponent{
 	constructor(hbar,vbar,canvas,popup) {
@@ -83,7 +161,7 @@ class CircuitComponent extends UnitComponent{
 		this.eventMgr=new CircuitEventMgr(this); 
 		this.model=new CircuitContainer();
 		this.popup=new CircuitContextMenu(this,popup);
-	    this.lineBendingProcessor=new DefaultLineBendingProcessor(); 
+	    this.lineBendingProcessor=new HorizontalToVerticalProcessor(); 
 		this.backgroundColor='white';  
 	}
 	setMode(_mode){
@@ -143,6 +221,7 @@ mouseDown(event){
 	        	  break;
 	           }  
 	    	  }
+	   
 	    	  var shape=this.getModel().getUnit().isControlRectClicked(scaledEvent.x, scaledEvent.y);
 			  if(shape!=null){
 	              if(shape instanceof PCBArc){
@@ -189,7 +268,19 @@ mouseDown(event){
 	            	this.getEventMgr().setEventHandle("wire", shape);
 	            }
 		    break;
-	    
+	    	 case core.ModeEnum.BUS_MODE:
+		    		
+		            //***is this a new wire
+		            if ((this.getEventMgr().getTargetEventHandle() == null) ||
+		                !(this.getEventMgr().getTargetEventHandle() instanceof WireEventHandle)) {
+		               	if(event.which!=1){
+		            		return;
+		            	}
+		                shape = new SCHBus();
+		                this.getModel().getUnit().add(shape);                
+		            	this.getEventMgr().setEventHandle("wire", shape);
+		            }
+			    break;	    
     
    	  
 	    	}

@@ -646,7 +646,7 @@ setScrollPosition(x,y) {
 setSize( width, height){
      this.viewportWindow.setSize(width,height);      
  }
-Clear(){
+clear(){
 	this.viewportWindow.setSize(1,1); 
     this.getEventMgr().resetEventHandle();
     this.getModel().clear();

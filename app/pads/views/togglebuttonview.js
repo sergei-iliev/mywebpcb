@@ -203,7 +203,7 @@ var ToggleButtonView=Backbone.View.extend({
 	},
 	onload:function(selectedModel){
 		//****load it    	
-		  this.footprintComponent.Clear();
+		  this.footprintComponent.clear();
 		  this.footprintComponent.setMode(core.ModeEnum.COMPONENT_MODE);
 		  
 		  

@@ -53,11 +53,11 @@ class EventHandle{
 	 setTarget(target){
        this.target=target;
 	 }
-	 Clear(){
+	 clear(){
 		 
 	 }
 	 Detach(){
-	   this.Clear();
+	   this.clear();
 	 }
 isRightMouseButton(e){	 
 	  return e.which!=1
@@ -523,7 +523,7 @@ class TextureEventHandle extends EventHandle{
 		 super(component);
 		 this.texture=null;
 	 }
-Clear() {
+clear() {
 	 this.texture=null;
 }
 mousePressed(event){

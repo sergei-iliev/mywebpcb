@@ -4,6 +4,7 @@ var UnitComponent = require('core/unit').UnitComponent;
 var UnitMgr = require('core/unit').UnitMgr;
 var mywebpcb=require('core/core').mywebpcb;
 var core = require('core/core');
+var SymbolType = require('core/core').SymbolType;
 var events=require('core/events');
 var RoundRect=require('symbols/shapes').RoundRect;
 var FontLabel=require('symbols/shapes').FontLabel;
@@ -22,19 +23,6 @@ var utilities=require('core/utilities');
 
 
 
-Type={
-		SYMBOL:0,
-		GROUND:1,
-		POWER:2,
-		valueOf:function(v){
-		   switch(v){
-		   case 0:return "SYMBOL";
-		   case 1:return "GROUND";
-		   case 2:return "POWER";
-		   }	
-		},
-	 };
-
 class Symbol extends Unit{
 constructor(width,height) {
        super(width,height);
@@ -42,7 +30,7 @@ constructor(width,height) {
 	   this.shapeFactory = new SymbolShapeFactory();
        this.grid.setGridUnits(8, core.Units.PIXEL);
        this.grid.pointsColor='black'; 
-       this.type=Type.SYMBOL;
+       this.type=SymbolType.SYMBOL;
        this.isTextLayoutVisible = false;
        this.frame.color='black';
 	}
@@ -387,7 +375,6 @@ mouseWheelMoved(event){
 
 
 module.exports ={
-	   Type,
 	   SymbolContainer,
 	   Symbol,
 	   SymbolComponent	   

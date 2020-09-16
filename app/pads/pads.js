@@ -98,7 +98,7 @@ var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
 	        success: function(data, textStatus, jqXHR){
 
 	      //****load it    	
-	      		  fc.Clear();
+	      		  fc.clear();
 	      		  fc.getModel().parse(data);
 	      		  fc.getModel().setActiveUnit(0);
 	      		  fc.componentResized();

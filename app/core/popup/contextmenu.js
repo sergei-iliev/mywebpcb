@@ -178,7 +178,7 @@ actionPerformed(id,context){
         	 this.component.getModel().setActiveUnit(0);
         	 this.component.getModel().fireUnitEvent({target:this.component.getModel().getUnit(),type:Event.SELECT_UNIT});
          }else{
-        	 this.component.Clear();
+        	 this.component.clear();
         	 this.component.fireContainerEvent({target:null, type:Event.DELETE_CONTAINER});
          }
          this.component.repaint();  

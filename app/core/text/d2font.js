@@ -310,8 +310,9 @@ class SymbolFontTexture{
 				 }
 				 g2.font = ""+parseInt(this.shape.fontSize*scale.getScale())+"px Monospace";
 			 }
-			 g2.fillStyle = this.fillColor;			 			 
-		  
+			 
+			 g2.fillStyle =this.fillColor;			 			 
+
 			 this.shape.scalePaint(g2,viewportWindow,scale.getScale());
 			 if(this.isTextLayoutVisible){
 				let box=this.shape.box;

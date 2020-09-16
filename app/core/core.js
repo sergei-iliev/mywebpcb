@@ -37,7 +37,25 @@ var Units=(function(){
         PIXEL:2		
 	}
 })();
-
+SymbolType={
+		SYMBOL:0,
+		GROUND:1,
+		POWER:2,
+		valueOf:function(v){
+		   switch(v){
+		   case 0:return "SYMBOL";
+		   case 1:return "GROUND";
+		   case 2:return "POWER";
+		   }	
+		},
+		parse:function(v){
+			switch(v){
+			   case "SYMBOL": return 0;
+			   case "GROUND":return 1;
+			   case "POWER":return 2;		
+			}
+		}
+	 };
 var ModeEnum=(function(){
 	return{
 		   COMPONENT_MODE:0,		   
@@ -62,6 +80,7 @@ var ModeEnum=(function(){
 		   SYMBOL_MODE:20,
 		   JUNCTION_MODE:21,
 		   WIRE_MODE:22,
+		   BUS_MODE:23,
 	}
 })();
 
@@ -843,7 +862,8 @@ module.exports ={
     COORD_TO_MM,
 	UnitSelectionPanel,
 	CompositeLayer,
-	isEventEnabled
+	isEventEnabled,
+	SymbolType
 }
 
 var events=require('core/events');
