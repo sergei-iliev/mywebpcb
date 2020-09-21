@@ -216,7 +216,6 @@ var ToggleButtonView=Backbone.View.extend({
 		  this.symbolComponent.clear();
 		  this.symbolComponent.setMode(core.ModeEnum.COMPONENT_MODE);
 		  
-		  
 		  for(let unit of selectedModel.getUnits()){
 			  core.isEventEnabled=false;
 			  var copy=unit.clone();

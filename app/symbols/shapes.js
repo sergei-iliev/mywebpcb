@@ -228,7 +228,8 @@ class Arc extends Shape{
 	}
 	clone(){
 		var copy = new Arc(this.arc.pc.x,this.arc.pc.y,this.arc.w,this.arc.h);
-		copy.arc=this.arc.clone();				
+		copy.arc=this.arc.clone();
+		copy.thickness=this.thickness;
 		return copy;
 	}
 	calculateShape() {
@@ -390,6 +391,7 @@ fromXML(data) {
 		this.fill = (parseInt(j$(data).attr("fill"))||1);  	
     	
     }
+  
 }
 toXML(){
  return '<arc  x="'+utilities.roundFloat(this.arc.pc.x,1)+'" y="'+utilities.roundFloat(this.arc.pc.y,1)+'" width="'+utilities.roundFloat(this.arc.w,1)+ '" height="'+utilities.roundFloat(this.arc.h,1)+ '"  thickness="'+this.thickness+'" start="'+utilities.roundFloat(this.arc.startAngle,1)+'" extend="'+utilities.roundFloat(this.arc.endAngle,1)+'" fill="'+this.fill+'" />';
@@ -401,8 +403,7 @@ class Ellipse extends Shape{
 		this.setDisplayName("Ellipse");		
 		this.ellipse=new d2.Ellipse(new d2.Point(0,0),w,h);
 		this.selectionRectWidth=4;
-		this.fillColor='black';
-		this.rotate=0;
+		this.fillColor='black';		
 	}
 	clone(){
 		var copy = new Ellipse(this.ellipse.w,this.ellipse.h);
@@ -522,6 +523,7 @@ fromXML(data) {
     	this.ellipse.h=h/2;
     	this.thickness=parseInt(tokens[4]);	
     }
+    
 }
 toXML() {
     return "<ellipse x=\""+utilities.roundFloat(this.ellipse.pc.x,1)+"\" y=\""+utilities.roundFloat(this.ellipse.pc.y,1)+"\" width=\""+utilities.roundFloat(this.ellipse.w,1)+"\" height=\""+utilities.roundFloat(this.ellipse.h,1)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";

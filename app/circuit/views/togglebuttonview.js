@@ -87,8 +87,8 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='rectid'){
 		    this.circuitComponent.setMode(core.ModeEnum.RECT_MODE);
 		}
-		if(event.data.model.id=='lineid'){
-		    this.circuitComponent.setMode(core.ModeEnum.LINE_MODE);
+		if(event.data.model.id=='buspinid'){
+		    this.circuitComponent.setMode(core.ModeEnum.BUSPIN_MODE);
 		}
 		if(event.data.model.id=='junctionid'){
 			this.circuitComponent.setMode(core.ModeEnum.JUNCTION_MODE);

@@ -504,30 +504,31 @@ var SymbolPanelBuilder=BaseBuilder.extend({
 	     j$("#originxid").val((this.component.getModel().getUnit().getCoordinateSystem().getX()));    
 	     j$("#originyid").val((this.component.getModel().getUnit().getCoordinateSystem().getY()));
 	   }
+
 	   //reference
-//	   var labels=this.target.getShapes(GlyphLabel);
-//	   var hash=[];
-//	   var reftag;
-//	   var valtag;
-//	   
-//	   //add empty entry
-//	   hash.push({id:-1,value:""});
-//	   for(i=0;i<labels.length;i++){
-//		   hash.push({id:labels[i].uuid,value:labels[i].texture.text});
-//		 
-//		   if(labels[i].texture.tag=='reference'){
-//			   reftag=labels[i].uuid;
-//		   }
-//		   if(labels[i].texture.tag=='value'){
-//			   valtag=labels[i].uuid;
-//		   }
-//	   }
-//	   
-//	   this.reloadComboBox('referenceid',hash);
-//	   j$('#referenceid').val(reftag);
-//	   
-//	   this.reloadComboBox('valueid',hash);
-//	   j$('#valueid').val(valtag);
+	   var labels=this.target.getShapes(FontLabel);
+	   var hash=[];
+	   var reftag;
+	   var valtag;
+	   
+	   //add empty entry
+	   hash.push({id:-1,value:""});
+	   for(i=0;i<labels.length;i++){
+		   hash.push({id:labels[i].uuid,value:labels[i].texture.shape.text});
+		 
+		   if(labels[i].texture.tag=='reference'){
+			   reftag=labels[i].uuid;
+		   }
+		   if(labels[i].texture.tag=='unit'){
+			   valtag=labels[i].uuid;
+		   }
+	   }
+	   
+	   this.reloadComboBox('referenceid',hash);
+	   j$('#referenceid').val(reftag);
+	   
+	   this.reloadComboBox('valueid',hash);
+	   j$('#valueid').val(valtag);
 	},
 	render:function(){
 		j$(this.el).empty();

@@ -338,18 +338,74 @@ class SCHBusPin extends AbstractLine{
 	   	   this.selectionRectWidth=4;	
 	   	   this.polyline.points.push(new d2.Point(0, 0));
 	   	   this.polyline.points.push(new d2.Point(-8, -8));
-		   this.name=new SymbolFontTexture("","name", 0, 0,1,8);
+		   this.texture=new SymbolFontTexture("XXX","name", 5, 0,2,8);
 		}
 	clone() {
 		var copy = new SCHBusPin();		
-		copy.name =this.name.clone();  
+		copy.texture =this.texture.clone();  
 		copy.polyline=this.polyline.clone();
 		return copy;
 	}
+	alignResizingPointToGrid(targetPoint) {
+		console.log(22);
+	    this.owningUnit.grid.snapToGrid(targetPoint);         
+	}	
+	calculateShape(){
+		return this.polyline.box;
+	}
+	getClickedTexture(x,y) {
+	    if(this.texture.isClicked(x, y))
+	        return this.texture;	    
+	    else
+	    	return null;
+	}
+    
+    isControlRectClicked( x,  y) {
+    	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
+
+        if(rect.contains(this.polyline.points[1])){
+           return this.polyline.points[1]; 
+        }else{
+           return null;
+        }
+    }	
+	isClickedTexture(x,y) {
+	    return this.getClickedTexture(x, y)!=null;
+	}
+	getTextureByTag(tag) {
+	    if(tag===(this.texture.tag))
+	        return this.texture;	    
+	    else
+	    	return null;
+	}	
+	setSelected (selection) {
+		super.setSelected(selection);		
+	    this.texture.setSelected(selection);
+	    
+	}	
 	move(xoffset,yoffset){
 		   super.move(xoffset,yoffset);
-		   this.name.move(xoffset,yoffset);
+		   this.texture.move(xoffset,yoffset);
 	}	
+	rotate(rotation){
+		super.rotate(rotation);
+	 	let oldorientation=TextAlignment.getOrientation(this.texture.shape.alignment);	
+	 	this.texture.rotate(rotation);
+		   if(rotation.angle<0){  //clockwise		   
+			   if(oldorientation == TextOrientation.HORIZONTAL){
+				   this.texture.shape.anchorPoint.set(this.texture.shape.anchorPoint.x+(this.texture.shape.metrics.ascent-this.texture.shape.metrics.descent),this.texture.shape.anchorPoint.y);            
+			   }
+		   }else{		    
+			   if(oldorientation == TextOrientation.VERTICAL){
+				   this.texture.shape.anchorPoint.set(this.texture.shape.anchorPoint.x,this.texture.shape.anchorPoint.y+(this.texture.shape.metrics.ascent-this.texture.shape.metrics.descent));	           
+			   }
+		   }			
+		
+	}
+	Resize(xoffset, yoffset, clickedPoint) {
+		clickedPoint.set(clickedPoint.x + xoffset,
+									clickedPoint.y + yoffset);
+	}
 	paint(g2, viewportWindow, scale,layersmask) {		
 		var rect = this.polyline.box;
 		rect.scale(scale.getScale());		
@@ -388,8 +444,19 @@ class SCHBusPin extends AbstractLine{
 				g2.stroke();					
 		}
 		
-        this.name.paint(g2, viewportWindow, scale, layersmask);
-		    
+        this.texture.paint(g2, viewportWindow, scale);
+		  
+        if (this.isSelected()) {
+            let c=new d2.Circle(this.polyline.points[0].clone(), 2);
+            c.scale(scale.getScale());
+            c.move(-viewportWindow.x,- viewportWindow.y);
+            c.paint(g2,false);        
+        
+            
+            utilities.drawCrosshair(g2,viewportWindow,scale,null,2,[this.polyline.points[1]]);
+        }
+        
+        
 		    
 	}	
 	fromXML(data){
@@ -406,14 +473,43 @@ class SCHBusPin extends AbstractLine{
 		y = parseFloat(pt[1]);
 		this.polyline.points[1].set(x, y);
 		
-		var name=j$(data).find("name")[0];	
-		this.name.fromXML(name.textContent);
+		var texture=j$(data).find("name")[0];	
+		this.texture.fromXML(texture.textContent);
 	    
 	}
+}
+
+var ConnectorType={
+    INPUT:0,
+    OUTPUT:1  
+}
+
+var Style={
+    BOX:0,
+    ARROW:1,
+    CIRCLE:2  
+}; 
+
+class SCHConnector extends Shape{
+	constructor(){
+		super(1,core.Layer.LAYER_ALL);
+		this.style=Style.OUTPUT;
+		
+	}
+}
+class BoxStyle{
+	
+}
+class ArrowStyle{
+	
+}
+class CircuitStyle{
+	
 }
 class SCHJunction extends Shape{
 	constructor(){
 	  super(0, 0, 0, 0, 1,core.Layer.LAYER_ALL);	
+	  this.displayName = "Junction";	
 	  this.selectionRectWidth=2;	
 	  this.circle=new d2.Circle(new d2.Point(0,0),this.selectionRectWidth);	
 	}
@@ -468,6 +564,7 @@ module.exports ={
 		SCHSymbol,
 		SCHWire,
 		SCHBus,
+		SCHBusPin,
 		SCHFontLabel,		
 		SCHJunction,
 		CircuitShapeFactory,

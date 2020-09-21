@@ -7,6 +7,7 @@ var BaseBuilder = require('core/views/panelview').BaseBuilder;
 var SCHSymbol=require('circuit/shapes').SCHSymbol;
 var SCHFontLabel=require('circuit/shapes').SCHFontLabel;
 var SCHJunction=require('circuit/shapes').SCHJunction;
+var SCHBusPin=require('circuit/shapes').SCHBusPin;
 var SCHWire=require('circuit/shapes').SCHWire;
 
 var ComponentPanelBuilder=BaseBuilder.extend({
@@ -123,83 +124,55 @@ var LabelPanelBuilder=BaseBuilder.extend({
 		return this;
 	}
 });
-//var CirclePanelBuilder=BaseBuilder.extend({
-//	initialize:function(component){
-//		CirclePanelBuilder.__super__.initialize(component);
-//		this.id="circlepanelbuilder";  
-//    },	
-//    events: {
-//        'keypress #xid' : 'onenter',	
-//        'keypress #yid' : 'onenter',
-//        'keypress #thicknessid' : 'onenter',        
-//        'keypress #radiusid' : 'onenter',
-//        'change #fillid': 'onchange',
-//        'change #controllayerid':'onchange',
-//    },
-//    onchange:function(event){
-//        if(event.target.id=='controllayerid'){
-//        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
-//        }
-//        if(event.target.id=='fillid'){        
-//        	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
-//        }
-//        this.component.repaint(); 
-//      },    
-//    onenter:function(event){
-//		 if(event.keyCode != 13){
-//				return; 
-//		 }
-//		 if(event.target.id=='thicknessid'){
-//			this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
-//		 } 
-//		 if(event.target.id=='radiusid'){
-//			 this.target.circle.r=(core.MM_TO_COORD(parseFloat(j$('#radiusid').val())));			 
-//		 } 
-//		 if(event.target.id=='xid'){			 
-//	         var x=this.fromUnitX(j$('#xid').val()); 
-//	         this.target.Resize(x-this.target.resizingPoint.x, 0, this.target.resizingPoint);			   
-//		 } 
-//	     if(event.target.id=='yid'){		
-//	         var y=this.fromUnitY(j$('#yid').val()); 
-//	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
-//		 } 		 
-//		 this.component.repaint(); 		 
-//    },
-//
-//	updateui:function(){
-//		j$('#controllayerid').val(this.target.copper.getName());
-//        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
-//        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
-//        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
-//        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
-//		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
-//		j$("#radiusid").val(core.COORD_TO_MM(this.target.circle.radius));   
-//		j$("#fillid").val(this.target.fill);		
-//	},
-//	render:function(){
-//		j$(this.el).empty();
-//		j$(this.el).append(
-//				"<table width='100%'>"+
-//				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-//				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
-//				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
-//			    "</select>" +
-//				"</td></tr>"+				
-//				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
-//				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
-//				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
-//				"<tr><td style='padding:7px'>Fill</td><td>" +
-//				"<select class=\"form-control input-sm\" id=\"fillid\">"+
-//				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
-//			    "</select>" +
-//				"</td></tr>"+				
-//				"<tr><td style='padding:7px'>Radius</td><td><input type='text' id='radiusid' value='' class='form-control input-sm\'></td></tr>"+
-//				
-//		"</table>");
-//			
-//		return this;
-//	}
-//});
+var BusPinPanelBuilder=BaseBuilder.extend({
+	initialize:function(component){
+		BusPinPanelBuilder.__super__.initialize(component);
+		this.id="buspinpanelbuilder";  
+    },	
+    events: {
+        'keypress #xid' : 'onenter',	
+        'keypress #yid' : 'onenter',               
+        'keypress #buspinnameid' : 'onenter',
+        'change #alignmentid': 'onchange',        
+    },
+    onchange:function(event){
+        if(event.target.id=='alignmentid'){
+        	this.target.getTextureByTag("name").setAlignment(parseInt(j$("#alignmentid").val()));        	
+        }
+        this.component.repaint(); 
+      },    
+    onenter:function(event){
+		 if(event.keyCode != 13){
+				return; 
+		 }
+		 if(event.target.id=='buspinnameid'){ 
+			 this.target.getTextureByTag("name").setText(j$('#buspinnameid').val()); 
+		 }		 	 
+		 this.component.repaint(); 		 
+    },
+
+	updateui:function(){
+		   var texture=this.target.name;
+		   j$("#buspinnameid").val(texture==null?"":texture.shape.text);
+		   j$('#alignmentid').val(this.target.getTextureByTag("name").getAlignment()); 
+	},
+	render:function(){
+		j$(this.el).empty();
+		j$(this.el).append(
+				"<table width='100%'>"+			
+				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Bus Pin Name</td><td><input type='text' id='buspinnameid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='width:50%;padding:7px'>Text Alignment</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"alignmentid\">"+
+				this.fillComboBox([{id:0,value:'RIGHT',selected:true},{id:1,value:'TOP',selected:true},{id:2,value:'LEFT',selected:true},{id:3,value:'BOTTOM'}])+
+			    "</select>" +
+				"</td></tr>"+											
+		"</table>");
+			
+		return this;
+	}
+});
 //var RectPanelBuilder=BaseBuilder.extend({
 //	initialize:function(component){
 //		RectPanelBuilder.__super__.initialize(component);
@@ -759,7 +732,8 @@ var CircuitsInspector=Backbone.View.extend({
 		                                         new CircuitPanelBuilder(this.circuitComponent),
 		                                         new LabelPanelBuilder(this.circuitComponent),
 		                                         new SymbolPanelBuilder(this.circuitComponent),
-		                                         new ComponentPanelBuilder(this.circuitComponent)
+		                                         new ComponentPanelBuilder(this.circuitComponent),
+		                                         new BusPinPanelBuilder(this.circuitComponent)
 		                                         ]);
 		this.el= '#circuitsinspectorid';	
 		//select container
@@ -860,7 +834,7 @@ var CircuitsInspector=Backbone.View.extend({
 				this.panel.attributes.remove();
 				this.panel=this.collection.get('circuitpanelbuilder');
 				this.panel.attributes.delegateEvents();
-				this.panel.setTarget(event.target.owningUnit);
+				this.panel.attributes.setTarget(event.target.owningUnit);
 				this.render();
 				this.panel.attributes.updateui();
 		    }
@@ -871,7 +845,7 @@ var CircuitsInspector=Backbone.View.extend({
 				this.panel.attributes.remove();
 				this.panel=this.collection.get('circuitpanelbuilder');
 				this.panel.attributes.delegateEvents();
-				this.panel.setTarget(event.target.owningUnit);
+				this.panel.attributes.setTarget(event.target.owningUnit);
 				this.render();
 				this.panel.attributes.updateui();
 		    }
@@ -901,14 +875,14 @@ var CircuitsInspector=Backbone.View.extend({
 //				this.render();
 //		    }
 //		}		
-//		if((event.target instanceof PCBCircle)){
-//			if(this.panel.id!='circlepanelbuilder'){
-//				this.panel.attributes.remove();
-//				this.panel=this.collection.get('circlepanelbuilder');
-//				this.panel.attributes.delegateEvents();
-//				this.render();
-//			}
-//		}	
+		if((event.target instanceof SCHBusPin)){
+			if(this.panel.id!='buspinpanelbuilder'){
+				this.panel.attributes.remove();
+				this.panel=this.collection.get('buspinpanelbuilder');
+				this.panel.attributes.delegateEvents();
+				this.render();
+			}
+		}	
 //		if((event.target instanceof PCBCopperArea)){
 //			if(this.panel.id!='copperareapanelbuilder'){
 //				this.panel.attributes.remove();

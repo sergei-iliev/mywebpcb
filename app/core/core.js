@@ -81,6 +81,7 @@ var ModeEnum=(function(){
 		   JUNCTION_MODE:21,
 		   WIRE_MODE:22,
 		   BUS_MODE:23,
+		   BUSPIN_MODE:24,
 	}
 })();
 

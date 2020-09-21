@@ -40,7 +40,7 @@ var CircuitComponent=require('circuit/d/circuitcomponent').CircuitComponent;
 			 new togglebutton.ToggleButtonModel({id:'rectid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'wireid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'busid',group:'lefttogglegroup'}),
-			 new togglebutton.ToggleButtonModel({id:'lineid',group:'lefttogglegroup'}),
+			 new togglebutton.ToggleButtonModel({id:'buspinid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'pinid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'arrowid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'junctionid',group:'lefttogglegroup'}),
@@ -82,8 +82,7 @@ var CircuitComponent=require('circuit/d/circuitcomponent').CircuitComponent;
 		            width: 520,
 		            height: 400,
 		            autoOpen:false
-                });
-				
+                });				
 			//init save dialog
 				j$('#CircuitSaveDialog').jqxWindow({
 				    resizable: false,

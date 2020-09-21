@@ -22,7 +22,27 @@ var d2=require('d2/d2');
 var utilities=require('core/utilities');
 
 
+//**********************UnitMgr***************************************
+var SymbolMgr=(function(){
+	var instance=null;
 
+class manager{
+	getLabels(unit) {		
+        var len=symbol.shapes.length;
+          
+    }       
+    
+    }
+	return {getInstance:function(){
+		    if (!instance) {
+              instance = new manager();
+            }
+            return instance;
+	      }
+	};
+		
+	
+})();
 class Symbol extends Unit{
 constructor(width,height) {
        super(width,height);
@@ -148,7 +168,7 @@ class SymbolContainer extends UnitContainer{
     }
     format() {
         var xml="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n"; 
-        xml+="<modules identity=\"Symbol\" type=\""+Type.valueOf(this.getType())+"\" version=\""+utilities.version.SYMBOL_VERSION+"\">\r\n";      
+        xml+="<modules identity=\"Symbol\" type=\""+core.SymbolType.valueOf(this.getType())+"\" version=\""+utilities.version.SYMBOL_VERSION+"\">\r\n";      
     	let units=this.unitsmap.values();
   	    for(let i=0;i<this.unitsmap.size;i++){
           let unit=units.next().value;
@@ -375,6 +395,7 @@ mouseWheelMoved(event){
 
 
 module.exports ={
+	   SymbolMgr,	
 	   SymbolContainer,
 	   Symbol,
 	   SymbolComponent	   

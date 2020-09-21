@@ -16,6 +16,7 @@ var SCHWire=require('circuit/shapes').SCHWire;
 var SCHBus=require('circuit/shapes').SCHBus;
 var SCHFontLabel=require('circuit/shapes').SCHFontLabel;
 var SCHJunction=require('circuit/shapes').SCHJunction;
+var SCHBusPin=require('circuit/shapes').SCHBusPin;
 var CircuitShapeFactory=require('circuit/shapes').CircuitShapeFactory;
 var HorizontalToVerticalProcessor=require('core/line/linebendingprocessor').HorizontalToVerticalProcessor;
 var VerticalToHorizontalProcessor=require('core/line/linebendingprocessor').VerticalToHorizontalProcessor;
@@ -157,7 +158,7 @@ class CircuitContainer extends UnitContainer{
 class CircuitComponent extends UnitComponent{
 	constructor(hbar,vbar,canvas,popup) {
 	     super(hbar,vbar,canvas,popup);    
-		
+		this.setParameter("snaptogrid",true);
 		this.eventMgr=new CircuitEventMgr(this); 
 		this.model=new CircuitContainer();
 		this.popup=new CircuitContextMenu(this,popup);
@@ -184,6 +185,11 @@ class CircuitComponent extends UnitComponent{
 	          this.setContainerCursor(shape);               
 	          this.getEventMgr().setEventHandle("cursor",shape); 
 	        break;
+	      case core.ModeEnum.BUSPIN_MODE:
+	            shape = new SCHBusPin();        
+	            this.setContainerCursor(shape);
+	            this.getEventMgr().setEventHandle("cursor", shape);
+	            break;	        
 	      case core.ModeEnum.ORIGIN_SHIFT_MODE:  
 	          this.eventMgr.setEventHandle("origin",null);   
 	          break;          
@@ -224,19 +230,19 @@ mouseDown(event){
 	   
 	    	  var shape=this.getModel().getUnit().isControlRectClicked(scaledEvent.x, scaledEvent.y);
 			  if(shape!=null){
-	              if(shape instanceof PCBArc){
-	                  if(shape.isStartAnglePointClicked(scaledEvent.x , scaledEvent.y)){ 
-	                      this.getEventMgr().setEventHandle("arc.start.angle",shape);                    
-	                  }else if(shape.isExtendAnglePointClicked(scaledEvent.x , scaledEvent.y)){
-	                      this.getEventMgr().setEventHandle("arc.extend.angle",shape);                      
-	                  }else if(shape.isMidPointClicked(scaledEvent.x , scaledEvent.y)){
-	                 	  this.getEventMgr().setEventHandle("arc.mid.point",shape);
-	                  }else{
-	                       this.getEventMgr().setEventHandle("resize",shape);    
-	                  }
-	                 }else{
+//	              if(shape instanceof PCBArc){
+//	                  if(shape.isStartAnglePointClicked(scaledEvent.x , scaledEvent.y)){ 
+//	                      this.getEventMgr().setEventHandle("arc.start.angle",shape);                    
+//	                  }else if(shape.isExtendAnglePointClicked(scaledEvent.x , scaledEvent.y)){
+//	                      this.getEventMgr().setEventHandle("arc.extend.angle",shape);                      
+//	                  }else if(shape.isMidPointClicked(scaledEvent.x , scaledEvent.y)){
+//	                 	  this.getEventMgr().setEventHandle("arc.mid.point",shape);
+//	                  }else{
+//	                       this.getEventMgr().setEventHandle("resize",shape);    
+//	                  }
+	                 //}else{
 							this.getEventMgr().setEventHandle("resize",shape); 
-	                 }                            
+	                 //}                            
 	              
 			  }else{
 			     shape = this.getModel().getUnit().getClickedShape(scaledEvent.x, scaledEvent.y, true);
