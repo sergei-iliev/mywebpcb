@@ -60,6 +60,20 @@ module.exports = function(d2) {
     	this.min.scale(alpha);
     	this.max.scale(alpha);
       }
+      /**
+       * Returns new box merged with other box
+       * @param {Box} other_box - Other box to merge with
+       * @returns {Box}
+       */
+      merge(other_box) {
+          return new d2.Box(
+              this.min === undefined ? other_box.min.x : Math.min(this.min.x, other_box.min.x),
+              this.min === undefined ? other_box.min.y : Math.min(this.min.y, other_box.min.y),
+              this.max === undefined ? other_box.max.x : Math.max(this.max.x, other_box.max.x),
+              this.max === undefined ? other_box.max.y : Math.max(this.max.y, other_box.max.y)
+          );
+      }
+      
       contains(...args){
     	if(args.length==1){  //point  
     	  if(this.min.x<=args[0].x&&args[0].x<=this.max.x){

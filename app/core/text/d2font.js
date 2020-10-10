@@ -121,7 +121,7 @@ paint(g2,viewportWindow,scale){
 }
 toXML(){
     return (this.text=="" ? "" :
-        this.shape.text + "," + utilities.roundFloat(this.shape.anchorPoint.x,2) + "," + utilities.roundFloat(this.shape.anchorPoint.y,2) +
+        this.shape.text + "," + utilities.roundFloat(this.shape.anchorPoint.x,3) + "," + utilities.roundFloat(this.shape.anchorPoint.y,3) +
         ",,PLAIN,"+this.shape.fontSize+"," +this.shape.rotation);	 
 }
 fromXML(node){

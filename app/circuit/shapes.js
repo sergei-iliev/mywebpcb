@@ -347,7 +347,6 @@ class SCHBusPin extends AbstractLine{
 		return copy;
 	}
 	alignResizingPointToGrid(targetPoint) {
-		console.log(22);
 	    this.owningUnit.grid.snapToGrid(targetPoint);         
 	}	
 	calculateShape(){
@@ -492,19 +491,104 @@ var Style={
 
 class SCHConnector extends Shape{
 	constructor(){
-		super(1,core.Layer.LAYER_ALL);
-		this.style=Style.OUTPUT;
-		
+		super(0, 0, 0,0, 1,core.Layer.LAYER_ALL);
+		this.type=ConnectorType.OUTPUT;
+		this.displayName="Connector";
+		this.pin=new Pin();
+		this.pin.setPinType(PinType.SIMPLE);
+		this.shape=new CircleShape(this);
+	}
+	clone(){
+		 var copy=new SCHConnector();
+		 copy.type=this.type;
+		 copy.pin=this.pin.clone();
+		 
+		 switch(this.getStyle()){
+		 case Style.BOX:
+			 
+			 break;
+		 case Style.ARROW:
+			 break;
+		 case Style.CIRCLE:
+			 copy.shape=new CircleShape(this);
+		 }
+		 return copy;
+	}
+	getStyle(){
+		if(this.shape instanceof BoxShape){
+			return  Style.BOX;
+		}else if(this.style instanceof ArrowShape){
+			return  Style.ARROW;
+		}else{
+			return  Style.CIRCLE;
+		}
+	}
+	move(xoff,yoff){
+	   this.pin.move(xoff,yoff);	
+	   this.shape.move(xoff,yoff);
+	}
+	paint(g2, viewportWindow, scale,layersmask) { 
+		this.pin.paint(g2,viewportWindow, scale,layersmask);
+		this.shape.paint(g2,viewportWindow, scale);
 	}
 }
-class BoxStyle{
+class BoxShape{
+	constructor(){
+		
+	}
 	
 }
-class ArrowStyle{
+class ArrowShape{
+	constructor(){
+		
+	}
 	
 }
-class CircuitStyle{
-	
+class CircleShape{
+	constructor(connector){
+		this.connector=connector
+		this.circle=new d2.Circle(new d2.Point(0,0),2);
+		this.calculatePoints();
+	}
+	calculatePoints(){
+		switch(this.connector.pin.orientation){
+	    case Orientation.EAST:        	    	
+	    	this.circle.pc.set(this.connector.pin.segment.pe.x+2,this.connector.pin.segment.pe.y); 
+	        break;
+	    case Orientation.WEST:
+	    	console.log(2);    	
+	        break;
+	    case Orientation.NORTH:
+	    	console.log(3);    	
+	        break;
+	    case Orientation.SOUTH:
+	    	console.log(4);
+		}
+	}
+	move(xoffset, yoffset) {
+		this.circle.move(xoffset,yoffset);
+	}
+	paint(g2,viewportWindow,scale){
+	     
+   	  	var rect = this.circle.box;
+   	  	rect.scale(scale.getScale());
+   	  	if (!rect.intersects(viewportWindow)) {
+  		  return;
+   	  	}		
+	    
+		if(this.connector.isSelected())
+	        g2.fillStyle = "gray";  
+	    else{
+	        g2.fillStyle = "black";
+	    }
+	    
+		
+	    let c=this.circle.clone();
+		c.scale(scale.getScale());
+        c.move(-viewportWindow.x,- viewportWindow.y);
+		c.paint(g2);
+						
+	}
 }
 class SCHJunction extends Shape{
 	constructor(){
@@ -567,6 +651,7 @@ module.exports ={
 		SCHBusPin,
 		SCHFontLabel,		
 		SCHJunction,
+		SCHConnector,
 		CircuitShapeFactory,
 		
 }

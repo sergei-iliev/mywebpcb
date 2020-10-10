@@ -17,11 +17,36 @@ module.exports = function(d2) {
             this.y=args[1];
            }
         }
-		translate(vec) {       
-		       this.x += vec.x;
-		       this.y += vec.y;
-		    }
+//		translate(vec) {       
+//		       this.x += vec.x;
+//		       this.y += vec.y;
+//		    }
 		
+		/**
+	     * Returns new point translated by given vector.
+	     * Translation vector may by also defined by a pair of numbers.
+	     * @param {Vector} vector - Translation vector defined as Flatten.Vector or
+	     * @param {number|number} - Translation vector defined as pair of numbers
+	     * @returns {Point}
+	     */
+	    translate(...args) {
+	        if (args.length == 1 &&(args[0] instanceof d2.Vector || !isNaN(args[0].x) && !isNaN(args[0].y))) {
+	            this.x += args[0].x;
+	            this.y += args[0].y;
+	        }
+
+	        if (args.length == 2 && (typeof (args[0]) == "number") && (typeof (args[1]) == "number")) {
+	           this.x += args[0];
+	           this.y += args[1];
+	        }
+	    }		
+	    /**
+	     * Returns bounding box of a point
+	     * @returns {Box}
+	     */
+	    get box() {
+	        return new d2.Box(this.x, this.y, this.x, this.y);
+	    }	    
 		scale(alpha){
 		       this.x *=alpha;
 		       this.y *=alpha;		  		
@@ -69,6 +94,38 @@ module.exports = function(d2) {
 		            return Math.sqrt(dx*dx + dy*dy);	               
 	            }
 		}
+		
+		/**
+	     * Returns true if point is on a shape, false otherwise
+	     * @param {Shape} shape Shape of the one of supported types Point, Line, Circle, Segment, Arc, Polygon
+	     * @returns {boolean}
+	     */
+	    on(shape) {
+	        if (shape instanceof d2.Point) {
+	            return this.equalTo(shape);
+	        }
+
+//	        if (shape instanceof Flatten.Line) {
+//	            return shape.contains(this);
+//	        }
+//
+//	        if (shape instanceof Flatten.Circle) {
+//	            return shape.contains(this);
+//	        }
+//
+//	        if (shape instanceof Flatten.Segment) {
+//	            return shape.contains(this);
+//	        }
+
+	        if (shape instanceof d2.Arc) {
+	            return shape.contains(this);
+	        }
+
+	        if (shape instanceof d2.Polygon) {
+	            return shape.contains(this);
+	        }
+	    }
+		
         equals(pt) {
             return d2.utils.EQ(this.x, pt.x) && d2.utils.EQ(this.y, pt.y);
         }

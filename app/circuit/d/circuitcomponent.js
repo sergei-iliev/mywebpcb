@@ -17,6 +17,7 @@ var SCHBus=require('circuit/shapes').SCHBus;
 var SCHFontLabel=require('circuit/shapes').SCHFontLabel;
 var SCHJunction=require('circuit/shapes').SCHJunction;
 var SCHBusPin=require('circuit/shapes').SCHBusPin;
+var SCHConnector=require('circuit/shapes').SCHConnector;
 var CircuitShapeFactory=require('circuit/shapes').CircuitShapeFactory;
 var HorizontalToVerticalProcessor=require('core/line/linebendingprocessor').HorizontalToVerticalProcessor;
 var VerticalToHorizontalProcessor=require('core/line/linebendingprocessor').VerticalToHorizontalProcessor;
@@ -185,6 +186,11 @@ class CircuitComponent extends UnitComponent{
 	          this.setContainerCursor(shape);               
 	          this.getEventMgr().setEventHandle("cursor",shape); 
 	        break;
+	      case  core.ModeEnum.CONNECTOR_MODE:
+	          shape=new SCHConnector();
+	          this.setContainerCursor(shape);               
+	          this.getEventMgr().setEventHandle("cursor",shape); 
+	        break;	        
 	      case core.ModeEnum.BUSPIN_MODE:
 	            shape = new SCHBusPin();        
 	            this.setContainerCursor(shape);

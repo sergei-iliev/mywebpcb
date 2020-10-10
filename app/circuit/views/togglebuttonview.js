@@ -93,14 +93,13 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='junctionid'){
 			this.circuitComponent.setMode(core.ModeEnum.JUNCTION_MODE);
 		}		
-		if(event.data.model.id=='trackid'){
-		  //Track mode
-		   this.circuitComponent.setMode(core.ModeEnum.TRACK_MODE);
+		if(event.data.model.id=='connectorid'){
+		   this.circuitComponent.setMode(core.ModeEnum.CONNECTOR_MODE);
 		}
-		if(event.data.model.id=='anchorid'){
-			event.data.model.setActive(!event.data.model.isActive());  
-			this.circuitComponent.setParameter("snaptogrid",event.data.model.isActive());
-		}		
+//		if(event.data.model.id=='anchorid'){
+//			event.data.model.setActive(!event.data.model.isActive());  
+//			this.circuitComponent.setParameter("snaptogrid",event.data.model.isActive());
+//		}		
 		if(event.data.model.id=='rectid'){
 			this.circuitComponent.setMode(core.ModeEnum.RECT_MODE);
 		}

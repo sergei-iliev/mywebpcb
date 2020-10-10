@@ -9,6 +9,7 @@ var SCHFontLabel=require('circuit/shapes').SCHFontLabel;
 var SCHJunction=require('circuit/shapes').SCHJunction;
 var SCHBusPin=require('circuit/shapes').SCHBusPin;
 var SCHWire=require('circuit/shapes').SCHWire;
+var SCHConnector=require('circuit/shapes').SCHConnector;
 
 var ComponentPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
@@ -155,6 +156,55 @@ var BusPinPanelBuilder=BaseBuilder.extend({
 		   var texture=this.target.name;
 		   j$("#buspinnameid").val(texture==null?"":texture.shape.text);
 		   j$('#alignmentid').val(this.target.getTextureByTag("name").getAlignment()); 
+	},
+	render:function(){
+		j$(this.el).empty();
+		j$(this.el).append(
+				"<table width='100%'>"+			
+				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Bus Pin Name</td><td><input type='text' id='buspinnameid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='width:50%;padding:7px'>Text Alignment</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"alignmentid\">"+
+				this.fillComboBox([{id:0,value:'RIGHT',selected:true},{id:1,value:'TOP',selected:true},{id:2,value:'LEFT',selected:true},{id:3,value:'BOTTOM'}])+
+			    "</select>" +
+				"</td></tr>"+											
+		"</table>");
+			
+		return this;
+	}
+});
+var ConnectorPanelBuilder=BaseBuilder.extend({
+	initialize:function(component){
+		ConnectorPanelBuilder.__super__.initialize(component);
+		this.id="connectorpanelbuilder";  
+    },	
+    events: {
+        'keypress #xid' : 'onenter',	
+        'keypress #yid' : 'onenter',               
+        'keypress #buspinnameid' : 'onenter',
+        'change #alignmentid': 'onchange',        
+    },
+    onchange:function(event){
+        if(event.target.id=='alignmentid'){
+        	this.target.getTextureByTag("name").setAlignment(parseInt(j$("#alignmentid").val()));        	
+        }
+        this.component.repaint(); 
+      },    
+    onenter:function(event){
+		 if(event.keyCode != 13){
+				return; 
+		 }
+		 if(event.target.id=='buspinnameid'){ 
+			 this.target.getTextureByTag("name").setText(j$('#buspinnameid').val()); 
+		 }		 	 
+		 this.component.repaint(); 		 
+    },
+
+	updateui:function(){
+		   //var texture=this.target.name;
+		   //j$("#buspinnameid").val(texture==null?"":texture.shape.text);
+		   //j$('#alignmentid').val(this.target.getTextureByTag("name").getAlignment()); 
 	},
 	render:function(){
 		j$(this.el).empty();
@@ -733,7 +783,8 @@ var CircuitsInspector=Backbone.View.extend({
 		                                         new LabelPanelBuilder(this.circuitComponent),
 		                                         new SymbolPanelBuilder(this.circuitComponent),
 		                                         new ComponentPanelBuilder(this.circuitComponent),
-		                                         new BusPinPanelBuilder(this.circuitComponent)
+		                                         new BusPinPanelBuilder(this.circuitComponent),
+		                                         new ConnectorPanelBuilder(this.circuitComponent),
 		                                         ]);
 		this.el= '#circuitsinspectorid';	
 		//select container
@@ -851,14 +902,14 @@ var CircuitsInspector=Backbone.View.extend({
 		    }
 			return;
 		}		
-//		if(event.target instanceof PCBLine){
-//			if(this.panel.id!='linepanelbuilder'){
-//				this.panel.attributes.remove();
-//				this.panel=this.collection.get('linepanelbuilder');
-//				this.panel.attributes.delegateEvents();
-//				this.render();
-//		    }
-//		}		
+		if(event.target instanceof SCHConnector){
+			if(this.panel.id!='connectorpanelbuilder'){
+				this.panel.attributes.remove();
+				this.panel=this.collection.get('connectorpanelbuilder');
+				this.panel.attributes.delegateEvents();
+				this.render();
+		    }
+		}		
 //		if(event.target instanceof PCBVia){
 //			if(this.panel.id!='viapanelbuilder'){
 //				this.panel.attributes.remove();

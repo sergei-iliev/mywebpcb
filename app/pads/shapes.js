@@ -1485,15 +1485,11 @@ class CircularShape{
 	    g2._fill=false;			
 	}	
     paint(g2,viewportWindow,scale){
-	     var box=this.circle.box;
-	     box.scale(scale.scale);     
-       //check if outside of visible window
-	     var window=new d2.Box(0,0,0,0);
-	     window.setRect(viewportWindow.x,viewportWindow.y,viewportWindow.width,viewportWindow.height);
-         if(!box.intersects(window)){
-           return false;
-         }
-	    
+    	 var rect = this.circle.box;
+       	 rect.scale(scale.getScale());
+       	 if (!rect.intersects(viewportWindow)) {
+      		  return;
+       	 }
 	    
 		if(this.pad.isSelected())
 	        g2.fillStyle = "gray";  

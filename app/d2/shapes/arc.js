@@ -35,7 +35,9 @@ module.exports = function(d2) {
             p0.rotate(angle, this.pc);
             return p0;
         }
-        
+        get length() {
+            return Math.abs(this.sweep * this.r);
+        }
         get end() {
             let p0 = new d2.Point(this.pc.x + this.r, this.pc.y);
             p0.rotate((this.startAngle+this.endAngle), this.pc);
@@ -46,20 +48,57 @@ module.exports = function(d2) {
         	return Math.abs(this.endAngle);
         }
         get box(){
-          return new d2.Box([this.start,this.end,this.middle]);      	
+          let points=this.breakToFunctional();
+          points.push(this.start);
+          points.push(this.end);
+          return new d2.Box(points);
+            
+           //let func_arcs = this.breakToFunctional();
+           //let box = func_arcs.reduce((acc, arc) => acc.merge(arc.start.box), new d2.Box());
+           //box = box.merge(this.end.box);
+           //return box;
+            
         }
+        /**
+         * Breaks arc in extreme point 0, pi/2, pi, 3*pi/2 and returns array of sub-arcs
+         * @returns {Arcs[]}
+         */
+        breakToFunctional() {
+            let p1=this.pc.clone();p1.translate(this.r, 0);
+            let p2=this.pc.clone();p2.translate(0,this.r);
+            let p3=this.pc.clone();p3.translate(-this.r,0);
+            let p4=this.pc.clone();p4.translate(0,-this.r);
+            let pts = [
+                p1,p2,p3,p4                
+            ];
+
+            // If arc contains extreme point,
+            // add it to result
+            let points = [];
+            for (let i = 0; i < 4; i++) {
+                if (pts[i].on(this)) {
+                    points.push(pts[i]);
+                }
+            }
+
+            return points;
+          
+        }        
         get vertices() {
             return this.box.vertices;
         }
         contains(pt){
-        	//is outside of the circle
-        	if (d2.utils.GE(this.pc.distanceTo(pt), this.r)){
-                return false;
-        	}    
-        	let l=new d2.Line(this.pc,this.middle);
+        	//is on circle
+            if (!d2.utils.EQ(this.pc.distanceTo(pt), this.r)){
+            	//is outside of the circle
+            	if (d2.utils.GE(this.pc.distanceTo(pt), this.r)){
+                    return false;
+            	}                
+            }
+        	
+            let l=new d2.Line(this.pc,this.middle);
         	let projectionPoint=l.projectionPoint(pt);
         	
-        	let middle=this.middle;
         	let mid=new d2.Point((this.start.x+this.end.x)/2,(this.start.y+this.end.y)/2);  
         	
         	let dist1=this.middle.distanceTo(mid);
@@ -124,11 +163,13 @@ module.exports = function(d2) {
           	  g2.fill();	
           	}else{
           	  g2.stroke();
-          	}
+          	}            
+        	
             //let ps=this.start;
             //let pe=this.end;
             //let pm=this.middle;
-            //d2.utils.drawCrosshair(g2,5,[ps,pe,pm]);
+            //d2.utils.drawCrosshair(g2,5,[p1,p2,p3,p4]);
+            
         }
         
 
