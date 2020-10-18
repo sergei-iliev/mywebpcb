@@ -244,7 +244,9 @@ class SymbolFontTexture{
 	    this.shape.alignment = _copy.shape.alignment;
 	    this.shape.text=_copy.shape.text;
 	    this.shape.style=_copy.shape.style;
-	    this.shape.setSize(_copy.shape.size);                
+	    this.shape.rotation=_copy.shape.rotation;
+	    this.shape.fillColor=_copy.shape.fillColor;
+	    this.shape.setSize(_copy.shape.fontSize);                
 	}	
 	isEmpty() {
 	     return this.shape.text==null||this.shape.text.length==0;
@@ -286,6 +288,22 @@ class SymbolFontTexture{
 	   }			 	
 		
 	}
+	/*
+	 * Take into account text offset from anchro point when rotating
+	 */
+	setRotation(rotation){
+	   let oldorientation=TextAlignment.getOrientation(this.shape.alignment);	
+	   this.rotate(rotation);
+	   if(rotation.angle<0){  //clockwise		   
+		   if(oldorientation == TextOrientation.HORIZONTAL){
+			   this.shape.anchorPoint.set(this.shape.anchorPoint.x+(this.shape.metrics.ascent-this.shape.metrics.descent),this.shape.anchorPoint.y);            
+		   }
+		}else{		    
+		   if(oldorientation == TextOrientation.VERTICAL){
+			   this.shape.anchorPoint.set(this.shape.anchorPoint.x,this.shape.anchorPoint.y+(this.shape.metrics.ascent-this.shape.metrics.descent));	           
+		   }
+		}		
+	}
 	mirror(line){
         let oldalignment = this.shape.alignment;
         this.shape.mirror(line);
@@ -312,16 +330,15 @@ class SymbolFontTexture{
 			 }
 			 
 			 g2.fillStyle =this.fillColor;			 			 
-
 			 this.shape.scalePaint(g2,viewportWindow,scale.getScale());
-			 if(this.isTextLayoutVisible){
+			if(this.isTextLayoutVisible){
 				let box=this.shape.box;
 			  	box.scale(scale.getScale());
 			  	box.move(-viewportWindow.x,- viewportWindow.y);
 				g2.lineWidth =1;
 		 		g2.strokeStyle = 'blue';
 			  	box.paint(g2);
-			 }
+			}
 
 	     if(this.selection){
 	 		 g2.lineWidth =1;

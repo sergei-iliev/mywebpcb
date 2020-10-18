@@ -6,6 +6,7 @@ var SymbolFontTexture=require('core/text/d2font').SymbolFontTexture;
 var SymbolShapeFactory=require('symbols/shapes').SymbolShapeFactory;
 var Pin=require('symbols/shapes').Pin;
 var FontLabel=require('symbols/shapes').FontLabel;
+var PIN_LENGTH=require('symbols/shapes').PIN_LENGTH;
 var SymbolShapeFactory=require('symbols/shapes').SymbolShapeFactory;
 var d2=require('d2/d2');
 var AbstractLine=require('core/shapes').AbstractLine;
@@ -40,6 +41,11 @@ class CircuitShapeFactory{
 			}
 			if (data.tagName.toLowerCase() == 'label') {
 				var symbol = new SCHFontLabel();
+				symbol.fromXML(data);
+				return symbol;
+			}	
+			if (data.tagName.toLowerCase() == 'connector') {
+				var symbol = new SCHConnector();
 				symbol.fromXML(data);
 				return symbol;
 			}			
@@ -154,7 +160,7 @@ getTextureByTag(tag) {
     if(tag===(this.reference.tag))
         return this.reference;
     else if(tag===(this.unit.tag))
-        return this.value;
+        return this.unit;
     else
     return null;
 }
@@ -172,9 +178,10 @@ rotate(rotation){
 		   this.shapes[i].rotate(rotation);  
 	   }
 	  
-	   this.unit.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
-	   this.reference.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	   this.unit.setRotation(rotation);
+	   this.reference.setRotation(rotation);
 }
+
 paint(g2, viewportWindow, scale,layersmask) {        
     
 	var rect = this.getBoundingShape();		
@@ -198,14 +205,14 @@ paint(g2, viewportWindow, scale,layersmask) {
         g2._fill=false;
         g2.globalCompositeOperation = 'source-over';
         
-        this.unit.fillColor = "blue";
+        //this.unit.fillColor = "blue";
         this.unit.paint(g2, viewportWindow, scale, layersmask);
-        this.reference.fillColor = "blue";
+        //this.reference.fillColor = "blue";
         this.reference.paint(g2, viewportWindow, scale, layersmask);
     }else{
-        this.unit.fillColor = "black";
+        //this.unit.fillColor = "black";
         this.unit.paint(g2, viewportWindow, scale, layersmask);
-        this.reference.fillColor = "black";
+        //this.reference.fillColor = "black";
         this.reference.paint(g2, viewportWindow, scale, layersmask);
     	
     }
@@ -219,12 +226,18 @@ fromXML(data){
 	
 	if(label!=undefined){
 	  this.reference.fromXML(label.textContent);
+	  this.reference.fillColor="#" +(j$(label).attr("color") & 0x00FFFFFF).toString(16).padStart(6, '0');	  
+	}else{
+	  this.reference.fromXML(reference.textContent);
 	}
 	var unit=j$(data).find("unit")[0];
 	var label=j$(unit).find("label")[0];
 	
-	if(label!=undefined){
-	  this.unit.fromXML(label.textContent);
+	if(label!=undefined){	  		
+	  this.unit.fromXML(label.textContent);	  
+	  this.unit.fillColor="#" +(j$(label).attr("color") & 0x00FFFFFF).toString(16).padStart(6, '0');
+	}else{
+	  this.unit.fromXML(unit.textContent);	 
 	}
 	
 	var that=this;
@@ -492,58 +505,372 @@ var Style={
 class SCHConnector extends Shape{
 	constructor(){
 		super(0, 0, 0,0, 1,core.Layer.LAYER_ALL);
-		this.type=ConnectorType.OUTPUT;
+		this.selectionRectWidth=4;
+		this.texture=new SymbolFontTexture("Nikola","name", 15, 0,2,8);		
+		this.type=ConnectorType.INPUT;
 		this.displayName="Connector";
-		this.pin=new Pin();
-		this.pin.setPinType(PinType.SIMPLE);
-		this.shape=new CircleShape(this);
+		this.segment=new d2.Segment(0,0,(PIN_LENGTH / 2),0);		
+		this.shape=new BoxShape(this);
 	}
 	clone(){
 		 var copy=new SCHConnector();
 		 copy.type=this.type;
-		 copy.pin=this.pin.clone();
-		 
+		 copy.segment=this.segment.clone();
+		 copy.texture =this.texture.clone(); 
 		 switch(this.getStyle()){
 		 case Style.BOX:
-			 
+			 copy.shape=new BoxShape(copy);
 			 break;
 		 case Style.ARROW:
+			 copy.shape=new ArrowShape(copy);
 			 break;
 		 case Style.CIRCLE:
-			 copy.shape=new CircleShape(this);
+			 copy.shape=new CircleShape(copy);
 		 }
 		 return copy;
 	}
+	alignToGrid(isRequired) {
+	    var center=this.segment.ps;
+	    var point=this.owningUnit.getGrid().positionOnGrid(center.x,center.y);
+	    this.move(point.x - center.x,point.y - center.y);	     	       
+	    return new d2.Point(point.x - center.x, point.y - center.y);
+	}
+	getTextureByTag(tag) {
+	    if(tag===(this.texture.tag))
+	        return this.texture;	    
+	    else
+	    return null;
+	}	
+	getClickedTexture(x,y) {
+	    if(this.texture.isClicked(x, y))
+	        return this.texture;	    
+	    else
+	    return null;
+	}
+	isClickedTexture(x,y) {
+	    return this.getClickedTexture(x, y)!=null;
+	}	
+	calculateShape(){
+		return this.segment.box;
+	}
+	setSelected (selection) {
+		super.setSelected(selection);
+		this.texture.setSelected(selection);		
+	}	
+	setType(type){
+		this.type=type;
+		this.shape.calculatePoints();
+	}
+    setText(text){
+        this.texture.setText(text);
+        this.shape.calculatePoints();
+     } 	
+	isClicked(x,y){
+		  var rect = d2.Box.fromRect(x
+					- (this.selectionRectWidth / 2), y
+					- (this.selectionRectWidth / 2), this.selectionRectWidth,
+					this.selectionRectWidth);
+		  
+		if (utilities.intersectLineRectangle(
+				this.segment.ps,this.segment.pe, rect.min, rect.max)) {			
+				return true;
+		}else if(this.texture.isClicked(x,y)){
+	    	return true;
+	    }else
+	     return   this.shape.contains(new d2.Point(x,y));
+	 }	
 	getStyle(){
 		if(this.shape instanceof BoxShape){
 			return  Style.BOX;
-		}else if(this.style instanceof ArrowShape){
+		}else if(this.shape instanceof ArrowShape){
 			return  Style.ARROW;
 		}else{
 			return  Style.CIRCLE;
 		}
 	}
+	setStyle(shape){
+	  switch(shape){
+	  case Style.ARROW:
+		this.shape=new ArrowShape(this);  
+		break;
+	  case Style.BOX:
+		this.shape=new BoxShape(this);
+		break;
+	  case Style.CIRCLE:
+		this.shape=new CircleShape(this);	  
+	  }
+	  this.shape.calculatePoints();
+	}
+	rotate(rotation){
+		this.segment.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+		this.texture.setRotation(rotation);
+		this.shape.calculatePoints();				
+	}	
 	move(xoff,yoff){
-	   this.pin.move(xoff,yoff);	
+	   this.segment.move(xoff,yoff);	
 	   this.shape.move(xoff,yoff);
+	   this.texture.move(xoff,yoff);
 	}
 	paint(g2, viewportWindow, scale,layersmask) { 
-		this.pin.paint(g2,viewportWindow, scale,layersmask);
+   	  	if(this.isSelected()){
+	        g2.strokeStyle = "blue";   	        
+   	           	        
+   	  	}else{
+	        g2.strokeStyle = "black";	        
+	    }
+	    let line=this.segment.clone();                	    
+		line.scale(scale.getScale());
+	    line.move(-viewportWindow.x,- viewportWindow.y);	    
+	    g2.lineWidth = this.thickness * scale.getScale();
+	    line.paint(g2);
+	    
 		this.shape.paint(g2,viewportWindow, scale);
+		this.texture.paint(g2,viewportWindow, scale);
 	}
+	fromXML(data){
+		this.setStyle(j$(data).attr("style"));
+		this.setType(Number.parseInt(j$(data).find("type")[0].textContent));	
+	}	
 }
 class BoxShape{
-	constructor(){
-		
+	constructor(connector){
+		this.connector=connector
+		this.polygon=new d2.Polygon();
+		this.calculatePoints();	
 	}
-	
+	calculatePoints(){
+		  this.polygon.points.length=0;
+		  let rect=this.connector.texture.shape.box;
+		  let width=2+rect.width; 
+		  let height=2+rect.height;
+		  switch(this.connector.type) {
+		  case ConnectorType.OUTPUT:
+		  if(this.connector.segment.isVertical){
+			  let v=new d2.Vector(this.connector.segment.ps,this.connector.segment.pe);
+			  let v1=v.clone();
+			  v1.rotate90CCW();
+			  let norm=v1.normalize();			  
+			  let xx=this.connector.segment.pe.x +4*norm.x;
+			  let yy=this.connector.segment.pe.y + 4*norm.y;						 	   	
+			  this.polygon.points.push(new d2.Point(xx,yy));
+			  
+			  let v2=v.clone();
+			  v2.rotate90CW();
+			  norm=v2.normalize();			  
+			  let x=this.connector.segment.pe.x +4*norm.x;
+			  let y=this.connector.segment.pe.y + 4*norm.y;						 	   	
+			  this.polygon.points.push(new d2.Point(x,y));
+			  
+			  v2.rotate90CCW();
+			  norm=v2.normalize();			  
+			  x=x +height*norm.x;
+			  y=y +height*norm.y;						 	   	
+			  this.polygon.points.push(new d2.Point(x,y));
+			  
+			  norm=v.normalize();			  
+			  x=this.connector.segment.pe.x +(4+height)*norm.x;
+			  y=this.connector.segment.pe.y +(4+height)*norm.y;						 	   	
+			  this.polygon.points.push(new d2.Point(x,y));
+
+			  
+			  v1.rotate90CW();
+			  norm=v1.normalize();			  
+			  xx=xx +height*norm.x;
+			  yy=yy +height*norm.y;						 	   	
+			  this.polygon.points.push(new d2.Point(xx,yy));  			  
+		  }else{
+				  let v=new d2.Vector(this.connector.segment.ps,this.connector.segment.pe);
+				  
+				  let v1=v.clone();
+				  v1.rotate90CCW();
+				  let norm=v1.normalize();			  
+				  let xx=this.connector.segment.pe.x +4*norm.x;
+				  let yy=this.connector.segment.pe.y + 4*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(xx,yy));
+				  
+				  let v2=v.clone();
+				  v2.rotate90CW();
+				  norm=v2.normalize();			  
+				  let x=this.connector.segment.pe.x +4*norm.x;
+				  let y=this.connector.segment.pe.y + 4*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(x,y));
+				  
+				  v2.rotate90CCW();
+				  norm=v2.normalize();			  
+				  x=x +width*norm.x;
+				  y=y +width*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(x,y));
+				  
+				  norm=v.normalize();			  
+				  x=this.connector.segment.pe.x +(4+width)*norm.x;
+				  y=this.connector.segment.pe.y +(4+width)*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(x,y));
+
+				  
+				  v1.rotate90CW();
+				  norm=v1.normalize();			  
+				  xx=xx +width*norm.x;
+				  yy=yy +width*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(xx,yy));  			  
+		   }
+		  break;
+		  case ConnectorType.INPUT:
+			  if(this.connector.segment.isVertical){
+				  let v=new d2.Vector(this.connector.segment.ps,this.connector.segment.pe);				  				  				  
+				  let norm=v.normalize();			  
+				  let xx=this.connector.segment.pe.x +4*norm.x;
+				  let yy=this.connector.segment.pe.y + 4*norm.y;						 	   	
+				  
+				  
+				  
+				  let v1=v.clone();
+				  v1.rotate90CCW();
+				  norm=v1.normalize();			  
+				  xx=(xx) +4*norm.x;
+				  yy=(yy) +4*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(xx,yy));
+				  
+				  norm=v.normalize();			  
+				  let x=xx +height*norm.x;
+				  let y=yy +height*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(x,y));
+
+				  v1=v.clone();
+				  v1.rotate90CW();
+				  norm=v1.normalize();			  
+				  x=x +8*norm.x;
+				  y=y +8*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(x,y));
+				  
+				  v1.rotate90CW();
+				  norm=v1.normalize();			  
+				  x=x +height*norm.x;
+				  y=y +height*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(x,y));
+				  
+				  this.polygon.points.push(this.connector.segment.pe.clone());
+			  }else{
+				  let v=new d2.Vector(this.connector.segment.ps,this.connector.segment.pe);				  				  				  
+				  let norm=v.normalize();			  
+				  let xx=this.connector.segment.pe.x +4*norm.x;
+				  let yy=this.connector.segment.pe.y + 4*norm.y;						 	   	
+				  
+				  
+				  
+				  let v1=v.clone();
+				  v1.rotate90CCW();
+				  norm=v1.normalize();			  
+				  xx=(xx) +4*norm.x;
+				  yy=(yy) +4*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(xx,yy));
+				  
+				  norm=v.normalize();			  
+				  let x=xx +width*norm.x;
+				  let y=yy +width*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(x,y));
+
+				  v1=v.clone();
+				  v1.rotate90CW();
+				  norm=v1.normalize();			  
+				  x=x +8*norm.x;
+				  y=y +8*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(x,y));
+				  
+				  v1.rotate90CW();
+				  norm=v1.normalize();			  
+				  x=x +width*norm.x;
+				  y=y +width*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(x,y));
+				  
+				  this.polygon.points.push(this.connector.segment.pe.clone()); 
+			  }
+			  break;
+		  }
+	}
+    contains(pt){
+    	return this.polygon.contains(pt);
+    }
+	move(xoffset, yoffset) {
+		this.polygon.move(xoffset,yoffset);
+	}	
+	paint(g2,viewportWindow,scale){
+   	  	var rect = this.polygon.box;
+   	  	rect.scale(scale.getScale());
+   	  	if (!rect.intersects(viewportWindow)) {
+  		  return;
+   	  	}		
+	    
+	    let p=this.polygon.clone();
+		p.scale(scale.getScale());
+        p.move(-viewportWindow.x,- viewportWindow.y);
+        
+   	  	if(this.connector.isSelected()){
+	        g2.strokeStyle = "blue";   	        
+   	           	        
+   	  	}else{
+	        g2.strokeStyle = "black";
+	        
+	    }
+   	  	p.paint(g2);		
+	}	
 }
 class ArrowShape{
-	constructor(){
-		
+	constructor(connector){
+		this.connector=connector
+		this.polygon=new d2.Polygon();
+		this.calculatePoints();		
 	}
-	
+	calculatePoints(){
+		  this.polygon.points.length=0;
+		  let v=new d2.Vector(this.connector.segment.ps,this.connector.segment.pe);
+		  let norm=v.normalize();			  
+		  let x=this.connector.segment.pe.x +4*norm.x;
+		  let y=this.connector.segment.pe.y + 4*norm.y;						 	   	
+		  this.polygon.points.push(new d2.Point(x,y));
+		  
+		  let v1=v.clone();
+		  v1.rotate90CCW();
+		  norm=v1.normalize();			  
+		  x=this.connector.segment.pe.x +4*norm.x;
+		  y=this.connector.segment.pe.y + 4*norm.y;						 	   	
+		  this.polygon.points.push(new d2.Point(x,y));
+		  
+		  let v2=v.clone();
+		  v2.rotate90CW();
+		  norm=v2.normalize();			  
+		  x=this.connector.segment.pe.x +4*norm.x;
+		  y=this.connector.segment.pe.y + 4*norm.y;						 	   	
+		  this.polygon.points.push(new d2.Point(x,y));
+		  
+	}	
+    contains(pt){
+    	return this.polygon.contains(pt);
+    }
+	move(xoffset, yoffset) {
+		this.polygon.move(xoffset,yoffset);
+	}
+	paint(g2,viewportWindow,scale){
+   	  	var rect = this.polygon.box;
+   	  	rect.scale(scale.getScale());
+   	  	if (!rect.intersects(viewportWindow)) {
+  		  return;
+   	  	}		
+	    
+	    let p=this.polygon.clone();
+		p.scale(scale.getScale());
+        p.move(-viewportWindow.x,- viewportWindow.y);
+        
+   	  	if(this.connector.isSelected()){
+	        g2.strokeStyle = "blue";   	        
+   	           	        
+   	  	}else{
+	        g2.strokeStyle = "black";
+	        
+	    }
+   	  	p.paint(g2);		
+	}
 }
+
 class CircleShape{
 	constructor(connector){
 		this.connector=connector
@@ -551,42 +878,41 @@ class CircleShape{
 		this.calculatePoints();
 	}
 	calculatePoints(){
-		switch(this.connector.pin.orientation){
-	    case Orientation.EAST:        	    	
-	    	this.circle.pc.set(this.connector.pin.segment.pe.x+2,this.connector.pin.segment.pe.y); 
-	        break;
-	    case Orientation.WEST:
-	    	console.log(2);    	
-	        break;
-	    case Orientation.NORTH:
-	    	console.log(3);    	
-	        break;
-	    case Orientation.SOUTH:
-	    	console.log(4);
-		}
+		  let v=new d2.Vector(this.connector.segment.ps,this.connector.segment.pe);
+		  let norm=v.normalize();			  
+		  let x=this.connector.segment.pe.x +2*norm.x;
+		  let y=this.connector.segment.pe.y + 2*norm.y;				
+		 	   	
+		  this.circle.pc.set(x,y); 
 	}
+    contains(pt){
+    	return this.circle.contains(pt);
+    }
 	move(xoffset, yoffset) {
 		this.circle.move(xoffset,yoffset);
 	}
 	paint(g2,viewportWindow,scale){
-	     
    	  	var rect = this.circle.box;
    	  	rect.scale(scale.getScale());
    	  	if (!rect.intersects(viewportWindow)) {
   		  return;
    	  	}		
 	    
-		if(this.connector.isSelected())
-	        g2.fillStyle = "gray";  
-	    else{
-	        g2.fillStyle = "black";
-	    }
-	    
-		
 	    let c=this.circle.clone();
 		c.scale(scale.getScale());
         c.move(-viewportWindow.x,- viewportWindow.y);
-		c.paint(g2);
+        
+   	  	if(this.connector.isSelected()){
+	        g2.strokeStyle = "blue";   	        
+   	           	        
+   	  	}else{
+	        g2.strokeStyle = "black";
+	        
+	    }
+   	  	c.paint(g2);
+		
+
+		
 						
 	}
 }

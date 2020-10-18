@@ -33,8 +33,11 @@ class manager{
         var len=symbol.shapes.length;
  	    for(var i=0;i<len;i++){
  	    	var shape=symbol.shapes[i];
-	               if (shape instanceof shapes.FontLabel) {
+ 	    	console.log(shape);       
+ 	    	if (shape instanceof shapes.FontLabel) {
+	            		
 	   				 if(shape.texture.tag=="unit"){
+	   					 
 	   					schsymbol.unit.copy(shape.texture); 
 	   					continue;
 	   				 }
@@ -128,6 +131,13 @@ class Circuit extends Unit{
 	   	   	  
 	   	});	 
 	   	j$(data).find('labels').children().each(function(){
+	   		var shape=that.shapeFactory.createShape(this); 
+	   		if(shape!=null){
+	   			that.add(shape);
+	   		} 	   	   
+	   	   	  
+	   	});	
+	   	j$(data).find('connectors').children().each(function(){
 	   		var shape=that.shapeFactory.createShape(this); 
 	   		if(shape!=null){
 	   			that.add(shape);

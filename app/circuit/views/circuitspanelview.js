@@ -179,15 +179,17 @@ var ConnectorPanelBuilder=BaseBuilder.extend({
 		ConnectorPanelBuilder.__super__.initialize(component);
 		this.id="connectorpanelbuilder";  
     },	
-    events: {
-        'keypress #xid' : 'onenter',	
-        'keypress #yid' : 'onenter',               
-        'keypress #buspinnameid' : 'onenter',
-        'change #alignmentid': 'onchange',        
+    events: {        
+        'keypress #connectornameid' : 'onenter',                       
+        'change #typeid': 'onchange',    
+        'change #styleid': 'onchange',  
     },
     onchange:function(event){
-        if(event.target.id=='alignmentid'){
-        	this.target.getTextureByTag("name").setAlignment(parseInt(j$("#alignmentid").val()));        	
+        if(event.target.id=='typeid'){
+        	this.target.setType(Number.parseInt(j$('#typeid').val()));        	
+        }
+        if(event.target.id=='styleid'){
+        	this.target.setStyle(Number.parseInt(j$('#styleid').val()));        	
         }
         this.component.repaint(); 
       },    
@@ -195,27 +197,30 @@ var ConnectorPanelBuilder=BaseBuilder.extend({
 		 if(event.keyCode != 13){
 				return; 
 		 }
-		 if(event.target.id=='buspinnameid'){ 
-			 this.target.getTextureByTag("name").setText(j$('#buspinnameid').val()); 
+		 if(event.target.id=='connectornameid'){ 
+			 this.target.setText(j$('#connectornameid').val()); 
 		 }		 	 
 		 this.component.repaint(); 		 
     },
 
-	updateui:function(){
-		   //var texture=this.target.name;
-		   //j$("#buspinnameid").val(texture==null?"":texture.shape.text);
-		   //j$('#alignmentid').val(this.target.getTextureByTag("name").getAlignment()); 
+	updateui:function(){		   
+		   j$('#connectornameid').val(this.target.texture.shape.text);
+		   j$('#shapeid').val(this.target.getStyle()); 
+		   j$('#typeid').val(this.target.type);
 	},
 	render:function(){
 		j$(this.el).empty();
 		j$(this.el).append(
-				"<table width='100%'>"+			
-				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Bus Pin Name</td><td><input type='text' id='buspinnameid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='width:50%;padding:7px'>Text Alignment</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"alignmentid\">"+
-				this.fillComboBox([{id:0,value:'RIGHT',selected:true},{id:1,value:'TOP',selected:true},{id:2,value:'LEFT',selected:true},{id:3,value:'BOTTOM'}])+
+				"<table width='100%'>"+										
+				"<tr><td style='padding:7px'>Label</td><td><input type='text' id='connectornameid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='width:50%;padding:7px'>Shape</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"styleid\">"+
+				this.fillComboBox([{id:0,value:'BOX',selected:true},{id:1,value:'ARROW'},{id:2,value:'CIRCLE'}])+
+			    "</select>" +
+				"</td></tr>"+	
+				"<tr><td style='width:50%;padding:7px'>Type</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"typeid\">"+
+				this.fillComboBox([{id:0,value:'INPUT'},{id:1,value:'OUTPUT'}])+
 			    "</select>" +
 				"</td></tr>"+											
 		"</table>");
@@ -503,9 +508,8 @@ var SymbolPanelBuilder=BaseBuilder.extend({
     },
     events: {
         'keypress #nameid' : 'onenter',   
-        'keypress #valueid' : 'onenter',	
-        'keypress #referenceid' : 'onenter',	
-        'change #sideid': 'onchange',
+        'keypress #unitid' : 'onenter',	
+        'keypress #referenceid' : 'onenter',	        
     },
 	onenter:function(event){
 		 if(event.keyCode != 13){
@@ -532,7 +536,9 @@ var SymbolPanelBuilder=BaseBuilder.extend({
 		}		      
 	},	
 	updateui:function(){
-
+		   j$("#nameid").val(this.target.displayName);
+		   j$("#referenceid").val(this.target.getTextureByTag("reference").shape.text);
+		   j$("#unitid").val(this.target.getTextureByTag("unit").shape.text);
 	},
 	render:function(){	
 		j$(this.el).empty();
@@ -545,8 +551,7 @@ var SymbolPanelBuilder=BaseBuilder.extend({
 		"</td></tr>"+
 		"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
 		"<tr><td style='width:50%;padding:7px'>Reference</td><td><input type='text' id='referenceid' value='' class='form-control input-sm\'></td></tr>"+
-		"<tr><td style='width:50%;padding:7px'>Value</td><td><input type='text' id='valueid' value='' class='form-control input-sm\'></td></tr>"+
-		"<tr><td style='width:50%;padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+						
+		"<tr><td style='width:50%;padding:7px'>Value</td><td><input type='text' id='unitid' value='' class='form-control input-sm\'></td></tr>"+							
 		"</table>");
 			
 		return this;

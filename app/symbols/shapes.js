@@ -164,18 +164,7 @@ class FontLabel extends Shape{
 		  return this.texture;
 		}
     rotate(rotation){
- 	   let oldorientation=TextAlignment.getOrientation(this.texture.shape.alignment);	
- 	   this.texture.rotate(rotation);
-	   if(rotation.angle<0){  //clockwise		   
-		   if(oldorientation == TextOrientation.HORIZONTAL){
-			   this.texture.shape.anchorPoint.set(this.texture.shape.anchorPoint.x+(this.texture.shape.metrics.ascent-this.texture.shape.metrics.descent),this.texture.shape.anchorPoint.y);            
-		   }
-	   }else{		    
-		   if(oldorientation == TextOrientation.VERTICAL){
-			   this.texture.shape.anchorPoint.set(this.texture.shape.anchorPoint.x,this.texture.shape.anchorPoint.y+(this.texture.shape.metrics.ascent-this.texture.shape.metrics.descent));	           
-		   }
-	   }	
-       
+    	this.texture.setRotation(rotation);	      
     }
     mirror(line){
     	let oldalignment = this.texture.shape.alignment;
@@ -1229,7 +1218,7 @@ paint(g2, viewportWindow, scale,layersmask) {
 
 	g2.lineWidth = this.thickness ;
 	if (this.selection) {
-		g2.strokeStyle = "gray";
+		g2.strokeStyle = "blue";
 	  	this.name.fillColor = "gray";
 	  	this.number.fillColor = "gray";
 	} else {
@@ -1531,5 +1520,6 @@ module.exports ={
 		Line,
 		FontLabel,
 		RoundRect,
+		PIN_LENGTH,
 		SymbolShapeFactory
 	}

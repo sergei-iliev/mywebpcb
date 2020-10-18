@@ -88,15 +88,19 @@ module.exports = function(d2) {
          *rotate 90 degrees counter clockwise         
          */
         rotate90CCW() {
-            this.x=-this.y;
-            this.y= this.x;
+        	let x=this.x;
+        	let y=this.y;
+            this.x=-1*y;
+            this.y= x;
         }    
         /**
          * rotate 90 degrees clockwise
          */
         rotate90CW() {
-            this.x=this.y;
-            this.y=-this.x;
+        	let x=this.x;
+        	let y=this.y;        	
+            this.x=y;
+            this.y=-1*x;
         };
         
         /**
