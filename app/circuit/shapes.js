@@ -618,6 +618,7 @@ class SCHConnector extends Shape{
    	  	}else{
 	        g2.strokeStyle = "black";	        
 	    }
+   	  	utilities.drawCrosshair(g2, viewportWindow, scale,null,2,[this.segment.ps.clone()]);
 	    let line=this.segment.clone();                	    
 		line.scale(scale.getScale());
 	    line.move(-viewportWindow.x,- viewportWindow.y);	    
@@ -627,9 +628,33 @@ class SCHConnector extends Shape{
 		this.shape.paint(g2,viewportWindow, scale);
 		this.texture.paint(g2,viewportWindow, scale);
 	}
-	fromXML(data){
+	init(orientation){
+	
+	    switch (orientation) {
+	    case Orientation.EAST:        
+	        this.segment.pe.set(this.segment.ps.x + (PIN_LENGTH / 2), this.segment.ps.y);
+	        break;
+	    case Orientation.WEST:
+	    	this.segment.pe.set(this.segment.ps.x - (PIN_LENGTH / 2), this.segment.ps.y);    	
+	        break;
+	    case Orientation.NORTH:
+	    	this.segment.pe.set(this.segment.ps.x, this.segment.ps.y - (PIN_LENGTH / 2));    	
+	        break;
+	    case Orientation.SOUTH:    	
+	    	this.segment.pe.set(this.segment.ps.x, this.segment.ps.y + (PIN_LENGTH / 2));
+	    }   
+	}	
+	fromXML(data){		
+		var tokens = j$(data).find("a")[0].textContent.split(",");
+		this.segment.ps.set(parseFloat(tokens[0]),parseFloat(tokens[1]));
+		this.init(parseInt(tokens[3]));
+		
 		this.setStyle(j$(data).attr("style"));
-		this.setType(Number.parseInt(j$(data).find("type")[0].textContent));	
+		this.setType(Number.parseInt(j$(data).find("type")[0].textContent));
+		var texture=j$(data).find("name")[0];	
+		this.texture.fromXML(texture.textContent);
+		
+		this.shape.calculatePoints();
 	}	
 }
 class BoxShape{

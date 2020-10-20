@@ -1521,5 +1521,6 @@ module.exports ={
 		FontLabel,
 		RoundRect,
 		PIN_LENGTH,
+		Orientation,
 		SymbolShapeFactory
 	}
