@@ -181,7 +181,28 @@ rotate(rotation){
 	   this.unit.setRotation(rotation);
 	   this.reference.setRotation(rotation);
 }
-
+mirror(line){
+	var len=this.shapes.length;
+	   for(var i=0;i<len;i++){
+		   this.shapes[i].mirror(line);  
+	   } 	   
+	   this.mirrorText(line,this.unit);
+	   this.mirrorText(line,this.reference);	   
+}
+mirrorText(line,texture){
+   	let oldalignment = texture.shape.alignment;
+	texture.mirror(line);	
+    if (line.isVertical) { //right-left mirroring
+        if (texture.shape.alignment == oldalignment) {
+            texture.shape.anchorPoint.set(texture.shape.anchorPoint.x +
+                                    (texture.shape.metrics.ascent - texture.shape.metrics.descent),texture.shape.anchorPoint.y);
+        }
+    } else { //***top-botom mirroring          
+        if (texture.shape.alignment == oldalignment) {
+        	texture.shape.anchorPoint.set(texture.shape.anchorPoint.x,texture.shape.anchorPoint.y +(texture.shape.metrics.ascent - texture.shape.metrics.descent));
+        }
+    } 	
+}
 paint(g2, viewportWindow, scale,layersmask) {        
     
 	var rect = this.getBoundingShape();		
@@ -205,14 +226,14 @@ paint(g2, viewportWindow, scale,layersmask) {
         g2._fill=false;
         g2.globalCompositeOperation = 'source-over';
         
-        //this.unit.fillColor = "blue";
+        this.unit.fillColor = "blue";
         this.unit.paint(g2, viewportWindow, scale, layersmask);
-        //this.reference.fillColor = "blue";
+        this.reference.fillColor = "blue";
         this.reference.paint(g2, viewportWindow, scale, layersmask);
     }else{
-        //this.unit.fillColor = "black";
+        this.unit.fillColor = "black";
         this.unit.paint(g2, viewportWindow, scale, layersmask);
-        //this.reference.fillColor = "black";
+        this.reference.fillColor = "black";
         this.reference.paint(g2, viewportWindow, scale, layersmask);
     	
     }
@@ -506,11 +527,11 @@ class SCHConnector extends Shape{
 	constructor(){
 		super(0, 0, 0,0, 1,core.Layer.LAYER_ALL);
 		this.selectionRectWidth=4;
-		this.texture=new SymbolFontTexture("Nikola","name", 15, 0,2,8);		
+		this.texture=new SymbolFontTexture("Nikola","name", -4, 0,0,8);		
 		this.type=ConnectorType.INPUT;
 		this.displayName="Connector";
 		this.segment=new d2.Segment(0,0,(PIN_LENGTH / 2),0);		
-		this.shape=new BoxShape(this);
+		this.shape=new ArrowShape(this);
 	}
 	clone(){
 		 var copy=new SCHConnector();
@@ -606,6 +627,11 @@ class SCHConnector extends Shape{
 		this.texture.setRotation(rotation);
 		this.shape.calculatePoints();				
 	}	
+	mirror(line){
+    	this.segment.mirror(line);
+    	this.texture.mirror(line);
+    	this.shape.calculatePoints();
+    }
 	move(xoff,yoff){
 	   this.segment.move(xoff,yoff);	
 	   this.shape.move(xoff,yoff);
@@ -618,7 +644,7 @@ class SCHConnector extends Shape{
    	  	}else{
 	        g2.strokeStyle = "black";	        
 	    }
-   	  	utilities.drawCrosshair(g2, viewportWindow, scale,null,2,[this.segment.ps.clone()]);
+   	  	//utilities.drawCrosshair(g2, viewportWindow, scale,null,2,[this.segment.ps.clone()]);
 	    let line=this.segment.clone();                	    
 		line.scale(scale.getScale());
 	    line.move(-viewportWindow.x,- viewportWindow.y);	    
@@ -649,7 +675,7 @@ class SCHConnector extends Shape{
 		this.segment.ps.set(parseFloat(tokens[0]),parseFloat(tokens[1]));
 		this.init(parseInt(tokens[3]));
 		
-		this.setStyle(j$(data).attr("style"));
+		this.setStyle(Number.parseInt(j$(data).attr("style")));
 		this.setType(Number.parseInt(j$(data).find("type")[0].textContent));
 		var texture=j$(data).find("name")[0];	
 		this.texture.fromXML(texture.textContent);
@@ -668,22 +694,23 @@ class BoxShape{
 		  let rect=this.connector.texture.shape.box;
 		  let width=2+rect.width; 
 		  let height=2+rect.height;
+	
 		  switch(this.connector.type) {
 		  case ConnectorType.OUTPUT:
 		  if(this.connector.segment.isVertical){
-			  let v=new d2.Vector(this.connector.segment.ps,this.connector.segment.pe);
+			  let v=new d2.Vector(this.connector.segment.pe,this.connector.segment.ps);
 			  let v1=v.clone();
 			  v1.rotate90CCW();
 			  let norm=v1.normalize();			  
-			  let xx=this.connector.segment.pe.x +4*norm.x;
-			  let yy=this.connector.segment.pe.y + 4*norm.y;						 	   	
+			  let xx=this.connector.segment.ps.x +4*norm.x;
+			  let yy=this.connector.segment.ps.y + 4*norm.y;						 	   	
 			  this.polygon.points.push(new d2.Point(xx,yy));
 			  
 			  let v2=v.clone();
 			  v2.rotate90CW();
 			  norm=v2.normalize();			  
-			  let x=this.connector.segment.pe.x +4*norm.x;
-			  let y=this.connector.segment.pe.y + 4*norm.y;						 	   	
+			  let x=this.connector.segment.ps.x +4*norm.x;
+			  let y=this.connector.segment.ps.y + 4*norm.y;						 	   	
 			  this.polygon.points.push(new d2.Point(x,y));
 			  
 			  v2.rotate90CCW();
@@ -693,8 +720,8 @@ class BoxShape{
 			  this.polygon.points.push(new d2.Point(x,y));
 			  
 			  norm=v.normalize();			  
-			  x=this.connector.segment.pe.x +(4+height)*norm.x;
-			  y=this.connector.segment.pe.y +(4+height)*norm.y;						 	   	
+			  x=this.connector.segment.ps.x +(4+height)*norm.x;
+			  y=this.connector.segment.ps.y +(4+height)*norm.y;						 	   	
 			  this.polygon.points.push(new d2.Point(x,y));
 
 			  
@@ -704,20 +731,20 @@ class BoxShape{
 			  yy=yy +height*norm.y;						 	   	
 			  this.polygon.points.push(new d2.Point(xx,yy));  			  
 		  }else{
-				  let v=new d2.Vector(this.connector.segment.ps,this.connector.segment.pe);
+				  let v=new d2.Vector(this.connector.segment.pe,this.connector.segment.ps);
 				  
 				  let v1=v.clone();
 				  v1.rotate90CCW();
 				  let norm=v1.normalize();			  
-				  let xx=this.connector.segment.pe.x +4*norm.x;
-				  let yy=this.connector.segment.pe.y + 4*norm.y;						 	   	
+				  let xx=this.connector.segment.ps.x +4*norm.x;
+				  let yy=this.connector.segment.ps.y + 4*norm.y;						 	   	
 				  this.polygon.points.push(new d2.Point(xx,yy));
 				  
 				  let v2=v.clone();
 				  v2.rotate90CW();
 				  norm=v2.normalize();			  
-				  let x=this.connector.segment.pe.x +4*norm.x;
-				  let y=this.connector.segment.pe.y + 4*norm.y;						 	   	
+				  let x=this.connector.segment.ps.x +4*norm.x;
+				  let y=this.connector.segment.ps.y + 4*norm.y;						 	   	
 				  this.polygon.points.push(new d2.Point(x,y));
 				  
 				  v2.rotate90CCW();
@@ -727,8 +754,8 @@ class BoxShape{
 				  this.polygon.points.push(new d2.Point(x,y));
 				  
 				  norm=v.normalize();			  
-				  x=this.connector.segment.pe.x +(4+width)*norm.x;
-				  y=this.connector.segment.pe.y +(4+width)*norm.y;						 	   	
+				  x=this.connector.segment.ps.x +(4+width)*norm.x;
+				  y=this.connector.segment.ps.y +(4+width)*norm.y;						 	   	
 				  this.polygon.points.push(new d2.Point(x,y));
 
 				  
@@ -741,10 +768,10 @@ class BoxShape{
 		  break;
 		  case ConnectorType.INPUT:
 			  if(this.connector.segment.isVertical){
-				  let v=new d2.Vector(this.connector.segment.ps,this.connector.segment.pe);				  				  				  
+				  let v=new d2.Vector(this.connector.segment.pe,this.connector.segment.ps);				  				  				  
 				  let norm=v.normalize();			  
-				  let xx=this.connector.segment.pe.x +4*norm.x;
-				  let yy=this.connector.segment.pe.y + 4*norm.y;						 	   	
+				  let xx=this.connector.segment.ps.x +4*norm.x;
+				  let yy=this.connector.segment.ps.y + 4*norm.y;						 	   	
 				  
 				  
 				  
@@ -773,12 +800,12 @@ class BoxShape{
 				  y=y +height*norm.y;						 	   	
 				  this.polygon.points.push(new d2.Point(x,y));
 				  
-				  this.polygon.points.push(this.connector.segment.pe.clone());
+				  this.polygon.points.push(this.connector.segment.ps.clone());
 			  }else{
-				  let v=new d2.Vector(this.connector.segment.ps,this.connector.segment.pe);				  				  				  
+				  let v=new d2.Vector(this.connector.segment.pe,this.connector.segment.ps);				  				  				  
 				  let norm=v.normalize();			  
-				  let xx=this.connector.segment.pe.x +4*norm.x;
-				  let yy=this.connector.segment.pe.y + 4*norm.y;						 	   	
+				  let xx=this.connector.segment.ps.x +4*norm.x;
+				  let yy=this.connector.segment.ps.y + 4*norm.y;						 	   	
 				  
 				  
 				  
@@ -807,7 +834,7 @@ class BoxShape{
 				  y=y +width*norm.y;						 	   	
 				  this.polygon.points.push(new d2.Point(x,y));
 				  
-				  this.polygon.points.push(this.connector.segment.pe.clone()); 
+				  this.polygon.points.push(this.connector.segment.ps.clone()); 
 			  }
 			  break;
 		  }
@@ -847,26 +874,52 @@ class ArrowShape{
 	}
 	calculatePoints(){
 		  this.polygon.points.length=0;
-		  let v=new d2.Vector(this.connector.segment.ps,this.connector.segment.pe);
-		  let norm=v.normalize();			  
-		  let x=this.connector.segment.pe.x +4*norm.x;
-		  let y=this.connector.segment.pe.y + 4*norm.y;						 	   	
-		  this.polygon.points.push(new d2.Point(x,y));
 		  
-		  let v1=v.clone();
-		  v1.rotate90CCW();
-		  norm=v1.normalize();			  
-		  x=this.connector.segment.pe.x +4*norm.x;
-		  y=this.connector.segment.pe.y + 4*norm.y;						 	   	
-		  this.polygon.points.push(new d2.Point(x,y));
+		  switch(this.connector.type) {
+		  case ConnectorType.OUTPUT:
+			  {let v=new d2.Vector(this.connector.segment.pe,this.connector.segment.ps);
+			  let norm=v.normalize();			  
+			  let x=this.connector.segment.ps.x +4*norm.x;
+			  let y=this.connector.segment.ps.y + 4*norm.y;						 	   	
+			  this.polygon.points.push(new d2.Point(x,y));
 		  
-		  let v2=v.clone();
-		  v2.rotate90CW();
-		  norm=v2.normalize();			  
-		  x=this.connector.segment.pe.x +4*norm.x;
-		  y=this.connector.segment.pe.y + 4*norm.y;						 	   	
-		  this.polygon.points.push(new d2.Point(x,y));
+			  let v1=v.clone();
+			  v1.rotate90CCW();
+			  norm=v1.normalize();			  
+			  x=this.connector.segment.ps.x +4*norm.x;
+			  y=this.connector.segment.ps.y + 4*norm.y;						 	   	
+			  this.polygon.points.push(new d2.Point(x,y));
 		  
+			  let v2=v.clone();
+			  v2.rotate90CW();
+			  norm=v2.normalize();			  
+			  x=this.connector.segment.ps.x +4*norm.x;
+			  y=this.connector.segment.ps.y + 4*norm.y;						 	   	
+			  this.polygon.points.push(new d2.Point(x,y));
+			  break;
+			  }
+		  case ConnectorType.INPUT:
+			  let v=new d2.Vector(this.connector.segment.pe,this.connector.segment.ps);
+			  let norm=v.normalize();			  
+			  let xx=this.connector.segment.ps.x +4*norm.x;
+			  let yy=this.connector.segment.ps.y + 4*norm.y;						 	   	
+			  
+			  let v1=v.clone();
+			  v1.rotate90CCW();
+			  norm=v1.normalize();			  
+			  let x=xx +4*norm.x;
+			  let y=yy + 4*norm.y;						 	   	
+			  this.polygon.points.push(new d2.Point(x,y));
+			  
+			  v1=v.clone();
+			  v1.rotate90CW();
+			  norm=v1.normalize();			  
+			  x=xx +4*norm.x;
+			  y=yy + 4*norm.y;						 	   	
+			  this.polygon.points.push(new d2.Point(x,y));
+			  
+			  this.polygon.points.push(this.connector.segment.ps.clone());
+		  }
 	}	
     contains(pt){
     	return this.polygon.contains(pt);
@@ -899,14 +952,14 @@ class ArrowShape{
 class CircleShape{
 	constructor(connector){
 		this.connector=connector
-		this.circle=new d2.Circle(new d2.Point(0,0),2);
+		this.circle=new d2.Circle(new d2.Point(0,0),4);
 		this.calculatePoints();
 	}
 	calculatePoints(){
-		  let v=new d2.Vector(this.connector.segment.ps,this.connector.segment.pe);
+		  let v=new d2.Vector(this.connector.segment.pe,this.connector.segment.ps);
 		  let norm=v.normalize();			  
-		  let x=this.connector.segment.pe.x +2*norm.x;
-		  let y=this.connector.segment.pe.y + 2*norm.y;				
+		  let x=this.connector.segment.ps.x +4*norm.x;
+		  let y=this.connector.segment.ps.y + 4*norm.y;				
 		 	   	
 		  this.circle.pc.set(x,y); 
 	}
@@ -965,6 +1018,9 @@ move(xoffset, yoffset) {
 } 
 rotate(rotation){	  
 	this.circle.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	   
+}
+mirror(line){
+	this.circle.mirror(line);	
 }
 calculateShape() {
     return this.circle.box;

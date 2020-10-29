@@ -32,6 +32,29 @@ app.get('/rest/boards/workspaces/CardReader/CR_v2', (req, res, next) => {
 		res.send(data);
   });
 });
+//***************CIRCUITS****************************************
+app.get('/rest/circuits/workspaces', (req, res, next) => {
+	  res.send(
+	  '<?xml version="1.0" encoding="UTF-8"?><workspace>'+
+	  '<name>CardReader</name>'+	  
+	  '<name>Demo</name>'+	 
+	  '<name>Evolex</name>'+		  
+	  '</workspace>'
+	);
+});
+app.get('/rest/circuits/workspaces/CardReader', (req, res, next) => {
+	  res.send(
+	'<?xml version="1.0" encoding="UTF-8"?><circuits>'+
+	'<name fullname="CR v1" project="CR v1">CR v1</name>'+
+	'<name fullname="CR v2" project="CR v2">CR v2</name>'+
+	'</circuits>'
+	);
+	});
+app.get('/rest/circuits/workspaces/CardReader/CR%20v1', (req, res, next) => {
+    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\workspace\\circuits\\Bluetooth\\HC-06.xml','utf8', function(err, data) {
+		res.send(data);
+  });
+});	
 //***************SYMBOLS****************************************
 app.get('/rest/symbols/libraries', (req, res, next) => {
 	  res.send(

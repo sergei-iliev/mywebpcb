@@ -1,6 +1,7 @@
 var core=require('core/core');
 var UnitMgr = require('core/unit').UnitMgr;
 var d2=require('d2/d2');
+var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').DefaultLineBendingProcessor;
 
 class ContextMenu{
 constructor(component,placeholderid){
@@ -75,7 +76,12 @@ attachEventListeners(context){
 }
 
 actionPerformed(id,context){
-	 if (id=="resumeid") {
+	let line =this.component.lineBendingProcessor.line;
+	if(id=='defaultbendid'){
+		this.component.lineBendingProcessor=new DefaultLineBendingProcessor();
+		this.component.lineBendingProcessor.initialize(line);
+	}	
+	if (id=="resumeid") {
 	        this.component.getView().setButtonGroup(core.ModeEnum.LINE_MODE);
 	        this.component.setMode(core.ModeEnum.LINE_MODE);         
 	        this.component.resumeLine(context.target,"line", {x:this.x, y:this.y,which:3});

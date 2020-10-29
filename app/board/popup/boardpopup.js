@@ -2,7 +2,7 @@ var ContextMenu = require('core/popup/contextmenu').ContextMenu;
 var core=require('core/core');
 var LineSlopBendingProcessor=require('core/line/linebendingprocessor').LineSlopBendingProcessor;
 var SlopLineBendingProcessor=require('core/line/linebendingprocessor').SlopLineBendingProcessor;
-var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').DefaultLineBendingProcessor;
+
 
 var PCBLine=require('board/shapes').PCBLine;
 var PCBTrack=require('board/shapes').PCBTrack;
@@ -110,10 +110,7 @@ actionPerformed(id,context){
 		this.component.lineBendingProcessor=new SlopLineBendingProcessor();
 		this.component.lineBendingProcessor.initialize(line);
 	}
-	if(id=='defaultbendid'){
-		this.component.lineBendingProcessor=new DefaultLineBendingProcessor();
-		this.component.lineBendingProcessor.initialize(line);
-	}	
+
    super.actionPerformed(id,context);
    
 }

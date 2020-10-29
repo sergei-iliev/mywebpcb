@@ -205,7 +205,7 @@ var ConnectorPanelBuilder=BaseBuilder.extend({
 
 	updateui:function(){		   
 		   j$('#connectornameid').val(this.target.texture.shape.text);
-		   j$('#shapeid').val(this.target.getStyle()); 
+		   j$('#styleid').val(this.target.getStyle()); 
 		   j$('#typeid').val(this.target.type);
 	},
 	render:function(){
@@ -215,7 +215,7 @@ var ConnectorPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>Label</td><td><input type='text' id='connectornameid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='width:50%;padding:7px'>Shape</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"styleid\">"+
-				this.fillComboBox([{id:0,value:'BOX',selected:true},{id:1,value:'ARROW'},{id:2,value:'CIRCLE'}])+
+				this.fillComboBox([{id:0,value:'BOX'},{id:1,value:'ARROW'},{id:2,value:'CIRCLE'}])+
 			    "</select>" +
 				"</td></tr>"+	
 				"<tr><td style='width:50%;padding:7px'>Type</td><td>" +
@@ -544,11 +544,6 @@ var SymbolPanelBuilder=BaseBuilder.extend({
 		j$(this.el).empty();
 		j$(this.el).append(
 		"<table width='100%'>"+
-		"<tr><td style='width:50%;padding:7px'>Side</td><td>" +
-		"<select class=\"form-control input-sm\" id=\"sideid\">"+
-	    this.fillComboBox([{id:'1',value:'TOP',selected:true},{id:'2',value:'BOTTOM'}])+
-	    "</select>" +
-		"</td></tr>"+
 		"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
 		"<tr><td style='width:50%;padding:7px'>Reference</td><td><input type='text' id='referenceid' value='' class='form-control input-sm\'></td></tr>"+
 		"<tr><td style='width:50%;padding:7px'>Value</td><td><input type='text' id='unitid' value='' class='form-control input-sm\'></td></tr>"+							
@@ -567,8 +562,6 @@ var CircuitPanelBuilder=BaseBuilder.extend({
         'keypress #nameid' : 'onenter',
         'keypress #widthid':'onenter',
         'keypress #heightid':'onenter',
-        'change #gridrasterid': 'onchange',
-        'change #sideid': 'onchange',
         'keypress #originxid':'onenter',
         'keypress #originyid':'onenter',
     },
@@ -592,24 +585,13 @@ var CircuitPanelBuilder=BaseBuilder.extend({
 		 }
 		 //mycanvas.focus();
 	},
-	onchange:function(event){
-		if(event.target.id=='gridrasterid'){
-			this.target.grid.setGridValue(parseFloat(j$("#gridrasterid").val()));
-			this.component.repaint();
-		}	
-		if(event.target.id=='sideid'){
-			this.target.setActiveSide(j$("#sideid").val());
-			this.component.repaint();
-		}		
-	},
 	updateui:function(){
 	   j$("#nameid").val(this.target.unitName);
-	   j$("#widthid").val(core.COORD_TO_MM( this.target.width));    
-	   j$("#heightid").val(core.COORD_TO_MM(this.target.height));
-	   j$("#gridrasterid").val(this.target.grid.getGridValue());	 
+	   j$("#widthid").val(this.target.width);    
+	   j$("#heightid").val(this.target.height);	 
 	   if(this.component.getModel().getUnit().coordinateSystem!=null){
-		     j$("#originxid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getX()));    
-		     j$("#originyid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getY()));
+		     j$("#originxid").val(utilities.roundFloat(this.component.getModel().getUnit().getCoordinateSystem().getX(),1));    
+		     j$("#originyid").val(utilities.roundFloat(this.component.getModel().getUnit().getCoordinateSystem().getY(),1));
 	   }	   
 	},
 	render:function(){
@@ -618,17 +600,7 @@ var CircuitPanelBuilder=BaseBuilder.extend({
 				"<table width='100%'>"+			
 				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+					
 				"<tr><td style='padding:7px'>Width</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='heightid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Units</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"unitsid\">"+
-			    this.fillComboBox([{id:'mm',value:'MM',selected:true},{id:'inch',value:'INCH'}])+
-			    "</select>" +
-				"</td></tr>"+
-				"<tr><td style='padding:7px'>Grid</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"gridrasterid\">"+
-			    this.fillComboBox(core.GridRaster)+
-			    "</select>" +
-				"</td></tr>"+
+				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='heightid' value='' class='form-control input-sm\'></td></tr>"+							
 				"<tr><td style='width:50%;padding:7px'>Origin X</td><td><input type='text' id='originxid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='width:50%;padding:7px'>Origin Y</td><td><input type='text' id='originyid' value='' class='form-control input-sm\'></td></tr>"+
 

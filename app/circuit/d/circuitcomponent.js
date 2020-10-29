@@ -32,8 +32,7 @@ class manager{
         var schsymbol = new SCHSymbol();
         var len=symbol.shapes.length;
  	    for(var i=0;i<len;i++){
- 	    	var shape=symbol.shapes[i];
- 	    	console.log(shape);       
+ 	    	var shape=symbol.shapes[i];      
  	    	if (shape instanceof shapes.FontLabel) {
 	            		
 	   				 if(shape.texture.tag=="unit"){
@@ -290,6 +289,9 @@ mouseDown(event){
 	            	this.getEventMgr().setEventHandle("wire", shape);
 	            }
 		    break;
+	     	case core.ModeEnum.DRAGHEAND_MODE:  
+	    		this.getEventMgr().setEventHandle("dragheand", null);
+	    	  break;
 	    	 case core.ModeEnum.BUS_MODE:
 		    		
 		            //***is this a new wire

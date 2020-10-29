@@ -70,7 +70,7 @@ Attach() {
 }
 mousePressed(event){
    if(this.isRightMouseButton(event)){           
-		this.component.popup.registerTrackPopup(this.target,event);            
+		this.component.popup.registerWirePopup(this.target,event);            
        return;
    }
    

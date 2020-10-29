@@ -6,7 +6,7 @@ var SymbolLoadView=require('symbols/views/symbolloadview');
 var CircuitMgr = require('circuit/d/circuitcomponent').CircuitMgr;
 var CircuitContainer = require('circuit/d/circuitcomponent').CircuitContainer;
 var UnitMgr = require('core/unit').UnitMgr;
-//var BoardLoadView=require('board/views/boardloadview');
+var CircuitLoadView=require('circuit/views/circuitloadview');
 //var BoardSaveView=require('board/views/boardsaveview');
 
 
@@ -81,7 +81,7 @@ var ToggleButtonView=Backbone.View.extend({
 		}
 
 		if(event.data.model.id=='loadid'){
-			 new BoardLoadView({circuitComponent:this.circuitComponent}).render();			
+			 new CircuitLoadView({circuitComponent:this.circuitComponent}).render();			
 		}
 		//set mode
 		if(event.data.model.id=='rectid'){

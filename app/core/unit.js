@@ -22,7 +22,15 @@ var UnitMgr=(function(){
                 x2 = Math.max(x2, point.x);
                 y2 = Math.max(y2, point.y);                
                 isPinnable=true;	
-            }  
+            }
+            if(typeof shape.getPinsRect==='function'){
+            	let box=shape.getPinsRect();
+                x1 = Math.min(x1, box.min.x);
+                y1 = Math.min(y1, box.min.y);
+                x2 = Math.max(x2, box.max.x);
+                y2 = Math.max(y2, box.max.y);                            	
+            	isPinnable=true;
+            }
            });
         
         if(isPinnable)
