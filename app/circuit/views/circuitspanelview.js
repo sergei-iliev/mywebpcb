@@ -10,6 +10,7 @@ var SCHJunction=require('circuit/shapes').SCHJunction;
 var SCHBusPin=require('circuit/shapes').SCHBusPin;
 var SCHWire=require('circuit/shapes').SCHWire;
 var SCHConnector=require('circuit/shapes').SCHConnector;
+var SCHNoConnector=require('circuit/shapes').SCHNoConnector;
 
 var ComponentPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
@@ -130,9 +131,7 @@ var BusPinPanelBuilder=BaseBuilder.extend({
 		BusPinPanelBuilder.__super__.initialize(component);
 		this.id="buspinpanelbuilder";  
     },	
-    events: {
-        'keypress #xid' : 'onenter',	
-        'keypress #yid' : 'onenter',               
+    events: {               
         'keypress #buspinnameid' : 'onenter',
         'change #alignmentid': 'onchange',        
     },
@@ -153,7 +152,7 @@ var BusPinPanelBuilder=BaseBuilder.extend({
     },
 
 	updateui:function(){
-		   var texture=this.target.name;
+		   var texture=this.target.texture;
 		   j$("#buspinnameid").val(texture==null?"":texture.shape.text);
 		   j$('#alignmentid').val(this.target.getTextureByTag("name").getAlignment()); 
 	},
@@ -161,8 +160,6 @@ var BusPinPanelBuilder=BaseBuilder.extend({
 		j$(this.el).empty();
 		j$(this.el).append(
 				"<table width='100%'>"+			
-				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Bus Pin Name</td><td><input type='text' id='buspinnameid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='width:50%;padding:7px'>Text Alignment</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"alignmentid\">"+
@@ -509,7 +506,9 @@ var SymbolPanelBuilder=BaseBuilder.extend({
     events: {
         'keypress #nameid' : 'onenter',   
         'keypress #unitid' : 'onenter',	
-        'keypress #referenceid' : 'onenter',	        
+        'keypress #referenceid' : 'onenter',
+        'change #reference-alignmentid': 'onchange',
+        'change #unit-alignmentid': 'onchange',
     },
 	onenter:function(event){
 		 if(event.keyCode != 13){
@@ -523,22 +522,27 @@ var SymbolPanelBuilder=BaseBuilder.extend({
 		   var texture=this.target.reference;
 		   texture.setText(j$("#referenceid").val());
 		 }
-		 if(event.target.id=='valueid'){
-		   var texture=this.target.value;
-		   texture.setText(j$("#valueid").val());
+		 if(event.target.id=='unitid'){
+		   var texture=this.target.unit;
+		   texture.setText(j$("#unitid").val());
 		 }
 		 this.component.repaint();   
 	},   
 	onchange:function(event){
-		if(event.target.id=='sideid'){
-			this.target.setSide(j$("#sideid").val());
-			this.component.repaint();
-		}		      
+        if(event.target.id=='reference-alignmentid'){
+        	this.target.getTextureByTag("reference").setAlignment(parseInt(j$("#reference-alignmentid").val()));        	
+        }
+        if(event.target.id=='unit-alignmentid'){
+        	this.target.getTextureByTag("unit").setAlignment(parseInt(j$("#unit-alignmentid").val()));        	
+        }        
+        this.component.repaint(); 
 	},	
 	updateui:function(){
 		   j$("#nameid").val(this.target.displayName);
 		   j$("#referenceid").val(this.target.getTextureByTag("reference").shape.text);
 		   j$("#unitid").val(this.target.getTextureByTag("unit").shape.text);
+		   j$('#reference-alignmentid').val(this.target.getTextureByTag("reference").getAlignment());
+		   j$('#unit-alignmentid').val(this.target.getTextureByTag("unit").getAlignment());
 	},
 	render:function(){	
 		j$(this.el).empty();
@@ -546,7 +550,19 @@ var SymbolPanelBuilder=BaseBuilder.extend({
 		"<table width='100%'>"+
 		"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
 		"<tr><td style='width:50%;padding:7px'>Reference</td><td><input type='text' id='referenceid' value='' class='form-control input-sm\'></td></tr>"+
+		"<tr><td style='width:50%;padding:7px'>Text Alignment</td><td>" +
+		"<select class=\"form-control input-sm\" id=\"reference-alignmentid\">"+
+		this.fillComboBox([{id:0,value:'RIGHT',selected:true},{id:1,value:'TOP',selected:true},{id:2,value:'LEFT',selected:true},{id:3,value:'BOTTOM'}])+
+	    "</select>" +
+		"</td></tr>"+											
+		
 		"<tr><td style='width:50%;padding:7px'>Value</td><td><input type='text' id='unitid' value='' class='form-control input-sm\'></td></tr>"+							
+		"<tr><td style='width:50%;padding:7px'>Text Alignment</td><td>" +
+		"<select class=\"form-control input-sm\" id=\"unit-alignmentid\">"+
+		this.fillComboBox([{id:0,value:'RIGHT',selected:true},{id:1,value:'TOP',selected:true},{id:2,value:'LEFT',selected:true},{id:3,value:'BOTTOM'}])+
+	    "</select>" +
+		"</td></tr>"+											
+
 		"</table>");
 			
 		return this;
@@ -857,7 +873,7 @@ var CircuitsInspector=Backbone.View.extend({
 				this.render();
 		    }
 		}
-		if(event.target instanceof SCHJunction){			
+		if(event.target instanceof SCHJunction || event.target instanceof SCHNoConnector){			
 			if(this.panel.id!='circuitpanelbuilder'){
 				this.panel.attributes.remove();
 				this.panel=this.collection.get('circuitpanelbuilder');
@@ -887,22 +903,7 @@ var CircuitsInspector=Backbone.View.extend({
 				this.render();
 		    }
 		}		
-//		if(event.target instanceof PCBVia){
-//			if(this.panel.id!='viapanelbuilder'){
-//				this.panel.attributes.remove();
-//				this.panel=this.collection.get('viapanelbuilder');
-//				this.panel.attributes.delegateEvents();
-//				this.render();
-//		    }
-//		}
-//		if(event.target instanceof PCBHole){
-//			if(this.panel.id!='holepanelbuilder'){
-//				this.panel.attributes.remove();
-//				this.panel=this.collection.get('holepanelbuilder');
-//				this.panel.attributes.delegateEvents();
-//				this.render();
-//		    }
-//		}		
+		
 		if((event.target instanceof SCHBusPin)){
 			if(this.panel.id!='buspinpanelbuilder'){
 				this.panel.attributes.remove();

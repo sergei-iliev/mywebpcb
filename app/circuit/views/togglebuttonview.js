@@ -96,6 +96,9 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='connectorid'){
 		   this.circuitComponent.setMode(core.ModeEnum.CONNECTOR_MODE);
 		}
+		if(event.data.model.id=='noconnectorid'){
+		   this.circuitComponent.setMode(core.ModeEnum.NOCONNECTOR_MODE);
+		}		
 //		if(event.data.model.id=='anchorid'){
 //			event.data.model.setActive(!event.data.model.isActive());  
 //			this.circuitComponent.setParameter("snaptogrid",event.data.model.isActive());

@@ -82,6 +82,7 @@ var ModeEnum=(function(){
 		   WIRE_MODE:22,
 		   BUS_MODE:23,
 		   BUSPIN_MODE:24,
+		   NOCONNECTOR_MODE:25,
 	}
 })();
 

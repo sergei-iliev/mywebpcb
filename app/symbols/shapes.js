@@ -1223,8 +1223,8 @@ paint(g2, viewportWindow, scale,layersmask) {
 	  	this.number.fillColor = "gray";
 	} else {
 		g2.strokeStyle = this.fillColor;
-	  	this.name.fillColor = 'black';
-		this.number.fillColor = 'black';
+	  	this.name.fillColor = this.fillColor;
+		this.number.fillColor =this.fillColor;
 	}
 	
 	switch(this.style){

@@ -43,7 +43,12 @@ class CircuitShapeFactory{
 				var symbol = new SCHFontLabel();
 				symbol.fromXML(data);
 				return symbol;
-			}	
+			}			
+			if (data.tagName.toLowerCase() == 'noconnector') {
+				var symbol = new SCHNoConnector();
+				symbol.fromXML(data);
+				return symbol;
+			}						
 			if (data.tagName.toLowerCase() == 'connector') {
 				var symbol = new SCHConnector();
 				symbol.fromXML(data);
@@ -145,6 +150,15 @@ calculateShape() {
     r.setRect(x1, y1, x2 - x1, y2 - y1);
     return r;
 }
+setSelected(selected) {        
+    super.setSelected(selected);
+    
+    this.shapes.forEach(shape=>{   
+      shape.fillColor=(selected?"blue":"black");
+    });
+    this.unit.setSelected(selected);
+    this.reference.setSelected(selected);        
+}
 getClickedTexture(x,y) {
     if(this.reference.isClicked(x, y))
         return this.reference;
@@ -215,28 +229,10 @@ paint(g2, viewportWindow, scale,layersmask) {
 	for(i=0;i<len;i++){
 		  this.shapes[i].paint(g2,viewportWindow,scale,layersmask);  
 	}    
-	
-    
-    if(this.isSelected()){
-    	g2.globalCompositeOperation = 'lighter';
-    	rect.move(-viewportWindow.x,- viewportWindow.y);
-    	g2.fillStyle = "blue";
-        g2._fill=true;
-        rect.paint(g2);
-        g2._fill=false;
-        g2.globalCompositeOperation = 'source-over';
-        
-        this.unit.fillColor = "blue";
-        this.unit.paint(g2, viewportWindow, scale, layersmask);
-        this.reference.fillColor = "blue";
-        this.reference.paint(g2, viewportWindow, scale, layersmask);
-    }else{
-        this.unit.fillColor = "black";
-        this.unit.paint(g2, viewportWindow, scale, layersmask);
-        this.reference.fillColor = "black";
-        this.reference.paint(g2, viewportWindow, scale, layersmask);
+    this.unit.paint(g2, viewportWindow, scale, layersmask);
+    this.reference.paint(g2, viewportWindow, scale, layersmask);
     	
-    }
+    
  }
 fromXML(data){
 	this.type=SymbolType.parse(j$(data).attr("type"));
@@ -380,6 +376,19 @@ class SCHBusPin extends AbstractLine{
 		copy.polyline=this.polyline.clone();
 		return copy;
 	}
+    
+    alignToGrid(isRequired) {
+       let point=this.polyline.points[1]; 
+       let p=this.owningUnit.grid.positionOnGrid(point.x,point.y);        
+        
+       this.texture.move(p.x-point.x,p.y-point.y);  
+       point.set(p);
+        
+       point=this.polyline.points[0]; 
+       p=this.owningUnit.grid.positionOnGrid(point.x,point.y);        
+       point.set(p);      
+             
+    }	
 	alignResizingPointToGrid(targetPoint) {
 	    this.owningUnit.grid.snapToGrid(targetPoint);         
 	}	
@@ -446,9 +455,6 @@ class SCHBusPin extends AbstractLine{
 			return;
 		}
 
-		
-		
-
 		g2.lineWidth = this.thickness * scale.getScale();
 
 		if (this.selection)
@@ -462,20 +468,6 @@ class SCHBusPin extends AbstractLine{
 		a.paint(g2);
 		
 		
-		// draw floating point
-		if (this.isFloating()) {
-				let p = this.floatingMidPoint.clone();
-				p.scale(scale.getScale());
-				p.move( - viewportWindow.x, - viewportWindow.y);
-				g2.lineTo(p.x, p.y);									
-				g2.stroke();							    		
-			
-				p = this.floatingEndPoint.clone();
-				p.scale(scale.getScale());
-				p.move( - viewportWindow.x, - viewportWindow.y);
-				g2.lineTo(p.x, p.y);									
-				g2.stroke();					
-		}
 		
         this.texture.paint(g2, viewportWindow, scale);
 		  
@@ -638,6 +630,11 @@ class SCHConnector extends Shape{
 	   this.texture.move(xoff,yoff);
 	}
 	paint(g2, viewportWindow, scale,layersmask) { 
+		var rect = this.segment.box;
+		rect.scale(scale.getScale());		
+		if (!rect.intersects(viewportWindow)) {
+			return;
+		}
    	  	if(this.isSelected()){
 	        g2.strokeStyle = "blue";   	        
    	           	        
@@ -988,10 +985,7 @@ class CircleShape{
 	        
 	    }
    	  	c.paint(g2);
-		
-
-		
-						
+				
 	}
 }
 class SCHJunction extends Shape{
@@ -1033,9 +1027,9 @@ paint(g2, viewportWindow, scale,layersmask) {
   	  }		
   	  g2.lineWidth=(scale.getScale())*this.thickness;
   	  if (this.selection) {
-  		 g2.fillStyle = "gray";
+  		 g2.fillStyle = "blue";
   	  } else {
-		 g2.fillStyle = "blue";
+		 g2.fillStyle = "black";
   	  }
 
     let c=this.circle.clone();
@@ -1051,6 +1045,69 @@ fromXML(data){
 	this.circle.pc.set(parseFloat(tokens[0]),parseFloat(tokens[1]));
 }
 }
+class SCHNoConnector extends Shape{
+	constructor(){
+		  super(0, 0, 0, 0, 1,core.Layer.LAYER_ALL);	
+		  this.displayName = "NoConnector";	
+		  this.selectionRectWidth=3;	
+		  this.point=new d2.Point(0,0);
+			
+		}
+clone(){
+		   	var copy = new SCHNoConnector();
+		   	copy.point=this.point.clone();		   	 	         	        
+		    return copy;
+		}		
+alignToGrid(isRequired) {
+    this.owningUnit.getGrid().snapToGrid(this.point);         
+    return null;
+}
+calculateShape(){
+    return d2.Box.fromRect(this.point.x - this.selectionRectWidth, this.point.y - this.selectionRectWidth, 2 * this.selectionRectWidth,
+            2 * this.selectionRectWidth);
+}		
+move(xoffset,yoffset){
+	this.point.move(xoffset,yoffset);
+}
+rotate(rotation){
+	this.point.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	   
+}
+mirror(line){
+	this.point.mirror(line);	
+}
+paint(g2, viewportWindow, scale,layersmask) {  
+	  var rect = this.getBoundingShape();
+	  rect.scale(scale.getScale());
+	  if (!rect.intersects(viewportWindow)) {
+		  return;
+	  }	  
+	  
+	  g2.lineWidth=(scale.getScale())*this.thickness;
+ 	  	if(this.isSelected()){
+	        g2.strokeStyle = "blue";   	        
+   	           	        
+   	  	}else{
+	        g2.strokeStyle = "black";	        
+	    }
+	  let line=new d2.Segment(this.point.x-this.selectionRectWidth, this.point.y-this.selectionRectWidth,this.point.x+this.selectionRectWidth, this.point.y+this.selectionRectWidth);	  	 
+	  line.scale(scale.getScale());
+	  line.move(-viewportWindow.x,- viewportWindow.y);  
+	  line.paint(g2);  
+	  
+	  line.set(this.point.x-this.selectionRectWidth, this.point.y+this.selectionRectWidth,this.point.x+this.selectionRectWidth, this.point.y-this.selectionRectWidth);	  	 
+	  line.scale(scale.getScale());
+	  line.move(-viewportWindow.x,- viewportWindow.y);  
+	  line.paint(g2);  
+	  
+	  
+}
+fromXML(data){
+	let x=parseFloat(j$(data).attr("x"));
+	let y=parseFloat(j$(data).attr("y"));			
+	this.point.set(x,y);
+}
+	
+}
 module.exports ={
 		SCHSymbol,
 		SCHWire,
@@ -1059,6 +1116,7 @@ module.exports ={
 		SCHFontLabel,		
 		SCHJunction,
 		SCHConnector,
+		SCHNoConnector,
 		CircuitShapeFactory,
 		
 }

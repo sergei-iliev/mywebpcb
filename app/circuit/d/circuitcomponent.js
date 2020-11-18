@@ -18,6 +18,7 @@ var SCHFontLabel=require('circuit/shapes').SCHFontLabel;
 var SCHJunction=require('circuit/shapes').SCHJunction;
 var SCHBusPin=require('circuit/shapes').SCHBusPin;
 var SCHConnector=require('circuit/shapes').SCHConnector;
+var SCHNoConnector=require('circuit/shapes').SCHNoConnector;
 var CircuitShapeFactory=require('circuit/shapes').CircuitShapeFactory;
 var HorizontalToVerticalProcessor=require('core/line/linebendingprocessor').HorizontalToVerticalProcessor;
 var VerticalToHorizontalProcessor=require('core/line/linebendingprocessor').VerticalToHorizontalProcessor;
@@ -142,6 +143,13 @@ class Circuit extends Unit{
 	   			that.add(shape);
 	   		} 	   	   
 	   	   	  
+	   	});	
+	   	j$(data).find('noconnectors').children().each(function(){
+	   		var shape=that.shapeFactory.createShape(this); 
+	   		if(shape!=null){
+	   			that.add(shape);
+	   		} 	   	   
+	   	   	  
 	   	});		   	
 	}	
 	
@@ -197,6 +205,11 @@ class CircuitComponent extends UnitComponent{
 	        break;
 	      case  core.ModeEnum.CONNECTOR_MODE:
 	          shape=new SCHConnector();
+	          this.setContainerCursor(shape);               
+	          this.getEventMgr().setEventHandle("cursor",shape); 
+	        break;	    
+	      case  core.ModeEnum.NOCONNECTOR_MODE:
+	          shape=new SCHNoConnector();
 	          this.setContainerCursor(shape);               
 	          this.getEventMgr().setEventHandle("cursor",shape); 
 	        break;	        
