@@ -90,6 +90,15 @@ class Circuit extends Unit{
 		 copy.silent=false;
 		 return copy;		
 	}
+	format(){    
+ 	   var xml="<circuit width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
+	   xml+="<name>"+this.unitName+"</name>\r\n";	   	   	   
+	   this.shapes.forEach(s=>{
+		  xml+=s.toXML()+"\r\n";
+	   });	    
+	   xml+="</circuit>";
+	   return xml;        
+	}
 	parse(data){
 		this.unitName=j$(data).find("name").first().text();
 
@@ -171,6 +180,18 @@ class CircuitContainer extends UnitContainer{
 	          that.add(circuit);
 	          circuit.parse(this);
 	    }),that);	   	
+	}
+	format() {
+	    var xml="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n"; 
+	    xml+="<circuits identity=\"Circuit\" version=\""+utilities.version.CIRCUIT_VERSION+"\">\r\n";      
+		let units=this.unitsmap.values();
+		for(let i=0;i<this.unitsmap.size;i++){
+	      let unit=units.next().value;
+	      xml+=unit.format();
+		  xml+="\r\n";
+		}    	    	
+	    xml+="</circuits>";
+	    return xml;
 	}	
 }
 class CircuitComponent extends UnitComponent{

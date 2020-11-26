@@ -518,6 +518,8 @@ toXML() {
     return "<ellipse x=\""+utilities.roundFloat(this.ellipse.pc.x,1)+"\" y=\""+utilities.roundFloat(this.ellipse.pc.y,1)+"\" width=\""+utilities.roundFloat(this.ellipse.w,1)+"\" height=\""+utilities.roundFloat(this.ellipse.h,1)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
 }
 }
+
+
 class RoundRect extends Shape{
 	constructor(x, y, width, height,arc,thickness) {
 		super(x, y, width, height, thickness,core.Layer.LAYER_ALL);
@@ -603,28 +605,41 @@ class RoundRect extends Shape{
 		g2.lineCap = 'round';
 		g2.lineJoin = 'round';
 		
+
+		let r=this.roundRect.clone();	
+		r.scale(scale.getScale());
+        r.move(-viewportWindow.x,- viewportWindow.y);
+		
 		if (this.fill == core.Fill.EMPTY) {
-			g2.globalCompositeOperation = 'lighter';
 			if (this.selection) {
 				g2.strokeStyle = "gray";
 			} else {
 				g2.strokeStyle = this.fillColor;
 			}
-			g2.globalCompositeOperation = 'source-over';
-		} else {
+			r.paint(g2);
+		}else if(this.fill == core.Fill.GRADIENT){ 
+		  g2._fill=true;		  
+		  var grd = g2.createLinearGradient(r.box.x,r.box.y, r.box.max.x,r.box.max.y);
+		  grd.addColorStop(0, (this.selection?"gray":this.fillColor));
+		  grd.addColorStop(1, "white");
+		  g2.fillStyle = grd;
+		  r.paint(g2);
+		  g2._fill=false;
+          g2.strokeStyle=(this.selection?"gray":this.fillColor);
+          r.paint(g2);
+		}else {
 			g2._fill=true;
 			if (this.selection) {
 				g2.fillStyle = "gray";
 			} else {
 				g2.fillStyle = this.fillColor;
 			}			
-		}
-		let r=this.roundRect.clone();	
-		r.scale(scale.getScale());
-        r.move(-viewportWindow.x,- viewportWindow.y);
-		r.paint(g2);
+			r.paint(g2);
+			g2._fill=false;
+		}        
+        
 		
-		g2._fill=false;
+		
 		
 		
 

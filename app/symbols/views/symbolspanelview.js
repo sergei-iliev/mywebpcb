@@ -741,7 +741,7 @@ var RectPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Fill</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"fillid\">"+
-				this.fillComboBox([{id:1,value:'EMPTY',selected:true},{id:2,value:'FILLED'}])+
+				this.fillComboBox([{id:1,value:'EMPTY',selected:true},{id:2,value:'FILLED'},{id:3,value:'GRADIENT'}])+
 			    "</select>" +
 				"</td></tr>"+
 				//"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+

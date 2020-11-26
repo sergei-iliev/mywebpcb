@@ -7,7 +7,7 @@ var CircuitMgr = require('circuit/d/circuitcomponent').CircuitMgr;
 var CircuitContainer = require('circuit/d/circuitcomponent').CircuitContainer;
 var UnitMgr = require('core/unit').UnitMgr;
 var CircuitLoadView=require('circuit/views/circuitloadview');
-//var BoardSaveView=require('board/views/boardsaveview');
+var CircuitSaveView=require('circuit/views/circuitsaveview');
 
 
 
@@ -77,7 +77,7 @@ var ToggleButtonView=Backbone.View.extend({
             this.circuitComponent.getModel().fireUnitEvent({target:this.circuitComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 	
 		}
 		if(event.data.model.id=='saveid'){
-			new BoardSaveView({model:this.circuitComponent.model}).render();			
+			new CircuitSaveView({model:this.circuitComponent.model}).render();			
 		}
 
 		if(event.data.model.id=='loadid'){
