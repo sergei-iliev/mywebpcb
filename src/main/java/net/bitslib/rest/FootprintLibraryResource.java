@@ -41,7 +41,7 @@ import net.bitslib.repository.FootprintRepository;
 
 @RestController
 @RequestMapping("/rest/footprints")
-public class FootprintLibraryResource {
+public class FootprintLibraryResource extends AbstractResource{
 	private static final Logger logger = Logger.getLogger(FootprintLibraryResource.class.getName());
 	
 	@Autowired
@@ -57,7 +57,7 @@ public class FootprintLibraryResource {
 	}
 	
 	@RequestMapping(value = "/libraries/{libraryName}/categories", method = RequestMethod.GET,produces={MediaType.APPLICATION_XML_VALUE},headers = "Accept=application/xml")
-	public ResponseEntity<String> getFootprints(@PathVariable("libraryName") String libraryName){
+	public ResponseEntity<String> getCategories(@PathVariable("libraryName") String libraryName){
 		FootprintLibrary library = footprintLibraryRepository.getLibraryByName(libraryName);
 		if(library==null){
 			return ResponseEntity.badRequest().body("No such library name");
@@ -85,7 +85,7 @@ public class FootprintLibraryResource {
 		FileObject xml=footprintRepository.getFileObjectById(footprint.getXml());
 		String content=xml.toString();
 		
-		content = addNode(content, "library", libraryName);
+		content = this.addNode(content, "library", libraryName);
 		content = addNode(content,
 						"category",categoryName.equalsIgnoreCase("null") ? null: categoryName);
 		content = addNode(content, "filename", footprintName);
@@ -152,45 +152,5 @@ public class FootprintLibraryResource {
 		}
 	    
 	}
-	
-	/*
-	 * Add xml node to content root node
-	 */
-	public static String addNode(String content, String nodeName, String nodeValue) {
-		StreamResult result = null;
-		try {
-			DocumentBuilderFactory docFactory = DocumentBuilderFactory
-					.newInstance();
-			DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-			InputSource is = new InputSource();
-			is.setCharacterStream(new StringReader(content));
-			Document doc = docBuilder.parse(is);
-
-			Node root = doc.getDocumentElement();
-
-			Node newElement = doc.createElement(nodeName);
-			newElement.setTextContent(nodeValue);
-			root.appendChild(newElement);
-
-			Transformer transformer = TransformerFactory.newInstance()
-					.newTransformer();
-			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-
-			result = new StreamResult(new StringWriter());
-			DOMSource source = new DOMSource(doc);
-			transformer.transform(source, result);
-		} catch (ParserConfigurationException pce) {
-			throw new IllegalStateException(pce);
-		} catch (SAXException se) {
-			throw new IllegalStateException(se);
-		} catch (IOException ioe) {
-			throw new IllegalStateException(ioe);
-		} catch (TransformerConfigurationException tce) {
-			throw new IllegalStateException(tce);
-		} catch (TransformerException te) {
-			throw new IllegalStateException(te);
-		}
-
-		return result.getWriter().toString();
-	}	
+		
 }

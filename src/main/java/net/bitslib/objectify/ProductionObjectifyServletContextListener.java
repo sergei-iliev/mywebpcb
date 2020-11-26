@@ -26,10 +26,10 @@ public class ProductionObjectifyServletContextListener implements ServletContext
 
         
 /*PRODUCTION*/		
-//		 ObjectifyService.init(new ObjectifyFactory(
-//		            DatastoreOptions.getDefaultInstance().getService(),
-//		            new AppEngineMemcacheClientService()
-//		        ));
+		 ObjectifyService.init(new ObjectifyFactory(
+		            DatastoreOptions.getDefaultInstance().getService(),
+		            new AppEngineMemcacheClientService()
+		        ));
 
        	 ObjectifyService.init();
 

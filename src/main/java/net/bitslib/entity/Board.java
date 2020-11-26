@@ -39,6 +39,7 @@ public class Board implements Serializable {
 	private String content;
 
 	public Board(Key<BoardWorkspace> workspace) {
+		this();
 		this.workspace = workspace;
 	}
 

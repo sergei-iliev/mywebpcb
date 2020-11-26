@@ -96,7 +96,7 @@
 	<dependency>
     	<groupId>com.googlecode.objectify</groupId>
     	<artifactId>objectify</artifactId>
-    	<version>6.0</version>
+    	<version>6.0.7</version>
 	</dependency>
 	<dependency>
     <groupId>com.google.guava</groupId>
@@ -150,6 +150,12 @@
                                     <include name="board.js" />
                                 </fileset>
                             </copy> 
+                            <copy todir="${basedir}/src/main/webapp/apps/circuit" overwrite="true" flatten="true">
+                                <fileset dir="../mywebpcb-v2/public/circuit" >
+                                    <different targetdir="${basedir}/src/main/webapp/apps/circuit"/>
+                                    <include name="circuit.js" />
+                                </fileset>
+                            </copy>                             
                             <copy todir="${basedir}/src/main/webapp/apps/symbols" overwrite="true" flatten="true">
                                 <fileset dir="../mywebpcb-v2/public/symbols" >
                                     <different targetdir="${basedir}/src/main/webapp/apps/symbols"/>

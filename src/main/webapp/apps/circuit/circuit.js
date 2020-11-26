@@ -147,34 +147,35 @@ var __makeRelativeRequire = function(require, mappings, pref) {
     return require(name);
   }
 };
-require.register("board/board.js", function(exports, require, module) {
+require.register("circuit/circuit.js", function(exports, require, module) {
 var core = require('core/core');
 var events = require('core/events');
+var Circuit=require('circuit/d/circuitcomponent').Circuit;
 var togglebutton=require('core/models/togglebutton');
-var ToggleButtonView=require('board/views/togglebuttonview');
+var ToggleButtonView=require('circuit/views/togglebuttonview');
 var mywebpcb=require('core/core').mywebpcb;
-var BoardsPanelView=require('board/views/boardspanelview').BoardsPanelView;
-var BoardComponent=require('board/d/boardcomponent').BoardComponent;
-var Board=require('board/d/boardcomponent').Board;
+var CircuitsPanelView=require('circuit/views/circuitspanelview').CircuitsPanelView;
+var CircuitComponent=require('circuit/d/circuitcomponent').CircuitComponent;
+
 
 (function($){
-	
 	
 	j$=jQuery.noConflict();
 	
 	j$( document ).ready(function() {
 		    _.extend(mywebpcb, Backbone.Events);
-			
-		    //prevent context menu
+		    
+			//prevent context menu
 			document.body.oncontextmenu = (e) => {e.preventDefault()};
-			
-		    //enable tooltips
+		    
+			//enable tooltips
 			j$('[data-toggle="tooltip"]').tooltip();
+
+			var sc=new CircuitComponent('jqxHorizontalScrollBar','jqxVerticalScrollBar','mycanvas','popup-menu');
 			
-			var bc=new BoardComponent('jqxScrollBar','jqxVerticalScrollBar','mycanvas','popup-menu');
 			//create ui
 			var toggleButtonCollection=new togglebutton.ToggleButtonCollection(
-			[new togglebutton.ToggleButtonModel({id:'newboardid'}),
+			[new togglebutton.ToggleButtonModel({id:'mainmenuid'}),
 			 new togglebutton.ToggleButtonModel({id:'printfootrpintid'}),
 			 new togglebutton.ToggleButtonModel({id:'saveid'}),
 			 new togglebutton.ToggleButtonModel({id:'loadid'}),
@@ -184,168 +185,163 @@ var Board=require('board/d/boardcomponent').Board;
 			 new togglebutton.ToggleButtonModel({id:'rotaterightid'}),
 			 new togglebutton.ToggleButtonModel({id:'grabid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'tocenterid'}),
-			 new togglebutton.ToggleButtonModel({id:'layerid'}),
 			 new togglebutton.ToggleButtonModel({active:true,id:'selectionid',group:'lefttogglegroup'}),
-			 new togglebutton.ToggleButtonModel({id:'loadfootprintid'}),
-			 new togglebutton.ToggleButtonModel({id:'ellipseid',group:'lefttogglegroup'}),
-			 new togglebutton.ToggleButtonModel({id:'arcid',group:'lefttogglegroup'}),
-			 new togglebutton.ToggleButtonModel({id:'lineid',group:'lefttogglegroup'}),
-			 new togglebutton.ToggleButtonModel({id:'rectid',group:'lefttogglegroup'}),
-			 new togglebutton.ToggleButtonModel({id:'solidregionid',group:'lefttogglegroup'}),
-			 new togglebutton.ToggleButtonModel({id:'trackid',group:'lefttogglegroup'}),
-			 new togglebutton.ToggleButtonModel({id:'holeid',group:'lefttogglegroup'}),
-			 new togglebutton.ToggleButtonModel({id:'viaid',group:'lefttogglegroup'}),
+			 new togglebutton.ToggleButtonModel({id:'loadsymbolid'}),
+			 new togglebutton.ToggleButtonModel({id:'connectorid',group:'lefttogglegroup'}),
+			 new togglebutton.ToggleButtonModel({id:'noconnectorid',group:'lefttogglegroup'}),
+			 new togglebutton.ToggleButtonModel({id:'wireid',group:'lefttogglegroup'}),
+			 new togglebutton.ToggleButtonModel({id:'busid',group:'lefttogglegroup'}),
+			 new togglebutton.ToggleButtonModel({id:'buspinid',group:'lefttogglegroup'}),
+			 new togglebutton.ToggleButtonModel({id:'pinid',group:'lefttogglegroup'}),
+			 new togglebutton.ToggleButtonModel({id:'arrowid',group:'lefttogglegroup'}),
+			 new togglebutton.ToggleButtonModel({id:'junctionid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'labelid',group:'lefttogglegroup'}),
-			 new togglebutton.ToggleButtonModel({id:'copperareaid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'anchorid'}),
 			 new togglebutton.ToggleButtonModel({id:'originid'}),
 			 new togglebutton.ToggleButtonModel({id:'measureid',group:'lefttogglegroup'})
-			 ]);
-		
-			 var view=new ToggleButtonView({collection:toggleButtonCollection,boardComponent:bc});
-			 bc.setView(view);
-			 //creat tree			 			 
+			]
+			);
+			
+			 var view=new ToggleButtonView({collection:toggleButtonCollection,circuitComponent:sc});
+			 sc.setView(view);
+	         
+			 //creat tree			 
 			 j$('#jqxTree').jqxTree({ height: '250px', width: '100%'});
-			 j$('#jqxTree').css('visibility', 'visible');
-			    
-			 var boardsPanel=new BoardsPanelView({boardComponent:bc,name:'jqxTree',height: '250px', width: '170px'});
-			     boardsPanel.render();
-				//***add footprint
-			 bc.getModel().add(new Board(core.MM_TO_COORD(100),core.MM_TO_COORD(50)));
-			 bc.getModel().setActiveUnit(0);
-			 bc.getModel().fireUnitEvent({target:bc.getModel().getUnit(),type:events.Event.SELECT_UNIT});
 				
-			 bc.componentResized();
-			 bc.repaint();
-			 
-			//init footprint load dialog
-				j$('#FootprintLoadDialog').jqxWindow({
+			 var circuitsPanel=new CircuitsPanelView({circuitComponent:sc,name:'jqxTree'});
+			 circuitsPanel.render();
+				//***add footprint
+			 sc.getModel().add(new Circuit(1200,800));
+			 sc.getModel().setActiveUnit(0);
+			 sc.getModel().fireUnitEvent({target:sc.getModel().getUnit(),type:events.Event.SELECT_UNIT});
+				
+			 sc.componentResized();
+			 sc.repaint();
+				//init symbol load dialog
+				j$('#SymbolLoadDialog').jqxWindow({
 				    resizable: false,
 				    position: 'center',
 		            width: 520,
 		            height: 400,
 		            autoOpen:false
-             });
-			//init board load dialog
-			 j$('#BoardLoadDialog').jqxWindow({
+				});
+				
+			//init load dialog
+				j$('#CircuitLoadDialog').jqxWindow({
 				    resizable: false,
 				    position: 'center',
 		            width: 520,
 		            height: 400,
 		            autoOpen:false
-             });
-			  //init save dialog
-			 j$('#BoardSaveDialog').jqxWindow({
+                });				
+			//init save dialog
+				j$('#CircuitSaveDialog').jqxWindow({
 				    resizable: false,
 				    position: 'center',
 		            width: 350,
 		            height: 270,
 		            autoOpen:false
-             });	
-			   //load demo board
-		      //loadDemo(bc);
-});	
-loadDemo=function(bc){
+                });	
+		   //load demo footprint
+			    	//loadDemo(fc);
+	});	
+//	loadDemo=function(fc){
+//		
+//	    j$.ajax({
+//	        type: 'GET',
+//	        contentType: 'application/xml',
+//	        url: 'demo/pads.xml',
+//	        dataType: "xml",
+//	        beforeSend:function(){
+//		          j$('#mywebpadsid').block({message:'<h5>Loading...</h5>'});	
+//		    },
+//	        success: function(data, textStatus, jqXHR){
+//
+//	      //****load it    	
+//	      		  fc.Clear();
+//	      		  fc.getModel().parse(data);
+//	      		  fc.getModel().setActiveUnit(0);
+//	      		  fc.componentResized();
+//	                //position on center
+//	              var rect=fc.getModel().getUnit().getBoundingRect();
+//	              fc.setScrollPosition(rect.center.x,rect.center.y);
+//	              fc.getModel().fireUnitEvent({target:fc.getModel().getUnit(),type: events.Event.SELECT_UNIT});
+//	      		  fc.repaint();
+//	      		  //set button group
+//	      		  fc.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);	        
+//	        },
+//	        
+//	        error: function(jqXHR, textStatus, errorThrown){
+//	            	alert(errorThrown+":"+jqXHR.responseText);
+//	        },
+//	        complete:function(jqXHR, textStatus){
+//	        	j$('#mywebpadsid').unblock();
+//	        }	        
+//	    });	
+//	}
 	
- j$.ajax({
-     type: 'GET',
-     contentType: 'application/xml',
-     url: 'demo/board.xml',
-     dataType: "xml",
-     beforeSend:function(){
-	          j$('#mywebboardid').block({message:'<h5>Loading...</h5>'});	
-	    },
-     success: function(data, textStatus, jqXHR){
-
-   //****load it    	
-   		  bc.clear();
-   		  bc.getModel().parse(data);
-   		  bc.getModel().setActiveUnit(0);
-   		  bc.componentResized();
-             //position on center
-           var rect=bc.getModel().getUnit().getBoundingRect();
-           bc.setScrollPosition(rect.center.x,rect.center.y);
-           bc.getModel().fireUnitEvent({target:bc.getModel().getUnit(),type: events.Event.SELECT_UNIT});
-   		   bc.repaint();
-   		  //set button group
-   		   bc.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);	        
-     },
-     
-     error: function(jqXHR, textStatus, errorThrown){
-         	alert(errorThrown+":"+jqXHR.responseText);
-     },
-     complete:function(jqXHR, textStatus){
-     	j$('#mywebboardid').unblock();
-     }	        
- });	
-}
+	
 })(jQuery);
 });
 
-require.register("board/d/boardcomponent.js", function(exports, require, module) {
+require.register("circuit/d/circuitcomponent.js", function(exports, require, module) {
 var Unit = require('core/unit').Unit;
 var UnitContainer = require('core/unit').UnitContainer;
 var UnitComponent = require('core/unit').UnitComponent;
 var UnitMgr = require('core/unit').UnitMgr;
+var CircuitEventMgr = require('circuit/events').CircuitEventMgr;
 var mywebpcb=require('core/core').mywebpcb;
 var core = require('core/core');
 var utilities = require('core/utilities');
 var events=require('core/events');
-var BoardShapeFactory=require('board/shapes').BoardShapeFactory;
-var BoardEventMgr = require('board/events').BoardEventMgr;
-var CompositeLayer = require('core/core').CompositeLayer;
-var BoardContextMenu=require('board/popup/boardpopup').BoardContextMenu;
-var PCBFootprint=require('board/shapes').PCBFootprint;
-var PCBLabel=require('board/shapes').PCBLabel;
-var PCBCircle=require('board/shapes').PCBCircle;
-var PCBArc=require('board/shapes').PCBArc;
-var PCBVia=require('board/shapes').PCBVia;
-var PCBHole=require('board/shapes').PCBHole;
-var PCBLine=require('board/shapes').PCBLine;
-var PCBRoundRect=require('board/shapes').PCBRoundRect;
-var PCBCopperArea=require('board/shapes').PCBCopperArea;
-var PCBTrack=require('board/shapes').PCBTrack;
-var PCBSolidRegion=require('board/shapes').PCBSolidRegion;
-var SolidRegionEventHandle=require('pads/events').SolidRegionEventHandle;
 var d2=require('d2/d2');
+var CircuitContextMenu=require('circuit/popup/circuitpopup').CircuitContextMenu;
+var shapes=require('symbols/shapes');
+var WireEventHandle=require('circuit/events').WireEventHandle;
+var SCHSymbol=require('circuit/shapes').SCHSymbol;
+var SCHWire=require('circuit/shapes').SCHWire;
+var SCHBus=require('circuit/shapes').SCHBus;
+var SCHFontLabel=require('circuit/shapes').SCHFontLabel;
+var SCHJunction=require('circuit/shapes').SCHJunction;
+var SCHBusPin=require('circuit/shapes').SCHBusPin;
+var SCHConnector=require('circuit/shapes').SCHConnector;
+var SCHNoConnector=require('circuit/shapes').SCHNoConnector;
+var CircuitShapeFactory=require('circuit/shapes').CircuitShapeFactory;
+var HorizontalToVerticalProcessor=require('core/line/linebendingprocessor').HorizontalToVerticalProcessor;
+var VerticalToHorizontalProcessor=require('core/line/linebendingprocessor').VerticalToHorizontalProcessor;
 
-var LineEventHandle=require('core/events').LineEventHandle;
-var CopperAreaEventHandle=require('board/events').CopperAreaEventHandle;
-var TrackEventHandle=require('board/events').TrackEventHandle;
-var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').DefaultLineBendingProcessor;
 
-var shapes=require('pads/shapes');
 //**********************UnitMgr***************************************
-var BoardMgr=(function(){
+var CircuitMgr=(function(){
 	var instance=null;
 
 class manager{
-	createPCBFootprint(footprint,activeSide) {
-        var pcbfootprint = new PCBFootprint(core.Layer.LAYER_FRONT);
-        var len=footprint.shapes.length;
+	createSCHSymbol(symbol) {		
+        var schsymbol = new SCHSymbol();
+        var len=symbol.shapes.length;
  	    for(var i=0;i<len;i++){
- 	    	var shape=footprint.shapes[i];
-	               if (shape instanceof shapes.GlyphLabel) {
-	   				 if(shape.texture.tag=="value"){
-	   					pcbfootprint.value.copy(shape.texture); 
-	   					pcbfootprint.value.layermaskId=shape.copper.getLayerMaskID();
+ 	    	var shape=symbol.shapes[i];      
+ 	    	if (shape instanceof shapes.FontLabel) {
+	            		
+	   				 if(shape.texture.tag=="unit"){
+	   					 
+	   					schsymbol.unit.copy(shape.texture); 
 	   					continue;
 	   				 }
 	   				 if(shape.texture.tag=="reference"){
-		   			    pcbfootprint.reference.copy(shape.texture); 
-		   			    pcbfootprint.reference.layermaskId=shape.copper.getLayerMaskID();
+		   			    schsymbol.reference.copy(shape.texture); 
 		   			    continue;
 	   				 }  
 	               }
 	         
-	         pcbfootprint.add(shape.clone());
+	         schsymbol.add(shape.clone());
 	               
 	               
 	    }
- 	    pcbfootprint.setDisplayName(footprint.unitName);
-        pcbfootprint.units=footprint.getGrid().getGridUnits();
-        pcbfootprint.val=footprint.getGrid().getGridValue();
- 	    return pcbfootprint; 	          
+ 	    schsymbol.setDisplayName(symbol.unitName);
+ 	    schsymbol.units=symbol.getGrid().getGridUnits();
+ 	    schsymbol.val=symbol.getGrid().getGridValue();
+ 	    return schsymbol; 	          
     }       
     
     }
@@ -359,460 +355,413 @@ class manager{
 		
 	
 })();
-class Board extends Unit{
-constructor(width,height) {
-  super(width,height); 
-  this.shapeFactory = new BoardShapeFactory();
-  this.compositeLayer = new CompositeLayer();
-}	
-clone(){
-	 var copy=new Board(this.width,this.height);
-	 copy.silent=true;	 
-	 copy.grid=this.grid.clone();
-	 copy.unitName=this.unitName;
-     var len=this.shapes.length;
-	 for(var i=0;i<len;i++){
-         var clone=this.shapes[i].clone();
-	       copy.add(clone);
-	 }
-	 copy.silent=false;
-	 return copy;
+class Circuit extends Unit{
+	constructor(width,height) {
+	  super(width,height); 
+      this.scalableTransformation.reset(1.2,2,2,15);
+	  this.shapeFactory = new CircuitShapeFactory();
+      this.grid.setGridUnits(8, core.Units.PIXEL);
+      this.grid.pointsColor='black';             
+      this.frame.color='black';
 	}
-add(shape){
-    if (this.shapes.length == 0) {
-        super.add(shape);
-    } else {
-    	let len=this.shapes.length;
-    	shape.owningUnit=this;
-    	for(i=0;i<len;i++){                      
-            if (this.shapes[i].getDrawingOrder() >= shape.getDrawingOrder()) {             
-                this.shapes.splice(i, 0,shape);           	    
-        	    this.fireShapeEvent({target:shape,type:events.Event.ADD_SHAPE});
-                return;
-            }
-    	}
-        super.add(shape);
-    }
-}
-reorder(){
-    this.shapes.sort(function(a,b){
-		if (a.getDrawingOrder() > b.getDrawingOrder()) {  
-			return 1;
-		}else if(a.getDrawingOrder() < b.getDrawingOrder()){
-			return -1;
-		}else
-			return 0;
-	});
-}
-setActiveSide(side) {
-    this.compositeLayer.activeSide=side;
-    this.reorder();
-}
-paint(g2, viewportWindow){
-	   let len=this.shapes.length;
- 	   for(let i=0;i<len;i++){
- 		   this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation,this.compositeLayer.getLayerMaskID());  
- 	   }
- 	   this.shapes.forEach(function(shape){
- 	    if (shape instanceof PCBTrack || shape instanceof PCBCopperArea) {
-           shape.drawControlShape(g2, viewportWindow,this.scalableTransformation);
-        }
- 	   },this);
- 	   //grid
-       this.grid.paint(g2,viewportWindow,this.scalableTransformation);
-        //coordinate system
-       if(this.coordinateSystem!=null){
-         this.coordinateSystem.paint(g2, viewportWindow,this.scalableTransformation);
-       }	
-         //ruler
-	   this.ruler.paint(g2, viewportWindow,this.scalableTransformation);
-        //frame
-       if(this.frame!=null){
-	     this.frame.paint(g2, viewportWindow,this.scalableTransformation);
-       }
-}
-parse(data){
-	this.unitName=j$(data).find("name").first().text();
-	this.grid.setGridUnits(j$(data).find("units").first().attr("raster"),core.Units.MM);
-	var that=this;
-	
-   	j$(data).find('symbols').children().each(function(){
-   	   var shape=that.shapeFactory.createShape(this);   	   
-       if(shape!=null){    
-         that.add(shape);
-       }	  
-   	});	
-}
-format(){   
-	   var xml="<board width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
-	   xml+="<name>"+this.unitName+"</name>\r\n";
-	   xml+="<units raster=\"" + this.grid.getGridValue() + "\">MM</units>\r\n";
-	   
-	   xml+="<symbols>\r\n";
+	clone(){
+		 var copy=new Circuit(this.width,this.height);
+		 copy.silent=true;	 
+		 copy.grid=this.grid.clone();
+		 copy.unitName=this.unitName;
+	     var len=this.shapes.length;
+		 for(var i=0;i<len;i++){
+	         var clone=this.shapes[i].clone();
+		       copy.add(clone);
+		 }
+		 copy.silent=false;
+		 return copy;		
+	}
+	format(){    
+ 	   var xml="<circuit width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
+	   xml+="<name>"+this.unitName+"</name>\r\n";	   	   	   
 	   this.shapes.forEach(s=>{
 		  xml+=s.toXML()+"\r\n";
-	   });
-	   xml+="</symbols>\r\n";   
-	   xml+="</board>";
-	   return xml;
+	   });	    
+	   xml+="</circuit>";
+	   return xml;        
+	}
+	parse(data){
+		this.unitName=j$(data).find("name").first().text();
+
+		var that=this;
+		
+	   	j$(data).find('chips').children().each(function(){
+	   		var shape=that.shapeFactory.createShape(this); 
+	   		if(shape!=null){
+	   			that.add(shape);
+	   		} 	   	   
+	   	   	  
+	   	});	
+	   	j$(data).find('wires').children().each(function(){
+	   		var shape=that.shapeFactory.createShape(this); 
+	   		if(shape!=null){
+	   			that.add(shape);
+	   		} 	   	   
+	   	   	  
+	   	});		
+	   	j$(data).find('busses').children().each(function(){
+	   		var shape=that.shapeFactory.createShape(this); 
+	   		if(shape!=null){
+	   			that.add(shape);
+	   		} 	   	   
+	   	   	  
+	   	});	
+	   	j$(data).find('buspins').children().each(function(){
+	   		var shape=that.shapeFactory.createShape(this); 
+	   		if(shape!=null){
+	   			that.add(shape);
+	   		} 	   	   
+	   	   	  
+	   	});	
+	   	j$(data).find('junctions').children().each(function(){
+	   		var shape=that.shapeFactory.createShape(this); 
+	   		if(shape!=null){
+	   			that.add(shape);
+	   		} 	   	   
+	   	   	  
+	   	});	 
+	   	j$(data).find('labels').children().each(function(){
+	   		var shape=that.shapeFactory.createShape(this); 
+	   		if(shape!=null){
+	   			that.add(shape);
+	   		} 	   	   
+	   	   	  
+	   	});	
+	   	j$(data).find('connectors').children().each(function(){
+	   		var shape=that.shapeFactory.createShape(this); 
+	   		if(shape!=null){
+	   			that.add(shape);
+	   		} 	   	   
+	   	   	  
+	   	});	
+	   	j$(data).find('noconnectors').children().each(function(){
+	   		var shape=that.shapeFactory.createShape(this); 
+	   		if(shape!=null){
+	   			that.add(shape);
+	   		} 	   	   
+	   	   	  
+	   	});		   	
 	}	
-
-
-}
-
-class BoardContainer extends UnitContainer{
-constructor() {
-      super();
-  	  this.formatedFileName="Boards";
-  	}
-parse(xml){
-	  this.workspacename=(j$(xml).find("workspaceName").text());	   	
-	  this.setFileName(j$(xml).find("projectName").text());
-	  var that=this;
-	  
-      j$(xml).find("board").each(j$.proxy(function(){
-    	var board=new Board(j$(this).attr("width"),j$(this).attr("height"));
-    	//need to have a current unit 
-        that.add(board);
-        board.parse(this);
-    }),that);	
-}
-format() {
-    var xml="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n"; 
-    xml+="<boards identity=\"Board\" version=\""+utilities.version.BOARD_VERSION+"\">\r\n";      
-	let units=this.unitsmap.values();
-	for(let i=0;i<this.unitsmap.size;i++){
-      let unit=units.next().value;
-      xml+=unit.format();
-	  xml+="\r\n";
-	}    	    	
-    xml+="</boards>";
-    return xml;
-}
-
-}
-
-class BoardComponent extends UnitComponent{
-constructor(hbar,vbar,canvas,popup) {
-     super(hbar,vbar,canvas,popup);    
 	
-	this.eventMgr=new BoardEventMgr(this); 
-	this.model=new BoardContainer();
-	this.popup=new BoardContextMenu(this,popup);
-    this.lineBendingProcessor=new DefaultLineBendingProcessor();  
 }
-setMode(_mode){
-	  this.mode=_mode;
-	  let shape=null;
-      if (this.cursor != null) {
-          this.cursor.clear();
-          this.cursor = null;
-      }
-      this.eventMgr.resetEventHandle();
-      
-      switch (this.mode) {
-		case core.ModeEnum.SOLID_REGION:
-         	break;
-      	
-      case core.ModeEnum.HOLE_MODE:          
-          shape = new PCBHole();
-          this.setContainerCursor(shape);
-          this.getEventMgr().setEventHandle("cursor", shape);
-          break;      
-      case core.ModeEnum.VIA_MODE:          
-          shape = new PCBVia();
-          this.setContainerCursor(shape);
-          this.getEventMgr().setEventHandle("cursor", shape);
-          break;
-      case  core.ModeEnum.RECT_MODE:
-          shape=new PCBRoundRect(0,0,core.MM_TO_COORD(4),core.MM_TO_COORD(4),core.MM_TO_COORD(1),core.MM_TO_COORD(0.2),core.Layer.SILKSCREEN_LAYER_FRONT);
-          this.setContainerCursor(shape);               
-          this.getEventMgr().setEventHandle("cursor",shape); 
-        break;
-      case  core.ModeEnum.ELLIPSE_MODE:
-          shape=new PCBCircle(0,0,core.MM_TO_COORD(4),core.MM_TO_COORD(0.2), core.Layer.SILKSCREEN_LAYER_FRONT);
-          this.setContainerCursor(shape);               
-          this.eventMgr.setEventHandle("cursor",shape); 
-        break;
-      case  core.ModeEnum.ARC_MODE:
-      	  shape=new PCBArc(0,0,core.MM_TO_COORD(4),core.MM_TO_COORD(0.2), core.Layer.SILKSCREEN_LAYER_FRONT);
-          this.setContainerCursor(shape);               
-          this.getEventMgr().setEventHandle("cursor",shape); 
-        break;
-      case  core.ModeEnum.LABEL_MODE:
-          shape=new PCBLabel(core.Layer.SILKSCREEN_LAYER_FRONT);
-          this.setContainerCursor(shape);               
-          this.getEventMgr().setEventHandle("cursor",shape); 
-        break;
-      case core.ModeEnum.ORIGIN_SHIFT_MODE:  
-          this.eventMgr.setEventHandle("origin",null);   
-          break;          
-      default:
-        this.repaint();
-    }       
-}
+class CircuitContainer extends UnitContainer{
+	constructor() {
+	  super();
+	  this.formatedFileName="Circuit";
+	}
+	parse(data){
+		//this.unitName=j$(data).find("name").first().text();
+		var that=this;
+		
+	   	
 
+	    j$(data).find("circuit").each(j$.proxy(function(){
+	      	var circuit=new Circuit(j$(this).attr("width"),j$(this).attr("height"));
+	      	//need to have a current unit 
+	          that.add(circuit);
+	          circuit.parse(this);
+	    }),that);	   	
+	}
+	format() {
+	    var xml="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n"; 
+	    xml+="<circuits identity=\"Circuit\" version=\""+utilities.version.CIRCUIT_VERSION+"\">\r\n";      
+		let units=this.unitsmap.values();
+		for(let i=0;i<this.unitsmap.size;i++){
+	      let unit=units.next().value;
+	      xml+=unit.format();
+		  xml+="\r\n";
+		}    	    	
+	    xml+="</circuits>";
+	    return xml;
+	}	
+}
+class CircuitComponent extends UnitComponent{
+	constructor(hbar,vbar,canvas,popup) {
+	     super(hbar,vbar,canvas,popup);    
+		this.setParameter("snaptogrid",true);
+		this.eventMgr=new CircuitEventMgr(this); 
+		this.model=new CircuitContainer();
+		this.popup=new CircuitContextMenu(this,popup);
+	    this.lineBendingProcessor=new HorizontalToVerticalProcessor(); 
+		this.backgroundColor='white';  
+	}
+	setMode(_mode){
+		  this.mode=_mode;
+		  let shape=null;
+	      if (this.cursor != null) {
+	          this.cursor.clear();
+	          this.cursor = null;
+	      }
+	      this.eventMgr.resetEventHandle();
+	      
+	      switch (this.mode) {
+	      case  core.ModeEnum.LABEL_MODE:
+	          shape=new SCHFontLabel(0,0);
+	          this.setContainerCursor(shape);               
+	          this.getEventMgr().setEventHandle("cursor",shape); 
+	        break;
+	      case  core.ModeEnum.JUNCTION_MODE:
+	          shape=new SCHJunction();
+	          this.setContainerCursor(shape);               
+	          this.getEventMgr().setEventHandle("cursor",shape); 
+	        break;
+	      case  core.ModeEnum.CONNECTOR_MODE:
+	          shape=new SCHConnector();
+	          this.setContainerCursor(shape);               
+	          this.getEventMgr().setEventHandle("cursor",shape); 
+	        break;	    
+	      case  core.ModeEnum.NOCONNECTOR_MODE:
+	          shape=new SCHNoConnector();
+	          this.setContainerCursor(shape);               
+	          this.getEventMgr().setEventHandle("cursor",shape); 
+	        break;	        
+	      case core.ModeEnum.BUSPIN_MODE:
+	            shape = new SCHBusPin();        
+	            this.setContainerCursor(shape);
+	            this.getEventMgr().setEventHandle("cursor", shape);
+	            break;	        
+	      case core.ModeEnum.ORIGIN_SHIFT_MODE:  
+	          this.eventMgr.setEventHandle("origin",null);   
+	          break;          
+	      default:
+	        this.repaint();
+	    }       
+	}
 mouseDown(event){
-    event.preventDefault();
-    //this.canvas.focus();
-	if (this.getModel().getUnit() == null) { 
-	   return; 
-	}
+	    event.preventDefault();
+	    //this.canvas.focus();
+		if (this.getModel().getUnit() == null) { 
+		   return; 
+		}
 
-    this.canvas.on('mousemove',j$.proxy(this.mouseDrag,this));
-    this.canvas.off('mousemove',j$.proxy(this.mouseMove,this));
+	    this.canvas.on('mousemove',j$.proxy(this.mouseDrag,this));
+	    this.canvas.off('mousemove',j$.proxy(this.mouseMove,this));
+	    
+		//****Dynamic event handling
+	    var scaledEvent =this.getScaledEvent(event);
+		
+
+		if(this.getModel().getUnit()==null){
+	          this.getEventMgr().resetEventHandle();
+	    }else{
+	    	switch (this.getMode()){
+	    	case  core.ModeEnum.COMPONENT_MODE:
+	               /*
+	                * 1.Coordinate origin
+	                * 2.Control rect/reshape point
+	                * 3.selected shapes comes before control points
+	                */	 
+	    	  if(this.getModel().getUnit().getCoordinateSystem()!=null){ 		
+	           if(this.getModel().getUnit().getCoordinateSystem().isClicked(scaledEvent.x, scaledEvent.y)){
+	              this.getEventMgr().setEventHandle("origin",null); 
+	        	  break;
+	           }  
+	    	  }
+	   
+	    	  var shape=this.getModel().getUnit().isControlRectClicked(scaledEvent.x, scaledEvent.y);
+			  if(shape!=null){
+//	              if(shape instanceof PCBArc){
+//	                  if(shape.isStartAnglePointClicked(scaledEvent.x , scaledEvent.y)){ 
+//	                      this.getEventMgr().setEventHandle("arc.start.angle",shape);                    
+//	                  }else if(shape.isExtendAnglePointClicked(scaledEvent.x , scaledEvent.y)){
+//	                      this.getEventMgr().setEventHandle("arc.extend.angle",shape);                      
+//	                  }else if(shape.isMidPointClicked(scaledEvent.x , scaledEvent.y)){
+//	                 	  this.getEventMgr().setEventHandle("arc.mid.point",shape);
+//	                  }else{
+//	                       this.getEventMgr().setEventHandle("resize",shape);    
+//	                  }
+	                 //}else{
+							this.getEventMgr().setEventHandle("resize",shape); 
+	                 //}                            
+	              
+			  }else{
+			     shape = this.getModel().getUnit().getClickedShape(scaledEvent.x, scaledEvent.y, true);
+			     
+			     if(shape!=null){
+				   if ((UnitMgr.getInstance().isBlockSelected(this.getModel().getUnit().shapes)&& shape.isSelected())||event.ctrlKey){					   
+	                 this.getEventMgr().setEventHandle("block", shape);						 
+			       }else if ((!(shape instanceof SCHFontLabel))&&(undefined !=shape['getTextureByTag'])&&shape.getClickedTexture(scaledEvent.x, scaledEvent.y)!=null){
+				     this.getEventMgr().setEventHandle("texture",shape);
+	               }else if(shape instanceof SCHSymbol){
+	            	 this.getEventMgr().setEventHandle("symbol",shape);
+			       }else
+			         this.getEventMgr().setEventHandle("move",shape);
+			     }else{
+			         this.getEventMgr().setEventHandle("component",null);
+			     }
+			  }
+			  break;
+	    	 case core.ModeEnum.WIRE_MODE:
+	    		
+	            //***is this a new wire
+	            if ((this.getEventMgr().getTargetEventHandle() == null) ||
+	                !(this.getEventMgr().getTargetEventHandle() instanceof WireEventHandle)) {
+	               	if(event.which!=1){
+	            		return;
+	            	}
+	                shape = new SCHWire();
+	                this.getModel().getUnit().add(shape);                
+	            	this.getEventMgr().setEventHandle("wire", shape);
+	            }
+		    break;
+	     	case core.ModeEnum.DRAGHEAND_MODE:  
+	    		this.getEventMgr().setEventHandle("dragheand", null);
+	    	  break;
+	    	 case core.ModeEnum.BUS_MODE:
+		    		
+		            //***is this a new wire
+		            if ((this.getEventMgr().getTargetEventHandle() == null) ||
+		                !(this.getEventMgr().getTargetEventHandle() instanceof WireEventHandle)) {
+		               	if(event.which!=1){
+		            		return;
+		            	}
+		                shape = new SCHBus();
+		                this.getModel().getUnit().add(shape);                
+		            	this.getEventMgr().setEventHandle("wire", shape);
+		            }
+			    break;	    
     
-	//****Dynamic event handling
-    var scaledEvent =this.getScaledEvent(event);
-	
-
-	if(this.getModel().getUnit()==null){
-          this.getEventMgr().resetEventHandle();
-    }else{
-    	switch (this.getMode()){
-    	case  core.ModeEnum.COMPONENT_MODE:
-               /*
-                * 1.Coordinate origin
-                * 2.Control rect/reshape point
-                * 3.selected shapes comes before control points
-                */	 
-    	  if(this.getModel().getUnit().getCoordinateSystem()!=null){ 		
-           if(this.getModel().getUnit().getCoordinateSystem().isClicked(scaledEvent.x, scaledEvent.y)){
-              this.getEventMgr().setEventHandle("origin",null); 
-        	  break;
-           }  
-    	  }
-    	  var shape=this.getModel().getUnit().isControlRectClicked(scaledEvent.x, scaledEvent.y);
-		  if(shape!=null){
-              if(shape instanceof PCBArc){
-                  if(shape.isStartAnglePointClicked(scaledEvent.x , scaledEvent.y)){ 
-                      this.getEventMgr().setEventHandle("arc.start.angle",shape);                    
-                  }else if(shape.isExtendAnglePointClicked(scaledEvent.x , scaledEvent.y)){
-                      this.getEventMgr().setEventHandle("arc.extend.angle",shape);                      
-                  }else if(shape.isMidPointClicked(scaledEvent.x , scaledEvent.y)){
-                 	  this.getEventMgr().setEventHandle("arc.mid.point",shape);
-                  }else{
-                       this.getEventMgr().setEventHandle("resize",shape);    
-                  }
-                 }else{
-						this.getEventMgr().setEventHandle("resize",shape); 
-                 }                            
-              
-		  }else{
-		     shape = this.getModel().getUnit().getClickedShape(scaledEvent.x, scaledEvent.y, true);
-		     
-		     if(shape!=null){
-			   if ((UnitMgr.getInstance().isBlockSelected(this.getModel().getUnit().shapes)&& shape.isSelected())||event.ctrlKey){					   
-                 this.getEventMgr().setEventHandle("block", shape);						 
-		       }else if ((!(shape instanceof PCBLabel))&&(undefined !=shape['getTextureByTag'])&&shape.getClickedTexture(scaledEvent.x, scaledEvent.y)!=null){
-			     this.getEventMgr().setEventHandle("texture",shape);
-               }else if(shape instanceof PCBFootprint){
-            	 this.getEventMgr().setEventHandle("symbol",shape);
-		       }else
-		         this.getEventMgr().setEventHandle("move",shape);
-		     }else{
-		         this.getEventMgr().setEventHandle("component",null);
-		     }
-		  }
-		  break;
-    	case core.ModeEnum.TRACK_MODE:
-    		
-            //***is this a new wire
-            if ((this.getEventMgr().getTargetEventHandle() == null) ||
-                !(this.getEventMgr().getTargetEventHandle() instanceof TrackEventHandle)) {
-               	if(event.which!=1){
-            		return;
-            	}
-                shape = new PCBTrack(core.MM_TO_COORD(0.4),core.Layer.LAYER_FRONT);
-                this.getModel().getUnit().add(shape);                
-            	this.getEventMgr().setEventHandle("track", shape);
-            }
-	    break;
-    	case core.ModeEnum.SOLID_REGION:
-            //is this a new copper area
-            if ((this.getEventMgr().targetEventHandle == null) ||
-                !(this.getEventMgr().targetEventHandle instanceof SolidRegionEventHandle)) {
-            	if(event.which!=1){
-            		return;
-            	}
-                shape =new PCBSolidRegion(core.Layer.LAYER_FRONT);
-                this.getModel().getUnit().add(shape);
-                this.getEventMgr().setEventHandle("solidregion", shape);
-            }     		
-    		break;	    
-        case  core.ModeEnum.COPPERAREA_MODE:
-            //is this a new copper area
-            if ((this.getEventMgr().targetEventHandle == null) ||
-                !(this.getEventMgr().targetEventHandle instanceof CopperAreaEventHandle)) {
-            	if(event.which!=1){
-            		return;
-            	}
-                shape =
-                    new PCBCopperArea(core.Layer.LAYER_FRONT);
-                this.getModel().getUnit().add(shape);
-                this.getEventMgr().setEventHandle("copperarea", shape);
-            }    	  
-      	  break;	    
-    	case core.ModeEnum.LINE_MODE:
-            //***is this a new wire
-            if ((this.getEventMgr().getTargetEventHandle() == null) ||
-                !(this.getEventMgr().getTargetEventHandle() instanceof LineEventHandle)) {
-            	if(event.which!=1){
-            		return;
-            	}
-                shape = new PCBLine(core.MM_TO_COORD(0.3),core.Layer.SILKSCREEN_LAYER_FRONT);
-                this.getModel().getUnit().add(shape);
-                
-            	this.getEventMgr().setEventHandle("line", shape);
-            }
-    	  break;	    
-    	case core.ModeEnum.DRAGHEAND_MODE:  
-    		this.getEventMgr().setEventHandle("dragheand", null);
-    	  break;	
-    	case core.ModeEnum.MEASUMENT_MODE:
-            if ((this.getEventMgr().getTargetEventHandle() != null) ||
-                (this.getEventMgr().getTargetEventHandle() instanceof events.MeasureEventHandle)) {
-                 this.getModel().getUnit().ruler.resizingPoint=null;
-                 this.getEventMgr().resetEventHandle();
-                 this.repaint();
-            }else{
-               this.getEventMgr().setEventHandle("measure",this.getModel().getUnit().ruler);   
-			   this.getModel().getUnit().ruler.setX(scaledEvent.x);
-			   this.getModel().getUnit().ruler.setY(scaledEvent.y);                   
-            }
-	        break;	    	  
-    	}
-    	
-	}
-	
-	if (this.getEventMgr().getTargetEventHandle() != null) {
-      this.getEventMgr().getTargetEventHandle().mousePressed(scaledEvent);
-    } 
-	
-  }
+   	  
+	    	}
+	    	
+		}
+		
+		if (this.getEventMgr().getTargetEventHandle() != null) {
+	      this.getEventMgr().getTargetEventHandle().mousePressed(scaledEvent);
+	    } 
+		
+	  }	
+mouseWheelMoved(event){
+    event.preventDefault();
+	  if (this.getModel().getUnit() == null) { 
+		return; 
+	  }
+	var e=this.getScaledEvent(event);
+	if(event.originalEvent.wheelDelta /120 > 0) {
+		   this.ZoomIn(e.windowx,e.windowy);
+    }
+    else{
+		   this.ZoomOut(e.windowx,e.windowy);
+    }
+} 
 }
-
-
-
-
-
-
-
-
-
-
 module.exports ={
-		   BoardContainer,
-		   Board,
-		   BoardMgr,
-		   BoardComponent	   
+		   CircuitContainer,
+		   Circuit,
+		   CircuitMgr,
+		   CircuitComponent	   
 }
 });
 
-;require.register("board/events.js", function(exports, require, module) {
+;require.register("circuit/events.js", function(exports, require, module) {
 var EventHandle = require('core/events').EventHandle;
 var events = require('core/events');
 var core = require('core/core');
-var pad_events=require('pads/events');
-var d2=require('d2/d2');
+var d2 = require('d2/d2');
 
-class FootprintEventHandle extends EventHandle{
-constructor(component) {
-		 super(component);
-	 }
-mousePressed(event){
-       this.mx=event.x;
-	   this.my=event.y;
+class SymbolEventHandle extends EventHandle{
+	constructor(component) {
+			 super(component);
+		 }
+	mousePressed(event){
+	       this.mx=event.x;
+		   this.my=event.y;
 
-	   if(super.isRightMouseButton(event)){                       
-			    this.component.getModel().getUnit().setSelected(false);
-			    this.target.setSelected(true);
-				this.component.repaint();
-				this.component.popup.registerFootprintPopup(this.target,event);            
-	            return;
-	   }
-	   if(event.data.ctrlKey){
-		   this.component.getModel().getUnit().setSelectedShape(this.target.uuid,
-                   !this.target.isSelected());
-    
-           this.ctrlButtonPress = true;
-           this.component.repaint();
-           return;		   
-	   }
-	   this.component.getModel().getUnit().setSelected(false);
-	   this.target.setSelected(true);
-	   this.component.repaint();	   
+		   if(super.isRightMouseButton(event)){                       
+				    this.component.getModel().getUnit().setSelected(false);
+				    this.target.setSelected(true);
+					this.component.repaint();
+					this.component.popup.registerSymbolPopup(this.target,event);            
+		            return;
+		   }
+		   if(event.data.ctrlKey){
+			   this.component.getModel().getUnit().setSelectedShape(this.target.uuid,
+	                   !this.target.isSelected());
 	    
-	 }
- mouseReleased(event){
-		if(super.isRightMouseButton(event)){
-			 return;
-		}
-		this.target.alignToGrid(false || this.component.getParameter("snaptogrid"));
-				 
-		this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
-		this.component.repaint();
-	 }
-	 
-	 mouseDragged(event){
-		if(super.isRightMouseButton(event)){
-			 return;
-		} 
-	 	let new_mx = event.x;
-	    let new_my = event.y;
+	           this.ctrlButtonPress = true;
+	           this.component.repaint();
+	           return;		   
+		   }
+		   this.component.getModel().getUnit().setSelected(false);
+		   this.target.setSelected(true);
+		   this.component.repaint();	   
+		    
+		 }
+	 mouseReleased(event){
+			if(super.isRightMouseButton(event)){
+				 return;
+			}
+			this.target.alignToGrid(false || this.component.getParameter("snaptogrid"));
+					 
+			this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
+			this.component.repaint();
+		 }
+		 
+		 mouseDragged(event){
+			if(super.isRightMouseButton(event)){
+				 return;
+			} 
+		 	let new_mx = event.x;
+		    let new_my = event.y;
+			
+		    this.target.move(new_mx - this.mx, new_my - this.my);
+		    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
+		    this.mx = new_mx;
+		    this.my = new_my;
+			this.component.repaint();
+		 }
+		 mouseMove(event){
+		 
+		 }	 
 		
-	    this.target.move(new_mx - this.mx, new_my - this.my);
-	    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
-	    this.mx = new_mx;
-	    this.my = new_my;
-		this.component.repaint();
-	 }
-	 mouseMove(event){
-	 
-	 }	 
-	
 }
-class TrackEventHandle extends EventHandle{
-constructor(component) {
+class WireEventHandle extends EventHandle{
+	constructor(component) {
 		 super(component);
 }
 
 Attach() {        
-    super.Attach();
-    this.component.lineBendingProcessor.initialize(this.target);
+   super.Attach();
+   this.component.lineBendingProcessor.initialize(this.target);
 }
 mousePressed(event){
-    if(this.isRightMouseButton(event)){           
-		this.component.popup.registerTrackPopup(this.target,event);            
-        return;
-    }
-    
-    this.component.getModel().getUnit().setSelected(false);
-    this.target.setSelected(true); 
-    
-    let p;      
-    if(this.component.getParameter("snaptogrid")){        
-        p=this.component.getModel().getUnit().getGrid().positionOnGrid(event.x,event.y);  
-        this.component.lineBendingProcessor.isGridAlignable=true;
-    }else{
-    	p=new d2.Point(event.x,event.y);
-        this.component.lineBendingProcessor.isGridAlignable=false;
-    }
-    
-    //this.component.getModel().getUnit().fireShapeEvent(new ShapeEvent(this.target, ShapeEvent.PROPERTY_CHANGE)); 
-    
-    let justcreated=this.target.getLinePoints().length==1; 
-        
-    if(this.component.lineBendingProcessor.addLinePoint(p)){
-        if(justcreated){
-            //getComponent().getModel().getUnit().registerMemento(getTarget().getState(MementoType.CREATE_MEMENTO));   
-            //getComponent().getModel().getUnit().registerMemento(getTarget().getState(MementoType.MOVE_MEMENTO));    
-        }
-        if(this.target.getLinePoints().length>=2){
-           //this.component.getModel().getUnit().registerMemento(getTarget().getState(MementoType.MOVE_MEMENTO));    
-        }            
-    }
-    this.component.repaint(); 
+   if(this.isRightMouseButton(event)){           
+		this.component.popup.registerWirePopup(this.target,event);            
+       return;
+   }
+   
+   this.component.getModel().getUnit().setSelected(false);
+   this.target.setSelected(true); 
+   
+   let p;      
+   if(this.component.getParameter("snaptogrid")){        
+       p=this.component.getModel().getUnit().getGrid().positionOnGrid(event.x,event.y);  
+       this.component.lineBendingProcessor.isGridAlignable=true;
+   }else{
+   	p=new d2.Point(event.x,event.y);
+       this.component.lineBendingProcessor.isGridAlignable=false;
+   }
+   
+   //this.component.getModel().getUnit().fireShapeEvent(new ShapeEvent(this.target, ShapeEvent.PROPERTY_CHANGE)); 
+   
+   let justcreated=this.target.getLinePoints().length==1; 
+       
+   if(this.component.lineBendingProcessor.addLinePoint(p)){
+       if(justcreated){
+           //getComponent().getModel().getUnit().registerMemento(getTarget().getState(MementoType.CREATE_MEMENTO));   
+           //getComponent().getModel().getUnit().registerMemento(getTarget().getState(MementoType.MOVE_MEMENTO));    
+       }
+       if(this.target.getLinePoints().length>=2){
+          //this.component.getModel().getUnit().registerMemento(getTarget().getState(MementoType.MOVE_MEMENTO));    
+       }            
+   }
+   this.component.repaint(); 
 }
 mouseReleased(event){
 	
@@ -826,107 +775,43 @@ mouseDragged(event){
 }
 dblClick(){
 	this.target.reset();
-    this.target.setSelected(false);
-    this.component.getEventMgr().resetEventHandle();
-    this.component.repaint();	 
+   this.target.setSelected(false);
+   this.component.getEventMgr().resetEventHandle();
+   this.component.repaint();	 
 } 
 Detach() {
-    this.target.reset(); 
-    if(this.target.getLinePoints().length<2){
-        this.target.owningUnit.remove(this.target.uuid);
-    }
-    super.Detach();
+   this.target.reset(); 
+   if(this.target.getLinePoints().length<2){
+       this.target.owningUnit.remove(this.target.uuid);
+   }
+   super.Detach();
 }
-}
-class CopperAreaEventHandle extends EventHandle{
-	constructor(component) {
-		 super(component);
-	 }
-mousePressed(event){
-      this.mx=event.x;
-	  this.my=event.y;
-	  if(super.isRightMouseButton(event)){                                  
-           return;
-      }
-      this.component.getModel().getUnit().setSelected(false);
-	  this.target.setSelected(true);
-      let p;      
-      
-      if(this.component.getParameter("snaptogrid")){
-        p=this.component.getModel().getUnit().getGrid().positionOnGrid(event.x,event.y);       		
-      }else{
-        p=new d2.Point(event.x,event.y);
-      }
-
-      
-      let justcreated=this.target.polygon.points.length==2;
-      
-      if(this.target.getLinePoints().length==0){
-    	  this.target.add(p);    
-          //avoid point over point
-      }else if(!this.target.getLinePoints()[this.target.getLinePoints().length-1].equals(p)){
-    	  this.target.add(p);           
-      }
-      
-      
-	  this.component.repaint();	   
-	    
-	 }
-mouseReleased(event){
-		
-	 }
-	 
-mouseDragged(event){
-		
-	 }
-mouseMove(event){
-    this.target.floatingEndPoint.set(event.x,event.y);   
-    this.component.repaint();	 
-	 }	 
-dblClick(){
-      
-    this.target.setSelected(false);
-    this.component.getEventMgr().resetEventHandle();
-    this.component.repaint();	 
-} 
-Detach() {
-    this.target.reset(); 
-    if(this.target.polygon.points.length<3){
-        this.target.owningUnit.remove(this.target.uuid);
-    }
-    super.Detach();
-}	
 }
 
-class BoardEventMgr{
+class CircuitEventMgr{
 	 constructor(component) {
 	    this.component=component;
 		this.targetEventHandle=null;	
 		this.hash = new Map();
-		this.hash.set("arc.mid.point",new pad_events.ArcMidPointEventHandle(component));
-		this.hash.set("arc.start.angle",new pad_events.ArcStartAngleEventHandle(component));
-		this.hash.set("arc.extend.angle",new pad_events.ArcExtendAngleEventHandler(component));
 		this.hash.set("move",new events.MoveEventHandle(component));
 		this.hash.set("resize",new events.ResizeEventHandle(component));
 	    this.hash.set("component",new events.UnitEventHandle(component));
 		this.hash.set("block",new events.BlockEventHandle(component));
-		this.hash.set("line",new events.LineEventHandle(component));
+		this.hash.set("wire",new WireEventHandle(component));
 		this.hash.set("cursor",new events.CursorEventHandle(component));
-		this.hash.set("symbol",new FootprintEventHandle(component));
+		this.hash.set("symbol",new SymbolEventHandle(component));
 		this.hash.set("texture",new events.TextureEventHandle(component));
 		this.hash.set("dragheand",new events.DragingEventHandle(component));
 		this.hash.set("origin",new events.OriginEventHandle(component));
-		this.hash.set("measure",new events.MeasureEventHandle(component));
-		this.hash.set("track",new TrackEventHandle(component));
-		this.hash.set("copperarea",new CopperAreaEventHandle(component));
-		this.hash.set("solidregion",new pad_events.SolidRegionEventHandle(component));		
+		this.hash.set("measure",new events.MeasureEventHandle(component));		
+		
 	 }
 	 //****private
 	 getEventHandle(eventKey,target) {
 	    var handle=this.hash.get(eventKey);
 		if(handle!=null){
 		  handle.setTarget(target);
-		  if(eventKey=="move"||eventKey=="copperarea"||eventKey=="track"||eventKey=="line"||eventKey=="texture"||eventKey=="symbol"||eventKey=="resize"||eventKey=="solidregion"){		        	
+		  if(eventKey=='resize'||eventKey=='move'||eventKey=='line'||eventKey=='texture'){
 		     this.component.getModel().getUnit().fireShapeEvent({target:target,type:events.Event.SELECT_SHAPE});
 		  }
 		  if(eventKey=='component'||eventKey=="origin"){
@@ -957,72 +842,32 @@ class BoardEventMgr{
 	 
 	}
 
-	module.exports ={
-		  BoardEventMgr,
-		  CopperAreaEventHandle,
-		  TrackEventHandle
+module.exports ={
+		CircuitEventMgr,
+		WireEventHandle
 	}
 });
 
-;require.register("board/models/layer.js", function(exports, require, module) {
-
-
-var LayerModel = Backbone.Model.extend({
-	defaults: {
-	    "name":  "caesar salad",
-	    "value":     1,
-	    "checked":   false
-	  },
-    toggle: function(){
-       this.set('checked', !this.get('checked'));
-    }
-});
-var LayerCollection = Backbone.Collection.extend({
-    model: LayerModel,
-    
-    getChecked: function(){
-        return this.where({checked:true});
-    }
-});
-
-module.exports ={
-	LayerModel,
-	LayerCollection
-}
-});
-
-;require.register("board/popup/boardpopup.js", function(exports, require, module) {
+;require.register("circuit/popup/circuitpopup.js", function(exports, require, module) {
 var ContextMenu = require('core/popup/contextmenu').ContextMenu;
 var core=require('core/core');
-var LineSlopBendingProcessor=require('core/line/linebendingprocessor').LineSlopBendingProcessor;
-var SlopLineBendingProcessor=require('core/line/linebendingprocessor').SlopLineBendingProcessor;
+var HorizontalToVerticalProcessor=require('core/line/linebendingprocessor').HorizontalToVerticalProcessor;
+var VerticalToHorizontalProcessor=require('core/line/linebendingprocessor').VerticalToHorizontalProcessor;
 
 
-var PCBLine=require('board/shapes').PCBLine;
-var PCBTrack=require('board/shapes').PCBTrack;
-
-class BoardContextMenu extends ContextMenu{
+class CircuitContextMenu extends ContextMenu{
 constructor(component,placeholderid){
 		super(component,placeholderid);	
 	}
-registerTrackPopup(target,event){
+registerSymbolPopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
-	    items+="<tr id='lineslopebendid' ><td style='padding: 0.4em;'>Line Slope Bending</td></tr>";
-	    items+="<tr id='slopelinebendid' ><td style='padding: 0.4em;'>Slope Line Bending</td></tr>";
-	    items+="<tr id='defaultbendid'><td style='padding: 0.4em;'>Default Bending</td></tr>";	  
-	    items+="</table></div>";
-	    this.setContent(items,{target:target});	    
-	    this.open(event);		
-}
-registerFootprintPopup(target,event){
-	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
-	    items+="<tr id='selectallid' ><td style='padding: 0.4em;'>Edit Footprint</td></tr>";
+	    items+="<tr id='editsymbolid' ><td style='padding: 0.4em;'>Edit Symbol</td></tr>";
 	    items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
 	    items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
-	    items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";	    
+	    items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
+	    items+="<tr id='topbottomid'><td style='padding: 0.4em'>Mirror Top-Bottom</td></tr>";
+	    items+="<tr id='leftrightid'><td style='padding: 0.4em'>Mirror Left-Right</td></tr>";
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
-	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Wire ends connect</td></tr>";	
-	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Wire ends disconnect</td></tr>";	
 	    items+="</table></div>";
 	    this.setContent(items,{target:target});	    
 	    this.open(event);		
@@ -1042,26 +887,27 @@ registerUnitPopup(target,event){
 	    this.setContent(items,{target:target});	    
 	    this.open(event);	
 }
+registerWirePopup(target,event){	          	            
+	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
+	    items+="<tr id='hvid' ><td style='padding: 0.4em;'>Horizontal To Vertical Bending</td></tr>";
+	    items+="<tr id='vhid' ><td style='padding: 0.4em;'>Vertical to Horizontal Bending</td></tr>";
+	    items+="<tr id='defaultbendid'><td style='padding: 0.4em;'>Default Bending</td></tr>";
+	    items+="</table></div>";
+	    this.setContent(items,{target:target});	    
+	    this.open(event);	
+}
 registerBlockPopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
 	    items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
 	    items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
 	    items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
+	    items+="<tr id='topbottomid'><td style='padding: 0.4em'>Mirror Top-Bottom</td></tr>";
+	    items+="<tr id='leftrightid'><td style='padding: 0.4em'>Mirror Left-Right</td></tr>";
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
 	    this.setContent(items,{target:target});	
 		this.open(event);		
 }
-//registerLinePopup(target,event){
-//	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
-//	    items+="<tr id='deletelastpointid' ><td style='padding: 0.4em;'>Delete Last Point</td></tr>";
-//	    items+="<tr id='deletelineid'><td style='padding: 0.4em;'>Delete Line</td></tr>";	  
-//	    items+="<tr id='cancelid'><td style='padding: 0.4em;'>Cancel</td></tr>";	    	    	
-//	    items+="</table></div>";
-//	    this.setContent(items,{target:target});	
-//	    this.open(event);	  	
-//}
-
 attachEventListeners(context){
 	  var placeholder=document.getElementById('menu-items');		  
 	  var rows=placeholder.getElementsByTagName("table")[0].rows;
@@ -1076,35 +922,18 @@ attachEventListeners(context){
 	      })(rows[i]);
 	  }
 }
-actionPerformed(id,context){
-   if (id=="resumeid") {
-        //this.component.getView().setButtonGroup(core.ModeEnum.LINE_MODE);
-        //this.component.setMode(core.ModeEnum.LINE_MODE);         
-        //this.component.resumeLine(context.target,"line", {x:this.x, y:this.y,which:3});
-        
-        if(context.target instanceof PCBTrack){                
-            this.component.getView().setButtonGroup(core.ModeEnum.TRACK_MODE);
-            this.component.setMode(core.ModeEnum.TRACK_MODE);
-            this.component.resumeLine(context.target,"track",  {x:this.x, y:this.y,which:3});
-            
-        }else{
-        	this.component.getView().setButtonGroup(core.ModeEnum.LINE_MODE);
-        	this.component.setMode(core.ModeEnum.LINE_MODE);
-        	this.component.resumeLine(context.target,"line",  {x:this.x, y:this.y,which:3});
-        }
-
-        return;
-    }  	
+actionPerformed(id,context){	
     let line =this.component.lineBendingProcessor.line;
-	if(id=='lineslopebendid'){		
-		this.component.lineBendingProcessor=new LineSlopBendingProcessor();
+	if(id=='hvid'){		
+		this.component.lineBendingProcessor=new HorizontalToVerticalProcessor();
 		this.component.lineBendingProcessor.initialize(line);
+		return
 	}
-	if(id=='slopelinebendid'){
-		this.component.lineBendingProcessor=new SlopLineBendingProcessor();
+	if(id=='vhid'){
+		this.component.lineBendingProcessor=new VerticalToHorizontalProcessor();
 		this.component.lineBendingProcessor.initialize(line);
+	    return
 	}
-
    super.actionPerformed(id,context);
    
 }
@@ -1113,214 +942,135 @@ actionPerformed(id,context){
 }
 
 module.exports ={
-		BoardContextMenu
+		CircuitContextMenu
 		}
 });
 
-;require.register("board/shapes.js", function(exports, require, module) {
+;require.register("circuit/shapes.js", function(exports, require, module) {
 var core=require('core/core');
 var utilities =require('core/utilities');
 var Shape=require('core/shapes').Shape;
 var ResizeableShape=require('core/core').ResizeableShape;
-var glyph=require('core/text/d2glyph');
-var font=require('core/text/d2font');
-var Circle =require('pads/shapes').Circle;
-var Arc =require('pads/shapes').Arc;
-var Pad =require('pads/shapes').Pad;
-var Line =require('pads/shapes').Line;
-var RoundRect =require('pads/shapes').RoundRect;
-var SolidRegion =require('pads/shapes').SolidRegion;
-var GlyphLabel=require('pads/shapes').GlyphLabel;
-var AbstractLine=require('core/shapes').AbstractLine;
-var FootprintShapeFactory=require('pads/shapes').FootprintShapeFactory;
+var SymbolFontTexture=require('core/text/d2font').SymbolFontTexture;
+var SymbolShapeFactory=require('symbols/shapes').SymbolShapeFactory;
+var Pin=require('symbols/shapes').Pin;
+var FontLabel=require('symbols/shapes').FontLabel;
+var PIN_LENGTH=require('symbols/shapes').PIN_LENGTH;
+var SymbolShapeFactory=require('symbols/shapes').SymbolShapeFactory;
 var d2=require('d2/d2');
+var AbstractLine=require('core/shapes').AbstractLine;
+var SymbolType = require('core/core').SymbolType;
 
-
-class BoardShapeFactory{
-	
-	createShape(data){
-		if (data.tagName.toLowerCase() == 'footprint') {
-			var footprint = new PCBFootprint(0, 0, 0, 0,0,0);
-			footprint.fromXML(data);
-			return footprint;
+class CircuitShapeFactory{		
+		createShape(data){
+			if (data.tagName.toLowerCase() == 'module') {
+				var symbol = new SCHSymbol();
+				symbol.fromXML(data);
+				return symbol;
+			}
+			if (data.tagName.toLowerCase() == 'wire') {
+				var symbol = new SCHWire();
+				symbol.fromXML(data);
+				return symbol;
+			}
+			if (data.tagName.toLowerCase() == 'bus') {
+				var symbol = new SCHBus();
+				symbol.fromXML(data);
+				return symbol;
+			}
+			if (data.tagName.toLowerCase() == 'buspin') {
+				var symbol = new SCHBusPin();
+				symbol.fromXML(data);
+				return symbol;
+			}
+			if (data.tagName.toLowerCase() == 'junction') {
+				var symbol = new SCHJunction();
+				symbol.fromXML(data);
+				return symbol;
+			}
+			if (data.tagName.toLowerCase() == 'label') {
+				var symbol = new SCHFontLabel();
+				symbol.fromXML(data);
+				return symbol;
+			}			
+			if (data.tagName.toLowerCase() == 'noconnector') {
+				var symbol = new SCHNoConnector();
+				symbol.fromXML(data);
+				return symbol;
+			}						
+			if (data.tagName.toLowerCase() == 'connector') {
+				var symbol = new SCHConnector();
+				symbol.fromXML(data);
+				return symbol;
+			}			
+			return null;
 		}
-		if (data.tagName.toLowerCase() == 'via') {
-			var via = new PCBVia(0, 0, 0, 0,0,0);
-			via.fromXML(data);
-			return via;
-		}		
-		if (data.tagName.toLowerCase() == 'circle') {
-			var circle = new PCBCircle(0, 0, 0, 0, 0);
-			circle.fromXML(data);
-			return circle;
-		}
-		if (data.tagName.toLowerCase() == 'ellipse') {
-			var circle = new Circle(0, 0, 0, 0, 0);
-			circle.fromXML(data);
-			return circle;
-		}
-		if (data.tagName.toLowerCase() == 'line') {
-			var line = new PCBLine( 0, 0, 0, 0, 0);
-			line.fromXML(data);
-			return line;
-		}
-		if (data.tagName.toLowerCase() == 'copperarea') {
-			var area = new PCBCopperArea( 0, 0, 0, 0, 0);
-			area.fromXML(data);
-			return area;
-		}
-		if (data.tagName.toLowerCase() == 'track') {
-		    var track = new PCBTrack(0, 0, 0, 0, 0);
-		    track.fromXML(data);
-		    return track;
-	    }		
-		if (data.tagName.toLowerCase() == 'hole') {
-			var hole = new PCBHole(0, 0, 0, 0, 0);
-			hole.fromXML(data);
-			return hole;
-		}
-		if (data.tagName.toLowerCase() == 'label') {
-			var label = new PCBLabel(0, 0, 0);
-			label.fromXML(data);		
-			return label;
-		}
-		return null;
-	}
+		
 }
 
-class PCBFootprint extends Shape{
-constructor(layermaskId){
-		super(0,0,0,0,0,layermaskId);
-		this.displayName = "Footprint";
+class SCHSymbol extends  Shape{
+constructor(){
+		super(0,0,0,0,0,0);
+		this.displayName = "Symbol";
    	    this.shapes=[];
-	    this.reference=(new glyph.GlyphTexture("","reference", 0, 0,  core.MM_TO_COORD(1.2)));
-	    this.value=(new glyph.GlyphTexture("","value", 8,8,core.MM_TO_COORD(1.2)));		 	    
-        this.units=core.Units.MM;
-        this.val=2.54;  
-        this.rotation=0;
-	}
+   	 
+	    this.reference=new SymbolFontTexture("","reference", 0, 0,1,8);
+	    this.unit=new SymbolFontTexture("","unit", 0,0,1,0);		 	
+	    
+	    this.reference.fillColor='black';
+	    this.unit.fillColor='black';
+	    
+	    this.type=SymbolType.SYMBOL;
+}
 clone(){
-        var copy=new PCBFootprint(this.copper.getLayerMaskID());
-        copy.shapes=[];
-        copy.rotation=this.rotation;
-        copy.units=this.units;
-        copy.val=this.val;
-        copy.value =this.value.clone();
-        copy.reference =this.reference.clone();        
-        copy.displayName=this.displayName;
-        this.shapes.forEach(function(shape){ 
-          copy.add(shape.clone());  
-        });
-        return copy;        
+    var copy=new SCHSymbol();
+    copy.shapes=[];
+    copy.unit =this.unit.clone();
+    copy.reference =this.reference.clone();        
+    copy.displayName=this.displayName;
+    this.shapes.forEach(function(shape){ 
+      copy.add(shape.clone());  
+    });
+    return copy; 	
+}
+alignToGrid(isRequired) {
+    let r=this.getPinsRect();
+    //may not have pins
+    if(r==null){
+       return null;
     }
+    let point=this.owningUnit.getGrid().positionOnGrid(r.min.x,r.min.y); 
+    this.move(point.x-r.min.x,point.y-r.min.y);
+    return null;
+}
 add(shape){
     if (shape == null)
-          return;
-    shape.isControlPointVisible=false;
+          return;    
     this.shapes.push(shape);  
-} 
-getPads(){
-   return this.shapes.filter(s => s instanceof Pad);        
 }
-getClickedTexture(x,y) {
-    if(this.reference.isClicked(x, y))
-        return this.reference;
-    else if(this.value.isClicked(x, y))
-        return this.value;
-    else
-    return null;
-}
-isClickedTexture(x,y) {
-    return this.getClickedTexture(x, y)!=null;
-}
-getTextureByTag(tag) {
-    if(tag===(this.reference.tag))
-        return this.reference;
-    else if(tag===(this.value.tag))
-        return this.value;
-    else
-    return null;
-}
-setSide(side){
-    //mirror footprint
-    let r=this.getBoundingShape();
-    let p=r.center;
-    let line= new d2.Line(new d2.Point(p.x,p.y-10),new d2.Point(p.x,p.y+10));
+getPinsRect(){
+	var r = new d2.Box(0,0,0,0);
+ 	var x1 = Number.MAX_VALUE; 
+ 	var y1 = Number.MAX_VALUE;
+ 	var x2 = Number.MIN_VALUE;
+ 	var y2 = Number.MIN_VALUE;       
+    let isPinnable=false;
     
-    this.shapes.forEach(shape=>{
-        shape.setSide(side,line,(360-this.rotation));
-    });  
-    this.reference.setSide(side,line,(360-this.rotation));       
-    this.value.setSide(side,line,(360-this.rotation));       
-    
-    this.copper=(core.Layer.Side.change(this.copper.getLayerMaskID()));
-    this.rotation=360-this.rotation;	
-}
-getSide(){
-    return core.Layer.Side.resolve(this.copper.getLayerMaskID());       
-}
-
-clear() {    
-	this.shapes.forEach(function(shape) {
-		  shape.owningUnit=null;
-		  shape.clear();
-		  shape=null;
-     });
-     this.shapes=[];	
-     this.value.clear();
-     this.reference.clear();
-}
-getOrderWeight() {
-   var r=this.getBoundingShape();
-   return (r.width);
-}
-isClicked(x,y){
-	var r=this.getBoundingShape();
-	if(!r.contains(x,y)){
-		return false;
-	}
-	let ps=new d2.Polygon();
-	var result= this.shapes.some(function(shape) {
-	   if(!(shape instanceof Line)){ 
-		return shape.isClicked(x,y);
-	   }else{
-		ps.points.push(...shape.vertices);  //line vertices   
-		return false;
-	   }
-	});		
-	if(result){
-		return true;//click on a anything but a Line
-	}
-	
-	this.sortPolygon(ps.points);  //line only
-	return ps.contains(x,y);
-}
-getPolygonCentroid(points){
-	let x=0,y=0;
-	points.forEach(p=>{
-		x+=p.x;
-		y+=p.y;
-	});
-	return new d2.Point(x/points.length,y/points.length);
-}
-sortPolygon(points){
-	let center=this.getPolygonCentroid(points);
-	
-	points.sort((a,b)=>{
-	 let a1=(utilities.degrees(Math.atan2(a.x-center.x,a.y-center.y))+360)%360;
-	 let a2=(utilities.degrees(Math.atan2(b.x-center.x,b.y-center.y))+360)%360;
-	 return (a1-a2);
-	});
-}
-
-setSelected (selection) {
-	super.setSelected(selection);
-	this.shapes.forEach(function(shape) {	
-		  shape.setSelected(selection);
-		  	 
-   });	
-    this.value.setSelected(selection);
-    this.reference.setSelected(selection);
+    this.shapes.forEach(shape=>{ 
+      if(shape instanceof Pin){          
+          let p=shape.getPinPoint();
+          x1=Math.min(x1,p.x );
+          y1=Math.min(y1,p.y);
+          x2=Math.max(x2,p.x+0);
+          y2=Math.max(y2,p.y +0);             
+          isPinnable=true;
+      }
+    });
+    if(isPinnable){
+        r.setRect(x1,y1,x2-x1,y2-y1);
+        return r;
+    }else
+        return null; 	
 }
 calculateShape() {
 	var r = new d2.Box(0,0,0,0);
@@ -1348,65 +1098,76 @@ calculateShape() {
     }
     r.setRect(x1, y1, x2 - x1, y2 - y1);
     return r;
-}	
+}
+setSelected(selected) {        
+    super.setSelected(selected);
+    
+    this.shapes.forEach(shape=>{   
+      shape.fillColor=(selected?"blue":"black");
+    });
+    this.unit.setSelected(selected);
+    this.reference.setSelected(selected);        
+}
+getClickedTexture(x,y) {
+    if(this.reference.isClicked(x, y))
+        return this.reference;
+    else if(this.unit.isClicked(x, y))
+        return this.unit;
+    else
+    return null;
+}
+isClickedTexture(x,y) {
+    return this.getClickedTexture(x, y)!=null;
+}
+getTextureByTag(tag) {
+    if(tag===(this.reference.tag))
+        return this.reference;
+    else if(tag===(this.unit.tag))
+        return this.unit;
+    else
+    return null;
+}
 move(xoffset,yoffset){
 	   var len=this.shapes.length;
 	   for(var i=0;i<len;i++){
 		   this.shapes[i].move(xoffset,yoffset);  
 	   }	
 	   this.reference.move(xoffset,yoffset);
-	   this.value.move(xoffset,yoffset);
-}
-setRotation(rotate){
-	let center=this.getBoundingShape().center;
-	let len=this.shapes.length;
-	for(var i=0;i<len;i++){
-		
-	   this.shapes[i].setRotation(rotate,center);  
-	}	
-    this.value.setRotation(rotate,center);
-    this.reference.setRotation(rotate,center);
-	this.rotation=rotate;
+	   this.unit.move(xoffset,yoffset);
 }
 rotate(rotation){
-	//fix angle
-	   let alpha=this.rotation+rotation.angle;
-	   if(alpha>=360){
-		 alpha-=360
-	   }
-	   if(alpha<0){
-		 alpha+=360; 
-	   }
-
 	   var len=this.shapes.length;
 	   for(var i=0;i<len;i++){
 		   this.shapes[i].rotate(rotation);  
 	   }
 	  
-	   this.value.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
-	   this.reference.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
-	   this.rotation=alpha;
+	   this.unit.setRotation(rotation);
+	   this.reference.setRotation(rotation);
 }
-drawClearence(g2,viewportWindow,scale,source){
-    let rect=this.getBoundingShape();
-    if (!rect.intersects(source.getBoundingShape())) {    
-    	return;
-    }
-    
-    rect.scale(scale.getScale());
-	if (!rect.intersects(viewportWindow)) {
-		return;
-	}
+mirror(line){
 	var len=this.shapes.length;
-	for(i=0;i<len;i++){
-	  if(this.shapes[i] instanceof Pad){
-		  this.shapes[i].drawClearence(g2,viewportWindow,scale,source); 
-	  }
-	}
-	
+	   for(var i=0;i<len;i++){
+		   this.shapes[i].mirror(line);  
+	   } 	   
+	   this.mirrorText(line,this.unit);
+	   this.mirrorText(line,this.reference);	   
+}
+mirrorText(line,texture){
+   	let oldalignment = texture.shape.alignment;
+	texture.mirror(line);	
+    if (line.isVertical) { //right-left mirroring
+        if (texture.shape.alignment == oldalignment) {
+            texture.shape.anchorPoint.set(texture.shape.anchorPoint.x +
+                                    (texture.shape.metrics.ascent - texture.shape.metrics.descent),texture.shape.anchorPoint.y);
+        }
+    } else { //***top-botom mirroring          
+        if (texture.shape.alignment == oldalignment) {
+        	texture.shape.anchorPoint.set(texture.shape.anchorPoint.x,texture.shape.anchorPoint.y +(texture.shape.metrics.ascent - texture.shape.metrics.descent));
+        }
+    } 	
 }
 paint(g2, viewportWindow, scale,layersmask) {        
-     
+    
 	var rect = this.getBoundingShape();		
 	rect.scale(scale.getScale());
 	if (!rect.intersects(viewportWindow)) {
@@ -1417,786 +1178,932 @@ paint(g2, viewportWindow, scale,layersmask) {
 	for(i=0;i<len;i++){
 		  this.shapes[i].paint(g2,viewportWindow,scale,layersmask);  
 	}    
-	
-    this.value.fillColor=core.Layer.Copper.resolve(this.value.layermaskId).getColor();
-    this.value.paint(g2, viewportWindow, scale, layersmask);
-
-	
-    this.reference.fillColor=core.Layer.Copper.resolve(this.reference.layermaskId).getColor();
+    this.unit.paint(g2, viewportWindow, scale, layersmask);
     this.reference.paint(g2, viewportWindow, scale, layersmask);
- }    
+    	
+    
+ }
 fromXML(data){
-	 this.copper=core.Layer.Copper.valueOf(j$(data).attr("layer"));
-	 this.val=parseFloat(j$(data).find("units").attr("raster"));
-     this.units=core.Units.MM;	
-     
-	 var reference=j$(data).find("reference")[0];
- 	 var value=j$(data).find("value")[0];
- 	 	
- 	 this.reference.fromXML(reference);
- 	 
- 	 this.value.fromXML(value);
- 	 
- 	 this.displayName=j$(data).find("name")[0].textContent;	
- 	 
-	 var that=this;
-	 var shapeFactory=new FootprintShapeFactory();
+	this.type=SymbolType.parse(j$(data).attr("type"));
+	this.displayName=j$(data).find("name")[0].textContent;	
+	
+	var reference=j$(data).find("reference")[0];
+	var label=j$(reference).find("label")[0];
+	
+	if(label!=undefined){
+	  this.reference.fromXML(label.textContent);
+	  this.reference.fillColor="#" +(j$(label).attr("color") & 0x00FFFFFF).toString(16).padStart(6, '0');	  
+	}else{
+	  this.reference.fromXML(reference.textContent);
+	}
+	var unit=j$(data).find("unit")[0];
+	var label=j$(unit).find("label")[0];
+	
+	if(label!=undefined){	  		
+	  this.unit.fromXML(label.textContent);	  
+	  this.unit.fillColor="#" +(j$(label).attr("color") & 0x00FFFFFF).toString(16).padStart(6, '0');
+	}else{
+	  this.unit.fromXML(unit.textContent);	 
+	}
+	
+	var that=this;
+	var shapeFactory=new SymbolShapeFactory();
 	 
-	 j$(data).find('shapes').children().each(function(){
+	j$(data).find('elements').children().each(function(){
          var shape=shapeFactory.createShape(this);
          that.add(shape);
-	 });
-}
-
-toXML() {
-    let xml="<footprint layer=\""+this.copper.getName()+"\">\r\n";
-           xml+="<name>"+this.displayName+"</name>\r\n";
-           xml+="<units raster=\""+this.val+"\">"+this.units+"</units>\r\n"; 
-           xml+="<reference layer=\""+core.Layer.Copper.resolve(this.reference.layermaskId).getName()+"\">"+this.reference.toXML()+"</reference>\r\n";                           
-           xml+="<value layer=\""+core.Layer.Copper.resolve(this.value.layermaskId).getName()+"\">"+this.value.toXML()+"</value>\r\n";             
-           xml+="<shapes>\r\n";
-           this.shapes.forEach(
-            s=>xml+=s.toXML()
-           )
-           xml+="\r\n</shapes>\r\n";
-           xml+="</footprint>";                 
-    return xml;  
+	});	
+	
 }
 }
-
-class PCBCircle extends Circle{
-    constructor( x, y,  r,  thickness, layermaskid) {
-        super( x, y, r, thickness, layermaskid);
-    }	
-    clone(){
-    	let copy = new PCBCircle(this.x,this.y,this.width,this.thickness,this.copper.getLayerMaskID());
-    	copy.circle=this.circle.clone();
-    	copy.fill=this.fill;
-    	return copy;
-    }  
-    
-    
-}
-
-class PCBArc extends Arc{
-    constructor( x, y,  r,  thickness, layermaskid) {
-        super( x, y, r, thickness, layermaskid);
-    }	
-    clone() {
-		var copy = new PCBArc(this.x, this.y, this.width,
-						this.thickness,this.copper.getLayerMaskID());
-        copy.arc=this.arc.clone();
-		copy.arc.startAngle = this.arc.startAngle;
-        copy.arc.endAngle = this.arc.endAngle;         
-		copy.fill = this.fill;
+class SCHFontLabel extends FontLabel{
+	constructor(x, y) {
+		super(x, y, 0, 0, 1,core.Layer.LAYER_ALL);		
+	}
+	clone(){
+		var copy = new SCHFontLabel(this.x,this.y);
+		copy.texture = this.texture.clone();  				
 		return copy;
-}    
-}
-
-class PCBLabel extends GlyphLabel{
-    constructor( layermaskId) {
-        super("Label",core.MM_TO_COORD(0.3),layermaskId);
-        this.clearance=0;
-    }
-clone(){
-	var copy = new PCBLabel(this.copper.getLayerMaskID());
-    copy.texture = this.texture.clone();        
-    copy.copper=this.copper;
-	return copy;
-} 
-drawClearence(g2,viewportWindow,scale,source){
-   if((source.copper.getLayerMaskID()&this.copper.getLayerMaskID())==0){        
-	   return;  //not on the same layer
-   }
-   let clear=this.clearance!=0?this.clearance:source.clearance;
-   
-   let rect=this.texture.getBoundingShape();
-   rect.min.move(-clear,-clear);
-   rect.max.move(clear,clear);
-   
-   if (!rect.intersects(source.getBoundingShape())) {
-		return;
-   }
-
-    let r=this.texture.getBoundingRect();
- 
-	r.grow(clear);
-    r.scale(scale.getScale());
-	if (!r.intersects(viewportWindow)) {
-		return;
 	}
 	
-	g2._fill=true;
-	g2.fillStyle = "black";	
-	
-	
-    r.move(-viewportWindow.x,- viewportWindow.y);
-	r.paint(g2);
-	
-    g2._fill=false;	
-   
 }
-getDrawingOrder() {
-        let order=super.getDrawingOrder();
-        if(this.owningUnit==null){            
-           return order;
+class SCHWire extends AbstractLine{
+	constructor(){
+		   super(1,core.Layer.LAYER_ALL);
+	       this.displayName = "Wire";	
+	   	   this.selectionRectWidth=4;
+		}
+	clone() {
+		var copy = new SCHWire();		
+		copy.polyline=this.polyline.clone();
+		return copy;
+	}
+	paint(g2, viewportWindow, scale,layersmask) {		
+		var rect = this.polyline.box;
+		rect.scale(scale.getScale());		
+		if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
+			return;
+		}
+
+		
+		
+
+		g2.lineWidth = this.thickness * scale.getScale();
+
+		if (this.selection)
+			g2.strokeStyle = "gray";
+		else
+			g2.strokeStyle = "black";
+
+		let a=this.polyline.clone();
+		a.scale(scale.getScale());
+		a.move( - viewportWindow.x, - viewportWindow.y);		
+		a.paint(g2);
+		
+		// draw floating point
+		if (this.isFloating()) {
+				let p = this.floatingMidPoint.clone();
+				p.scale(scale.getScale());
+				p.move( - viewportWindow.x, - viewportWindow.y);
+				g2.lineTo(p.x, p.y);									
+				g2.stroke();							    		
+			
+				p = this.floatingEndPoint.clone();
+				p.scale(scale.getScale());
+				p.move( - viewportWindow.x, - viewportWindow.y);
+				g2.lineTo(p.x, p.y);									
+				g2.stroke();					
+		}
+
+	    if((this.isSelected())/*&&(!this.isSublineSelected())*/){
+	    	this.drawControlPoints(g2, viewportWindow, scale);
+		}
+		    
+		    
+	}	
+	fromXML(data){
+		
+		var points= j$(data).find('wirepoints')[0];
+		var tokens = points.textContent.split("|");
+		
+		for (var index = 0; index < tokens.length; index ++) {
+			if(tokens[index].length>1){
+				let points =tokens[index].split(",");
+				let x = parseFloat(points[0]);
+			    let y = parseFloat(points[1]);
+			    this.polyline.points.push(new d2.Point(x, y));
+			}
+		}
+	}
+}
+
+class SCHBus extends SCHWire{
+	constructor(){
+		   super(1,core.Layer.LAYER_ALL);
+	       this.displayName = "Bus";	
+	   	   this.selectionRectWidth=4;
+	   	   this.thickness=4;
+		}
+	clone() {
+		var copy = new SCHBus();		
+		copy.polyline=this.polyline.clone();
+		return copy;
+	}	
+}
+class SCHBusPin extends AbstractLine{
+	constructor(){
+		   super(1,core.Layer.LAYER_ALL);
+	       this.displayName = "BusPin";	
+	   	   this.selectionRectWidth=4;	
+	   	   this.polyline.points.push(new d2.Point(0, 0));
+	   	   this.polyline.points.push(new d2.Point(-8, -8));
+		   this.texture=new SymbolFontTexture("XXX","name", 5, 0,2,8);
+		}
+	clone() {
+		var copy = new SCHBusPin();		
+		copy.texture =this.texture.clone();  
+		copy.polyline=this.polyline.clone();
+		return copy;
+	}
+    
+    alignToGrid(isRequired) {
+       let point=this.polyline.points[1]; 
+       let p=this.owningUnit.grid.positionOnGrid(point.x,point.y);        
+        
+       this.texture.move(p.x-point.x,p.y-point.y);  
+       point.set(p);
+        
+       point=this.polyline.points[0]; 
+       p=this.owningUnit.grid.positionOnGrid(point.x,point.y);        
+       point.set(p);      
+             
+    }	
+	alignResizingPointToGrid(targetPoint) {
+	    this.owningUnit.grid.snapToGrid(targetPoint);         
+	}	
+	calculateShape(){
+		return this.polyline.box;
+	}
+	getClickedTexture(x,y) {
+	    if(this.texture.isClicked(x, y))
+	        return this.texture;	    
+	    else
+	    	return null;
+	}
+    
+    isControlRectClicked( x,  y) {
+    	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
+
+        if(rect.contains(this.polyline.points[1])){
+           return this.polyline.points[1]; 
+        }else{
+           return null;
+        }
+    }	
+	isClickedTexture(x,y) {
+	    return this.getClickedTexture(x, y)!=null;
+	}
+	getTextureByTag(tag) {
+	    if(tag===(this.texture.tag))
+	        return this.texture;	    
+	    else
+	    	return null;
+	}	
+	setSelected (selection) {
+		super.setSelected(selection);		
+	    this.texture.setSelected(selection);
+	    
+	}	
+	move(xoffset,yoffset){
+		   super.move(xoffset,yoffset);
+		   this.texture.move(xoffset,yoffset);
+	}	
+	rotate(rotation){
+		super.rotate(rotation);
+	 	let oldorientation=TextAlignment.getOrientation(this.texture.shape.alignment);	
+	 	this.texture.rotate(rotation);
+		   if(rotation.angle<0){  //clockwise		   
+			   if(oldorientation == TextOrientation.HORIZONTAL){
+				   this.texture.shape.anchorPoint.set(this.texture.shape.anchorPoint.x+(this.texture.shape.metrics.ascent-this.texture.shape.metrics.descent),this.texture.shape.anchorPoint.y);            
+			   }
+		   }else{		    
+			   if(oldorientation == TextOrientation.VERTICAL){
+				   this.texture.shape.anchorPoint.set(this.texture.shape.anchorPoint.x,this.texture.shape.anchorPoint.y+(this.texture.shape.metrics.ascent-this.texture.shape.metrics.descent));	           
+			   }
+		   }			
+		
+	}
+	Resize(xoffset, yoffset, clickedPoint) {
+		clickedPoint.set(clickedPoint.x + xoffset,
+									clickedPoint.y + yoffset);
+	}
+	paint(g2, viewportWindow, scale,layersmask) {		
+		var rect = this.polyline.box;
+		rect.scale(scale.getScale());		
+		if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
+			return;
+		}
+
+		g2.lineWidth = this.thickness * scale.getScale();
+
+		if (this.selection)
+			g2.strokeStyle = "gray";
+		else
+			g2.strokeStyle = "black";
+
+		let a=this.polyline.clone();
+		a.scale(scale.getScale());
+		a.move( - viewportWindow.x, - viewportWindow.y);		
+		a.paint(g2);
+		
+		
+		
+        this.texture.paint(g2, viewportWindow, scale);
+		  
+        if (this.isSelected()) {
+            let c=new d2.Circle(this.polyline.points[0].clone(), 2);
+            c.scale(scale.getScale());
+            c.move(-viewportWindow.x,- viewportWindow.y);
+            c.paint(g2,false);        
+        
+            
+            utilities.drawCrosshair(g2,viewportWindow,scale,null,2,[this.polyline.points[1]]);
         }
         
-        if(this.owningUnit.activeSide==core.Layer.Side.resolve(this.copper.getLayerMaskID())){
-          order= 4;
-        }else{
-          order= 3; 
-        }  
-        return order;
-    }
-}
-class PCBLine extends Line{
-constructor(thickness,layermaskId){
-        super(thickness,layermaskId);
-    }
-clone() {
-		var copy = new PCBLine(this.thickness,this.copper.getLayerMaskID());
-		  copy.polyline=this.polyline.clone();
-		  return copy;
-	}    
-}
-class PCBSolidRegion extends SolidRegion{
-	constructor(layermaskId){
-	        super(layermaskId);
-	    }
-	clone() {
-			var copy = new PCBSolidRegion(this.copper.getLayerMaskID());
-			  copy.polygon=this.polygon.clone();  
-			  return copy;
-		}    
-}
-
-class PCBRoundRect extends RoundRect{
-constructor( x, y,  width,height,arc,  thickness, layermaskid) {
-        super( x, y, width,height,arc, thickness, layermaskid);
-        this.displayName = "Rect";
-    }
-clone(){
-	var copy = new PCBRoundRect(0,0,0,0,0,this.thickness,this.copper.getLayerMaskID());
-	copy.roundRect = this.roundRect.clone();
-	copy.fill = this.fill;
-	copy.arc=this.arc;
-	return copy;	
-}    
-}
-//************************PCBTrack********************
-class PCBTrack extends AbstractLine{
-constructor(thickness,layermaskId){
-       super(thickness,layermaskId);
-       this.displayName = "Track";
-       this.clearance=0;
-	}
-clone() {
-	var copy = new PCBTrack(this.thickness,this.copper.getLayerMaskID());
-	copy.clearance=this.clearance=0;;
-	copy.polyline=this.polyline.clone();
-	return copy;
-
-	}
-getDrawingOrder() {
-    let order=super.getDrawingOrder();
-    if(this.owningUnit==null){            
-        return order;
-    }
-    
-    if(this.owningUnit.activeSide==core.Layer.Side.resolve(this.copper.getLayerMaskID())){
-       order= 4;
-     }else{
-       order= 3; 
-     }  
-    return order;     
-}
-getOrderWeight() {
-    return 4;
-}
-drawClearence(g2,viewportWindow,scale,source){
-   if((source.copper.getLayerMaskID()&this.copper.getLayerMaskID())==0){        
-	   return;  //not on the same layer
-   }
-   g2.lineWidth=(this.thickness+2*(this.clearance!=0?this.clearance:source.clearance))*scale.getScale(); 
-   g2.strokeStyle = "black";
-   
-    
-   let clip=source.clip;
-   g2.save();
-   g2.beginPath();
-   g2.moveTo(clip[0].x,clip[0].y);
-   for (var i = 1; i < clip.length; i++) {
-	   g2.lineTo(clip[i].x, clip[i].y);
-   } 
-   g2.clip();
-   
-   let a=this.polyline.clone();
-   a.scale(scale.getScale());
-   a.move( - viewportWindow.x, - viewportWindow.y);		
-   a.paint(g2);
-
-   g2.restore();
-}
-paint(g2, viewportWindow, scale,layersmask) {
-    if((this.copper.getLayerMaskID()&layersmask)==0){
-        return;
-    }
-	
-	var rect = this.polyline.box;
-	rect.scale(scale.getScale());		
-	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
-		return;
-	}
-
-	g2.globalCompositeOperation = 'lighter';
-	g2.lineCap = 'round';
-	g2.lineJoin = 'round';
-	
-
-	g2.lineWidth = this.thickness * scale.getScale();
-
-
-	if (this.selection)
-		g2.strokeStyle = "gray";
-	else
-		g2.strokeStyle = this.copper.getColor();
-
-	let a=this.polyline.clone();
-	a.scale(scale.getScale());
-	a.move( - viewportWindow.x, - viewportWindow.y);		
-	a.paint(g2);
-	
-	// draw floating point
-	if (this.isFloating()) {
-			let p = this.floatingMidPoint.clone();
-			p.scale(scale.getScale());
-			p.move( - viewportWindow.x, - viewportWindow.y);
-			g2.lineTo(p.x, p.y);									
-			g2.stroke();							    		
+        
+		    
+	}	
+	fromXML(data){
+		var points= j$(data).find('wirepoints')[0];
+		var tokens = points.textContent.split("|");		
+			
+		let pt =tokens[0].split(",");
+		let x = parseFloat(pt[0]);
+		let y = parseFloat(pt[1]);
+		this.polyline.points[0].set(x, y);
 		
-			p = this.floatingEndPoint.clone();
-			p.scale(scale.getScale());
-			p.move( - viewportWindow.x, - viewportWindow.y);
-			g2.lineTo(p.x, p.y);									
-			g2.stroke();					
+		pt =tokens[1].split(",");
+		x = parseFloat(pt[0]);
+		y = parseFloat(pt[1]);
+		this.polyline.points[1].set(x, y);
+		
+		var texture=j$(data).find("name")[0];	
+		this.texture.fromXML(texture.textContent);
+	    
 	}
-
-	g2.globalCompositeOperation = 'source-over';
-
 }
-drawControlShape(g2, viewportWindow, scale){   
-    if((!this.isSelected())/*&&(!this.isSublineSelected())*/){
-      return;
-    }
-    this.drawControlPoints(g2, viewportWindow, scale);
+
+var ConnectorType={
+    INPUT:0,
+    OUTPUT:1  
 }
-fromXML(data) {
-       this.copper =core.Layer.Copper.valueOf(j$(data).attr("layer"));
-	   this.thickness = (parseInt(j$(data).attr("thickness")));
-	   var tokens = data.textContent.split(",");
-	   var len = Math.floor(tokens.length / 2) * 2;
-	   for (var index = 0; index < len; index += 2) {
-			var x = parseFloat(tokens[index]);
-			var y = parseFloat(tokens[index + 1]);
-			this.polyline.points.push(new d2.Point(x, y));
+
+var Style={
+    BOX:0,
+    ARROW:1,
+    CIRCLE:2  
+}; 
+
+class SCHConnector extends Shape{
+	constructor(){
+		super(0, 0, 0,0, 1,core.Layer.LAYER_ALL);
+		this.selectionRectWidth=4;
+		this.texture=new SymbolFontTexture("Nikola","name", -4, 0,0,8);		
+		this.type=ConnectorType.INPUT;
+		this.displayName="Connector";
+		this.segment=new d2.Segment(0,0,(PIN_LENGTH / 2),0);		
+		this.shape=new ArrowShape(this);
+	}
+	clone(){
+		 var copy=new SCHConnector();
+		 copy.type=this.type;
+		 copy.segment=this.segment.clone();
+		 copy.texture =this.texture.clone(); 
+		 switch(this.getStyle()){
+		 case Style.BOX:
+			 copy.shape=new BoxShape(copy);
+			 break;
+		 case Style.ARROW:
+			 copy.shape=new ArrowShape(copy);
+			 break;
+		 case Style.CIRCLE:
+			 copy.shape=new CircleShape(copy);
+		 }
+		 return copy;
+	}
+	alignToGrid(isRequired) {
+	    var center=this.segment.ps;
+	    var point=this.owningUnit.getGrid().positionOnGrid(center.x,center.y);
+	    this.move(point.x - center.x,point.y - center.y);	     	       
+	    return new d2.Point(point.x - center.x, point.y - center.y);
+	}
+	getTextureByTag(tag) {
+	    if(tag===(this.texture.tag))
+	        return this.texture;	    
+	    else
+	    return null;
+	}	
+	getClickedTexture(x,y) {
+	    if(this.texture.isClicked(x, y))
+	        return this.texture;	    
+	    else
+	    return null;
+	}
+	isClickedTexture(x,y) {
+	    return this.getClickedTexture(x, y)!=null;
+	}	
+	calculateShape(){
+		return this.segment.box;
+	}
+	setSelected (selection) {
+		super.setSelected(selection);
+		this.texture.setSelected(selection);		
+	}	
+	setType(type){
+		this.type=type;
+		this.shape.calculatePoints();
+	}
+    setText(text){
+        this.texture.setText(text);
+        this.shape.calculatePoints();
+     } 	
+	isClicked(x,y){
+		  var rect = d2.Box.fromRect(x
+					- (this.selectionRectWidth / 2), y
+					- (this.selectionRectWidth / 2), this.selectionRectWidth,
+					this.selectionRectWidth);
+		  
+		if (utilities.intersectLineRectangle(
+				this.segment.ps,this.segment.pe, rect.min, rect.max)) {			
+				return true;
+		}else if(this.texture.isClicked(x,y)){
+	    	return true;
+	    }else
+	     return   this.shape.contains(new d2.Point(x,y));
+	 }	
+	getStyle(){
+		if(this.shape instanceof BoxShape){
+			return  Style.BOX;
+		}else if(this.shape instanceof ArrowShape){
+			return  Style.ARROW;
+		}else{
+			return  Style.CIRCLE;
 		}
+	}
+	setStyle(shape){
+	  switch(shape){
+	  case Style.ARROW:
+		this.shape=new ArrowShape(this);  
+		break;
+	  case Style.BOX:
+		this.shape=new BoxShape(this);
+		break;
+	  case Style.CIRCLE:
+		this.shape=new CircleShape(this);	  
+	  }
+	  this.shape.calculatePoints();
+	}
+	rotate(rotation){
+		this.segment.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+		this.texture.setRotation(rotation);
+		this.shape.calculatePoints();				
+	}	
+	mirror(line){
+    	this.segment.mirror(line);
+    	this.texture.mirror(line);
+    	this.shape.calculatePoints();
+    }
+	move(xoff,yoff){
+	   this.segment.move(xoff,yoff);	
+	   this.shape.move(xoff,yoff);
+	   this.texture.move(xoff,yoff);
+	}
+	paint(g2, viewportWindow, scale,layersmask) { 
+		var rect = this.segment.box;
+		rect.scale(scale.getScale());		
+		if (!rect.intersects(viewportWindow)) {
+			return;
+		}
+   	  	if(this.isSelected()){
+	        g2.strokeStyle = "blue";   	        
+   	           	        
+   	  	}else{
+	        g2.strokeStyle = "black";	        
+	    }
+   	  	//utilities.drawCrosshair(g2, viewportWindow, scale,null,2,[this.segment.ps.clone()]);
+	    let line=this.segment.clone();                	    
+		line.scale(scale.getScale());
+	    line.move(-viewportWindow.x,- viewportWindow.y);	    
+	    g2.lineWidth = this.thickness * scale.getScale();
+	    line.paint(g2);
+	    
+		this.shape.paint(g2,viewportWindow, scale);
+		this.texture.paint(g2,viewportWindow, scale);
+	}
+	init(orientation){
+	
+	    switch (orientation) {
+	    case Orientation.EAST:        
+	        this.segment.pe.set(this.segment.ps.x + (PIN_LENGTH / 2), this.segment.ps.y);
+	        break;
+	    case Orientation.WEST:
+	    	this.segment.pe.set(this.segment.ps.x - (PIN_LENGTH / 2), this.segment.ps.y);    	
+	        break;
+	    case Orientation.NORTH:
+	    	this.segment.pe.set(this.segment.ps.x, this.segment.ps.y - (PIN_LENGTH / 2));    	
+	        break;
+	    case Orientation.SOUTH:    	
+	    	this.segment.pe.set(this.segment.ps.x, this.segment.ps.y + (PIN_LENGTH / 2));
+	    }   
+	}	
+	fromXML(data){		
+		var tokens = j$(data).find("a")[0].textContent.split(",");
+		this.segment.ps.set(parseFloat(tokens[0]),parseFloat(tokens[1]));
+		this.init(parseInt(tokens[3]));
+		
+		this.setStyle(Number.parseInt(j$(data).attr("style")));
+		this.setType(Number.parseInt(j$(data).find("type")[0].textContent));
+		var texture=j$(data).find("name")[0];	
+		this.texture.fromXML(texture.textContent);
+		
+		this.shape.calculatePoints();
+	}	
 }
-toXML() {
-	var result = "<track layer=\"" + this.copper.getName()
-								+ "\" thickness=\"" + this.thickness + "\" clearance=\"" + this.clearance + "\" net=\"" + this.net +"\">";
-	this.polyline.points.forEach(function(point) {
-		result += utilities.roundFloat(point.x,5) + "," + utilities.roundFloat(point.y,5) + ",";
-	},this);
-	result += "</track>";
-	return result;
+class BoxShape{
+	constructor(connector){
+		this.connector=connector
+		this.polygon=new d2.Polygon();
+		this.calculatePoints();	
+	}
+	calculatePoints(){
+		  this.polygon.points.length=0;
+		  let rect=this.connector.texture.shape.box;
+		  let width=2+rect.width; 
+		  let height=2+rect.height;
+	
+		  switch(this.connector.type) {
+		  case ConnectorType.OUTPUT:
+		  if(this.connector.segment.isVertical){
+			  let v=new d2.Vector(this.connector.segment.pe,this.connector.segment.ps);
+			  let v1=v.clone();
+			  v1.rotate90CCW();
+			  let norm=v1.normalize();			  
+			  let xx=this.connector.segment.ps.x +4*norm.x;
+			  let yy=this.connector.segment.ps.y + 4*norm.y;						 	   	
+			  this.polygon.points.push(new d2.Point(xx,yy));
+			  
+			  let v2=v.clone();
+			  v2.rotate90CW();
+			  norm=v2.normalize();			  
+			  let x=this.connector.segment.ps.x +4*norm.x;
+			  let y=this.connector.segment.ps.y + 4*norm.y;						 	   	
+			  this.polygon.points.push(new d2.Point(x,y));
+			  
+			  v2.rotate90CCW();
+			  norm=v2.normalize();			  
+			  x=x +height*norm.x;
+			  y=y +height*norm.y;						 	   	
+			  this.polygon.points.push(new d2.Point(x,y));
+			  
+			  norm=v.normalize();			  
+			  x=this.connector.segment.ps.x +(4+height)*norm.x;
+			  y=this.connector.segment.ps.y +(4+height)*norm.y;						 	   	
+			  this.polygon.points.push(new d2.Point(x,y));
+
+			  
+			  v1.rotate90CW();
+			  norm=v1.normalize();			  
+			  xx=xx +height*norm.x;
+			  yy=yy +height*norm.y;						 	   	
+			  this.polygon.points.push(new d2.Point(xx,yy));  			  
+		  }else{
+				  let v=new d2.Vector(this.connector.segment.pe,this.connector.segment.ps);
+				  
+				  let v1=v.clone();
+				  v1.rotate90CCW();
+				  let norm=v1.normalize();			  
+				  let xx=this.connector.segment.ps.x +4*norm.x;
+				  let yy=this.connector.segment.ps.y + 4*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(xx,yy));
+				  
+				  let v2=v.clone();
+				  v2.rotate90CW();
+				  norm=v2.normalize();			  
+				  let x=this.connector.segment.ps.x +4*norm.x;
+				  let y=this.connector.segment.ps.y + 4*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(x,y));
+				  
+				  v2.rotate90CCW();
+				  norm=v2.normalize();			  
+				  x=x +width*norm.x;
+				  y=y +width*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(x,y));
+				  
+				  norm=v.normalize();			  
+				  x=this.connector.segment.ps.x +(4+width)*norm.x;
+				  y=this.connector.segment.ps.y +(4+width)*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(x,y));
+
+				  
+				  v1.rotate90CW();
+				  norm=v1.normalize();			  
+				  xx=xx +width*norm.x;
+				  yy=yy +width*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(xx,yy));  			  
+		   }
+		  break;
+		  case ConnectorType.INPUT:
+			  if(this.connector.segment.isVertical){
+				  let v=new d2.Vector(this.connector.segment.pe,this.connector.segment.ps);				  				  				  
+				  let norm=v.normalize();			  
+				  let xx=this.connector.segment.ps.x +4*norm.x;
+				  let yy=this.connector.segment.ps.y + 4*norm.y;						 	   	
+				  
+				  
+				  
+				  let v1=v.clone();
+				  v1.rotate90CCW();
+				  norm=v1.normalize();			  
+				  xx=(xx) +4*norm.x;
+				  yy=(yy) +4*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(xx,yy));
+				  
+				  norm=v.normalize();			  
+				  let x=xx +height*norm.x;
+				  let y=yy +height*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(x,y));
+
+				  v1=v.clone();
+				  v1.rotate90CW();
+				  norm=v1.normalize();			  
+				  x=x +8*norm.x;
+				  y=y +8*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(x,y));
+				  
+				  v1.rotate90CW();
+				  norm=v1.normalize();			  
+				  x=x +height*norm.x;
+				  y=y +height*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(x,y));
+				  
+				  this.polygon.points.push(this.connector.segment.ps.clone());
+			  }else{
+				  let v=new d2.Vector(this.connector.segment.pe,this.connector.segment.ps);				  				  				  
+				  let norm=v.normalize();			  
+				  let xx=this.connector.segment.ps.x +4*norm.x;
+				  let yy=this.connector.segment.ps.y + 4*norm.y;						 	   	
+				  
+				  
+				  
+				  let v1=v.clone();
+				  v1.rotate90CCW();
+				  norm=v1.normalize();			  
+				  xx=(xx) +4*norm.x;
+				  yy=(yy) +4*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(xx,yy));
+				  
+				  norm=v.normalize();			  
+				  let x=xx +width*norm.x;
+				  let y=yy +width*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(x,y));
+
+				  v1=v.clone();
+				  v1.rotate90CW();
+				  norm=v1.normalize();			  
+				  x=x +8*norm.x;
+				  y=y +8*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(x,y));
+				  
+				  v1.rotate90CW();
+				  norm=v1.normalize();			  
+				  x=x +width*norm.x;
+				  y=y +width*norm.y;						 	   	
+				  this.polygon.points.push(new d2.Point(x,y));
+				  
+				  this.polygon.points.push(this.connector.segment.ps.clone()); 
+			  }
+			  break;
+		  }
+	}
+    contains(pt){
+    	return this.polygon.contains(pt);
+    }
+	move(xoffset, yoffset) {
+		this.polygon.move(xoffset,yoffset);
+	}	
+	paint(g2,viewportWindow,scale){
+   	  	var rect = this.polygon.box;
+   	  	rect.scale(scale.getScale());
+   	  	if (!rect.intersects(viewportWindow)) {
+  		  return;
+   	  	}		
+	    
+	    let p=this.polygon.clone();
+		p.scale(scale.getScale());
+        p.move(-viewportWindow.x,- viewportWindow.y);
+        
+   	  	if(this.connector.isSelected()){
+	        g2.strokeStyle = "blue";   	        
+   	           	        
+   	  	}else{
+	        g2.strokeStyle = "black";
+	        
+	    }
+   	  	p.paint(g2);		
+	}	
 }
+class ArrowShape{
+	constructor(connector){
+		this.connector=connector
+		this.polygon=new d2.Polygon();
+		this.calculatePoints();		
+	}
+	calculatePoints(){
+		  this.polygon.points.length=0;
+		  
+		  switch(this.connector.type) {
+		  case ConnectorType.OUTPUT:
+			  {let v=new d2.Vector(this.connector.segment.pe,this.connector.segment.ps);
+			  let norm=v.normalize();			  
+			  let x=this.connector.segment.ps.x +4*norm.x;
+			  let y=this.connector.segment.ps.y + 4*norm.y;						 	   	
+			  this.polygon.points.push(new d2.Point(x,y));
+		  
+			  let v1=v.clone();
+			  v1.rotate90CCW();
+			  norm=v1.normalize();			  
+			  x=this.connector.segment.ps.x +4*norm.x;
+			  y=this.connector.segment.ps.y + 4*norm.y;						 	   	
+			  this.polygon.points.push(new d2.Point(x,y));
+		  
+			  let v2=v.clone();
+			  v2.rotate90CW();
+			  norm=v2.normalize();			  
+			  x=this.connector.segment.ps.x +4*norm.x;
+			  y=this.connector.segment.ps.y + 4*norm.y;						 	   	
+			  this.polygon.points.push(new d2.Point(x,y));
+			  break;
+			  }
+		  case ConnectorType.INPUT:
+			  let v=new d2.Vector(this.connector.segment.pe,this.connector.segment.ps);
+			  let norm=v.normalize();			  
+			  let xx=this.connector.segment.ps.x +4*norm.x;
+			  let yy=this.connector.segment.ps.y + 4*norm.y;						 	   	
+			  
+			  let v1=v.clone();
+			  v1.rotate90CCW();
+			  norm=v1.normalize();			  
+			  let x=xx +4*norm.x;
+			  let y=yy + 4*norm.y;						 	   	
+			  this.polygon.points.push(new d2.Point(x,y));
+			  
+			  v1=v.clone();
+			  v1.rotate90CW();
+			  norm=v1.normalize();			  
+			  x=xx +4*norm.x;
+			  y=yy + 4*norm.y;						 	   	
+			  this.polygon.points.push(new d2.Point(x,y));
+			  
+			  this.polygon.points.push(this.connector.segment.ps.clone());
+		  }
+	}	
+    contains(pt){
+    	return this.polygon.contains(pt);
+    }
+	move(xoffset, yoffset) {
+		this.polygon.move(xoffset,yoffset);
+	}
+	paint(g2,viewportWindow,scale){
+   	  	var rect = this.polygon.box;
+   	  	rect.scale(scale.getScale());
+   	  	if (!rect.intersects(viewportWindow)) {
+  		  return;
+   	  	}		
+	    
+	    let p=this.polygon.clone();
+		p.scale(scale.getScale());
+        p.move(-viewportWindow.x,- viewportWindow.y);
+        
+   	  	if(this.connector.isSelected()){
+	        g2.strokeStyle = "blue";   	        
+   	           	        
+   	  	}else{
+	        g2.strokeStyle = "black";
+	        
+	    }
+   	  	p.paint(g2);		
+	}
 }
-class PCBHole extends Shape{
-	constructor() {
-		super(0, 0, 0, 0,0,core.Layer.LAYER_ALL);		
-		this.displayName='Hole';	
-        this.fillColor='white';
-        this.selectionRectWidth = 3000;
-        this.circle=new d2.Circle(new d2.Point(0,0),core.MM_TO_COORD(1.6)/2);
-        this.clearance=0;
-   	}
-clone(){
-	   	var copy = new PCBHole();
+
+class CircleShape{
+	constructor(connector){
+		this.connector=connector
+		this.circle=new d2.Circle(new d2.Point(0,0),4);
+		this.calculatePoints();
+	}
+	calculatePoints(){
+		  let v=new d2.Vector(this.connector.segment.pe,this.connector.segment.ps);
+		  let norm=v.normalize();			  
+		  let x=this.connector.segment.ps.x +4*norm.x;
+		  let y=this.connector.segment.ps.y + 4*norm.y;				
+		 	   	
+		  this.circle.pc.set(x,y); 
+	}
+    contains(pt){
+    	return this.circle.contains(pt);
+    }
+	move(xoffset, yoffset) {
+		this.circle.move(xoffset,yoffset);
+	}
+	paint(g2,viewportWindow,scale){
+   	  	var rect = this.circle.box;
+   	  	rect.scale(scale.getScale());
+   	  	if (!rect.intersects(viewportWindow)) {
+  		  return;
+   	  	}		
+	    
+	    let c=this.circle.clone();
+		c.scale(scale.getScale());
+        c.move(-viewportWindow.x,- viewportWindow.y);
+        
+   	  	if(this.connector.isSelected()){
+	        g2.strokeStyle = "blue";   	        
+   	           	        
+   	  	}else{
+	        g2.strokeStyle = "black";
+	        
+	    }
+   	  	c.paint(g2);
+				
+	}
+}
+class SCHJunction extends Shape{
+	constructor(){
+	  super(0, 0, 0, 0, 1,core.Layer.LAYER_ALL);	
+	  this.displayName = "Junction";	
+	  this.selectionRectWidth=2;	
+	  this.circle=new d2.Circle(new d2.Point(0,0),this.selectionRectWidth);	
+	}
+	clone(){
+	   	var copy = new SCHJunction();
 		 copy.circle.pc.x=this.circle.pc.x;
 		 copy.circle.pc.y=this.circle.pc.y;
 		 copy.circle.r=this.circle.r;	        	        
 	     return copy;
-}	
+	}		
 alignToGrid(isRequired) {
-	    if(isRequired){
-	       return super.alignToGrid(isRequired);
-	    }else{
-	        return null;
-	    }
-	}
+    let point=this.owningUnit.getGrid().positionOnGrid(this.circle.pc.x, this.circle.pc.y);
+    this.circle.pc.set(point.x,point.y);    
+    return null;
+}
 move(xoffset, yoffset) {
 	this.circle.move(xoffset,yoffset);
+} 
+rotate(rotation){	  
+	this.circle.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	   
 }
-getOrderWeight() {
-    return 3;
+mirror(line){
+	this.circle.mirror(line);	
 }
-setWidth(width){
-	  this.circle.r=width/2;
-	}
 calculateShape() {
-	    return this.circle.box;
-	}
-drawClearence(g2, viewportWindow,scale, source) {
-	
-    let r=this.circle.r+(this.clearance!=0?this.clearance:source.clearance);
-    let c=new d2.Circle(this.circle.pc.clone(),r);
-	let rect=c.box;
-	if (!rect.intersects(source.getBoundingShape())) {
-		return;
-	}
-
-	rect.scale(scale.getScale());
-	if (!rect.intersects(viewportWindow)) {
-		return;
-	}
-	g2._fill=true;
-	g2.fillStyle = "black";	
-	
-	c.scale(scale.getScale());
-    c.move(-viewportWindow.x,- viewportWindow.y);
-	c.paint(g2);
-	
-    g2._fill=false;	
+    return this.circle.box;
 }
-paint(g2, viewportWindow, scale,layersmask) {	
-	var rect = this.calculateShape();
-	rect.scale(scale.getScale());
-	if (!rect.intersects(viewportWindow)) {
-		return;
-	}
-	
-	g2.lineWidth=(scale.getScale())*1000;
-	if (this.selection) {
-		g2.strokeStyle = "gray";
-	} else {
-		g2.strokeStyle = "white";
-	}
+paint(g2, viewportWindow, scale,layersmask) {  
+	  var rect = this.circle.box;
+  	  rect.scale(scale.getScale());
+  	  if (!rect.intersects(viewportWindow)) {
+  		  return;
+  	  }		
+  	  g2.lineWidth=(scale.getScale())*this.thickness;
+  	  if (this.selection) {
+  		 g2.fillStyle = "blue";
+  	  } else {
+		 g2.fillStyle = "black";
+  	  }
 
     let c=this.circle.clone();
 	c.scale(scale.getScale());
     c.move(-viewportWindow.x,- viewportWindow.y);
-	c.paint(g2);
-	
-	if(this.selection){
-	  utilities.drawCrosshair(g2, viewportWindow, scale,null,this.selectionRectWidth,[this.circle.center]);
-	}
-}
-toXML(){
-    return "<hole x=\""+utilities.roundFloat(this.circle.pc.x,5)+"\" y=\""+utilities.roundFloat(this.circle.pc.y,5)+"\" width=\""+this.circle.r*2+"\"  clearance=\""+this.clearance+"\" />";	
-}
-fromXML(data) {
-	let x=parseFloat(j$(data).attr("x"));
-	let y=parseFloat(j$(data).attr("y"));
-    this.circle.pc.set(x,y);
-
-	this.circle.r=(parseInt(j$(data).attr("width")))/2;	
-	this.clearance=(parseInt(j$(data).attr("clearance")));		
-} 
-
-}
-class PCBVia extends Shape{
-constructor() {
-		super(0, 0, 0, 0,core.MM_TO_COORD(0.3),core.Layer.LAYER_ALL);		
-		this.outer=new d2.Circle(new d2.Point(0,0),core.MM_TO_COORD(0.8));
-		this.inner=new d2.Circle(new d2.Point(0,0),core.MM_TO_COORD(0.4));
-        this.selectionRectWidth = 3000;
-		this.displayName='Via';	
-        this.fillColor='white'; 
-        this.clearance=0;
-   	}
-
-clone(){
-   	var copy = new PCBVia();
-        copy.inner=this.inner.clone();
-        copy.outer=this.outer.clone();
-        return copy;
-   	}
-
-alignToGrid(isRequired) {
-    if(isRequired){
-       return super.alignToGrid(isRequired);
-    }else{
-        return null;
-    }
-}
-move(xoffset, yoffset) {
-   this.outer.move(xoffset,yoffset);
-   this.inner.move(xoffset,yoffset);
-}
-rotate(rotation) {
-	this.inner.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
-	this.outer.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
-}
-setWidth(width){
-
-}
-calculateShape() {
-    return this.outer.box;
-}
-drawClearence(g2, viewportWindow,scale, source) {    
-	
-    let r=this.outer.r+(this.clearance!=0?this.clearance:source.clearance);
-    let c=new d2.Circle(this.outer.pc.clone(),r);
-	let rect=c.box;
-	if (!rect.intersects(source.getBoundingShape())) {
-		return;
-	}
-
-	rect.scale(scale.getScale());
-	if (!rect.intersects(viewportWindow)) {
-		return;
-	}
-	g2._fill=true;
-	g2.fillStyle = "black";	
-	
-	c.scale(scale.getScale());
-    c.move(-viewportWindow.x,- viewportWindow.y);
-	c.paint(g2);
-	
+    g2._fill=true;
+    c.paint(g2);
     g2._fill=false;
-}
-paint(g2, viewportWindow, scale,layersmask) {
-	
-	var rect = this.calculateShape();
-	rect.scale(scale.getScale());
-	if (!rect.intersects(viewportWindow)) {
-		return;
-	}
-	
-	g2._fill=true;
-	if (this.selection) {
-		g2.fillStyle = "gray";
-	} else {
-		g2.fillStyle = "white";
-	}
-
-	let c=this.outer.clone();
-	c.scale(scale.getScale());
-    c.move(-viewportWindow.x,- viewportWindow.y);
-	c.paint(g2);
-	
-
-	g2.fillStyle = "black";	
-	c=this.inner.clone();
-	c.scale(scale.getScale());
-    c.move(-viewportWindow.x,- viewportWindow.y);
-	c.paint(g2);
-	
-    g2._fill=false;
-	if(this.selection){
-	   utilities.drawCrosshair(g2, viewportWindow, scale,null,this.selectionRectWidth,[this.inner.center]);
-	}    
-}
-getOrderWeight() {
-    return 3;
-}
-fromXML(data) {
-	let x=parseFloat(j$(data).attr("x"));
-	let y=parseFloat(j$(data).attr("y"));
-    this.inner.pc.set(x,y);
-    this.outer.pc.set(x,y);
-
-
-	this.outer.r=(parseInt(j$(data).attr("width")))/2;
-	this.inner.r = (parseInt(j$(data).attr("drill")))/2;
-	this.clearance=(parseInt(j$(data).attr("clearance")));
-}
-toXML() {
-    return "<via x=\""+utilities.roundFloat(this.inner.center.x,5)+"\" y=\""+utilities.roundFloat(this.inner.center.y,5)+"\" width=\""+this.outer.r*2+"\" drill=\""+this.inner.r*2+"\"   clearance=\""+this.clearance+"\" net=\""+(this.net==null?"":this.net)+"\" />";    
-}
-}
-class PCBCopperArea extends Shape{
-	constructor( layermaskid) {
-        super( 0, 0, 0,0, 0, layermaskid);
-        this.displayName = "Copper Area";
-        this.clearance=core.MM_TO_COORD(0.2); 
-        this.floatingStartPoint=new d2.Point();
-        this.floatingEndPoint=new d2.Point();                 
-        this.selectionRectWidth = 3000;
-        this.fill=core.Fill.FILLED;
-        this.polygon=new d2.Polygon();
-        this.resizingPoint;
-        this.clip=[];
-        this.net='gnd';
-    }
-clone(){
-    let copy=new PCBCopperArea(this.copper.getLayerMaskID());
-    copy.polygon=this.polygon.clone();  
-    return copy;	
-}
-
-prepareClippingRegion(viewportWindow,scale){
-    this.clip=[];
-    this.polygon.points.forEach(function(point){
-        let p=point.clone();            
-        p.scale(scale.getScale());
-        p.move(-viewportWindow.x,-viewportWindow.y);
-        this.clip.push(p);    
-	}.bind(this));
-}
-
-alignResizingPointToGrid(pt) {
-    this.owningUnit.getGrid().snapToGrid(pt);
-}
-calculateShape(){  	    
-   return this.polygon.box;
-}	
-
-getLinePoints() {
-   return this.polygon.points;
-}
-add(point) {
-    this.polygon.add(point);
-}
-getDrawingOrder() {
-    if(this.owningUnit==null){            
-        return super.getDrawingOrder();
-    }
-    
-    if(this.owningUnit.compositeLayer.activeSide==core.Layer.Side.resolve(this.copper.getLayerMaskID())){
-       return 2;
-    }else{
-       return 1; 
-    }
-}
-setResizingPoint(point) {
-    this.resizingPoint=point;
-}
-isFloating() {
-    return (!this.floatingStartPoint.equals(this.floatingEndPoint));                
-}
-isClicked(x,y){
-	  var result = false;
-		// build testing rect
-	  var rect = d2.Box.fromRect(x
-								- (3000 / 2), y
-								- (3000 / 2), 3000,
-								3000);
-	  var r1 = rect.min;
-	  var r2 = rect.max;
-
-	  // ***make lines and iterate one by one
-	  var prevPoint = this.polygon.points[this.polygon.points.length-1];
-
-	  this.polygon.points.some(function(wirePoint) {
-							// skip first point
-							{
-								if (utilities.intersectLineRectangle(
-										prevPoint, wirePoint, r1, r2)) {
-									result = true;
-									return true;
-								}
-								prevPoint = wirePoint;
-							}
-
-						});
-
-	return result;
-}
-isControlRectClicked(x, y) {
-	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
-	let point = null;
-
-	this.polygon.points.some(function(wirePoint) {
-		if (rect.contains(wirePoint)) {
-					point = wirePoint;
-		  return true;
-		}else{
-		  return false;
-		}
-	});
-
-	return point;
-}
-isInRect(r) {
-
-    return this.polygon.points.every(function(wirePoint){
-    	return r.contains(wirePoint.x,wirePoint.y);                        
-    });
-    
-}
-reset(){
-	this.resetToPoint(this.floatingStartPoint);	
-}
-resetToPoint(p){
-    this.floatingStartPoint.set(p.x,p.y);
-    this.floatingEndPoint.set(p.x,p.y); 
-}
-rotate(rotation) {
-	this.polygon.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
-}
-Resize(xoffset, yoffset, clickedPoint) {
-	clickedPoint.set(clickedPoint.x + xoffset,
-								clickedPoint.y + yoffset);
-}
-paint(g2,viewportWindow,scale, layersmask){
-   
-    if((this.copper.getLayerMaskID()&layersmask)==0){
-      return;
-    }
-	var rect = this.polygon.box;
-	rect.scale(scale.getScale());		
-	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
-		return;
-	}
-	
-	g2.lineWidth = 1;
-	
-	if(this.isFloating()){
-      g2.strokeStyle = this.copper.getColor();		
-	}else{
-	  g2._fill=true;
-	  if (this.selection) {
-		 g2.fillStyle = "gray";
-	  } else {
-		 g2.fillStyle = this.copper.getColor();
-	  }
-	}
-	let a=this.polygon.clone();	
-	if (this.isFloating()) {
-		let p = this.floatingEndPoint.clone();
-		a.add(p);	
-    }
-	a.scale(scale.getScale());
-	a.move( - viewportWindow.x, - viewportWindow.y);		
-	a.paint(g2);
-	g2._fill=false;
-    
-    
-    //draw clearence background
-    this.prepareClippingRegion(viewportWindow, scale);
-    this.owningUnit.shapes.forEach(target=>{
-    	if(target.drawClearence!=undefined){
-         target.drawClearence(g2, viewportWindow, scale, this);
-    	}
-    });
-	
-	
-//	let dst = [];
-//	this.polygon.points.forEach(function(point) {
-//		dst.push(point.getScaledPoint(scale));
-//	});
-//	g2.globalCompositeOperation = 'lighter';
-//	g2.beginPath();
-//	g2.lineCap = 'round';
-//	g2.lineJoin = 'round';
-//	g2.moveTo(dst[0].x - viewportWindow.x, dst[0].y
-//							- viewportWindow.y);
-//	for (var i = 1; i < dst.length; i++) {
-//						g2.lineTo(dst[i].x - viewportWindow.x, dst[i].y
-//								- viewportWindow.y);
-//	}
-//	
-//	// draw floating point
-//	if (this.isFloating()) {
-//			let p = this.floatingEndPoint.getScaledPoint(scale);
-//				g2.lineTo(p.x - viewportWindow.x, p.y
-//								- viewportWindow.y);
-//	}
-//	g2.closePath();
-//
-//	if (this.selection){
-//		g2.fillStyle = "gray";
-//    }else{    	
-//		g2.fillStyle = this.copper.getColor();
-//	}
-//    g2.fill();   
-//    
-//    if(this.isSelected()){  
-//    	g2.lineWidth=1;
-//    	g2.strokeStyle = "blue";                   
-//        g2.stroke();
-//    
-//        this.drawControlShape(g2,viewportWindow,scale);
-//    }
-//    
-//	g2.globalCompositeOperation = 'source-over';
-}	
-drawControlShape(g2, viewportWindow, scale) {
-	if (this.isSelected()) {	
-	  utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.polygon.points);
-	}
+  	  
 }
 fromXML(data){
-    this.copper =core.Layer.Copper.valueOf(j$(data).attr("layer"));
-	this.clearance = (parseInt(j$(data).attr("clearance")));
-	this.net=(j$(data).attr("net"));
+	var tokens = data.textContent.split(",");	
+	this.circle.pc.set(parseFloat(tokens[0]),parseFloat(tokens[1]));
+}
+}
+class SCHNoConnector extends Shape{
+	constructor(){
+		  super(0, 0, 0, 0, 1,core.Layer.LAYER_ALL);	
+		  this.displayName = "NoConnector";	
+		  this.selectionRectWidth=3;	
+		  this.point=new d2.Point(0,0);
+			
+		}
+clone(){
+		   	var copy = new SCHNoConnector();
+		   	copy.point=this.point.clone();		   	 	         	        
+		    return copy;
+		}		
+alignToGrid(isRequired) {
+    this.owningUnit.getGrid().snapToGrid(this.point);         
+    return null;
+}
+calculateShape(){
+    return d2.Box.fromRect(this.point.x - this.selectionRectWidth, this.point.y - this.selectionRectWidth, 2 * this.selectionRectWidth,
+            2 * this.selectionRectWidth);
+}		
+move(xoffset,yoffset){
+	this.point.move(xoffset,yoffset);
+}
+rotate(rotation){
+	this.point.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	   
+}
+mirror(line){
+	this.point.mirror(line);	
+}
+paint(g2, viewportWindow, scale,layersmask) {  
+	  var rect = this.getBoundingShape();
+	  rect.scale(scale.getScale());
+	  if (!rect.intersects(viewportWindow)) {
+		  return;
+	  }	  
+	  
+	  g2.lineWidth=(scale.getScale())*this.thickness;
+ 	  	if(this.isSelected()){
+	        g2.strokeStyle = "blue";   	        
+   	           	        
+   	  	}else{
+	        g2.strokeStyle = "black";	        
+	    }
+	  let line=new d2.Segment(this.point.x-this.selectionRectWidth, this.point.y-this.selectionRectWidth,this.point.x+this.selectionRectWidth, this.point.y+this.selectionRectWidth);	  	 
+	  line.scale(scale.getScale());
+	  line.move(-viewportWindow.x,- viewportWindow.y);  
+	  line.paint(g2);  
+	  
+	  line.set(this.point.x-this.selectionRectWidth, this.point.y+this.selectionRectWidth,this.point.x+this.selectionRectWidth, this.point.y-this.selectionRectWidth);	  	 
+	  line.scale(scale.getScale());
+	  line.move(-viewportWindow.x,- viewportWindow.y);  
+	  line.paint(g2);  
+	  
+	  
+}
+fromXML(data){
+	let x=parseFloat(j$(data).attr("x"));
+	let y=parseFloat(j$(data).attr("y"));			
+	this.point.set(x,y);
+}
 	
-	   var tokens = data.textContent.split(",");
-	   var len = Math.floor(tokens.length / 2) * 2;
-	   for (var index = 0; index < len; index += 2) {
-			var x = parseFloat(tokens[index]);
-			var y = parseFloat(tokens[index + 1]);
-			this.polygon.points.push(new d2.Point(x, y));
-	   }
 }
-toXML() {
-	var result = "<copperarea layer=\"" + this.copper.getName()
-								+ "\" padconnect=\"" + this.padConnection + "\" clearance=\"" + this.clearance + "\" net=\"" + this.net +"\">";
-	this.polygon.points.forEach(function(point) {
-		result += utilities.roundFloat(point.x,5) + "," + utilities.roundFloat(point.y,5) + ",";
-	},this);
-	result += "</copperarea>";
-	return result;
-}
-}
-
 module.exports ={
-		PCBCopperArea,
-		PCBFootprint,
-		PCBLabel,
-		PCBCircle,
-		PCBRoundRect,
-		PCBArc,
-		PCBVia,
-		PCBHole,
-		PCBTrack,
-		PCBLine,
-		PCBSolidRegion,
-		BoardShapeFactory
+		SCHSymbol,
+		SCHWire,
+		SCHBus,
+		SCHBusPin,
+		SCHFontLabel,		
+		SCHJunction,
+		SCHConnector,
+		SCHNoConnector,
+		CircuitShapeFactory,
 		
 }
 });
 
-;require.register("board/views/boardloadview.js", function(exports, require, module) {
+;require.register("circuit/views/circuitloadview.js", function(exports, require, module) {
 var mywebpcb=require('core/core').mywebpcb;
 var core=require('core/core');
-var BoardContainer=require('board/d/boardcomponent').BoardContainer;
+var CircuitContainer=require('circuit/d/circuitcomponent').CircuitContainer;
 
-
-BoardLoadView=Backbone.View.extend({
+CircuitLoadView=Backbone.View.extend({
 	  initialize:function(opt){
-			j$('#BoardLoadDialog').jqxWindow('open');
-			j$('#BoardLoadDialog').off('close', j$.proxy(this.onclose,this)); 
-			j$('#BoardLoadDialog').on('close', j$.proxy(this.onclose,this)); 
-			this.unitSelectionPanel=new core.UnitSelectionPanel({selectorid:'boardselectionpanel',canvasprefixid:'b',enabled:opt.enabled});
+			j$('#CircuitLoadDialog').jqxWindow('open');
+			j$('#CircuitLoadDialog').off('close', j$.proxy(this.onclose,this)); 
+			j$('#CircuitLoadDialog').on('close', j$.proxy(this.onclose,this)); 
+			this.unitSelectionPanel=new core.UnitSelectionPanel({selectorid:'circuitselectionpanel',canvasprefixid:'c',enabled:opt.enabled});
+			this.unitSelectionPanel.textColor='black';
+			this.unitSelectionPanel.backColor='white';
+		    this.unitSelectionPanel.unitSelectionGrid.scaleFactor=1;
+		    this.unitSelectionPanel.unitSelectionGrid.scaleRatio=0.96;    
+		    this.unitSelectionPanel.unitSelectionGrid.minScaleFactor=1;
+		    this.unitSelectionPanel.unitSelectionGrid.maxScaleFactor=10;
 			this.libraryview=new LibraryView({unitSelectionPanel:this.unitSelectionPanel});  
 	    	this.buttonview=new ButtonLoadView({unitSelectionPanel:this.unitSelectionPanel});  
 		  },
-      onclose:function(){
-    	  this.undelegateEvents();
-    	  this.unitSelectionPanel.release();
-    	  this.libraryview.clear();
-    	  this.buttonview.clear();
-    	  this.remove();
-    	  this.unbind();
-      },		  
-      render:function(){
-    	this.libraryview.render();  
-    	this.buttonview.render();
-    	this.unitSelectionPanel.render();
-      }
+    onclose:function(){
+  	  this.undelegateEvents();
+  	  this.unitSelectionPanel.release();
+  	  this.libraryview.clear();
+  	  this.buttonview.clear();
+  	  this.remove();
+  	  this.unbind();
+    },		  
+    render:function(){
+  	this.libraryview.render();  
+  	this.buttonview.render();
+  	this.unitSelectionPanel.render();
+    }
 		  
 });
 
@@ -2204,15 +2111,15 @@ LibraryView=Backbone.View.extend({
 	el:"#projectcomboslot",
 	initialize:function(opt){
 		this.unitSelectionPanel=opt.unitSelectionPanel;
-		j$('#boardtree').jqxTree({width: '100%',height:'260px'});
+		j$('#circuittree').jqxTree({width: '100%',height:'260px'});
 		//bind select element
-		j$('#boardtree').on('select',j$.proxy(this.onvaluechange,this));			
+		j$('#circuittree').on('select',j$.proxy(this.onvaluechange,this));			
         this.loadworkspaces();
 	},
 	clear:function(){
 	    //unbind select element		
-		j$('#boardtree').off('select',j$.proxy(this.onvaluechange,this));
-		j$('#boardtree').jqxTree('clear');
+		j$('#circuittree').off('select',j$.proxy(this.onvaluechange,this));
+		j$('#circuittree').jqxTree('clear');
 		this.undelegateEvents();
 	},
     events: {
@@ -2223,24 +2130,24 @@ LibraryView=Backbone.View.extend({
     },
     onvaluechange:function(event){
         //is this category or footprint selection
-    	var item = j$('#boardtree').jqxTree('getItem', event.args.element);
+    	var item = j$('#circuittree').jqxTree('getItem', event.args.element);
     	var  url=j$('#projectcombo').val()+'/'+item.value.project;	
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url:encodeURI('/rest/boards/workspaces/'+url),
+	        url:encodeURI('/rest/circuits/workspaces/'+url),
 	        dataType: "xml",
 	        beforeSend:function(){
-		          j$('#BoardLoadDialog').block({message:'<h5>Loading...</h5>'});	
+		          j$('#CircuitLoadDialog').block({message:'<h5>Loading...</h5>'});	
 		        },
 	        success: j$.proxy(function(data, textStatus, jqXHR){
 	            this.unitSelectionPanel.release();
 	            
-	            let boardContainer=new BoardContainer(true);	            
+	            let circuitContainer=new CircuitContainer(true);	            
 	            core.isEventEnabled=false;
-	            boardContainer.parse(data);
+	            circuitContainer.parse(data);
 	            core.isEventEnabled=true;
-	            this.unitSelectionPanel.unitSelectionGrid.setModel(boardContainer);
+	            this.unitSelectionPanel.unitSelectionGrid.setModel(circuitContainer);
 	            this.unitSelectionPanel.unitSelectionGrid.scaleFactor=11;
 	            this.unitSelectionPanel.unitSelectionGrid.build();   
 	            this.unitSelectionPanel.render();	        	
@@ -2250,7 +2157,7 @@ LibraryView=Backbone.View.extend({
 	            	alert(errorThrown+":"+jqXHR.responseText);
 	        },
 	        complete:function(jqXHR, textStatus){
-	        	j$('#BoardLoadDialog').unblock();
+	        	j$('#CircuitLoadDialog').unblock();
 	        }
 	    });
     	
@@ -2259,10 +2166,10 @@ LibraryView=Backbone.View.extend({
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/rest/boards/workspaces',
+	        url: '/rest/circuits/workspaces',
 	        dataType: "xml",
 	        beforeSend:function(){
-		          j$('#BoardLoadDialog').block({message:'<h5>Loading...</h5>'});	
+		          j$('#CircuitLoadDialog').block({message:'<h5>Loading...</h5>'});	
 		        },
 	        success: j$.proxy(this.onloadworkspaces,this),
 	        
@@ -2270,7 +2177,7 @@ LibraryView=Backbone.View.extend({
 	            	alert(errorThrown+":"+jqXHR.responseText);
 	        },
 	        complete:function(jqXHR, textStatus){
-	        	j$('#BoardLoadDialog').unblock();
+	        	j$('#CircuitLoadDialog').unblock();
 	        }
 	    });
 	    
@@ -2290,10 +2197,10 @@ LibraryView=Backbone.View.extend({
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: encodeURI('/rest/boards/workspaces/'+workspace),
+	        url: encodeURI('/rest/circuits/workspaces/'+workspace),
 	        dataType: "xml",
 	        beforeSend:function(){
-		          j$('#BoardLoadDialog').block({message:'<h5>Loading...</h5>'});	
+		          j$('#CircuitLoadDialog').block({message:'<h5>Loading...</h5>'});	
 		        },
 	        success: j$.proxy(this.onloadboards,this),
 	        
@@ -2301,17 +2208,17 @@ LibraryView=Backbone.View.extend({
 	            	alert(errorThrown+":"+jqXHR.responseText);
 	        },
 	        complete:function(jqXHR, textStatus){
-	        	j$('#BoardLoadDialog').unblock();
+	        	j$('#CircuitLoadDialog').unblock();
 	        }
 	    });		
 	},
 	onloadboards:function(data, textStatus, jqXHR){
 		var that=this; 
-		j$('#boardtree').jqxTree('clear');
+		j$('#circuittree').jqxTree('clear');
 		j$(data).find("name").each(j$.proxy(function(){	
-			j$('#boardtree').jqxTree('addTo', { label: j$(this).text(),value:{project:j$(this).attr("project"),fullname:(j$(this).attr("fullname")!=undefined?j$(this).text():undefined)}}, null);         
+			j$('#circuittree').jqxTree('addTo', { label: j$(this).text(),value:{project:j$(this).attr("project"),fullname:(j$(this).attr("fullname")!=undefined?j$(this).text():undefined)}}, null);         
 		}),that);		
-		j$('#boardtree').jqxTree('render');
+		j$('#circuittree').jqxTree('render');
 	},
 	render:function(){
 		j$(this.el).empty();
@@ -2320,7 +2227,7 @@ LibraryView=Backbone.View.extend({
 	}
 });
 ButtonLoadView=Backbone.View.extend({
-	el:"#boardbuttonslot",
+	el:"#circuitbuttonslot",
 	initialize:function(opt){
 	  this.unitSelectionPanel=opt.unitSelectionPanel;
     },	
@@ -2337,11 +2244,11 @@ ButtonLoadView=Backbone.View.extend({
     	 }
     	mywebpcb.trigger('workspaceview:load',this.unitSelectionPanel.unitSelectionGrid.model);
 		//close dialog 
-		j$('#BoardLoadDialog').jqxWindow('close');
+		j$('#CircuitLoadDialog').jqxWindow('close');
 		
     },
     onclose:function(){
-    	j$('#BoardLoadDialog').jqxWindow('close'); 	
+    	j$('#CircuitLoadDialog').jqxWindow('close'); 	
     },
     
 	render:function(){
@@ -2352,22 +2259,22 @@ ButtonLoadView=Backbone.View.extend({
 	}
 });
 
-module.exports =BoardLoadView;
+module.exports =CircuitLoadView;
 });
 
-require.register("board/views/boardsaveview.js", function(exports, require, module) {
+require.register("circuit/views/circuitsaveview.js", function(exports, require, module) {
 var mywebpcb=require('core/core').mywebpcb;
 var core=require('core/core');
-var BoardContainer=require('board/d/boardcomponent').BoardContainer;
+var CircuitContainer=require('circuit/d/circuitcomponent').BoardContainer;
 
 
-var BoardSaveView=Backbone.View.extend({
+var CircuitSaveView=Backbone.View.extend({
 	initialize:function(opt){
 			this.model=opt.model; 
-			j$('#BoardSaveDialog').jqxWindow({height: 300, width: 420});
-			j$('#BoardSaveDialog').jqxWindow('open');
-			j$('#BoardSaveDialog').off('close', j$.proxy(this.onclose,this)); 
-			j$('#BoardSaveDialog').on('close', j$.proxy(this.onclose,this)); 				    	
+			j$('#CircuitSaveDialog').jqxWindow({height: 300, width: 420});
+			j$('#CircuitSaveDialog').jqxWindow('open');
+			j$('#CircuitSaveDialog').off('close', j$.proxy(this.onclose,this)); 
+			j$('#CircuitSaveDialog').on('close', j$.proxy(this.onclose,this)); 				    	
 			this.workspaceview=new WorkspaceView(opt);
 			this.buttonview=new ButtonView(opt); 
 			
@@ -2393,10 +2300,10 @@ WorkspaceView=Backbone.View.extend({
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/rest/boards/workspaces',
+	        url: '/rest/circuits/workspaces',
 	        dataType: "xml",
 	        beforeSend:function(){
-		          j$('#BoardSaveDialog').block({message:'<h5>Loading...</h5>'});	
+		          j$('#CircuitSaveDialog').block({message:'<h5>Loading...</h5>'});	
 		        },
 	        success: j$.proxy(this.onloadworkspaces,this),
 	        
@@ -2404,7 +2311,7 @@ WorkspaceView=Backbone.View.extend({
 	            	alert(errorThrown+":"+jqXHR.responseText);
 	        },
 	        complete:function(jqXHR, textStatus){
-	        	j$('#BoardSaveDialog').unblock();
+	        	j$('#CircuitSaveDialog').unblock();
 	        }
 	    });    	
     },
@@ -2439,15 +2346,15 @@ ButtonView=Backbone.View.extend({
     	j$.ajax({
 	        type: 'POST',
 	        contentType: 'application/xml',
-	        url: '/rest/boards/workspaces/'+workspace+'?projectName='+name+'&overwrite='+j$('#overrideCheck').is(":checked"),
+	        url: '/rest/circuits/workspaces/'+workspace+'?projectName='+name+'&overwrite='+j$('#overrideCheck').is(":checked"),
 	        dataType: "xml",
 	        data:this.model.format(),
 	        beforeSend:function(){
-		          j$('#BoardSaveDialog').block({message:'<h5>Saving...</h5>'});	
+		          j$('#CircuitSaveDialog').block({message:'<h5>Saving...</h5>'});	
 		        },
 	        success: function(){
 	    		//close dialog 
-	    		j$('#BoardSaveDialog').jqxWindow('close');
+	    		j$('#CircuitSaveDialog').jqxWindow('close');
 	        },	        		        
 	        error: function(jqXHR, textStatus, errorThrown){
 	            //if(jqXHR.status==404){
@@ -2462,12 +2369,12 @@ ButtonView=Backbone.View.extend({
 	            //}
 	        },
 	        complete:function(jqXHR, textStatus){
-	        	j$('#BoardSaveDialog').unblock();
+	        	j$('#CircuitSaveDialog').unblock();
 	        }
 	    });    	
     },
     onclose:function(){
-    	j$('#BoardSaveDialog').jqxWindow('close'); 	
+    	j$('#CircuitSaveDialog').jqxWindow('close'); 	
     },
     
 	render:function(){
@@ -2478,28 +2385,23 @@ ButtonView=Backbone.View.extend({
 	}
 });
 
-module.exports =BoardSaveView
+module.exports =CircuitSaveView
 });
 
-;require.register("board/views/boardspanelview.js", function(exports, require, module) {
+;require.register("circuit/views/circuitspanelview.js", function(exports, require, module) {
 var mywebpcb=require('core/core').mywebpcb;
 var events=require('core/events');
 var core=require('core/core');
 //var UnitMgr = require('core/unit').UnitMgr;
 var utilities =require('core/utilities');
 var BaseBuilder = require('core/views/panelview').BaseBuilder;
-
-var PCBFootprint=require('board/shapes').PCBFootprint;
-var PCBLabel=require('board/shapes').PCBLabel;
-var PCBTrack=require('board/shapes').PCBTrack;
-var PCBVia=require('board/shapes').PCBVia;
-var PCBCircle=require('board/shapes').PCBCircle;
-var PCBArc=require('board/shapes').PCBArc;
-var PCBLine=require('board/shapes').PCBLine;
-var PCBRoundRect=require('board/shapes').PCBRoundRect;
-var PCBCopperArea=require('board/shapes').PCBCopperArea;
-var PCBHole=require('board/shapes').PCBHole;
-var	PCBSolidRegion=require('board/shapes').PCBSolidRegion;
+var SCHSymbol=require('circuit/shapes').SCHSymbol;
+var SCHFontLabel=require('circuit/shapes').SCHFontLabel;
+var SCHJunction=require('circuit/shapes').SCHJunction;
+var SCHBusPin=require('circuit/shapes').SCHBusPin;
+var SCHWire=require('circuit/shapes').SCHWire;
+var SCHConnector=require('circuit/shapes').SCHConnector;
+var SCHNoConnector=require('circuit/shapes').SCHNoConnector;
 
 var ComponentPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
@@ -2538,25 +2440,95 @@ var ComponentPanelBuilder=BaseBuilder.extend({
 		return this;
 	}
 });
-var CirclePanelBuilder=BaseBuilder.extend({
+var LabelPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
-		CirclePanelBuilder.__super__.initialize(component);
-		this.id="circlepanelbuilder";  
-    },	
+		LabelPanelBuilder.__super__.initialize(component);	
+		this.id="labelpanelbuilder";   
+    },
     events: {
         'keypress #xid' : 'onenter',	
         'keypress #yid' : 'onenter',
-        'keypress #thicknessid' : 'onenter',        
-        'keypress #radiusid' : 'onenter',
-        'change #fillid': 'onchange',
-        'change #controllayerid':'onchange',
+        'keypress #textid' : 'onenter',	
+        'keypress #rotateid' : 'onenter',
+        'keypress #sizeid' : 'onenter',	
+        'keypress #thicknessid' : 'onenter',	
+		'change #alignmentid':'onchange',
+		'change #colorid':'onchange',
+        'change #styleid': 'onchange', 
+    },
+    onchange:function(event){      
+	  if(event.target.id=='alignmentid'){
+		  this.target.texture.shape.alignment= (parseInt(j$("#alignmentid").val()));
+      }
+	  if(event.target.id=='colorid'){
+		  console.log(j$('#colorid').val());		
+		  this.target.texture.fillColor=(j$('#colorid').val());			  
+	  }
+	  if(event.target.id=='styleid'){
+		  this.target.texture.shape.style=(j$('#styleid').val());			  
+	  }	  
+      this.component.repaint(); 
+    },
+    onenter:function(event){
+		 if(event.keyCode != 13){
+				return; 
+		 }
+		 if(event.target.id=='textid'){
+			 this.target.texture.setText(j$('#textid').val());			  
+		 }
+		 if(event.target.id=='sizeid'){
+			 this.target.texture.setSize((parseInt(j$('#sizeid').val())));			 
+		 }	          
+		 if((event.target.id=='yid')||(event.target.id=='xid')){	            
+			 this.target.texture.setLocation(this.fromUnitX(j$('#xid').val()),this.fromUnitY(j$('#yid').val()));  
+	     }		 
+		 this.component.repaint();     		    	
+    },
+	updateui:function(){
+	 j$('#textid').val(this.target.texture.shape.text);	
+	 j$('#xid').val(utilities.roundFloat(this.target.texture.shape.anchorPoint.x,1));
+	 j$('#yid').val(utilities.roundFloat(this.target.texture.shape.anchorPoint.y,1));	 
+	 j$("#alignmentid").val(this.target.texture.shape.alignment);
+	 j$('#colorid').val(this.target.texture.fillColor);		
+	 j$('#sizeid').val(this.target.texture.shape.fontSize);
+	 j$('#styleid').val(this.target.texture.shape.style);
+	},
+	render:function(){
+		j$(this.el).empty();
+		j$(this.el).append(
+				"<table width='100%'>"+
+				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Text</td><td><input type='text' id='textid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='width:50%;padding:7px'>Text Orientation</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"alignmentid\">"+
+				this.fillComboBox([{id:0,value:'RIGHT',selected:true},{id:1,value:'TOP',selected:true},{id:2,value:'LEFT',selected:true},{id:3,value:'BOTTOM'}])+
+			    "</select>" +
+				"</td></tr>"+				
+				"<tr><td style='padding:7px'>Color</td><td><input type='color' id='colorid' value='#ff0000'></td></tr>"+
+				"<tr><td style='width:50%;padding:7px'>Text Orientation</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"styleid\">"+
+				this.fillComboBox([{id:'plain',value:'PLAIN',selected:true},{id:'bold',value:'BOLD'},{id:'italic',value:'ITALIC'}])+
+			    "</select>" +
+				"</td></tr>"+								
+				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='sizeid' value='' class='form-control input-sm\'></td></tr>"+				
+		        "</table>");
+			
+		return this;
+	}
+});
+var BusPinPanelBuilder=BaseBuilder.extend({
+	initialize:function(component){
+		BusPinPanelBuilder.__super__.initialize(component);
+		this.id="buspinpanelbuilder";  
+    },	
+    events: {               
+        'keypress #buspinnameid' : 'onenter',
+        'change #alignmentid': 'onchange',        
     },
     onchange:function(event){
-        if(event.target.id=='controllayerid'){
-        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
-        }
-        if(event.target.id=='fillid'){        
-        	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
+        if(event.target.id=='alignmentid'){
+        	this.target.getTextureByTag("name").setAlignment(parseInt(j$("#alignmentid").val()));        	
         }
         this.component.repaint(); 
       },    
@@ -2564,79 +2536,48 @@ var CirclePanelBuilder=BaseBuilder.extend({
 		 if(event.keyCode != 13){
 				return; 
 		 }
-		 if(event.target.id=='thicknessid'){
-			this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
-		 } 
-		 if(event.target.id=='radiusid'){
-			 this.target.circle.r=(core.MM_TO_COORD(parseFloat(j$('#radiusid').val())));			 
-		 } 
-		 if(event.target.id=='xid'){			 
-	         var x=this.fromUnitX(j$('#xid').val()); 
-	         this.target.Resize(x-this.target.resizingPoint.x, 0, this.target.resizingPoint);			   
-		 } 
-	     if(event.target.id=='yid'){		
-	         var y=this.fromUnitY(j$('#yid').val()); 
-	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
-		 } 		 
+		 if(event.target.id=='buspinnameid'){ 
+			 this.target.getTextureByTag("name").setText(j$('#buspinnameid').val()); 
+		 }		 	 
 		 this.component.repaint(); 		 
     },
 
 	updateui:function(){
-		j$('#controllayerid').val(this.target.copper.getName());
-        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
-        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
-        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
-        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
-		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
-		j$("#radiusid").val(core.COORD_TO_MM(this.target.circle.radius));   
-		j$("#fillid").val(this.target.fill);		
+		   var texture=this.target.texture;
+		   j$("#buspinnameid").val(texture==null?"":texture.shape.text);
+		   j$('#alignmentid').val(this.target.getTextureByTag("name").getAlignment()); 
 	},
 	render:function(){
 		j$(this.el).empty();
 		j$(this.el).append(
-				"<table width='100%'>"+
-				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
-				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+				"<table width='100%'>"+			
+				"<tr><td style='padding:7px'>Bus Pin Name</td><td><input type='text' id='buspinnameid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='width:50%;padding:7px'>Text Alignment</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"alignmentid\">"+
+				this.fillComboBox([{id:0,value:'RIGHT',selected:true},{id:1,value:'TOP',selected:true},{id:2,value:'LEFT',selected:true},{id:3,value:'BOTTOM'}])+
 			    "</select>" +
-				"</td></tr>"+				
-				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Fill</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"fillid\">"+
-				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
-			    "</select>" +
-				"</td></tr>"+				
-				"<tr><td style='padding:7px'>Radius</td><td><input type='text' id='radiusid' value='' class='form-control input-sm\'></td></tr>"+
-				
+				"</td></tr>"+											
 		"</table>");
 			
 		return this;
 	}
 });
-var RectPanelBuilder=BaseBuilder.extend({
+var ConnectorPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
-		RectPanelBuilder.__super__.initialize(component);
-		this.id="rectpanelbuilder";
-		//app.bind('itemlinkimpl:oncklick', $.proxy(this.onitemclick,this));    
+		ConnectorPanelBuilder.__super__.initialize(component);
+		this.id="connectorpanelbuilder";  
     },	
-    events: {
-        'keypress #xid' : 'onenter',	
-        'keypress #yid' : 'onenter',
-        'keypress #thicknessid' : 'onenter',
-        'keypress #widthid' : 'onenter',
-        'keypress #heightid' : 'onenter',
-        'keypress #roundingid' : 'onenter',
-        'change #fillid': 'onchange',
-        'change #controllayerid': 'onchange',
+    events: {        
+        'keypress #connectornameid' : 'onenter',                       
+        'change #typeid': 'onchange',    
+        'change #styleid': 'onchange',  
     },
     onchange:function(event){
-        if(event.target.id=='controllayerid'){
-        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
+        if(event.target.id=='typeid'){
+        	this.target.setType(Number.parseInt(j$('#typeid').val()));        	
         }
-    	if(event.target.id=='fillid'){        
-        	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
+        if(event.target.id=='styleid'){
+        	this.target.setStyle(Number.parseInt(j$('#styleid').val()));        	
         }
         this.component.repaint(); 
       },    
@@ -2644,291 +2585,326 @@ var RectPanelBuilder=BaseBuilder.extend({
 		 if(event.keyCode != 13){
 				return; 
 		 }
-		 if(event.target.id=='thicknessid'){
-			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
-		 } 
-		 if(event.target.id=='xid'){			 
-	         var x=this.fromUnitX(j$('#xid').val()); 
-	         this.target.Resize(x-this.target.resizingPoint.x, 0, this.target.resizingPoint);			   
-		 } 
-	     if(event.target.id=='yid'){		
-	         var y=this.fromUnitY(j$('#yid').val()); 
-	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
-		 } 	
-		 if(event.target.id=='roundingid'){
-			 this.target.setRounding(core.MM_TO_COORD(parseFloat(j$('#roundingid').val())));			 
-		 }
+		 if(event.target.id=='connectornameid'){ 
+			 this.target.setText(j$('#connectornameid').val()); 
+		 }		 	 
 		 this.component.repaint(); 		 
     },
-	updateui:function(){
-		j$('#controllayerid').val(this.target.copper.getName());
-        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
-        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
-        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
-        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
-		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));	
-		j$("#roundingid").val(core.COORD_TO_MM(this.target.roundRect.rounding));
-		j$("#fillid").val(this.target.fill);
+
+	updateui:function(){		   
+		   j$('#connectornameid').val(this.target.texture.shape.text);
+		   j$('#styleid').val(this.target.getStyle()); 
+		   j$('#typeid').val(this.target.type);
 	},
 	render:function(){
 		j$(this.el).empty();
 		j$(this.el).append(
-				"<table width='100%'>"+
-				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
-				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+				"<table width='100%'>"+										
+				"<tr><td style='padding:7px'>Label</td><td><input type='text' id='connectornameid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='width:50%;padding:7px'>Shape</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"styleid\">"+
+				this.fillComboBox([{id:0,value:'BOX'},{id:1,value:'ARROW'},{id:2,value:'CIRCLE'}])+
 			    "</select>" +
-				"</td></tr>"+				
-				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Fill</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"fillid\">"+
-				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+				"</td></tr>"+	
+				"<tr><td style='width:50%;padding:7px'>Type</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"typeid\">"+
+				this.fillComboBox([{id:0,value:'INPUT'},{id:1,value:'OUTPUT'}])+
 			    "</select>" +
-				"</td></tr>"+
-				"<tr><td style='padding:7px'>Rounding</td><td><input type='text' id='roundingid' value='' class='form-control input-sm\'></td></tr>"+						        
+				"</td></tr>"+											
 		"</table>");
 			
 		return this;
 	}
 });
-var SolidRegionPanelBuilder=BaseBuilder.extend({
+//var RectPanelBuilder=BaseBuilder.extend({
+//	initialize:function(component){
+//		RectPanelBuilder.__super__.initialize(component);
+//		this.id="rectpanelbuilder";
+//		//app.bind('itemlinkimpl:oncklick', $.proxy(this.onitemclick,this));    
+//    },	
+//    events: {
+//        'keypress #xid' : 'onenter',	
+//        'keypress #yid' : 'onenter',
+//        'keypress #thicknessid' : 'onenter',
+//        'keypress #widthid' : 'onenter',
+//        'keypress #heightid' : 'onenter',
+//        'keypress #roundingid' : 'onenter',
+//        'change #fillid': 'onchange',
+//        'change #controllayerid': 'onchange',
+//    },
+//    onchange:function(event){
+//        if(event.target.id=='controllayerid'){
+//        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
+//        }
+//    	if(event.target.id=='fillid'){        
+//        	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
+//        }
+//        this.component.repaint(); 
+//      },    
+//    onenter:function(event){
+//		 if(event.keyCode != 13){
+//				return; 
+//		 }
+//		 if(event.target.id=='thicknessid'){
+//			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
+//		 } 
+//		 if(event.target.id=='xid'){			 
+//	         var x=this.fromUnitX(j$('#xid').val()); 
+//	         this.target.Resize(x-this.target.resizingPoint.x, 0, this.target.resizingPoint);			   
+//		 } 
+//	     if(event.target.id=='yid'){		
+//	         var y=this.fromUnitY(j$('#yid').val()); 
+//	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
+//		 } 	
+//		 if(event.target.id=='roundingid'){
+//			 this.target.setRounding(core.MM_TO_COORD(parseFloat(j$('#roundingid').val())));			 
+//		 }
+//		 this.component.repaint(); 		 
+//    },
+//	updateui:function(){
+//		j$('#controllayerid').val(this.target.copper.getName());
+//        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
+//        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
+//        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
+//        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
+//		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));	
+//		j$("#roundingid").val(core.COORD_TO_MM(this.target.roundRect.rounding));
+//		j$("#fillid").val(this.target.fill);
+//	},
+//	render:function(){
+//		j$(this.el).empty();
+//		j$(this.el).append(
+//				"<table width='100%'>"+
+//				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
+//				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
+//				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+//			    "</select>" +
+//				"</td></tr>"+				
+//				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+//				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
+//				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
+//				"<tr><td style='padding:7px'>Fill</td><td>" +
+//				"<select class=\"form-control input-sm\" id=\"fillid\">"+
+//				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+//			    "</select>" +
+//				"</td></tr>"+
+//				"<tr><td style='padding:7px'>Rounding</td><td><input type='text' id='roundingid' value='' class='form-control input-sm\'></td></tr>"+						        
+//		"</table>");
+//			
+//		return this;
+//	}
+//});
+//var SolidRegionPanelBuilder=BaseBuilder.extend({
+//	initialize:function(component){
+//		SolidRegionPanelBuilder.__super__.initialize(component);
+//		this.id="solidregionpanelbuilder";  
+//    },	
+//    events: {
+//        'change #controllayerid':'onchange'
+//    },
+//    onchange:function(event){
+//        if(event.target.id=='controllayerid'){
+//        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
+//        }              
+//        this.component.repaint(); 
+//    }, 
+//	updateui:function(){
+//		
+//	},
+//	render:function(){
+//		j$(this.el).empty();
+//		j$(this.el).append(
+//				"<table width='100%'>"+
+//				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
+//				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
+//				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+//			    "</select>" +
+//				"</td></tr>"+							
+//		"</table>");				
+//			
+//		return this;
+//	}
+//});
+//var ArcPanelBuilder=BaseBuilder.extend({
+//	initialize:function(component){
+//		ArcPanelBuilder.__super__.initialize(component);
+//		this.id="arcpanelbuilder";  
+//    },	
+//    events: {
+//        'keypress #xid' : 'onenter',	
+//        'keypress #yid' : 'onenter',
+//        'keypress #thicknessid' : 'onenter',
+//        'keypress #widthid' : 'onenter',
+//        'keypress #startangleid' : 'onenter',
+//        'keypress #extendangleid' : 'onenter',
+//        'change #fillid': 'onchange', 
+//        'change #controllayerid':'onchange',
+//    },
+//    onchange:function(event){
+//        if(event.target.id=='controllayerid'){
+//        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
+//        }
+//        if(event.target.id=='fillid'){        
+//        	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
+//        }
+//        this.component.repaint(); 
+//    }, 
+//    onenter:function(event){
+//		 if(event.keyCode != 13){
+//				return; 
+//		 }
+//		 if(event.target.id=='thicknessid'){
+//			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
+//		 } 
+//		 if(event.target.id=='widthid'){
+//			   this.target.setRadius(core.MM_TO_COORD(parseFloat(j$('#widthid').val())));			 
+//		 } 
+//		 if(event.target.id=='startangleid'){
+//			   this.target.setStartAngle(j$('#startangleid').val());			 
+//		 } 
+//		 if(event.target.id=='extendangleid'){
+//			   this.target.setExtendAngle(j$('#extendangleid').val());	
+//		 } 	
+//		 this.component.repaint(); 	
+//    },
+//	updateui:function(){
+//		j$('#controllayerid').val(this.target.copper.getName());
+//		j$("#startangleid").val(this.target.arc.startAngle);    
+//		j$("#extendangleid").val(this.target.arc.endAngle);		
+//        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
+//        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
+//        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:(this.target.resizingPoint.x)));
+//        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:(this.target.resizingPoint.y))); 
+//		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
+//		j$("#widthid").val(core.COORD_TO_MM(this.target.arc.r));
+//		j$("#fillid").val(this.target.fill);
+//	},
+//	render:function(){
+//						
+//		j$(this.el).empty();
+//		j$(this.el).append(
+//				"<table width='100%'>"+
+//				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
+//				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
+//				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+//			    "</select>" +
+//				"</td></tr>"+				
+//				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+//				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
+//				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
+//				"<tr><td style='padding:7px'>Fill</td><td>" +
+//				"<select class=\"form-control input-sm\" id=\"fillid\">"+
+//				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+//			    "</select>" +
+//				"</td></tr>"+
+//				"<tr><td style='padding:7px'>Radius</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+				
+//				"<tr><td style='padding:7px'>Start&deg</td><td><input type='text' id='startangleid' value='' class='form-control input-sm\'></td></tr>"+	
+//				"<tr><td style='padding:7px'>Extend&deg</td><td><input type='text' id='extendangleid' value='' class='form-control input-sm\'></td></tr>"+
+//		"</table>");
+//		return this;
+//	}
+//});
+//var CopperAreaPanelBuilder=BaseBuilder.extend({
+//	initialize:function(component){
+//		CopperAreaPanelBuilder.__super__.initialize(component);
+//		this.id="copperareapanelbuilder";  
+//    },	
+//    events: {
+//        'keypress #xid' : 'onenter',	
+//        'keypress #yid' : 'onenter',
+//        'keypress #clearanceid' : 'onenter',
+//        'keypress #netid' : 'onenter',
+//        'change #fillid': 'onchange', 
+//        'change #controllayerid':'onchange',
+//        'change #paddconnectionid': 'onchange',
+//    },
+//    onchange:function(event){
+//        if(event.target.id=='controllayerid'){
+//        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
+//            this.component.getModel().getUnit().reorder();
+//        }
+//        if(event.target.id=='fillid'){        
+//        	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
+//        }
+//        this.component.repaint(); 
+//    }, 
+//    onenter:function(event){
+//		 if(event.keyCode != 13){
+//				return; 
+//		 }
+//		 if(event.target.id=='netid'){
+//			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
+//		 } 
+//		 if(event.target.id=='clearanceid'){
+//			   this.target.clearance=(core.MM_TO_COORD(parseFloat(j$('#clearanceid').val())));			 
+//		 } 
+//		 if(event.target.id=='xid'){			 
+//	         var x=this.fromUnitX(j$('#xid').val()); 
+//	         this.target.Resize(x-this.target.resizingPoint.x, 0, this.target.resizingPoint);			   
+//		 } 
+//	     if(event.target.id=='yid'){		
+//	         var y=this.fromUnitY(j$('#yid').val()); 
+//	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
+//		 } 
+//		 this.component.repaint(); 	
+//    },
+//	updateui:function(){
+//		j$('#controllayerid').val(this.target.copper.getName());
+//		//j$("#startangleid").val(this.target.startAngle);    
+//		//j$("#extendangleid").val(this.target.extendAngle);		
+//        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
+//        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
+//        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:(this.target.resizingPoint.x)));
+//        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:(this.target.resizingPoint.y))); 
+//		j$('#clearanceid').val(core.COORD_TO_MM(this.target.clearance));
+//		//j$("#widthid").val(core.COORD_TO_MM(this.target.getWidth()));
+//		j$("#fillid").val(this.target.fill);
+//	},
+//	render:function(){
+//						
+//		j$(this.el).empty();
+//		j$(this.el).append(
+//				"<table width='100%'>"+
+//				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
+//				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
+//				this.fillComboBox([{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'}])+
+//			    "</select>" +
+//				"</td></tr>"+				
+//				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+//				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
+//				"<tr><td style='padding:7px'>Fill</td><td>" +
+//				"<select class=\"form-control input-sm\" id=\"fillid\">"+
+//				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+//			    "</select>" +
+//				"</td></tr>"+
+//				"<tr><td style='padding:7px'>Clearance</td><td><input type='text' id='clearanceid' value='' class='form-control input-sm\'></td></tr>"+				
+//				"<tr><td style='padding:7px'>Pad Connect</td><td>" +
+//				"<select class=\"form-control input-sm\" id=\"paddconnectionid\">"+
+//				this.fillComboBox([{id:0,value:'DIRECT',selected:true},{id:1,value:'THERMAL'}])+
+//			    "</select>" +
+//				"</td></tr>"+				
+//				"<tr><td style='padding:7px'>Net</td><td><input type='text' id='netid' value='' class='form-control input-sm\'></td></tr>"+	
+//				
+//		"</table>");
+//		return this;
+//	}
+//});
+var SymbolPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
-		SolidRegionPanelBuilder.__super__.initialize(component);
-		this.id="solidregionpanelbuilder";  
-    },	
-    events: {
-        'keypress #xid' : 'onenter',	
-        'keypress #yid' : 'onenter',
-        'change #controllayerid':'onchange'
-    },
-    onchange:function(event){
-        if(event.target.id=='controllayerid'){
-        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
-        }              
-        this.component.repaint(); 
-    }, 
-    onenter:function(event){
-		 if(event.keyCode != 13){
-				return; 
-		 }
-		 if(event.target.id=='xid'){			 
-	         var x=this.fromUnitX(j$('#xid').val()); 
-	         this.target.Resize(x-this.target.resizingPoint.x, 0, this.target.resizingPoint);			   
-		 } 
-	     if(event.target.id=='yid'){		
-	         var y=this.fromUnitY(j$('#yid').val()); 
-	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
-		 } 
-		 this.component.repaint(); 	
-   },    
-	updateui:function(){
-		j$('#controllayerid').val(this.target.copper.getName());
-        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
-        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
-        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:(this.target.resizingPoint.x)));
-        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:(this.target.resizingPoint.y))); 
-	},
-	render:function(){
-		j$(this.el).empty();
-		j$(this.el).append(
-				"<table width='100%'>"+
-				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
-				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
-			    "</select>" +
-				"</td></tr>"+
-				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+
-		"</table>");				
-			
-		return this;
-	}
-});
-var ArcPanelBuilder=BaseBuilder.extend({
-	initialize:function(component){
-		ArcPanelBuilder.__super__.initialize(component);
-		this.id="arcpanelbuilder";  
-    },	
-    events: {
-        'keypress #xid' : 'onenter',	
-        'keypress #yid' : 'onenter',
-        'keypress #thicknessid' : 'onenter',
-        'keypress #widthid' : 'onenter',
-        'keypress #startangleid' : 'onenter',
-        'keypress #extendangleid' : 'onenter',
-        'change #fillid': 'onchange', 
-        'change #controllayerid':'onchange',
-    },
-    onchange:function(event){
-        if(event.target.id=='controllayerid'){
-        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
-        }
-        if(event.target.id=='fillid'){        
-        	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
-        }
-        this.component.repaint(); 
-    }, 
-    onenter:function(event){
-		 if(event.keyCode != 13){
-				return; 
-		 }
-		 if(event.target.id=='thicknessid'){
-			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
-		 } 
-		 if(event.target.id=='widthid'){
-			   this.target.setRadius(core.MM_TO_COORD(parseFloat(j$('#widthid').val())));			 
-		 } 
-		 if(event.target.id=='startangleid'){
-			   this.target.setStartAngle(j$('#startangleid').val());			 
-		 } 
-		 if(event.target.id=='extendangleid'){
-			   this.target.setExtendAngle(j$('#extendangleid').val());	
-		 } 	
-		 this.component.repaint(); 	
-    },
-	updateui:function(){
-		j$('#controllayerid').val(this.target.copper.getName());
-		j$("#startangleid").val(this.target.arc.startAngle);    
-		j$("#extendangleid").val(this.target.arc.endAngle);		
-        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
-        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
-        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:(this.target.resizingPoint.x)));
-        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:(this.target.resizingPoint.y))); 
-		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
-		j$("#widthid").val(core.COORD_TO_MM(this.target.arc.r));
-		j$("#fillid").val(this.target.fill);
-	},
-	render:function(){
-						
-		j$(this.el).empty();
-		j$(this.el).append(
-				"<table width='100%'>"+
-				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
-				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
-			    "</select>" +
-				"</td></tr>"+				
-				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Fill</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"fillid\">"+
-				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
-			    "</select>" +
-				"</td></tr>"+
-				"<tr><td style='padding:7px'>Radius</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Start&deg</td><td><input type='text' id='startangleid' value='' class='form-control input-sm\'></td></tr>"+	
-				"<tr><td style='padding:7px'>Extend&deg</td><td><input type='text' id='extendangleid' value='' class='form-control input-sm\'></td></tr>"+
-		"</table>");
-		return this;
-	}
-});
-var CopperAreaPanelBuilder=BaseBuilder.extend({
-	initialize:function(component){
-		CopperAreaPanelBuilder.__super__.initialize(component);
-		this.id="copperareapanelbuilder";  
-    },	
-    events: {
-        'keypress #xid' : 'onenter',	
-        'keypress #yid' : 'onenter',
-        'keypress #clearanceid' : 'onenter',
-        'keypress #netid' : 'onenter',
-        'change #fillid': 'onchange', 
-        'change #controllayerid':'onchange',
-        'change #paddconnectionid': 'onchange',
-    },
-    onchange:function(event){
-        if(event.target.id=='controllayerid'){
-        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
-            this.component.getModel().getUnit().reorder();
-        }
-        if(event.target.id=='fillid'){        
-        	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
-        }
-        this.component.repaint(); 
-    }, 
-    onenter:function(event){
-		 if(event.keyCode != 13){
-				return; 
-		 }
-		 if(event.target.id=='netid'){
-			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
-		 } 
-		 if(event.target.id=='clearanceid'){
-			   this.target.clearance=(core.MM_TO_COORD(parseFloat(j$('#clearanceid').val())));			 
-		 } 
-		 if(event.target.id=='xid'){			 
-	         var x=this.fromUnitX(j$('#xid').val()); 
-	         this.target.Resize(x-this.target.resizingPoint.x, 0, this.target.resizingPoint);			   
-		 } 
-	     if(event.target.id=='yid'){		
-	         var y=this.fromUnitY(j$('#yid').val()); 
-	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
-		 } 
-		 this.component.repaint(); 	
-    },
-	updateui:function(){
-		j$('#controllayerid').val(this.target.copper.getName());
-		//j$("#startangleid").val(this.target.startAngle);    
-		//j$("#extendangleid").val(this.target.extendAngle);		
-        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
-        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
-        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:(this.target.resizingPoint.x)));
-        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:(this.target.resizingPoint.y))); 
-		j$('#clearanceid').val(core.COORD_TO_MM(this.target.clearance));
-		//j$("#widthid").val(core.COORD_TO_MM(this.target.getWidth()));
-		j$("#fillid").val(this.target.fill);
-	},
-	render:function(){
-						
-		j$(this.el).empty();
-		j$(this.el).append(
-				"<table width='100%'>"+
-				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
-				this.fillComboBox([{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'}])+
-			    "</select>" +
-				"</td></tr>"+				
-				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Fill</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"fillid\">"+
-				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
-			    "</select>" +
-				"</td></tr>"+
-				"<tr><td style='padding:7px'>Clearance</td><td><input type='text' id='clearanceid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Pad Connect</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"paddconnectionid\">"+
-				this.fillComboBox([{id:0,value:'DIRECT',selected:true},{id:1,value:'THERMAL'}])+
-			    "</select>" +
-				"</td></tr>"+				
-				"<tr><td style='padding:7px'>Net</td><td><input type='text' id='netid' value='' class='form-control input-sm\'></td></tr>"+	
-				
-		"</table>");
-		return this;
-	}
-});
-var FootprintPanelBuilder=BaseBuilder.extend({
-	initialize:function(component){
-	  BoardPanelBuilder.__super__.initialize(component);
-      this.id="footprintpanelbuilder";
+	  SymbolPanelBuilder.__super__.initialize(component);
+      this.id="symbolpanelbuilder";
     },
     events: {
-        'keypress #rotateid' : 'onenter',
         'keypress #nameid' : 'onenter',   
-        'keypress #valueid' : 'onenter',	
-        'keypress #referenceid' : 'onenter',	
-        'change #sideid': 'onchange',
+        'keypress #unitid' : 'onenter',	
+        'keypress #referenceid' : 'onenter',
+        'change #reference-alignmentid': 'onchange',
+        'change #unit-alignmentid': 'onchange',
     },
 	onenter:function(event){
 		 if(event.keyCode != 13){
 			return; 
 	     }
-		  if(event.target.id=='rotateid'){
-		      this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val()))); 
-		  }	
 		 if(event.target.id=='nameid'){
 			 this.target.displayName=j$("#nameid").val(); 
 			 this.component.getModel().fireUnitEvent({target:this.target,type:events.Event.RENAME_UNIT});		   
@@ -2937,61 +2913,62 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 		   var texture=this.target.reference;
 		   texture.setText(j$("#referenceid").val());
 		 }
-		 if(event.target.id=='valueid'){
-		   var texture=this.target.value;
-		   texture.setText(j$("#valueid").val());
+		 if(event.target.id=='unitid'){
+		   var texture=this.target.unit;
+		   texture.setText(j$("#unitid").val());
 		 }
 		 this.component.repaint();   
 	},   
 	onchange:function(event){
-		if(event.target.id=='sideid'){
-			this.target.setSide(j$("#sideid").val());
-			this.component.repaint();
-		}		      
+        if(event.target.id=='reference-alignmentid'){
+        	this.target.getTextureByTag("reference").setAlignment(parseInt(j$("#reference-alignmentid").val()));        	
+        }
+        if(event.target.id=='unit-alignmentid'){
+        	this.target.getTextureByTag("unit").setAlignment(parseInt(j$("#unit-alignmentid").val()));        	
+        }        
+        this.component.repaint(); 
 	},	
 	updateui:function(){
 		   j$("#nameid").val(this.target.displayName);
-		   
-		   j$("#rotateid").val(this.target.rotation); 	
-		   
-		   var texture=this.target.reference;
-		   j$("#referenceid").val(texture==null?"":texture.text);
-
-			 
-		   texture=this.target.value;
-		   j$("#valueid").val(texture==null?"":texture.text);
-		   j$("#sideid").val(this.target.getSide());
+		   j$("#referenceid").val(this.target.getTextureByTag("reference").shape.text);
+		   j$("#unitid").val(this.target.getTextureByTag("unit").shape.text);
+		   j$('#reference-alignmentid').val(this.target.getTextureByTag("reference").getAlignment());
+		   j$('#unit-alignmentid').val(this.target.getTextureByTag("unit").getAlignment());
 	},
 	render:function(){	
 		j$(this.el).empty();
 		j$(this.el).append(
 		"<table width='100%'>"+
-		"<tr><td style='width:50%;padding:7px'>Side</td><td>" +
-		"<select class=\"form-control input-sm\" id=\"sideid\">"+
-	    this.fillComboBox([{id:'1',value:'TOP',selected:true},{id:'2',value:'BOTTOM'}])+
-	    "</select>" +
-		"</td></tr>"+
 		"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
 		"<tr><td style='width:50%;padding:7px'>Reference</td><td><input type='text' id='referenceid' value='' class='form-control input-sm\'></td></tr>"+
-		"<tr><td style='width:50%;padding:7px'>Value</td><td><input type='text' id='valueid' value='' class='form-control input-sm\'></td></tr>"+
-		"<tr><td style='width:50%;padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+						
+		"<tr><td style='width:50%;padding:7px'>Text Alignment</td><td>" +
+		"<select class=\"form-control input-sm\" id=\"reference-alignmentid\">"+
+		this.fillComboBox([{id:0,value:'RIGHT',selected:true},{id:1,value:'TOP',selected:true},{id:2,value:'LEFT',selected:true},{id:3,value:'BOTTOM'}])+
+	    "</select>" +
+		"</td></tr>"+											
+		
+		"<tr><td style='width:50%;padding:7px'>Value</td><td><input type='text' id='unitid' value='' class='form-control input-sm\'></td></tr>"+							
+		"<tr><td style='width:50%;padding:7px'>Text Alignment</td><td>" +
+		"<select class=\"form-control input-sm\" id=\"unit-alignmentid\">"+
+		this.fillComboBox([{id:0,value:'RIGHT',selected:true},{id:1,value:'TOP',selected:true},{id:2,value:'LEFT',selected:true},{id:3,value:'BOTTOM'}])+
+	    "</select>" +
+		"</td></tr>"+											
+
 		"</table>");
 			
 		return this;
 	}
 });
 
-var BoardPanelBuilder=BaseBuilder.extend({
+var CircuitPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
-	  BoardPanelBuilder.__super__.initialize(component);
-      this.id="boardpanelbuilder";
+	  CircuitPanelBuilder.__super__.initialize(component);
+      this.id="circuitpanelbuilder";
     },
     events: {
         'keypress #nameid' : 'onenter',
         'keypress #widthid':'onenter',
         'keypress #heightid':'onenter',
-        'change #gridrasterid': 'onchange',
-        'change #sideid': 'onchange',
         'keypress #originxid':'onenter',
         'keypress #originyid':'onenter',
     },
@@ -3015,49 +2992,22 @@ var BoardPanelBuilder=BaseBuilder.extend({
 		 }
 		 //mycanvas.focus();
 	},
-	onchange:function(event){
-		if(event.target.id=='gridrasterid'){
-			this.target.grid.setGridValue(parseFloat(j$("#gridrasterid").val()));
-			this.component.repaint();
-		}	
-		if(event.target.id=='sideid'){
-			this.target.setActiveSide(j$("#sideid").val());
-			this.component.repaint();
-		}		
-	},
 	updateui:function(){
 	   j$("#nameid").val(this.target.unitName);
-	   j$("#widthid").val(core.COORD_TO_MM( this.target.width));    
-	   j$("#heightid").val(core.COORD_TO_MM(this.target.height));
-	   j$("#gridrasterid").val(this.target.grid.getGridValue());	 
-	   j$("#sideid").val(this.target.compositeLayer.activeSide);
+	   j$("#widthid").val(this.target.width);    
+	   j$("#heightid").val(this.target.height);	 
 	   if(this.component.getModel().getUnit().coordinateSystem!=null){
-		     j$("#originxid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getX()));    
-		     j$("#originyid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getY()));
+		     j$("#originxid").val(utilities.roundFloat(this.component.getModel().getUnit().getCoordinateSystem().getX(),1));    
+		     j$("#originyid").val(utilities.roundFloat(this.component.getModel().getUnit().getCoordinateSystem().getY(),1));
 	   }	   
 	},
 	render:function(){
 		j$(this.el).empty();
 		j$(this.el).append(
 				"<table width='100%'>"+			
-				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Side</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"sideid\">"+
-			    this.fillComboBox([{id:1,value:'TOP',selected:true},{id:2,value:'BOTTOM'}])+
-			    "</select>" +
-				"</td></tr>"+					
+				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+					
 				"<tr><td style='padding:7px'>Width</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='heightid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Units</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"unitsid\">"+
-			    this.fillComboBox([{id:'mm',value:'MM',selected:true},{id:'inch',value:'INCH'}])+
-			    "</select>" +
-				"</td></tr>"+
-				"<tr><td style='padding:7px'>Grid</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"gridrasterid\">"+
-			    this.fillComboBox(core.GridRaster)+
-			    "</select>" +
-				"</td></tr>"+
+				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='heightid' value='' class='form-control input-sm\'></td></tr>"+							
 				"<tr><td style='width:50%;padding:7px'>Origin X</td><td><input type='text' id='originxid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='width:50%;padding:7px'>Origin Y</td><td><input type='text' id='originyid' value='' class='form-control input-sm\'></td></tr>"+
 
@@ -3066,297 +3016,12 @@ var BoardPanelBuilder=BaseBuilder.extend({
 		return this;
 	}
 });
-var HolePanelBuilder=BaseBuilder.extend({
-	initialize:function(component){
-		ViaPanelBuilder.__super__.initialize(component);
-		this.id="holepanelbuilder"; 
-    },
-    events: {
-        'keypress #xid' : 'onenter',	
-        'keypress #yid' : 'onenter',	
-        'keypress #drillsizeid' : 'onenter',        
-    },
-    onenter:function(event){
-		 if(event.keyCode != 13){
-				return; 
-		     }
-		 if(event.target.id=='drillsizeid'){
-			 this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#drillsizeid').val()))); 
-		 }     
 
-		 if(event.target.id=='xid'){	            
-			 this.target.x=this.fromUnitX(j$('#xid').val()); 
-	     }	         
-		 if(event.target.id=='yid'){	            
-			 this.target.y=this.fromUnitY(j$('#yid').val());  
-	     }
-		 this.component.repaint();  
-   },
-	updateui:function(){		
-        j$('#xid').val(this.toUnitX(this.target.circle.center.x));
-        j$('#yid').val(this.toUnitY(this.target.circle.center.y)); 
-        j$('#drillsizeid').val(core.COORD_TO_MM(2*this.target.circle.r));
-        
-	},
-	render:function(){
-		j$(this.el).empty();
-		j$(this.el).append(
-				"<table width='100%'>"+			
-				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Drill size</td><td><input type='text' id='drillsizeid' value='' class='form-control input-sm\'></td></tr>"+
-				"</table>");
-			
-		return this;
-	}    
-});
-var ViaPanelBuilder=BaseBuilder.extend({
-	initialize:function(component){
-		ViaPanelBuilder.__super__.initialize(component);
-		this.id="viapanelbuilder"; 
-    },
-    events: {
-        'keypress #xid' : 'onenter',	
-        'keypress #yid' : 'onenter',	
-        'keypress #drillsizeid' : 'onenter',
-        'keypress #viasizeid':'onenter',
-    },
-    onenter:function(event){
-		 if(event.keyCode != 13){
-				return; 
-		     }
-		 if(event.target.id=='drillsizeid'){
-			 this.target.inner.r=core.MM_TO_COORD(parseFloat(j$('#drillsizeid').val())/2); 
-		 }   
-		 if(event.target.id=='viasizeid'){
-			 
-			 this.target.outer.r=core.MM_TO_COORD(parseFloat(j$('#viasizeid').val())/2); 
-		 }   
-
-		 if(event.target.id=='xid'){	            
-			 this.target.x=this.fromUnitX(j$('#xid').val()); 
-	     }	         
-		 if(event.target.id=='yid'){	            
-			 this.target.y=this.fromUnitY(j$('#yid').val());  
-	     }
-		 this.component.repaint();  
-   },
-	updateui:function(){		
-        j$('#xid').val(this.toUnitX(this.target.inner.pc.x));
-        j$('#yid').val(this.toUnitY(this.target.inner.pc.y)); 
-        j$('#drillsizeid').val(core.COORD_TO_MM(2*this.target.inner.r));
-        j$('#viasizeid').val(core.COORD_TO_MM(2*this.target.outer.r));
-	},
-	render:function(){
-		j$(this.el).empty();
-		j$(this.el).append(
-				"<table width='100%'>"+			
-				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Drill size</td><td><input type='text' id='drillsizeid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Via size</td><td><input type='text' id='viasizeid' value='' class='form-control input-sm\'></td></tr>"+        
-				"</table>");
-			
-		return this;
-	}    
-});
-var LinePanelBuilder=BaseBuilder.extend({
-	initialize:function(component){
-		LinePanelBuilder.__super__.initialize(component);
-		this.id="linepanelbuilder";
-		//app.bind('itemlinkimpl:oncklick', $.proxy(this.onitemclick,this));    
-    },
-    events: {
-        'keypress #xid' : 'onenter',	
-        'keypress #yid' : 'onenter',	
-        'keypress #thicknessid' : 'onenter',
-        'change #controllayerid':'onchange',
-    },
-    onchange:function(event){
-        if(event.target.id=='controllayerid'){
-        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
-        }
-        this.component.repaint(); 
-      }, 
-    onenter:function(event){
-		 if(event.keyCode != 13){
-				return; 
-		     }
-		 if(event.target.id=='thicknessid'){
-			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val())); 
-		 }   
-		 if(event.target.id=='xid'){	            
-			 this.target.resizingPoint.x=this.fromUnitX(j$('#xid').val()); 
-	     }	         
-		 if(event.target.id=='yid'){	            
-			 this.target.resizingPoint.y=this.fromUnitY(j$('#yid').val());  
-	     }
-		 this.component.repaint();  
-    },
-	updateui:function(){
-		j$('#controllayerid').val(this.target.copper.getName());
-        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
-        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
-        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
-        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
-        j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
-	},
-	render:function(){
-		j$(this.el).empty();
-		j$(this.el).append(
-				"<table width='100%'>"+
-				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
-				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
-			    "</select>" +
-				"</td></tr>"+				
-				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
-		        "</table>");
-			
-		return this;
-	}
-});
-var TrackPanelBuilder=BaseBuilder.extend({
-	initialize:function(component){
-		TrackPanelBuilder.__super__.initialize(component);
-		this.id="trackpanelbuilder";
-		//app.bind('itemlinkimpl:oncklick', $.proxy(this.onitemclick,this));    
-    },
-    events: {
-        'keypress #xid' : 'onenter',	
-        'keypress #yid' : 'onenter',	
-        'keypress #thicknessid' : 'onenter',
-        'change #controllayerid':'onchange',
-    },
-    onchange:function(event){
-        if(event.target.id=='controllayerid'){
-        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
-        	this.component.getModel().getUnit().reorder();
-        }
-        this.component.repaint(); 
-      }, 
-    onenter:function(event){
-		 if(event.keyCode != 13){
-				return; 
-		     }
-		 if(event.target.id=='thicknessid'){
-			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val())); 
-		 }   
-		 if(event.target.id=='xid'){	            
-			 this.target.resizingPoint.x=this.fromUnitX(j$('#xid').val()); 
-	     }	         
-		 if(event.target.id=='yid'){	            
-			 this.target.resizingPoint.y=this.fromUnitY(j$('#yid').val());  
-	     }
-		 this.component.repaint();  
-    },
-	updateui:function(){
-		j$('#controllayerid').val(this.target.copper.getName());
-        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
-        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
-        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
-        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
-        j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
-	},
-	render:function(){
-		j$(this.el).empty();
-		j$(this.el).append(
-				"<table width='100%'>"+
-				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
-				this.fillComboBox([{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'}])+
-			    "</select>" +
-				"</td></tr>"+				
-				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='width:50%;padding:7px'>Clearance</td><td><input type='text' id='clearanceid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='width:50%;padding:7px'>Net</td><td><input type='text' id='netid' value='' class='form-control input-sm\'></td></tr>"+
-
-		"</table>");
-			
-		return this;
-	}
-});
-
-var LabelPanelBuilder=BaseBuilder.extend({
-	initialize:function(component){
-		LabelPanelBuilder.__super__.initialize(component);	
-		this.id="labelpanelbuilder";   
-    },
-    events: {
-        'keypress #xid' : 'onenter',	
-        'keypress #yid' : 'onenter',
-        'keypress #textid' : 'onenter',	
-        'keypress #rotateid' : 'onenter',
-        'keypress #sizeid' : 'onenter',	
-        'keypress #thicknessid' : 'onenter',	
-		'change #controllayerid':'onchange',
-    },
-    onchange:function(event){      
-	  if(event.target.id=='controllayerid'){
-		  this.target.setCopper(core.Layer.Copper.valueOf(j$('#controllayerid').val()));
-      }
-      this.component.repaint(); 
-    },
-    onenter:function(event){
-		 if(event.keyCode != 13){
-				return; 
-		 }
-		  if(event.target.id=='rotateid'){
-		      this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val()))); 
-		  }			 
-		 if(event.target.id=='textid'){
-			 this.target.texture.setText(j$('#textid').val());			  
-		 }
-		 if(event.target.id=='sizeid'){
-			 this.target.texture.setSize(core.MM_TO_COORD(parseFloat(j$('#sizeid').val())));			 
-		 }
-		 if(event.target.id=='thicknessid'){
-			 this.target.texture.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
-		 }		 
-		 if((event.target.id=='yid')||(event.target.id=='xid')){	            
-			 this.target.texture.setLocation(this.fromUnitX(j$('#xid').val()),this.fromUnitY(j$('#yid').val()));  
-	     }	 
-		 this.component.repaint();     		    	
-    },
-	updateui:function(){
-	 j$("#rotateid").val(this.target.texture.rotation); 	
-	 j$('#controllayerid').val(this.target.copper.getName());	
-	 j$('#textid').val(this.target.texture.text);	
-	 j$('#xid').val(this.toUnitX(this.target.texture.anchorPoint.x));
-	 j$('#yid').val(this.toUnitY(this.target.texture.anchorPoint.y));	 
-	 j$('#sizeid').val(core.COORD_TO_MM(this.target.texture.size));
-	 j$('#thicknessid').val(core.COORD_TO_MM(this.target.texture.thickness));
-	},
-	render:function(){
-		j$(this.el).empty();
-		j$(this.el).append(
-				"<table width='100%'>"+
-				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
-				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
-			    "</select>" +
-				"</td></tr>"+
-				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Text</td><td><input type='text' id='textid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='sizeid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
-		        "</table>");
-			
-		return this;
-	}
-});
-
-var BoardsTree=Backbone.View.extend({	
+var CircuitsTree=Backbone.View.extend({	
 	initialize:function(opt){		
 	    //creat tree
 		this.name=opt.name;
-		this.boardComponent=opt.boardComponent;		
+		this.circuitComponent=opt.circuitComponent;		
 		this.$tree=j$('#'+opt.name);
 		//bind select element
 		this.$tree.on('select',j$.proxy(this.valuechanged,this));
@@ -3386,35 +3051,35 @@ var BoardsTree=Backbone.View.extend({
 
 		if(item.value==111){
 		   //unit	
-			this.boardComponent.getModel().getUnit().setScrollPositionValue(this.boardComponent.viewportWindow.x,this.boardComponent.viewportWindow.y);
+			this.circuitComponent.getModel().getUnit().setScrollPositionValue(this.circuitComponent.viewportWindow.x,this.circuitComponent.viewportWindow.y);
 			
-			this.boardComponent.getModel().setActiveUnitUUID(item.id);
-			this.boardComponent.getModel().getUnit().setSelected(false);
-			this.boardComponent.componentResized();
+			this.circuitComponent.getModel().setActiveUnitUUID(item.id);
+			this.circuitComponent.getModel().getUnit().setSelected(false);
+			this.circuitComponent.componentResized();
 			
-			this.boardComponent.hbar.jqxScrollBar({ value:this.boardComponent.getModel().getUnit().scrollPositionXValue});
-			this.boardComponent.vbar.jqxScrollBar({ value:this.boardComponent.getModel().getUnit().scrollPositionYValue});
+			this.circuitComponent.hbar.jqxScrollBar({ value:this.circuitComponent.getModel().getUnit().scrollPositionXValue});
+			this.circuitComponent.vbar.jqxScrollBar({ value:this.circuitComponent.getModel().getUnit().scrollPositionYValue});
 			
-			this.boardComponent.repaint();
-			mywebpcb.trigger('tree:select',{target:this.boardComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 
+			this.circuitComponent.repaint();
+			mywebpcb.trigger('tree:select',{target:this.circuitComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 
 		}
 		if(item.value==222){
 			//is this the same shape of the current unit
-			if(this.boardComponent.getModel().getUnit().getUUID()!=item.parentId){
+			if(this.circuitComponent.getModel().getUnit().getUUID()!=item.parentId){
 		 		   this.$tree.off('select',j$.proxy(this.valuechanged,this));
 		 		   this.$tree.jqxTree('selectItem',  j$("#"+item.parentId)[0]);
-		 		   this.boardComponent.getModel().setActiveUnitUUID(item.parentId);
+		 		   this.circuitComponent.getModel().setActiveUnitUUID(item.parentId);
 		 		   this.$tree.on('select',j$.proxy(this.valuechanged,this));
 			}
 			   //shape
-			var shape=this.boardComponent.getModel().getUnit().getShape(item.id);
-			this.boardComponent.getModel().getUnit().setSelected(false);
+			var shape=this.circuitComponent.getModel().getUnit().getShape(item.id);
+			this.circuitComponent.getModel().getUnit().setSelected(false);
 			shape.setSelected(true);			
-			this.boardComponent.repaint();
+			this.circuitComponent.repaint();
 			            
 	        //position on shape center
             var rect=shape.getBoundingShape();            
-            this.boardComponent.setScrollPosition(rect.center.x,rect.center.y);
+            this.circuitComponent.setScrollPosition(rect.center.x,rect.center.y);
              		  
 			mywebpcb.trigger('tree:select',{target:shape,type:events.Event.SELECT_SHAPE}); 	
 		}
@@ -3427,7 +3092,7 @@ var BoardsTree=Backbone.View.extend({
 	         break;
 	      case events.Event.RENAME_CONTAINER:
 	    	  var element=j$('#root')[0];
-	    	  this.$tree.jqxTree('updateItem', { label: this.boardComponent.getModel().formatedFileName},element);
+	    	  this.$tree.jqxTree('updateItem', { label: this.circuitComponent.getModel().formatedFileName},element);
 	    	  this.$tree.jqxTree('render');
 	         break; 
 	      case events.Event.DELETE_CONTAINER:
@@ -3494,30 +3159,23 @@ var BoardsTree=Backbone.View.extend({
 	}
 });
 
-var BoardsInspector=Backbone.View.extend({	
+var CircuitsInspector=Backbone.View.extend({	
 	initialize:function(opt){
-		this.boardComponent=opt.boardComponent;
+		this.circuitComponent=opt.circuitComponent;
 		this.collection=new Backbone.Collection([
-		                                         new BoardPanelBuilder(this.boardComponent),
-		                                         new TrackPanelBuilder(this.boardComponent),
-		                                         new FootprintPanelBuilder(this.boardComponent),
-		                                         new ViaPanelBuilder(this.boardComponent),
-		                                         new LabelPanelBuilder(this.boardComponent),
-		                                         new ComponentPanelBuilder(this.boardComponent),
-		                                         new CirclePanelBuilder(this.boardComponent),
-		                                         new ArcPanelBuilder(this.boardComponent),
-		                                         new LinePanelBuilder(this.boardComponent),
-		                                         new RectPanelBuilder(this.boardComponent),
-		                                         new HolePanelBuilder(this.boardComponent),
-		                                         new SolidRegionPanelBuilder(this.boardComponent),
-		                                         new CopperAreaPanelBuilder(this.boardComponent)
+		                                         new CircuitPanelBuilder(this.circuitComponent),
+		                                         new LabelPanelBuilder(this.circuitComponent),
+		                                         new SymbolPanelBuilder(this.circuitComponent),
+		                                         new ComponentPanelBuilder(this.circuitComponent),
+		                                         new BusPinPanelBuilder(this.circuitComponent),
+		                                         new ConnectorPanelBuilder(this.circuitComponent),
 		                                         ]);
-		this.el= '#boardsinspectorid';	
+		this.el= '#circuitsinspectorid';	
 		//select container
 		this.panel=this.collection.get('componentpanelbuilder');
 		this.panel.attributes.delegateEvents();
-		this.panel.attributes.setTarget(this.boardComponent);
-		//this.oncontainerevent({target:this.boardComponent,type:mywebpads.container.Event.SELECT_CONTAINER});
+		this.panel.attributes.setTarget(this.circuitComponent);
+		//this.oncontainerevent({target:this.circuitComponent,type:mywebpads.container.Event.SELECT_CONTAINER});
 		
 		mywebpcb.bind('shape:inspector',this.onshapeevent,this);
 		mywebpcb.bind('unit:inspector',this.onunitevent,this);
@@ -3543,7 +3201,7 @@ var BoardsInspector=Backbone.View.extend({
 	 			this.panel.attributes.remove();
 	 			this.panel=this.collection.get('componentpanelbuilder');
 	 			this.panel.attributes.delegateEvents();
-	 			this.panel.attributes.setTarget(this.boardComponent);
+	 			this.panel.attributes.setTarget(this.circuitComponent);
 	 			this.render(); 
 	 		  }
  	    } 
@@ -3552,9 +3210,9 @@ var BoardsInspector=Backbone.View.extend({
     onunitevent:function(event){	
 	 	   if(event.type==events.Event.ADD_UNIT){
 	 		   //add unit to tree
-		 		  if(this.panel.id!='boardpanelbuilder'){	
+		 		  if(this.panel.id!='circuitpanelbuilder'){	
 			 			this.panel.attributes.remove();
-			 			this.panel=this.collection.get('boardpanelbuilder');
+			 			this.panel=this.collection.get('circuitpanelbuilder');
 			 			this.panel.attributes.delegateEvents();
 			 			this.render(); 
 			 	  }
@@ -3564,9 +3222,9 @@ var BoardsInspector=Backbone.View.extend({
 	 	  }
 	 	  if(event.type==events.Event.SELECT_UNIT){
 	 		   //select unit
-	 		  if(this.panel.id!='boardpanelbuilder'){	
+	 		  if(this.panel.id!='circuitpanelbuilder'){	
 	 			this.panel.attributes.remove();
-	 			this.panel=this.collection.get('boardpanelbuilder');
+	 			this.panel=this.collection.get('circuitpanelbuilder');
 	 			this.panel.attributes.delegateEvents();
 	 			this.render(); 
 	 		  }
@@ -3576,7 +3234,7 @@ var BoardsInspector=Backbone.View.extend({
 			 			this.panel.attributes.remove();
 			 			this.panel=this.collection.get('componentpanelbuilder');
 			 			this.panel.attributes.delegateEvents();
-			 			this.panel.attributes.setTarget(this.boardComponent);
+			 			this.panel.attributes.setTarget(this.circuitComponent);
 			 			this.render(); 
 			 			this.panel.attributes.updateui();
 			 		  }
@@ -3590,15 +3248,15 @@ var BoardsInspector=Backbone.View.extend({
 		switch(event.type){
 		case events.Event.PROPERTY_CHANGE:
 		case events.Event.SELECT_SHAPE:
-		if(event.target instanceof PCBFootprint){
-			if(this.panel.id!='footprintpanelbuilder'){
+		if(event.target instanceof SCHSymbol){
+			if(this.panel.id!='symbolpanelbuilder'){
 					this.panel.attributes.remove();
-					this.panel=this.collection.get('footprintpanelbuilder');
+					this.panel=this.collection.get('symbolpanelbuilder');
 					this.panel.attributes.delegateEvents();
 					this.render();
 		    }
 		}			
-		if(event.target instanceof PCBLabel){
+		if(event.target instanceof SCHFontLabel){
 			if(this.panel.id!='labelpanelbuilder'){
 				this.panel.attributes.remove();
 				this.panel=this.collection.get('labelpanelbuilder');
@@ -3606,86 +3264,77 @@ var BoardsInspector=Backbone.View.extend({
 				this.render();
 		    }
 		}
-		if(event.target instanceof PCBTrack){
-			if(this.panel.id!='trackpanelbuilder'){
+		if(event.target instanceof SCHJunction || event.target instanceof SCHNoConnector){			
+			if(this.panel.id!='circuitpanelbuilder'){
 				this.panel.attributes.remove();
-				this.panel=this.collection.get('trackpanelbuilder');
+				this.panel=this.collection.get('circuitpanelbuilder');
 				this.panel.attributes.delegateEvents();
+				this.panel.attributes.setTarget(event.target.owningUnit);
 				this.render();
+				this.panel.attributes.updateui();
 		    }
+			return;
 		}
-		if(event.target instanceof PCBRoundRect){
-			if(this.panel.id!='rectpanelbuilder'){
+		if(event.target instanceof SCHWire){
+			if(this.panel.id!='circuitpanelbuilder'){
 				this.panel.attributes.remove();
-				this.panel=this.collection.get('rectpanelbuilder');
+				this.panel=this.collection.get('circuitpanelbuilder');
+				this.panel.attributes.delegateEvents();
+				this.panel.attributes.setTarget(event.target.owningUnit);
+				this.render();
+				this.panel.attributes.updateui();
+		    }
+			return;
+		}		
+		if(event.target instanceof SCHConnector){
+			if(this.panel.id!='connectorpanelbuilder'){
+				this.panel.attributes.remove();
+				this.panel=this.collection.get('connectorpanelbuilder');
 				this.panel.attributes.delegateEvents();
 				this.render();
 		    }
 		}		
-		if(event.target instanceof PCBLine){
-			if(this.panel.id!='linepanelbuilder'){
+		
+		if((event.target instanceof SCHBusPin)){
+			if(this.panel.id!='buspinpanelbuilder'){
 				this.panel.attributes.remove();
-				this.panel=this.collection.get('linepanelbuilder');
-				this.panel.attributes.delegateEvents();
-				this.render();
-		    }
-		}		
-		if(event.target instanceof PCBVia){
-			if(this.panel.id!='viapanelbuilder'){
-				this.panel.attributes.remove();
-				this.panel=this.collection.get('viapanelbuilder');
-				this.panel.attributes.delegateEvents();
-				this.render();
-		    }
-		}
-		if(event.target instanceof PCBHole){
-			if(this.panel.id!='holepanelbuilder'){
-				this.panel.attributes.remove();
-				this.panel=this.collection.get('holepanelbuilder');
-				this.panel.attributes.delegateEvents();
-				this.render();
-		    }
-		}		
-		if((event.target instanceof PCBCircle)){
-			if(this.panel.id!='circlepanelbuilder'){
-				this.panel.attributes.remove();
-				this.panel=this.collection.get('circlepanelbuilder');
+				this.panel=this.collection.get('buspinpanelbuilder');
 				this.panel.attributes.delegateEvents();
 				this.render();
 			}
 		}	
-		if((event.target instanceof PCBCopperArea)){
-			if(this.panel.id!='copperareapanelbuilder'){
-				this.panel.attributes.remove();
-				this.panel=this.collection.get('copperareapanelbuilder');
-				this.panel.attributes.delegateEvents();
-				this.render();
-			}
-		}
-		if(event.target instanceof PCBSolidRegion){
-			if(this.panel.id!='solidregionpanelbuilder'){
-				this.panel.attributes.remove();
-				this.panel=this.collection.get('solidregionpanelbuilder');
-				this.panel.attributes.delegateEvents();
-				this.render();
-			}				
-		}
-		if((event.target instanceof PCBTrack)){
-			if(this.panel.id!='trackpanelbuilder'){
-				this.panel.attributes.remove();
-				this.panel=this.collection.get('trackpanelbuilder');
-				this.panel.attributes.delegateEvents();
-				this.render();
-			}
-		}		
-		if(event.target instanceof PCBArc){
-			if(this.panel.id!='arcpanelbuilder'){
-				this.panel.attributes.remove();
-				this.panel=this.collection.get('arcpanelbuilder');
-				this.panel.attributes.delegateEvents();
-				this.render();
-			}	
-		}
+//		if((event.target instanceof PCBCopperArea)){
+//			if(this.panel.id!='copperareapanelbuilder'){
+//				this.panel.attributes.remove();
+//				this.panel=this.collection.get('copperareapanelbuilder');
+//				this.panel.attributes.delegateEvents();
+//				this.render();
+//			}
+//		}
+//		if(event.target instanceof PCBSolidRegion){
+//			if(this.panel.id!='solidregionpanelbuilder'){
+//				this.panel.attributes.remove();
+//				this.panel=this.collection.get('solidregionpanelbuilder');
+//				this.panel.attributes.delegateEvents();
+//				this.render();
+//			}				
+//		}
+//		if((event.target instanceof PCBTrack)){
+//			if(this.panel.id!='trackpanelbuilder'){
+//				this.panel.attributes.remove();
+//				this.panel=this.collection.get('trackpanelbuilder');
+//				this.panel.attributes.delegateEvents();
+//				this.render();
+//			}
+//		}		
+//		if(event.target instanceof PCBArc){
+//			if(this.panel.id!='arcpanelbuilder'){
+//				this.panel.attributes.remove();
+//				this.panel=this.collection.get('arcpanelbuilder');
+//				this.panel.attributes.delegateEvents();
+//				this.render();
+//			}	
+//		}
 		//update panel ui values
 		this.panel.attributes.setTarget(event.target);
 		this.panel.attributes.updateui();
@@ -3716,10 +3365,10 @@ var BoardsInspector=Backbone.View.extend({
 /**
  * Represents Tree View and Properties Inspector
  */
-var BoardsPanelView=Backbone.View.extend({
+var CircuitsPanelView=Backbone.View.extend({
 	initialize:function(opt){
-       this.footprintstree=new BoardsTree(opt);
-       this.footprintinspector=new BoardsInspector(opt);
+       this.footprintstree=new CircuitsTree(opt);
+       this.footprintinspector=new CircuitsInspector(opt);
 	},
 	update:function(){
 		
@@ -3732,79 +3381,22 @@ var BoardsPanelView=Backbone.View.extend({
 });
 
 module.exports ={
-	       ComponentPanelBuilder,
-		   BoardsPanelView	   
+		   CircuitsPanelView	   
 	}
 });
 
-;require.register("board/views/layerspanelview.js", function(exports, require, module) {
-var LayerCollection = require('board/models/layer').LayerCollection;
-var LayerModel = require('board/models/layer').LayerModel;
-var Layer = require('core/core').Layer;
-
-var LayerView=Backbone.View.extend({
-	tagName: 'div',
-	initialize: function(opt){
-		this.boardComponent=opt.boardComponent;
-		
-    },
-    events: {
-        "click .layer-check": 'onChange'
-    },
-    
-    onChange:function(){
-    	this.model.toggle();
-    	this.boardComponent.getModel().getUnit().compositeLayer.setLayerVisible(this.model.get('value'),this.model.get('checked'));
-    	this.boardComponent.repaint();
-    },
-    render:function(){
-        this.$el.html('<input type="checkbox" style="width:3vw;height:3vh;" class="layer-check" value="' + this.model.get('value') + '" /> ' + this.model.get('name'));
-        this.$('input').prop('checked', this.model.get('checked'));
-        
-    	return this;
-    }	
-});
-
-var LayersPanelView=Backbone.View.extend({
-	  // Base the view on an existing element
-	el:'#layer-panel-view-id',
-    initialize: function(boardComponent){
-    	j$(this.el).empty();
-    	this.collection=new LayerCollection([
-                                         new LayerModel({ name: 'Top Layer',value:Layer.LAYER_FRONT,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.LAYER_FRONT)}),
-                                         new LayerModel({ name: 'Bottom Layer',value:Layer.LAYER_BACK,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.LAYER_BACK)}),
-                                         new LayerModel({ name: 'Top Silk Layer',value:Layer.SILKSCREEN_LAYER_FRONT,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.SILKSCREEN_LAYER_FRONT)}),
-                                         new LayerModel({ name: 'Bottom Silk Layer',value:Layer.SILKSCREEN_LAYER_BACK,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.SILKSCREEN_LAYER_BACK)})
-                                     ]);
-    	this.list = j$('#layer-panel-view-id');
-    	this.collection.forEach(function(item){
-    		  var view = new LayerView({ model: item,boardComponent:boardComponent });
-    		  j$(this.el).append(view.render().el);              
-    	}.bind(this));
-    	j$("#LayerVisibilityDialog").modal('show');
-    },
-    render:function(){
-    	
-    }
-});
-
-module.exports =LayersPanelView;
-	
-
-});
-
-require.register("board/views/togglebuttonview.js", function(exports, require, module) {
+;require.register("circuit/views/togglebuttonview.js", function(exports, require, module) {
 var mywebpcb=require('core/core').mywebpcb;
 var core=require('core/core');
 var shape=require('core/shapes');
 var events=require('core/events');
-var FootprintLoadView=require('pads/views/footprintloadview');
-var BoardMgr = require('board/d/boardcomponent').BoardMgr;
-var BoardContainer = require('board/d/boardcomponent').BoardContainer;
+var SymbolLoadView=require('symbols/views/symbolloadview');
+var CircuitMgr = require('circuit/d/circuitcomponent').CircuitMgr;
+var CircuitContainer = require('circuit/d/circuitcomponent').CircuitContainer;
 var UnitMgr = require('core/unit').UnitMgr;
-var BoardLoadView=require('board/views/boardloadview');
-var BoardSaveView=require('board/views/boardsaveview');
-var LayersPanelView=require('board/views/layerspanelview');
+var CircuitLoadView=require('circuit/views/circuitloadview');
+var CircuitSaveView=require('circuit/views/circuitsaveview');
+
 
 
 var ToggleButtonView=Backbone.View.extend({
@@ -3814,9 +3406,9 @@ var ToggleButtonView=Backbone.View.extend({
 	 */
 	initialize:function(opt){
 		this.collection=opt.collection;
-		this.boardComponent=opt.boardComponent;
-		mywebpcb.bind('libraryview:load',this.onfootprintload,this);
-		mywebpcb.bind('workspaceview:load',this.onboardload,this);
+		this.circuitComponent=opt.circuitComponent;
+		mywebpcb.bind('libraryview:load',this.onsymbolload,this);
+		mywebpcb.bind('workspaceview:load',this.oncircuitload,this);
 		this.bind();
 		this.update();
 	},
@@ -3841,17 +3433,18 @@ var ToggleButtonView=Backbone.View.extend({
 	},
 	onimport:function(event){
 		navigator.clipboard.readText().then(data =>{ 
-		      let boardContainer=new BoardContainer(true);
+		      let circuitContainer=new CircuitContainer(true);
 		      let xml=(j$.parseXML(data));		    	  
 		      //disable 
 		      core.isEventEnabled=false;
-		      boardContainer.parse(xml);
+		      circuitContainer.parse(xml);
 		      core.isEventEnabled=true;
-		  	  mywebpcb.trigger('workspaceview:load',boardContainer);
+		  	  mywebpcb.trigger('workspaceview:load',circuitContainer);
 			});
 	},	
 	onclick:function(event){
 	    event.preventDefault();
+	    
 	    //is this a group button
 	    if(event.data.model.attributes.active&&event.data.model.attributes.group!=''){
 	    	return;
@@ -3865,155 +3458,141 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='newboardid'){
 			var board=new mywebpcb.board.Board(core.MM_TO_COORD(80),core.MM_TO_COORD(80));
             board.name="Sergio Leone";
-			this.boardComponent.getModel().add(board);
-            this.boardComponent.getModel().setActiveUnitUUID(board.getUUID());
-            this.boardComponent.componentResized(); 
-            this.boardComponent.repaint();
-            this.boardComponent.getModel().fireUnitEvent({target:this.boardComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 	
+			this.circuitComponent.getModel().add(board);
+            this.circuitComponent.getModel().setActiveUnitUUID(board.getUUID());
+            this.circuitComponent.componentResized(); 
+            this.circuitComponent.repaint();
+            this.circuitComponent.getModel().fireUnitEvent({target:this.circuitComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 	
 		}
 		if(event.data.model.id=='saveid'){
-			new BoardSaveView({model:this.boardComponent.model}).render();			
+			new CircuitSaveView({model:this.circuitComponent.model}).render();			
 		}
 
 		if(event.data.model.id=='loadid'){
-			 new BoardLoadView({boardComponent:this.boardComponent}).render();			
+			 new CircuitLoadView({circuitComponent:this.circuitComponent}).render();			
 		}
 		//set mode
 		if(event.data.model.id=='rectid'){
-		    this.boardComponent.setMode(core.ModeEnum.RECT_MODE);
+		    this.circuitComponent.setMode(core.ModeEnum.RECT_MODE);
 		}
-		if(event.data.model.id=='lineid'){
-		    this.boardComponent.setMode(core.ModeEnum.LINE_MODE);
+		if(event.data.model.id=='buspinid'){
+		    this.circuitComponent.setMode(core.ModeEnum.BUSPIN_MODE);
 		}
-		if(event.data.model.id=='solidregionid'){
-			this.boardComponent.setMode(core.ModeEnum.SOLID_REGION);
+		if(event.data.model.id=='junctionid'){
+			this.circuitComponent.setMode(core.ModeEnum.JUNCTION_MODE);
 		}		
-		if(event.data.model.id=='trackid'){
-		  //Track mode
-		   this.boardComponent.setMode(core.ModeEnum.TRACK_MODE);
+		if(event.data.model.id=='connectorid'){
+		   this.circuitComponent.setMode(core.ModeEnum.CONNECTOR_MODE);
 		}
-		if(event.data.model.id=='anchorid'){
-			event.data.model.setActive(!event.data.model.isActive());  
-			this.boardComponent.setParameter("snaptogrid",event.data.model.isActive());
+		if(event.data.model.id=='noconnectorid'){
+		   this.circuitComponent.setMode(core.ModeEnum.NOCONNECTOR_MODE);
 		}		
+//		if(event.data.model.id=='anchorid'){
+//			event.data.model.setActive(!event.data.model.isActive());  
+//			this.circuitComponent.setParameter("snaptogrid",event.data.model.isActive());
+//		}		
 		if(event.data.model.id=='rectid'){
-			this.boardComponent.setMode(core.ModeEnum.RECT_MODE);
+			this.circuitComponent.setMode(core.ModeEnum.RECT_MODE);
 		}
-		if(event.data.model.id=='ellipseid'){
-			this.boardComponent.setMode(core.ModeEnum.ELLIPSE_MODE);
+		if(event.data.model.id=='wireid'){
+			this.circuitComponent.setMode(core.ModeEnum.WIRE_MODE);
 		}
-		if(event.data.model.id=='arcid'){
-			this.boardComponent.setMode(core.ModeEnum.ARC_MODE);
+		if(event.data.model.id=='busid'){
+			this.circuitComponent.setMode(core.ModeEnum.BUS_MODE);
 		}
 		if(event.data.model.id=='labelid'){
-			this.boardComponent.setMode(core.ModeEnum.LABEL_MODE);
-		}
-		if(event.data.model.id=='viaid'){
-			this.boardComponent.setMode(core.ModeEnum.VIA_MODE);
-		}
-		if(event.data.model.id=='holeid'){
-			this.boardComponent.setMode(core.ModeEnum.HOLE_MODE);
-		}		
+			this.circuitComponent.setMode(core.ModeEnum.LABEL_MODE);
+		}	
 		if(event.data.model.id=='selectionid'){
 		  //Board mode
-		   this.boardComponent.setMode(core.ModeEnum.COMPONENT_MODE);
+		   this.circuitComponent.setMode(core.ModeEnum.COMPONENT_MODE);
 		}
-		if(event.data.model.id=='loadfootprintid'){
-			 new FootprintLoadView({enabled:true}).render();			
+		if(event.data.model.id=='loadsymbolid'){
+			 new SymbolLoadView({enabled:true}).render();			
 		}
-		if(event.data.model.id=='measureid'){ 
-			this.boardComponent.setMode(core.ModeEnum.MEASUMENT_MODE);
-		}		
+		
 		if(event.data.model.id=='originid'){			 
 			event.data.model.setActive(!event.data.model.isActive());
 			if(event.data.model.isActive()){
-			  this.boardComponent.getModel().getUnit().coordinateSystem=new shape.CoordinateSystem(this.boardComponent.getModel().getUnit());
-			  this.boardComponent.setMode(core.ModeEnum.ORIGIN_SHIFT_MODE);
+			  this.circuitComponent.getModel().getUnit().coordinateSystem=new shape.CoordinateSystem(this.circuitComponent.getModel().getUnit());
+			  this.circuitComponent.setMode(core.ModeEnum.ORIGIN_SHIFT_MODE);
 			}else{
-			  this.boardComponent.getModel().getUnit().coordinateSystem=null;
-			  this.boardComponent.setMode(core.ModeEnum.COMPONENT_MODE);
+			  this.circuitComponent.getModel().getUnit().coordinateSystem=null;
+			  this.circuitComponent.setMode(core.ModeEnum.COMPONENT_MODE);
 			}
 		}
-		if(event.data.model.id=='copperareaid'){
-		    this.boardComponent.setMode(core.ModeEnum.COPPERAREA_MODE);
-		}
 		if((event.data.model.id=='rotateleftid')||(event.data.model.id=='rotaterightid')){
-            shapes= this.boardComponent.getModel().getUnit().shapes;
+            shapes= this.circuitComponent.getModel().getUnit().shapes;
             if(shapes.length==0){
                return; 
             }  
-			//shapes= this.boardComponent.getModel().getUnit().getSelectedShapes();
-			var r=this.boardComponent.getModel().getUnit().getShapesRect(shapes);
+			//shapes= this.circuitComponent.getModel().getUnit().getSelectedShapes();
+			var r=this.circuitComponent.getModel().getUnit().getShapesRect(shapes);
                
             UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(event.data.model.id==("rotateleftid")?1:-1)*(90.0)));
-            UnitMgr.getInstance().alignBlock(this.boardComponent.getModel().getUnit().grid,shapes);  
+            UnitMgr.getInstance().alignBlock(this.circuitComponent.getModel().getUnit().grid,shapes);  
             
-            this.boardComponent.repaint();
+            this.circuitComponent.repaint();
 		}
 		if(event.data.model.id=='zoominid'){
-			this.boardComponent.ZoomIn(parseInt(this.boardComponent.width/2),parseInt(this.boardComponent.height/2));
+			this.circuitComponent.ZoomIn(parseInt(this.circuitComponent.width/2),parseInt(this.circuitComponent.height/2));
 		}
 		if(event.data.model.id=='zoomoutid'){
-			this.boardComponent.ZoomOut(parseInt(this.boardComponent.width/2),parseInt(this.boardComponent.height/2));
+			this.circuitComponent.ZoomOut(parseInt(this.circuitComponent.width/2),parseInt(this.circuitComponent.height/2));
 		}	
 		if(event.data.model.id=='grabid'){
-			 this.boardComponent.setMode(core.ModeEnum.DRAGHEAND_MODE);
+			 this.circuitComponent.setMode(core.ModeEnum.DRAGHEAND_MODE);
 		}	
 		if(event.data.model.id=='tocenterid'){
 			
-            this.boardComponent.setScrollPosition(parseInt(this.boardComponent.getModel().getUnit().width/2),
-            		parseInt(this.boardComponent.getModel().getUnit().height/2));
-		}	
-		if(event.data.model.id=='layerid'){
-			new LayersPanelView(this.boardComponent);		
+            this.circuitComponent.setScrollPosition(parseInt(this.circuitComponent.getModel().getUnit().width/2),
+            		parseInt(this.circuitComponent.getModel().getUnit().height/2));
 		}		
 	},
-	onfootprintload:function(selectedModel){
-		  let scaledEvent=this.boardComponent.getScaledEvent(selectedModel.event);
+	onsymbolload:function(selectedModel){
+		  let scaledEvent=this.circuitComponent.getScaledEvent(selectedModel.event);
 		//****load it    	
-		  this.boardComponent.setMode(core.ModeEnum.FOOTPRINT_MODE);		  
-		  var pcbfootprint=BoardMgr.getInstance().createPCBFootprint(selectedModel.getUnit());
+		  this.circuitComponent.setMode(core.ModeEnum.SYMBOL_MODE);		
+		  var schsymbol=CircuitMgr.getInstance().createSCHSymbol(selectedModel.getUnit());
 		  
           //            //***set chip cursor
-          pcbfootprint.move(-1 * pcbfootprint.getBoundingShape().center.x,
-                         -1 * pcbfootprint.getBoundingShape().center.y);
+		  schsymbol.move(-1 * schsymbol.getBoundingShape().center.x,
+                         -1 * schsymbol.getBoundingShape().center.y);
           
-          //pcbfootprint.Move(scaledEvent.x,
-          //        scaledEvent.y);
           
-		  this.boardComponent.setContainerCursor(pcbfootprint);
-          this.boardComponent.getEventMgr().setEventHandle("cursor", pcbfootprint);
+		  this.circuitComponent.setContainerCursor(schsymbol);
+          this.circuitComponent.getEventMgr().setEventHandle("cursor", schsymbol);
           
-          this.boardComponent.mouseMove(selectedModel.event);
-          //this.boardComponent.Repaint();
+          this.circuitComponent.mouseMove(selectedModel.event);
+          //this.circuitComponent.Repaint();
 	},
-	onboardload:function(selectedModel){
-		  this.boardComponent.clear();
-		  this.boardComponent.setMode(core.ModeEnum.COMPONENT_MODE);
+	oncircuitload:function(selectedModel){
+		  this.circuitComponent.clear();
+		  this.circuitComponent.setMode(core.ModeEnum.COMPONENT_MODE);
 		  
 		  for(let unit of selectedModel.getUnits()){
 			  core.isEventEnabled=false;
 			  var copy=unit.clone();	
 			  core.isEventEnabled=true;
-			  this.boardComponent.getModel().add(copy);  
+			  this.circuitComponent.getModel().add(copy);  
 			  copy.notifyListeners(events.Event.ADD_SHAPE);
 		  };
 		  
-		  this.boardComponent.getModel().setActiveUnit(0);
-		  this.boardComponent.getModel().formatedFileName=selectedModel.formatedFileName;
-		  this.boardComponent.getModel().libraryname=selectedModel.libraryname;
-		  this.boardComponent.getModel().categoryname=selectedModel.categoryname;
+		  this.circuitComponent.getModel().setActiveUnit(0);
+		  this.circuitComponent.getModel().formatedFileName=selectedModel.formatedFileName;
+		  this.circuitComponent.getModel().libraryname=selectedModel.libraryname;
+		  this.circuitComponent.getModel().categoryname=selectedModel.categoryname;
 		  
-		  this.boardComponent.componentResized();
+		  this.circuitComponent.componentResized();
 
 	        //position on center
-          var rect=this.boardComponent.getModel().getUnit().getBoundingRect();
-          this.boardComponent.setScrollPosition(rect.center.x,rect.center.y);
-          this.boardComponent.fireContainerEvent({target:null,type: events.Event.RENAME_CONTAINER});
-          this.boardComponent.getModel().fireUnitEvent({target:this.boardComponent.getModel().getUnit(),type: events.Event.SELECT_UNIT});
-		  this.boardComponent.repaint();
+          var rect=this.circuitComponent.getModel().getUnit().getBoundingRect();
+          this.circuitComponent.setScrollPosition(rect.center.x,rect.center.y);
+          this.circuitComponent.fireContainerEvent({target:null,type: events.Event.RENAME_CONTAINER});
+          this.circuitComponent.getModel().fireUnitEvent({target:this.circuitComponent.getModel().getUnit(),type: events.Event.SELECT_UNIT});
+		  this.circuitComponent.repaint();
 		  //set button group
-		  this.boardComponent.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
+		  this.circuitComponent.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
 
 		  
 	},
@@ -11678,41 +11257,69 @@ module.exports = {
 }
 });
 
-;require.register("pads/d/footprintcomponent.js", function(exports, require, module) {
+;require.register("symbols/d/symbolcomponent.js", function(exports, require, module) {
 var Unit = require('core/unit').Unit;
 var UnitContainer = require('core/unit').UnitContainer;
 var UnitComponent = require('core/unit').UnitComponent;
 var UnitMgr = require('core/unit').UnitMgr;
 var mywebpcb=require('core/core').mywebpcb;
 var core = require('core/core');
-var FootprintEventMgr = require('pads/events').FootprintEventMgr;
+var SymbolType = require('core/core').SymbolType;
 var events=require('core/events');
-var RoundRect=require('pads/shapes').RoundRect;
-var Circle=require('pads/shapes').Circle;
-var Arc=require('pads/shapes').Arc;
-var Pad=require('pads/shapes').Pad;
-var SolidRegion=require('pads/shapes').SolidRegion;
-var FootprintShapeFactory=require('pads/shapes').FootprintShapeFactory;
-var Drill=require('pads/shapes').Drill;
-var GlyphLabel=require('pads/shapes').GlyphLabel;
-var Line=require('pads/shapes').Line;
+var RoundRect=require('symbols/shapes').RoundRect;
+var FontLabel=require('symbols/shapes').FontLabel;
+var Ellipse=require('symbols/shapes').Ellipse;
+var Line=require('symbols/shapes').Line;
+var Arc=require('symbols/shapes').Arc;
+var Pin=require('symbols/shapes').Pin;
+var ArrowLine=require('symbols/shapes').ArrowLine;
+var Triangle=require('symbols/shapes').Triangle;
+var SymbolContextMenu=require('symbols/popup/symbolpopup').SymbolContextMenu;
+var SymbolShapeFactory=require('symbols/shapes').SymbolShapeFactory;
+var SymbolEventMgr = require('symbols/events').SymbolEventMgr;
 var LineEventHandle=require('core/events').LineEventHandle;
-var SolidRegionEventHandle=require('pads/events').SolidRegionEventHandle;
-var FootprintContextMenu=require('pads/popup/footprintpopup').FootprintContextMenu;
-var GlyphManager=require('core/text/d2glyph').GlyphManager;
 var d2=require('d2/d2');
 var utilities=require('core/utilities');
 
-class Footprint extends Unit{
+
+//**********************UnitMgr***************************************
+var SymbolMgr=(function(){
+	var instance=null;
+
+class manager{
+	getLabels(unit) {		
+        var len=symbol.shapes.length;
+          
+    }       
+    
+    }
+	return {getInstance:function(){
+		    if (!instance) {
+              instance = new manager();
+            }
+            return instance;
+	      }
+	};
+		
+	
+})();
+class Symbol extends Unit{
 constructor(width,height) {
-       super(width,height); 
-	   this.shapeFactory = new FootprintShapeFactory();
+       super(width,height);
+       this.scalableTransformation.reset(1.2,2,2,15);
+	   this.shapeFactory = new SymbolShapeFactory();
+       this.grid.setGridUnits(8, core.Units.PIXEL);
+       this.grid.pointsColor='black'; 
+       this.type=SymbolType.SYMBOL;
+       this.isTextLayoutVisible = false;
+       this.frame.color='black';
 	}
 clone(){
-	  var copy=new Footprint(this.width,this.height);
+	  var copy=new Symbol(this.width,this.height);
 	  //copy.silent=true;
 	  copy.unitName=this.unitName;
 	  copy.grid=this.grid.clone();
+
       var len=this.shapes.length;
 	  for(var i=0;i<len;i++){
            var clone=this.shapes[i].clone();
@@ -11722,33 +11329,39 @@ clone(){
 	  return copy;
 	}	
 parse(data){
-	 	   this.unitName=j$(data).find("name").text();
-	 	   this.grid.setGridUnits(j$(data).find("units").attr("raster"),core.Units.MM);
-	 	   
+	 	   this.unitName=j$(data).find("name").first().text();
 	 	   var reference=j$(data).find("reference");
-	 	   var value=j$(data).find("value");
+	 	   var value=j$(data).find("unit");
+	 	  
 	 	   if(reference!=null&&reference.text()!=''){
-	           var label = new GlyphLabel(0,0,0);
-	           label.fromXML(reference[0]);
-	           label.texture.tag="reference";
-	           this.add(label);      
+		        var label = new FontLabel(0,0);
+		        label.fromXML(reference[0]);
+		        label.texture.tag="reference";
+		        this.add(label);      		 	      
 	 	   }
 	 	   if(value!=null&&value.text()!=''){
-	           var label = new GlyphLabel(0,0,0);
-	           label.fromXML(value[0]);
-	           label.texture.tag="value";
-	           this.add(label);	 		   
+		        var label = new FontLabel(0,0);
+		        label.fromXML(value[0]);
+		        label.texture.tag="unit";
+		        this.add(label);  
 	 	   }
 	 	   var that=this;
-	 	   j$(data).find('shapes').children().each(function(){
+	 	   j$(data).find('elements').children().each(function(){
                var shape=that.shapeFactory.createShape(this);
                that.add(shape);
 	 	   });
-
-
 	}	
+setTextLayoutVisibility( isTextLayoutVisible) {
+    this.isTextLayoutVisible = isTextLayoutVisible;
+    this.shapes.forEach((shape)=>{            
+        if(shape instanceof Pin){
+          shape.name.isTextLayoutVisible=isTextLayoutVisible;
+          shape.number.isTextLayoutVisible=isTextLayoutVisible;
+        }  
+       });
+}
 format(){   
-   var xml="<footprint width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
+   var xml="<module width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
    xml+="<name>"+this.unitName+"</name>\r\n";
    //***reference
    var text=UnitMgr.getInstance().getLabelByTag(this,'reference');
@@ -11758,58 +11371,71 @@ format(){
        xml+="</reference>\r\n";
    } 
    //value
-   text=UnitMgr.getInstance().getLabelByTag(this,'value');
+   text=UnitMgr.getInstance().getLabelByTag(this,'unit');
    if(text!=null){
-       xml+="<value>";
+       xml+="<unit>";
        xml+=text.getTexture().toXML();
-       xml+="</value>\r\n";
+       xml+="</unit>\r\n";
    }    
-   xml+="<units raster=\""+this.grid.getGridValue()+"\">MM</units>\r\n"; 
-   xml+="<shapes>\r\n";
+ 
+   xml+="<elements>\r\n";
    this.shapes.forEach(function(shape) {
-	   if(!((shape instanceof GlyphLabel)&&(shape.texture.tag=='reference'||shape.texture.tag=='value'))){
+	   if(!((shape instanceof FontLabel)&&(shape.texture.tag=='reference'||shape.texture.tag=='unit'))){
 		   xml+=shape.toXML();
 		   xml+='\r\n';   
 	   }
    });
-   xml+="</shapes>\r\n";   
-   xml+="</footprint>";
+   xml+="</elements>\r\n";   
+   xml+="</module>";
    return xml;
 }	
 }
 
-class FootprintContainer extends UnitContainer{
+class SymbolContainer extends UnitContainer{
     constructor() {
        super();
-       this.formatedFileName="Footprints"
+       this.formatedFileName="Symbols"
 	}
-
+    getType() {
+        if(this.unitsmap.size==0){
+          return Type.SYMBOL;  //default
+        }else{    		
+          return this.getUnits().next().value.type; 
+        }
+    }
+    
+    setType(type) {
+      let units=this.unitsmap.values();
+  	  for(let i=0;i<this.unitsmap.size;i++){
+          let aunit=units.next();
+  		  aunit.value.type=type;
+  	  }
+    }
     parse(xml){
     	  this.setFileName(j$(xml).find("filename").text());
     	  this.libraryname=(j$(xml).find("library").text());
     	  this.categoryname=(j$(xml).find("category").text());    	  
-    	  
+    	 
     	  var that=this;
-	      j$(xml).find("footprint").each(j$.proxy(function(){
-	    	var footprint=new Footprint(j$(this).attr("width"),j$(this).attr("height"));
-	    	    footprint.unitName=j$(this).find("name").text();
+	      j$(xml).find("module").each(j$.proxy(function(){
+	    	var symbol=new Symbol(j$(this).attr("width"),j$(this).attr("height"));	    	    
 	    	//silent mode
 	    	//footprint.silent=that.silent;
 	    	//need to have a current unit
-            that.add(footprint);
-            footprint.parse(this);
+            that.add(symbol);
+            symbol.parse(this);
 	    }),that);	
     }
     format() {
         var xml="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n"; 
-        xml+="<footprints identity=\"Footprint\" version=\""+utilities.version.FOOTPRINT_VERSION+"\">\r\n";      
+        xml+="<modules identity=\"Symbol\" type=\""+core.SymbolType.valueOf(this.getType())+"\" version=\""+utilities.version.SYMBOL_VERSION+"\">\r\n";      
     	let units=this.unitsmap.values();
   	    for(let i=0;i<this.unitsmap.size;i++){
           let unit=units.next().value;
           xml+=unit.format();
   		  xml+="\r\n";
   	    }    	    	
-        xml+="</footprints>";
+        xml+="</modules>";
         
         return xml;
     }
@@ -11817,14 +11443,14 @@ class FootprintContainer extends UnitContainer{
 }
 
 
-class FootprintComponent extends UnitComponent{
+class SymbolComponent extends UnitComponent{
   constructor(hbar,vbar,canvas,popup) {
 	super(hbar,vbar,canvas,popup); 
 	
-	this.eventMgr=new FootprintEventMgr(this); 
-	this.model=new FootprintContainer();
-	this.popup=new FootprintContextMenu(this,popup);
-	  
+	this.eventMgr=new SymbolEventMgr(this); 
+	this.model=new SymbolContainer();
+	this.popup=new SymbolContextMenu(this,popup);
+	this.backgroundColor='white';  
 }
 setMode(_mode){
 	this.mode=_mode;
@@ -11838,13 +11464,18 @@ setMode(_mode){
 	 switch (this.mode) {
      		case core.ModeEnum.SOLID_REGION:
          	break;	 
-	        case core.ModeEnum.PAD_MODE:
-	            shape=new Pad(0,0,core.MM_TO_COORD(1.52),core.MM_TO_COORD(2.52));	            	            		                        
+	        case core.ModeEnum.ARROW_MODE:
+	            shape=new ArrowLine();	            	            		                        
+	            this.setContainerCursor(shape);               
+	            this.getEventMgr().setEventHandle("cursor",shape);  
+	          break;
+	        case core.ModeEnum.TRIANGLE_MODE:
+	            shape=new Triangle();	            	            		                        
 	            this.setContainerCursor(shape);               
 	            this.getEventMgr().setEventHandle("cursor",shape);  
 	          break;
 	        case  core.ModeEnum.RECT_MODE:
-	            shape=new RoundRect(0,0,core.MM_TO_COORD(7),core.MM_TO_COORD(7),core.MM_TO_COORD(0.8),core.MM_TO_COORD(0.2),core.Layer.SILKSCREEN_LAYER_FRONT);	            
+	            shape=new RoundRect(0,0,15,15,0,1);	            
 	            this.setContainerCursor(shape);               
 	            this.getEventMgr().setEventHandle("cursor",shape); 
 	          break;
@@ -11852,17 +11483,22 @@ setMode(_mode){
 	          
 	          break;
 	        case  core.ModeEnum.ELLIPSE_MODE:	
-	            shape=new Circle(0,0,core.MM_TO_COORD(3.4),core.MM_TO_COORD(0.2),core.Layer.SILKSCREEN_LAYER_FRONT);
+	            shape=new Ellipse(20,15);
 	            this.setContainerCursor(shape);               
 	            this.getEventMgr().setEventHandle("cursor",shape); 
 	          break;
 	        case  core.ModeEnum.ARC_MODE:
-	        	shape=new Arc(0,0,core.MM_TO_COORD(3.4),core.MM_TO_COORD(0.2),core.Layer.SILKSCREEN_LAYER_FRONT);
+	        	shape=new Arc(0,0,30,40);
 	            this.setContainerCursor(shape);               
 	            this.getEventMgr().setEventHandle("cursor",shape); 
 	          break;
+	        case core.ModeEnum.PIN_MODE:
+	            shape=new Pin();
+	            this.setContainerCursor(shape);               
+	            this.getEventMgr().setEventHandle("cursor",shape);  
+	            break;	          
 	        case  core.ModeEnum.LABEL_MODE:
-	            shape=new GlyphLabel("sergei_iliev@yahoo.com",core.MM_TO_COORD(0.3),core.Layer.SILKSCREEN_LAYER_FRONT);			
+	            shape=new FontLabel(0,0);			
 		        this.setContainerCursor(shape);               
 	            this.getEventMgr().setEventHandle("cursor",shape); 
 	          break;
@@ -11927,29 +11563,30 @@ mouseDown(event){
                          this.getEventMgr().setEventHandle("arc.start.angle",shape);                    
                      }else if(shape.isExtendAnglePointClicked(scaledEvent.x , scaledEvent.y)){
                          this.getEventMgr().setEventHandle("arc.extend.angle",shape);                      
-                     }else if(shape.isMidPointClicked(scaledEvent.x , scaledEvent.y)){
-                    	  this.getEventMgr().setEventHandle("arc.mid.point",shape);
+//                     }else if(shape.isMidPointClicked(scaledEvent.x , scaledEvent.y)){
+//                    	  this.getEventMgr().setEventHandle("arc.mid.point",shape);
                      }else{
                           this.getEventMgr().setEventHandle("resize",shape);    
                      }
-                    }else{
+                   }else{
 						this.getEventMgr().setEventHandle("resize",shape); 
                     }
 			
  
-		  }else{
+		  }else{		    		     
 		     shape = this.getModel().getUnit().getClickedShape(scaledEvent.x, scaledEvent.y, true);
 		     
 		     if(shape!=null){
 			   if (UnitMgr.getInstance().isBlockSelected(this.getModel().getUnit().shapes) && shape.isSelected()){
                  this.getEventMgr().setEventHandle("block", null);						 
-		       }else if ((!(shape instanceof GlyphLabel))&&(undefined !=shape['getTextureByTag'])&&shape.getClickedTexture(scaledEvent.x, scaledEvent.y)!=null){
+		       }else if ((!(shape instanceof FontLabel))&&(undefined !=shape['getTextureByTag'])&&shape.getClickedTexture(scaledEvent.x, scaledEvent.y)!=null){
 			     this.getEventMgr().setEventHandle("texture",shape);
                }else
 		         this.getEventMgr().setEventHandle("move",shape);
 		     }else{
 		         this.getEventMgr().setEventHandle("component",null);
-		     }
+		     }		     
+		     
 		  }
 		  break;
     	case core.ModeEnum.SOLID_REGION:
@@ -11971,7 +11608,7 @@ mouseDown(event){
             	if(event.which!=1){
             		return;
             	}
-                shape = new Line(core.MM_TO_COORD(0.3),core.Layer.SILKSCREEN_LAYER_FRONT);
+                shape = new Line(1);
                 this.getModel().getUnit().add(shape);
                 
             	this.getEventMgr().setEventHandle("line", shape);
@@ -12001,301 +11638,204 @@ mouseDown(event){
 	
   }
 
- 
+mouseWheelMoved(event){
+    event.preventDefault();
+	  if (this.getModel().getUnit() == null) { 
+		return; 
+	  }
+	var e=this.getScaledEvent(event);
+	if(event.originalEvent.wheelDelta /120 > 0) {
+		   this.ZoomIn(e.windowx,e.windowy);
+    }
+    else{
+		   this.ZoomOut(e.windowx,e.windowy);
+    }
+} 
 }
 
 
 module.exports ={
-	   FootprintContainer,
-	   Footprint,
-	   FootprintComponent	   
+	   SymbolMgr,	
+	   SymbolContainer,
+	   Symbol,
+	   SymbolComponent	   
 }
 });
 
-;require.register("pads/events.js", function(exports, require, module) {
+;require.register("symbols/events.js", function(exports, require, module) {
 var EventHandle = require('core/events').EventHandle;
 var events = require('core/events');
 var core = require('core/core');
 var d2 = require('d2/d2');
 
-class ArcMidPointEventHandle extends EventHandle{
-constructor(component) {
-		 super(component);
+class SymbolEventMgr{
+	 constructor(component) {
+	    this.component=component;
+		this.targetEventHandle=null;	
+		this.hash = new Map();
+		this.hash.set("move",new events.MoveEventHandle(component));
+		this.hash.set("resize",new events.ResizeEventHandle(component));
+	    this.hash.set("component",new events.UnitEventHandle(component));
+		this.hash.set("block",new events.BlockEventHandle(component));
+		this.hash.set("line",new events.LineEventHandle(component));
+		this.hash.set("cursor",new events.CursorEventHandle(component));
+		this.hash.set("texture",new events.TextureEventHandle(component));
+		this.hash.set("dragheand",new events.DragingEventHandle(component));
+		this.hash.set("origin",new events.OriginEventHandle(component));
+		this.hash.set("measure",new events.MeasureEventHandle(component));
+		this.hash.set("arc.start.angle",new ArcStartAngleEventHandle(component));
+		this.hash.set("arc.extend.angle",new ArcExtendAngleEventHandler(component));
 	 }
- 
-mousePressed(event){
-	if(super.isRightMouseButton(event)){
-            if (this.target["getLinePoints"]!=undefined){
-            	this.component.popup.registerLineSelectPopup(this.target,event);            
-            }            
-    }
-     
-    this.component.getModel().getUnit().setSelected(false);
-    this.target.setSelected(true);
-	this.mx=event.x;
-	this.my=event.y;
-        
-    this.targetPoint=this.target.isControlRectClicked(event.x,event.y);
-    this.target.setResizingPoint(this.targetPoint);
-    
-    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
-    
-	this.component.repaint();
- }
- mouseReleased(event){
-	    if(this.component.getParameter("snaptogrid")){
-         this.target.alignResizingPointToGrid(this.targetPoint);
-	     this.component.repaint();	 
+	 //****private
+	 getEventHandle(eventKey,target) {
+	    var handle=this.hash.get(eventKey);
+		if(handle!=null){
+		  handle.setTarget(target);
+		  if(eventKey=='resize'||eventKey=='move'||eventKey=='line'||eventKey=='texture'){
+		     this.component.getModel().getUnit().fireShapeEvent({target:target,type:events.Event.SELECT_SHAPE});
+		  }
+		  if(eventKey=='component'||eventKey=="origin"){
+			 this.component.getModel().fireUnitEvent({target:this.component.getModel().getUnit(),type:events.Event.SELECT_UNIT});
+		  }
+		  handle.Attach();
 		}
-	    this.target.resizingPoint=null;
- }
- mouseDragged(event){
- 	let new_mx = event.x;
-    let new_my = event.y;
-    
-    this.target.Resize(0,0,event);
-    
-    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
-    this.mx = new_mx;
-    this.my = new_my;
-	this.component.repaint();
- }
- mouseMove(event){
- 
- }
-}
+		return handle;
+	 }
+	 
+	 getTargetEventHandle(){
+	   return this.targetEventHandle;
+	 }
+	 
+	 setEventHandle(eventKey,target){
+	        this.resetEventHandle();
+	        this.targetEventHandle=this.getEventHandle(eventKey,target);
+	    }
+	 
+	 resetEventHandle(){
+		    //hide context menu
+		    this.component.popup.close();
+	        if (this.targetEventHandle != null) {
+	            this.targetEventHandle.Detach();
+	        }
+	        this.targetEventHandle = null;                
+	    }
+	 
+	}
 
 class ArcStartAngleEventHandle extends EventHandle{
- constructor(component) {
-	 super(component);
- }
- mousePressed(event){
- }
- mouseDragged(event){
- 	let new_mx = event.x;
-    let new_my = event.y;
-    
-	
-        
-    let centerX=this.target.arc.center.x;
-    let centerY=this.target.arc.center.y;
-           
-    let start = (180/Math.PI*Math.atan2(new_my-centerY,new_mx-centerX));
-
-    if(start<0){
-        this.target.setStartAngle(-1*(start));            
-    }else{
-        this.target.setStartAngle(360-(start));            
-    }
+	 constructor(component) {
+		 super(component);
+	 }
+	 mousePressed(event){
+	 }
+	 mouseDragged(event){
+	 	let new_mx = event.x;
+	    let new_my = event.y;
+	    
 		
-	this.mx = new_mx;
-    this.my = new_my;
+	        
+	    let centerX=this.target.arc.center.x;
+	    let centerY=this.target.arc.center.y;
+	           
+	    let start = (180/Math.PI*Math.atan2(new_my-centerY,new_mx-centerX));
 
-	this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:events.Event.PROPERTY_CHANGE});
-		
-	this.component.repaint();
- }
-mouseReleased(event){
+	    if(start<0){
+	        this.target.setStartAngle(-1*(start));            
+	    }else{
+	        this.target.setStartAngle(360-(start));            
+	    }
+			
+		this.mx = new_mx;
+	    this.my = new_my;
 
-} 
-mouseMove(event){
- 
-}
+		this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:events.Event.PROPERTY_CHANGE});
+			
+		this.component.repaint();
+	 }
+	mouseReleased(event){
+
+	} 
+	mouseMove(event){
+	 
+	}
 
 }	
 class ArcExtendAngleEventHandler extends EventHandle{
- constructor(component) {
-	 super(component);
-
- }
- mousePressed(event){
- }
- mouseDragged(event){
- 	let new_mx = event.x;
-    let new_my = event.y;
-        
-    let centerX=this.target.arc.center.x;
-    let centerY=this.target.arc.center.y;
-        
-        
-    let extend = (180/Math.PI*Math.atan2(new_my-centerY,new_mx-centerX));
-
-    if(extend<0){
-        extend=(-1*(extend));                  
-    }else{
-        extend=(360-extend);         
-    }
-        
-        //-360<extend<360 
-    let extendAngle=this.target.arc.endAngle;
-    if(extendAngle<0){        
-          if(extend-this.target.arc.startAngle>0) {                
-              this.target.setExtendAngle(((extend-this.target.arc.startAngle))-360);
-          }else{
-              this.target.setExtendAngle(extend-this.target.arc.startAngle);
-            }
-        }else{           
-            if(extend-this.target.arc.startAngle>0) {
-              this.target.setExtendAngle(extend-this.target.arc.startAngle);
-            }else{
-              this.target.setExtendAngle((360-this.target.arc.startAngle)+extend);
-            }
-        }
-        
-    //***update PropertiesPanel           
-	this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:events.Event.PROPERTY_CHANGE});
-		
-	this.component.repaint();
- }
-mouseReleased(event){
-
-} 
-mouseMove(event){
- 
-}
-
-}
-class SolidRegionEventHandle extends EventHandle{
-	constructor(component) {
+	 constructor(component) {
 		 super(component);
-	 }
-mousePressed(event){
-      this.mx=event.x;
-	  this.my=event.y;
-	  if(super.isRightMouseButton(event)){                                  
-           return;
-      }
-      this.component.getModel().getUnit().setSelected(false);
-	  this.target.setSelected(true);
 
-      let p;      
-      
-      if(this.component.getParameter("snaptogrid")){
-        p=this.component.getModel().getUnit().getGrid().positionOnGrid(event.x,event.y);       		
-      }else{
-        p=new d2.Point(event.x,event.y);
-      }
-      let justcreated=this.target.polygon.points.length==2;
-      
-      if(this.target.getLinePoints().length==0){
-    	  this.target.add(p);    
-          //avoid point over point
-      }else if(!this.target.getLinePoints()[this.target.getLinePoints().length-1].equals(p)){
-    	  this.target.add(p);           
-      }
-      
-      
-	  this.component.repaint();	   
-	    
 	 }
-mouseReleased(event){
-		
+	 mousePressed(event){
 	 }
+	 mouseDragged(event){
+	 	let new_mx = event.x;
+	    let new_my = event.y;
+	        
+	    let centerX=this.target.arc.center.x;
+	    let centerY=this.target.arc.center.y;
+	        
+	        
+	    let extend = (180/Math.PI*Math.atan2(new_my-centerY,new_mx-centerX));
+
+	    if(extend<0){
+	        extend=(-1*(extend));                  
+	    }else{
+	        extend=(360-extend);         
+	    }
+	        
+	        //-360<extend<360 
+	    let extendAngle=this.target.arc.endAngle;
+	    if(extendAngle<0){        
+	          if(extend-this.target.arc.startAngle>0) {                
+	              this.target.setExtendAngle(((extend-this.target.arc.startAngle))-360);
+	          }else{
+	              this.target.setExtendAngle(extend-this.target.arc.startAngle);
+	            }
+	        }else{           
+	            if(extend-this.target.arc.startAngle>0) {
+	              this.target.setExtendAngle(extend-this.target.arc.startAngle);
+	            }else{
+	              this.target.setExtendAngle((360-this.target.arc.startAngle)+extend);
+	            }
+	        }
+	        
+	    //***update PropertiesPanel           
+		this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:events.Event.PROPERTY_CHANGE});
+			
+		this.component.repaint();
+	 }
+	mouseReleased(event){
+
+	} 
+	mouseMove(event){
 	 
-mouseDragged(event){
-		
-	 }
-mouseMove(event){
-    this.target.floatingEndPoint.set(event.x,event.y);   
-    this.component.repaint();	 
-	 }	 
-dblClick(){
-      
-    this.target.setSelected(false);
-    this.component.getEventMgr().resetEventHandle();
-    this.component.repaint();	 
-} 
-Detach() {
-    this.target.reset(); 
-    if(this.target.polygon.points.length<3){
-        this.target.owningUnit.remove(this.target.uuid);
-    }
-    super.Detach();
-}	
-}
-class FootprintEventMgr{
- constructor(component) {
-    this.component=component;
-	this.targetEventHandle=null;	
-	this.hash = new Map();
-	this.hash.set("arc.mid.point",new ArcMidPointEventHandle(component));
-	this.hash.set("arc.start.angle",new ArcStartAngleEventHandle(component));
-	this.hash.set("arc.extend.angle",new ArcExtendAngleEventHandler(component));
-	this.hash.set("move",new events.MoveEventHandle(component));
-	this.hash.set("resize",new events.ResizeEventHandle(component));
-    this.hash.set("component",new events.UnitEventHandle(component));
-	this.hash.set("block",new events.BlockEventHandle(component));
-	this.hash.set("line",new events.LineEventHandle(component));
-	this.hash.set("cursor",new events.CursorEventHandle(component));
-	this.hash.set("texture",new events.TextureEventHandle(component));
-	this.hash.set("dragheand",new events.DragingEventHandle(component));
-	this.hash.set("origin",new events.OriginEventHandle(component));
-	this.hash.set("measure",new events.MeasureEventHandle(component));
-	this.hash.set("solidregion",new SolidRegionEventHandle(component));
- }
- //****private
- getEventHandle(eventKey,target) {
-    var handle=this.hash.get(eventKey);
-	if(handle!=null){
-	  handle.setTarget(target);
-	  if(eventKey=='resize'||eventKey=='move'||eventKey=='line'||eventKey=='solidregion'||eventKey=='texture'){
-	     this.component.getModel().getUnit().fireShapeEvent({target:target,type:events.Event.SELECT_SHAPE});
-	  }
-	  if(eventKey=='component'||eventKey=="origin"){
-		 this.component.getModel().fireUnitEvent({target:this.component.getModel().getUnit(),type:events.Event.SELECT_UNIT});
-	  }
-	  handle.Attach();
 	}
-	return handle;
- }
- 
- getTargetEventHandle(){
-   return this.targetEventHandle;
- }
- 
- setEventHandle(eventKey,target){
-        this.resetEventHandle();
-        this.targetEventHandle=this.getEventHandle(eventKey,target);
-    }
- 
- resetEventHandle(){
-	    //hide context menu
-	    this.component.popup.close();
-        if (this.targetEventHandle != null) {
-            this.targetEventHandle.Detach();
-        }
-        this.targetEventHandle = null;                
-    }
- 
+
 }
 
 module.exports ={
-	  FootprintEventMgr,
-	  ArcExtendAngleEventHandler,
-	  ArcStartAngleEventHandle,
-	  ArcMidPointEventHandle,
-	  SolidRegionEventHandle
-}
+		SymbolEventMgr
+	}
 });
 
-;require.register("pads/popup/footprintpopup.js", function(exports, require, module) {
+;require.register("symbols/popup/symbolpopup.js", function(exports, require, module) {
 var ContextMenu = require('core/popup/contextmenu').ContextMenu;
 var core=require('core/core');
 
-class FootprintContextMenu extends ContextMenu{
+class SymbolContextMenu extends ContextMenu{
 constructor(component,placeholderid){
 		super(component,placeholderid);	
 	}	
-registerPadPopup(target,event){
-	var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
-	  items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
-	  items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
-	  items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
-	  items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
-	  items+="</table></div>";
-	  this.setContent(items,{target:target});	
-	  this.open(event);	
-	}
+//registerPinPopup(target,event){
+//	var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
+//	  items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
+//	  items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
+//	  items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
+//	  items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
+//	  items+="</table></div>";
+//	  this.setContent(items,{target:target});	
+//	  this.open(event);	
+//	}
 registerUnitPopup(target,event){	          	            
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
 	    items+="<tr id='selectallid' ><td style='padding: 0.4em;'>Select All</td></tr>";
@@ -12356,11 +11896,11 @@ actionPerformed(id,context){
 }
 
 module.exports ={
-		FootprintContextMenu
+		SymbolContextMenu
 		}
 });
 
-;require.register("pads/shapes.js", function(exports, require, module) {
+;require.register("symbols/shapes.js", function(exports, require, module) {
 var core=require('core/core');
 var utilities =require('core/utilities');
 var Shape=require('core/shapes').Shape;
@@ -12369,166 +11909,533 @@ var glyph=require('core/text/d2glyph');
 var font=require('core/text/d2font');
 var d2=require('d2/d2');
 
-
-class FootprintShapeFactory{
+class SymbolShapeFactory{
 	
-createShape(data){
-	if (data.tagName.toLowerCase() == 'pad') {
-		var pad = new Pad(0, 0, 0, 0);
-		pad.fromXML(data);
-		return pad;
+	createShape(data){
+		if (data.tagName.toLowerCase() == 'pin') {
+			var pin = new Pin();
+			pin.fromXML(data);
+			return pin;
+		}
+		if (data.tagName.toLowerCase() == 'rectangle') {
+			var roundRect = new RoundRect(0,0,0,0, 0,0);
+			roundRect.fromXML(data);
+			return roundRect;
+		}
+		if (data.tagName.toLowerCase() == 'ellipse') {
+			var circle = new Ellipse(0, 0);
+			circle.fromXML(data);
+			return circle;
+		}
+		if (data.tagName.toLowerCase() == 'line') {
+			var line = new Line(0);
+			line.fromXML(data);
+			return line;
+		}
+		if (data.tagName.toLowerCase() == 'arc') {
+			var arc = new Arc(0, 0, 0, 0);			
+			arc.fromXML(data);
+			return arc;
+		}
+		if (data.tagName.toLowerCase() == 'label') {
+			var label = new FontLabel(0,0);
+			console.log(data);
+			label.fromXML(data);		
+			return label;
+		}
+		if (data.tagName.toLowerCase() == 'triangle') {
+			var triangle = new Triangle(0);
+			triangle.fromXML(data);		
+			return triangle;
+		}	
+		if (data.tagName.toLowerCase() == 'arrow') {
+			var arrow = new ArrowLine();
+			arrow.fromXML(data);		
+			return arrow;
+		}	
 	}
-	if (data.tagName.toLowerCase() == 'rectangle') {
-		var roundRect = new RoundRect(0, 0, 0, 0, 0,0, core.Layer.SILKSCREEN_LAYER_FRONT);
-		roundRect.fromXML(data);
-		return roundRect;
-	}
-	if (data.tagName.toLowerCase() == 'circle') {
-		var circle = new Circle(0, 0, 0, 0, 0);
-		circle.fromXML(data);
-		return circle;
-	}
-	if (data.tagName.toLowerCase() == 'ellipse') {
-		var circle = new Circle(0, 0, 0, 0, 0);
-		circle.fromXML(data);
-		return circle;
-	}
-	if (data.tagName.toLowerCase() == 'line') {
-		var line = new Line( 0, 0, 0, 0, 0);
-		line.fromXML(data);
-		return line;
-	}
-	if (data.tagName.toLowerCase() == 'arc') {
-		var arc = new Arc(0, 0, 0, 0, 0);
-		arc.fromXML(data);
-		return arc;
-	}
-	if (data.tagName.toLowerCase() == 'label') {
-		var label = new GlyphLabel(0, 0, 0);
-		label.fromXML(data);		
-		return label;
-	}
-	if (data.tagName.toLowerCase() == 'solidregion') {
-		var region = new SolidRegion(0);
-		region.fromXML(data);		
-		return region;
-	}	
+}
 
+class Line extends AbstractLine{
+constructor(thickness) {
+	super(1,core.Layer.LAYER_ALL);	
+	this.fillColor='black';
+	this.selectionRectWidth=4;
 }
-}	
-
-class GlyphLabel extends Shape{
-constructor(text,thickness,layermaskId) {
-		super( 0, 0, 0, 0, thickness,layermaskId);
-		this.setDisplayName("Label");
-		this.texture=new glyph.GlyphTexture(text,"",0,0,thickness);
-        this.texture.setSize(core.MM_TO_COORD(2));
+clone() {
+	  var copy = new Line(this.thickness);
+	  copy.polyline=this.polyline.clone();
+	  copy.thickness=this.thickness;
+	  return copy;
 	}
-clone(){
-    var copy = new GlyphLabel(this.text,this.thickness,this.layermaskId);    
-        copy.texture = this.texture.clone();        
-        copy.copper=this.copper;
-		return copy;
-    }
-setCopper(copper){
-	this.copper= copper;
-	//mirror horizontally
-	let line=new d2.Line(this.texture.anchorPoint,new d2.Point(this.texture.anchorPoint.x,this.texture.anchorPoint.y+100));
-	
-	let side=core.Layer.Side.resolve(this.copper.getLayerMaskID());
-	
-	this.texture.mirror(side==core.Layer.Side.BOTTOM,line);
+alignToGrid(isRequired) {
+if (isRequired) {
+  this.polyline.points.forEach(function(wirePoint){
+      let point = this.owningUnit.getGrid().positionOnGrid(wirePoint.x, wirePoint.y);
+        wirePoint.set(point.x,point.y);
+  }.bind(this));
 }
-setRotation(rotate,center){	
-	if(center==undefined){
-		  this.texture.setRotation(rotate,this.getCenter());
-	}else{
-		  this.texture.setRotation(rotate,center);	
-	}
+return null;
 }
-calculateShape(){ 
-  return this.texture.getBoundingShape();
-}
-getLabel(){
-  return this.texture;
-}
-get vertices(){
-	  return [];	
-}
-isClicked(x,y){
-    return this.texture.isClicked(x,y);
-}
-getCenter(){
-   return this.texture.getBoundingShape().center;
-}
-getTexture(){
-  return this.texture;    
-}
-setSide(side, line,angle) {
-    this.copper=(core.Layer.Side.change(this.copper.getLayerMaskID()));
-    this.texture.setSide(side, line, angle);
-}
-setSelected(selected) {
-    this.texture.setSelected(selected);
-}
-isSelected() {
-   return this.texture.selection;
-}
-rotate(rotation) {	
-	this.texture.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	
-}
-mirror(line) {
+paint(g2, viewportWindow, scale,layersmask) {			
+		var rect = this.polyline.box;
+		rect.scale(scale.getScale());		
+		if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
+			return;
+		}
+				
 
-}
-move(xoffset,yoffset) {
-  this.texture.move(xoffset, yoffset);
-}
-toXML() {
-    if (!this.texture.isEmpty())
-        return "<label layer=\""+this.copper.getName()+"\">" + this.texture.toXML() + "</label>";
-    else
-        return "";
+		g2.lineCap = 'round';
+		g2.lineJoin = 'round';
+		
+
+		g2.lineWidth = this.thickness * scale.getScale();
+
+
+		if (this.selection)
+			g2.strokeStyle = "gray";
+		else
+			g2.strokeStyle = this.fillColor;
+		
+		let a=this.polyline.clone();
+		a.scale(scale.getScale());
+		a.move( - viewportWindow.x, - viewportWindow.y);		
+		a.paint(g2);
+		
+		// draw floating point
+		if (this.isFloating()) {
+				let p = this.floatingEndPoint.clone();
+				p.scale(scale.getScale());
+				p.move( - viewportWindow.x, - viewportWindow.y);
+					g2.lineTo(p.x, p.y);									
+					g2.stroke();					
+		}
+		
+		if (this.selection&&this.isControlPointVisible) {
+			this.drawControlPoints(g2, viewportWindow, scale);
+		}
+
 }
 fromXML(data){
-        //extract layer info        
-        if(j$(data).attr("layer")!=null){
-           this.copper =core.Layer.Copper.valueOf(j$(data).attr("layer"));
-        }else{
-           this.copper=core.Layer.Copper.FSilkS;
-        }
-        this.texture.fromXML(data);  
-}    
-paint(g2, viewportWindow, scale,layersmask) {
-      if((this.copper.getLayerMaskID()&layersmask)==0){
-        return;
-      }
-		var rect = this.texture.getBoundingShape();
-			rect.scale(scale.getScale());
-			if (!rect.intersects(viewportWindow)) {
-				return;
-			}
-
-		if (this.selection) {
-			this.texture.fillColor = "gray";
-		} else {
-			this.texture.fillColor = this.copper.getColor();
+	   this.thickness = (parseInt(j$(data).attr("thickness")));
+   	   var tokens = data.textContent.split(",");
+	   var len = Math.floor(tokens.length / 2) * 2;
+	   for (var index = 0; index < len; index += 2) {
+			var x = parseInt(tokens[index]);
+			var y = parseInt(tokens[index + 1]);
+			this.polyline.points.push(new d2.Point(x, y));
+	   }
+	   this.thickness=parseInt(tokens[tokens.length-1]);
+}
+toXML(){
+	var result = "<line  thickness=\"" + this.thickness + "\">";
+	this.polyline.points.forEach(function(point) {
+		result += utilities.roundFloat(point.x,1) + "," + utilities.roundFloat(point.y,1) + ",";
+	},this);
+	result += "</line>";
+	return result;	
+}
+}
+class FontLabel extends Shape{
+	constructor(x, y) {
+		super(x, y, 0, 0, 1,core.Layer.LAYER_ALL);
+		this.setDisplayName("Label");		
+		this.texture=new font.SymbolFontTexture("Label","label",x,y,0,8);
+	}
+	clone(){
+		var copy = new FontLabel(this.x,this.y);
+		copy.texture = this.texture.clone();  				
+		return copy;
+	}
+	calculateShape(){ 
+		  return this.texture.getBoundingShape();
 		}
-		this.texture.paint(g2, viewportWindow, scale,this.copper.getLayerMaskID());
+	isClicked(x, y) {
+		if (this.texture.isClicked(x, y))
+			return true;
+		else
+			return false;
+	}    
+    setSelected(selected) {
+        this.texture.selection=selected;
     }
+    
+    isSelected() {
+        return this.texture.selection;
+    }	
+    getTexture(){
+		  return this.texture;
+		}
+    rotate(rotation){
+    	this.texture.setRotation(rotation);	      
+    }
+    mirror(line){
+    	let oldalignment = this.texture.shape.alignment;
+    	this.texture.mirror(line);	
+        if (line.isVertical) { //right-left mirroring
+            if (this.texture.shape.alignment == oldalignment) {
+                this.texture.shape.anchorPoint.set(this.texture.shape.anchorPoint.x +
+                                        (this.texture.shape.metrics.ascent - this.texture.shape.metrics.descent),this.texture.shape.anchorPoint.y);
+            }
+        } else { //***top-botom mirroring          
+            if (this.texture.shape.alignment == oldalignment) {
+            	this.texture.shape.anchorPoint.set(this.texture.shape.anchorPoint.x,this.texture.shape.anchorPoint.y +(this.texture.shape.metrics.ascent - this.texture.shape.metrics.descent));
+            }
+        }        
+      
+    }
+    move(xoffset,yoffset) {
+        this.texture.move(xoffset, yoffset);
+    }
+   getCenter() {        
+        return this.texture.shape.anchorPoint;
+   }
+paint(g2, viewportWindow, scale,layersmask) {	
+	  var rect = this.texture.getBoundingShape();
+	  rect.scale(scale.getScale());
+	  if (!rect.intersects(viewportWindow)) {
+	  	return;
+	  }
+	  this.texture.paint(g2, viewportWindow, scale);
+}
+fromXML(data){	 
+	
+    this.texture.fromXML(j$(data).text());
+    this.texture.fillColor ="#" +(j$(data).attr("color") & 0x00FFFFFF).toString(16).padStart(6, '0');
+}	    
+toXML(){
+    if(this.texture!=null&&!this.texture.isEmpty())
+        return "<label color=\""+this.texture.fillColor+"\">"+this.texture.toXML()+"</label>";
+      else
+        return "";  	
+}    
+}
+class Arc extends Shape{
+	constructor(x,y,w,h) {
+	   super(x,y, w, h, 1,core.Layer.LAYER_ALL);
+		this.setDisplayName("Arc");		
+		this.arc=new d2.Arcellipse(new d2.Point(x,y),w,h);
+		this.selectionRectWidth=4;
+		this.fillColor='black';								
+	}
+	clone(){
+		var copy = new Arc(this.arc.pc.x,this.arc.pc.y,this.arc.w,this.arc.h);
+		copy.arc=this.arc.clone();
+		copy.thickness=this.thickness;
+		return copy;
+	}
+	calculateShape() {
+		return this.arc.box;		
+	}
+	isControlRectClicked(x,y){
+	   	let pt=new d2.Point(x,y);
+	   	let result=null;
+		this.arc.vertices.some(v=>{
+	   		if(d2.utils.LE(pt.distanceTo(v),this.selectionRectWidth/2)){
+	   		  	result=v;
+	   			return true;
+	   		}else{
+	   			return false;
+	   		}
+	   	});
+	   	return result;
+	}	
+	isClicked(x, y) {
+		if (this.arc.contains(new d2.Point(x, y)))
+			return true;
+		else
+			return false;
+	}
+	isStartAnglePointClicked(x,y){	
+	    let p=this.arc.start;
+	    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
+	                 this.selectionRectWidth, this.selectionRectWidth);
+	    if (box.contains({x,y})) {
+	        return true;
+	    }else{                   
+	        return false;
+		}
+	}	
+	isExtendAnglePointClicked(x,y){
+	    let p=this.arc.end;
+	    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
+	                 this.selectionRectWidth, this.selectionRectWidth);
+	    if (box.contains({x,y})) {
+	        return true;
+	    }else{                   
+	        return false;
+		}
+	}	
+	setSelected (selection) {
+		super.setSelected(selection);
+			if (!selection) {
+				this.resizingPoint = null;
+	        }
+	}
+	getCenter() {
+	    return this.arc.pc;
+	}
+	setExtendAngle(extendAngle){
+	    this.arc.endAngle=utilities.round(extendAngle);
+	}
+	setStartAngle(startAngle){        
+	    this.arc.startAngle=utilities.round(startAngle);
+	}	
+	rotate(rotation){	
+		   this.arc.pc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+		   let w=this.arc.w;
+		   this.arc.w=this.arc.h;
+		   this.arc.h=w;
+		   this.arc.startAngle+=rotation.angle;
+      	   if(this.arc.startAngle>=360){
+    		 this.arc.startAngle-=360;
+    	   }
+    	   if(this.arc.startAngle<0){
+    		 this.arc.startAngle+=360; 
+    	   }
+	} 	
+	mirror(line) {
+	    this.arc.mirror(line);
+	}
+	move(xoffset,yoffset) {
+        this.arc.move(xoffset, yoffset);
+    }
+	Resize(xoffset, yoffset,clickedPoint){
+		this.arc.resize(xoffset, yoffset,clickedPoint);
+	}
+	paint(g2, viewportWindow, scale,layersmask) {	
+	  	  var rect = this.arc.box;
+	  	  rect.scale(scale.getScale());
+	  	  if (!rect.intersects(viewportWindow)) {
+	  		  return;
+	  	  }
+
+		  g2.lineWidth = this.thickness * scale.getScale();
+		  g2.lineCap = 'round';
+		  g2.lineJoin = 'round';
+			
+		  if (this.fill == core.Fill.EMPTY) {
+				if (this.selection) {
+					g2.strokeStyle = "gray";
+				} else {
+					g2.strokeStyle = this.fillColor;
+				}
+			} else {
+				g2._fill=true;
+				if (this.selection) {
+					g2.fillStyle = "gray";
+				} else {
+					g2.fillStyle = this.fillColor;
+				}			
+			}
+			let e=this.arc.clone();	
+			e.scale(scale.getScale());
+	        e.move(-viewportWindow.x,- viewportWindow.y);
+			e.paint(g2);
+			
+			g2._fill=false;
+			if (this.isSelected()) {
+				this.drawControlPoints(g2, viewportWindow, scale);
+			}		
+	}
+drawControlPoints(g2, viewportWindow, scale){
+		utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.arc.vertices); 		
 }	
+setResizingPoint(pt){
+	this.resizingPoint=pt;
+}
+getResizingPoint() {
+	return this.resizingPoint;
+}
+fromXML(data) {
+	
+	
+    if(data.textContent.length>0){
+    	var tokens = data.textContent.split(",");
+    	let x=parseInt(tokens[0]);
+    	let y=parseInt(tokens[1]);
+    	let w=parseInt(tokens[2]);
+    	let h=parseInt(tokens[3]);
+    	this.arc.pc.set(x+w/2,y+h/2);
+    	this.arc.w=w/2;
+    	this.arc.h=h/2;
+	
+	
+    	this.arc.endAngle = parseInt(tokens[4]);        
+    	this.arc.startAngle = parseInt(tokens[5]);
+    
+    	this.thickness = parseInt(tokens[6]);
+		this.fill = parseInt(tokens[7]);
+    }else{    	
+        let x=parseFloat(j$(data).attr("x"));
+        let y=parseFloat(j$(data).attr("y"));
+        let w=parseFloat(j$(data).attr("width"));
+        let h=parseFloat(j$(data).attr("height"));
+        
+        this.arc.pc.set(x,y);
+        this.arc.w=w;
+        this.arc.h=h;
+        
+        this.arc.startAngle = parseFloat(j$(data).attr("start"));       
+        this.arc.endAngle = parseFloat(j$(data).attr("extend"));
+        
+        this.thickness=(parseInt(j$(data).attr("thickness")));
+		this.fill = (parseInt(j$(data).attr("fill"))||1);  	
+    	
+    }
+  
+}
+toXML(){
+ return '<arc  x="'+utilities.roundFloat(this.arc.pc.x,1)+'" y="'+utilities.roundFloat(this.arc.pc.y,1)+'" width="'+utilities.roundFloat(this.arc.w,1)+ '" height="'+utilities.roundFloat(this.arc.h,1)+ '"  thickness="'+this.thickness+'" start="'+utilities.roundFloat(this.arc.startAngle,1)+'" extend="'+utilities.roundFloat(this.arc.endAngle,1)+'" fill="'+this.fill+'" />';
+}
+}
+class Ellipse extends Shape{
+	constructor(w, h) {
+		super(0,0, w, h, 1,core.Layer.LAYER_ALL);
+		this.setDisplayName("Ellipse");		
+		this.ellipse=new d2.Ellipse(new d2.Point(0,0),w,h);
+		this.selectionRectWidth=4;
+		this.fillColor='black';		
+	}
+	clone(){
+		var copy = new Ellipse(this.ellipse.w,this.ellipse.h);
+		copy.ellipse=this.ellipse.clone();
+		copy.thickness=this.thickness;
+		copy.fill=this.fill;
+		return copy;
+	}
+	calculateShape() {
+		return this.ellipse.box;		
+	}
+	getCenter() {
+	    return this.ellipse.pc;
+	}
+	isClicked(x, y) {
+		if (this.ellipse.contains(new d2.Point(x, y)))
+			return true;
+		else
+			return false;
+	}
+	setSelected (selection) {
+		super.setSelected(selection);
+			if (!selection) {
+				this.resizingPoint = null;
+	        }
+	}	
+	isControlRectClicked(x,y){
+	   	let pt=new d2.Point(x,y);
+	   	let result=null
+		this.ellipse.vertices.some(v=>{
+	   		if(d2.utils.LE(pt.distanceTo(v),this.selectionRectWidth/2)){
+	   		  	result=v;
+	   			return true;
+	   		}else{
+	   			return false;
+	   		}
+	   	});
+	   	return result;
+	}	
+	move(xoffset,yoffset) {
+        this.ellipse.move(xoffset, yoffset);
+    }
+    mirror(line){
+       this.ellipse.mirror(line);	
+    }
+    rotate(rotation){			   
+	   this.ellipse.pc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	   let w=this.ellipse.w;
+	   this.ellipse.w=this.ellipse.h;
+	   this.ellipse.h=w;
+	}    
+	Resize(xoffset, yoffset,clickedPoint){
+		this.ellipse.resize(xoffset, yoffset,clickedPoint);
+	}    
+    paint(g2, viewportWindow, scale,layersmask) {	
+  	  var rect = this.ellipse.box;
+  	  rect.scale(scale.getScale());
+  	  if (!rect.intersects(viewportWindow)) {
+  		  return;
+  	  }
+
+		g2.lineWidth = this.thickness * scale.getScale();
+		g2.lineCap = 'round';
+		g2.lineJoin = 'round';
+		
+		if (this.fill == core.Fill.EMPTY) {
+			if (this.selection) {
+				g2.strokeStyle = "gray";
+			} else {
+				g2.strokeStyle = this.fillColor;
+			}
+		} else {
+			g2._fill=true;
+			if (this.selection) {
+				g2.fillStyle = "gray";
+			} else {
+				g2.fillStyle = this.fillColor;
+			}			
+		}
+		let e=this.ellipse.clone();	
+		e.scale(scale.getScale());
+        e.move(-viewportWindow.x,- viewportWindow.y);
+		e.paint(g2);
+		
+		g2._fill=false;
+		if (this.isSelected()) {
+			this.drawControlPoints(g2, viewportWindow, scale);
+		}
+	}	
+drawControlPoints(g2, viewportWindow, scale){
+		utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.ellipse.vertices); 		
+	}	
+setResizingPoint(pt){
+	this.resizingPoint=pt;
+}
+getResizingPoint() {
+	return this.resizingPoint;
+}
+fromXML(data) {
+    if(j$(data).attr("width")!=undefined){
+        let x=(parseFloat(j$(data).attr("x")));
+        let y=(parseFloat(j$(data).attr("y")));
+        this.ellipse.pc.set(x,y);
+        this.ellipse.w=parseFloat(j$(data).attr("width"));
+        this.ellipse.h=parseFloat(j$(data).attr("height"));  
+        this.thickness=(parseInt(j$(data).attr("thickness")));
+        this.fill=parseInt(j$(data).attr("fill"));  
+        this.fill=(this.fill==0?1:this.fill);
+    }else{			
+    	var tokens = data.textContent.split(",");
+    	let x=parseInt(tokens[0]);
+    	let y=parseInt(tokens[1]);
+    	let w=parseInt(tokens[2]);
+    	let h=parseInt(tokens[3]);
+    	this.ellipse.pc.set(x+w/2,y+h/2);
+    	this.ellipse.w=w/2;
+    	this.ellipse.h=h/2;
+    	this.thickness=parseInt(tokens[4]);	
+    }
+    
+}
+toXML() {
+    return "<ellipse x=\""+utilities.roundFloat(this.ellipse.pc.x,1)+"\" y=\""+utilities.roundFloat(this.ellipse.pc.y,1)+"\" width=\""+utilities.roundFloat(this.ellipse.w,1)+"\" height=\""+utilities.roundFloat(this.ellipse.h,1)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
+}
+}
+
+
 class RoundRect extends Shape{
-	constructor(x, y, width, height,arc,thickness,layermaskid) {
-		super(x, y, width, height, thickness,layermaskid);
+	constructor(x, y, width, height,arc,thickness) {
+		super(x, y, width, height, thickness,core.Layer.LAYER_ALL);
 		this.setDisplayName("Rect");		
-		this.selectionRectWidth=3000;
+		this.selectionRectWidth=4;
 		this.resizingPoint = null;
-		this.rotation=0;
+		this.fillColor='black';
+		//this.rotate=0;
 		this.roundRect=new d2.RoundRectangle(new d2.Point(x,y),width,height,arc);		
 	}
-	clone() {
-		var copy = new RoundRect(0,0,0,0,0,this.thickness,this.copper.getLayerMaskID());
-		copy.roundRect = this.roundRect.clone();
-		copy.rotation=this.rotation;
+	clone(){
+		var copy = new RoundRect(this.x,this.y,this.width,this.height,0,this.thickness);
+		copy.roundRect = this.roundRect.clone();		
 		copy.fill = this.fill;		
 		return copy;
 	}
@@ -12541,7 +12448,7 @@ class RoundRect extends Shape{
     }	
 	getCenter() {
 		let box=this.roundRect.box;
-	    return new d2.Point(box.center.x,box.center.y);
+	    return box.center;
 	}
 	setSelected (selection) {
 		super.setSelected(selection);
@@ -12549,9 +12456,6 @@ class RoundRect extends Shape{
 				this.resizingPoint = null;
 	        }
 	}	
-	get vertices(){
-	  return this.roundRect.vertices;	
-	}
 	isClicked(x, y) {
 		if (this.roundRect.contains(new d2.Point(x, y)))
 			return true;
@@ -12571,92 +12475,29 @@ class RoundRect extends Shape{
 	   	});
 	   	return result;
 	}	
-	setRotation(rotate,center){
-		let alpha=rotate-this.rotation;
-		let box=this.roundRect.box;
-		if(center==undefined){
-		  this.roundRect.rotate(alpha,box.center);
-		}else{
-		  this.roundRect.rotate(alpha,center);	 	
-		}
-		this.rotation=rotate;
-	}
 	setRounding(rounding){	  
-	  this.roundRect.setRounding(rounding);
-	}
+		  this.roundRect.setRounding(rounding);
+		}
 	setResizingPoint(pt){
-		console.log(pt);
-		this.resizingPoint=pt;
-	}
+			this.resizingPoint=pt;
+		}
 	getResizingPoint() {
-		return this.resizingPoint;
-	}
+			return this.resizingPoint;
+		}	
 	move(xoffset, yoffset) {
 		this.roundRect.move(xoffset,yoffset);
 	}
-	mirror(line){
-		this.roundRect.mirror(line);
-	}	
-	rotate(rotation){	
-		//fix angle
-		let alpha=this.rotation+rotation.angle;
-		if(alpha>=360){
-			alpha-=360
-		}
-		if(alpha<0){
-		 alpha+=360; 
-		}	
-		this.rotation=alpha;		
+	rotate(rotation){		
 		this.roundRect.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	}
+    mirror(line){
+    	this.roundRect.mirror(line);
+    }	
 	Resize(xoffset, yoffset,clickedPoint){
 		this.roundRect.resize(xoffset, yoffset,clickedPoint);
 	}
-	getOrderWeight(){
-		return this.roundRect.area; 
-	}	
-	toXML() {
-		let points="";
-		this.roundRect.points.forEach(function(point) {
-			points += utilities.roundFloat(point.x,4) + "," + utilities.roundFloat(point.y,4) + ",";
-		},this);
-		return "<rectangle copper=\"" + this.copper.getName()
-		        +"\" thickness=\"" + this.thickness
-				+ "\" fill=\"" + this.fill + "\" arc=\"" + this.roundRect.rounding
-				+"\" points=\"" + points
-				+ "\"></rectangle>";
-	}
-	fromXML(data) {
-
-		if(j$(data)[0].hasAttribute("copper")){
-		  this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
-		}
-		if(j$(data).attr("width")!=undefined){
-		  this.roundRect.setRect(parseInt(j$(data).attr("x")),parseInt(j$(data).attr("y")),parseInt(j$(data).attr("width")),parseInt(j$(data).attr("height")),parseInt(j$(data).attr("arc"))/2);
-		}else{			
-			var pts=j$(data).attr("points");			
-			var lastchar = pts[pts.length - 1];
-			if(lastchar==","){
-				pts=pts.substr(0,pts.length - 1); 
-			}
-			var array = JSON.parse("[" +pts+ "]");
-			let points=[];
-			points.push(new d2.Point(array[0],array[1]));
-			points.push(new d2.Point(array[2],array[3]));
-			points.push(new d2.Point(array[4],array[5]));
-			points.push(new d2.Point(array[6],array[7]));
-			this.roundRect.rounding=parseInt(j$(data).attr("arc"));
-			this.roundRect.setPoints(points);
-		}
+	paint(g2, viewportWindow, scale,layersmask) {	
 		
-		this.thickness = (parseInt(j$(data).attr("thickness")));
-		this.fill = parseInt(j$(data).attr("fill"));
-		this.fill=(this.fill==0?1:this.fill);
-	}
-	paint(g2, viewportWindow, scale,layersmask) {
-	    if((this.copper.getLayerMaskID()&layersmask)==0){
-	        return;
-	    }		
 		var rect = this.roundRect.box;
 		rect.scale(scale.getScale());
 		if (!rect.intersects(viewportWindow)) {
@@ -12666,545 +12507,272 @@ class RoundRect extends Shape{
 		g2.lineWidth = this.thickness * scale.getScale();
 		g2.lineCap = 'round';
 		g2.lineJoin = 'round';
-		if (this.fill == core.Fill.EMPTY) {
-			g2.globalCompositeOperation = 'lighter';
-			if (this.selection) {
-				g2.strokeStyle = "gray";
-			} else {
-				g2.strokeStyle = this.copper.getColor();
-			}
-			g2.globalCompositeOperation = 'source-over';
-		} else {
-			g2._fill=true;
-			if (this.selection) {
-				g2.fillStyle = "gray";
-			} else {
-				g2.fillStyle = this.copper.getColor();
-			}			
-		}
+		
+
 		let r=this.roundRect.clone();	
 		r.scale(scale.getScale());
         r.move(-viewportWindow.x,- viewportWindow.y);
-		r.paint(g2);
 		
-		g2._fill=false;
-		
-		
-
-		if (this.isSelected()&&this.isControlPointVisible) {
-			this.drawControlPoints(g2, viewportWindow, scale);
-		}
-	}
-
-drawControlPoints(g2, viewportWindow, scale){
-	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.roundRect.vertices); 		
-	}	
-}
-
-class Circle extends Shape{
-	constructor(x,y,r,thickness,layermaskId) {
-		super(0, 0, 0, 0, thickness,
-				layermaskId);
-		this.setDisplayName("Circle");
-		this.selectionRectWidth=3000;
-		this.resizingPoint=null;
-		this.circle=new d2.Circle(new d2.Point(x,y),r);
-		this.rotation=0;
-	}
-clone() {
-	let copy=new Circle(this.circle.center.x,this.circle.center.y,this.circle.radius,this.thickness,this.copper.getLayerMaskID());
-	copy.rotation=this.rotation;
-	copy.fill=this.fill;
-	return copy				
-	}	
-calculateShape(){    
-	 return this.circle.box;	 
-    }
-alignToGrid(isRequired) {
-        if(isRequired){
-          return super.alignToGrid(isRequired);
-        }else{
-            return null;
-        }
-}
-alignResizingPointToGrid(targetPoint) {   
-
-}
-get vertices(){
-	  return this.circle.vertices;	
-	}
-isClicked(x, y) {
-	if (this.circle.contains(new d2.Point(x, y)))
-		return true;
-	else
-		return false;
-	}
-isControlRectClicked(x,y) {
-   	let pt=new d2.Point(x,y);
-   	let result=null
-	this.circle.vertices.some(v=>{
-   		if(d2.utils.LE(pt.distanceTo(v),this.selectionRectWidth/2)){
-   		  	result=v;
-   			return true;
-   		}else{
-   			return false;
-   		}
-   	});
-   	return result;
-    }	
-toXML() {
-        return "<circle copper=\""+this.copper.getName()+"\" x=\""+utilities.roundFloat(this.circle.pc.x,4)+"\" y=\""+utilities.roundFloat(this.circle.pc.y,4)+"\" radius=\""+utilities.roundFloat(this.circle.r,4)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
-	}
-fromXML(data) {	  
-        this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
-        
- 		let xx=parseInt(j$(data).attr("x"));
- 		let yy=parseInt(j$(data).attr("y"));
- 		
- 		if(j$(data).attr("width")!=undefined){
- 			let diameter=parseInt(parseInt(j$(data).attr("width")));
- 	        this.circle.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
- 	        this.circle.r=parseInt(diameter/2); 			
- 		}else{
- 			let radius=parseInt(parseInt(j$(data).attr("radius")));
- 	        this.circle.pc.set(xx,yy);
- 	        this.circle.r=radius; 			 		
- 		}
- 		 
-         
- 		 this.thickness = (parseInt(j$(data).attr("thickness")));
- 		 this.fill = parseInt(j$(data).attr("fill")); 
- 		 this.fill=(this.fill==0?1:this.fill);
-	}
-	mirror(line){
-	   this.circle.mirror(line);	
-	}
-    
-	move(xoffset, yoffset) {
-		this.circle.move(xoffset,yoffset);
-	}	
-	setRotation(rotate,center){
-		let alpha=rotate-this.rotation;
-		if(center==null){
-			this.circle.rotate(alpha,this.circle.center);
-		}else{
-			this.circle.rotate(alpha,center);	 	
-		}
-		this.rotation=rotate;						
-	}		
-	rotate(rotation){
-		//fix angle
-		let alpha=this.rotation+rotation.angle;
-		if(alpha>=360){
-			alpha-=360
-		}
-		if(alpha<0){
-		 alpha+=360; 
-		}	
-		this.rotation=alpha;
-		this.circle.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
-	}
-	Resize(xoffset, yoffset,point) {    
-		let radius=this.circle.r;
-
-        if(d2.utils.EQ(point.x,this.circle.pc.x)){
-          if(point.y>this.circle.pc.y){
-        	  radius+=yoffset;
-          }else{
-        	  radius-=yoffset;  
-          }	
-        }
-        if(d2.utils.EQ(point.y,this.circle.pc.y)){
-            if(point.x>this.circle.pc.x){
-          	  radius+=xoffset;
-            }else{
-          	  radius-=xoffset;  
-            }	
-        }
-        if(radius>0){ 
-          this.circle.r=radius;
-        }
-    }	
-	paint(g2, viewportWindow, scale,layersmask) {
-	    if((this.copper.getLayerMaskID()&layersmask)==0){
-	        return;
-	    }		
-		var rect = this.circle.box;
-		rect.scale(scale.getScale());
-		if (!rect.intersects(viewportWindow)) {
-			return;
-		}
-
-		// ****3 http://scienceprimer.com/draw-oval-html5-canvas
-		g2.globalCompositeOperation = 'lighter';
-		g2.lineWidth = this.thickness * scale.getScale();
-
 		if (this.fill == core.Fill.EMPTY) {
 			if (this.selection) {
 				g2.strokeStyle = "gray";
 			} else {
-				g2.strokeStyle = this.copper.getColor();
+				g2.strokeStyle = this.fillColor;
 			}
-		} else {
+			r.paint(g2);
+		}else if(this.fill == core.Fill.GRADIENT){ 
+		  g2._fill=true;		  
+		  var grd = g2.createLinearGradient(r.box.x,r.box.y, r.box.max.x,r.box.max.y);
+		  grd.addColorStop(0, (this.selection?"gray":this.fillColor));
+		  grd.addColorStop(1, "white");
+		  g2.fillStyle = grd;
+		  r.paint(g2);
+		  g2._fill=false;
+          g2.strokeStyle=(this.selection?"gray":this.fillColor);
+          r.paint(g2);
+		}else {
 			g2._fill=true;
 			if (this.selection) {
 				g2.fillStyle = "gray";
 			} else {
-				g2.fillStyle = this.copper.getColor();
+				g2.fillStyle = this.fillColor;
 			}			
-		}
-
-		let c=this.circle.clone();
-		c.scale(scale.getScale());
-        c.move(-viewportWindow.x,- viewportWindow.y);
-		c.paint(g2);
-		g2._fill=false;
-
-		g2.globalCompositeOperation = 'source-over';
+			r.paint(g2);
+			g2._fill=false;
+		}        
+        
 		
+		
+		
+		
+
 		if (this.isSelected()&&this.isControlPointVisible) {
 			this.drawControlPoints(g2, viewportWindow, scale);
-  } 
- }
-drawControlPoints(g2, viewportWindow, scale) {
-	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.circle.vertices);	
-}
-getOrderWeight(){
-	return this.circle.area; 
+		}
+	}	
+drawControlPoints(g2, viewportWindow, scale){
+		utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.roundRect.vertices); 		
 }	
-getResizingPoint() {
-        return null;
-}
-
-setResizingPoint(point) {
-
-}
-
-}
-
-class Arc extends Shape{
-constructor(x,y,r,thickness,layermaskid){	
-        super(0, 0, 0,0,thickness,layermaskid);  
-		this.setDisplayName("Arc");
-		this.selectionRectWidth=3000;
-		this.resizingPoint=null;
-		this.arc=new d2.Arc(new d2.Point(x,y),r,50,70);
-		this.rotation=0;
-		this.center=null;
-		this.temp=1;
-}
-clone() {
-		var copy = new Arc(this.arc.center.x,this.arc.center.y, this.arc.r,this.thickness,this.copper.getLayerMaskID());		
-        copy.arc.startAngle = this.arc.startAngle;
-        copy.arc.endAngle = this.arc.endAngle; 
-        copy.rotation=this.rotation;
-		copy.fill = this.fill;
-		return copy;
-}
-calculateShape() {
-	return this.arc.box;	
-}
-getOrderWeight(){
-	return this.arc.area; 
-}
 fromXML(data){
-        
-        this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));        
-		let xx=parseInt(j$(data).attr("x"));
-		let yy=parseInt(j$(data).attr("y"));
-		
- 		if(j$(data).attr("width")!=undefined){
- 			let diameter=parseInt(parseInt(j$(data).attr("width")));
- 	        this.arc.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
- 	        this.arc.r=parseInt(diameter/2); 			
- 		}else{
- 			let radius=parseInt(parseInt(j$(data).attr("radius")));
- 	        this.arc.pc.set(xx,yy);
- 	        this.arc.r=radius; 			 		
- 		}        
-		this.arc.startAngle = parseInt(j$(data).attr("start"));
-        this.arc.endAngle = parseInt(j$(data).attr("extend"));        
-		this.thickness = (parseInt(j$(data).attr("thickness")));
-		this.fill = (parseInt(j$(data).attr("fill"))||1);
-		this.fill=(this.fill==0?1:this.fill);
+    if(j$(data).attr("points")!=undefined){                
+        this.roundRect.rounding=(parseInt(j$(data).attr("arc")));
+        var tokens = j$(data).attr("points").split(",");
+ 	    var len = Math.floor(tokens.length / 2) * 2;
+ 	    var points=[]
+	    for (var index = 0; index < len; index += 2) {
+			var x = parseInt(tokens[index]);
+			var y = parseInt(tokens[index + 1]);
+			points.push(new d2.Point(x, y));
+	    }   
+ 	   this.roundRect.setPoints(points);
+        this.thickness=(parseInt(j$(data).attr("thickness")));
+        this.fill=parseInt(j$(data).attr("fill"));  
+        this.fill=(this.fill==0?1:this.fill);
+    }else{
+	 var tokens = data.textContent.split(",");
+	 this.roundRect.setRect(parseInt(tokens[0]),parseInt(tokens[1]),parseInt(tokens[2]),parseInt(tokens[3]));
+	    
+     this.thickness=(parseInt(tokens[4]));
+     this.fill=parseInt(tokens[5]); 
+	 this.roundRect.setRounding(parseInt(tokens[6]));
+	}
 }
 toXML() {
-    return '<arc copper="'+this.copper.getName()+'"  x="'+utilities.roundFloat(this.arc.pc.x,4)+'" y="'+utilities.roundFloat(this.arc.pc.y,4)+'" radius="'+utilities.roundFloat(this.arc.r,4)+'"  thickness="'+this.thickness+'" start="'+utilities.roundFloat(this.arc.startAngle,2)+'" extend="'+utilities.roundFloat(this.arc.endAngle,2)+'" fill="'+this.fill+'" />';
+	let points="";
+	this.roundRect.points.forEach(function(point) {
+		points += utilities.roundFloat(point.x,1) + "," + utilities.roundFloat(point.y,1) + ",";
+	},this);
+	return "<rectangle  thickness=\"" + this.thickness
+			+ "\" fill=\"" + this.fill + "\" arc=\"" + this.roundRect.rounding
+			+"\" points=\"" + points
+			+ "\"/>";
 }
-setRadius(r){
-	this.arc.r=r;	
 }
-setExtendAngle(extendAngle){
-    this.arc.endAngle=utilities.round(extendAngle);
+
+class ArrowLine extends Shape{
+	constructor() {
+		super(0, 0, 0,0, 1,core.Layer.LAYER_ALL);
+		this.setDisplayName("Arrow");		
+		this.selectionRectWidth=4;
+		this.resizingPoint = null;
+		this.fillColor='black';	
+	    this.line=new d2.Segment(0,0,20,20);
+	    this.arrow=new d2.Polygon();
+	    this.arrow.points=[new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0)];
+	    this.headSize;	    
+	    this.setHeadSize(3);
 }
-setStartAngle(startAngle){        
-    this.arc.startAngle=utilities.round(startAngle);
+clone(){
+    var copy=new ArrowLine();
+    copy.headSize=this.headSize;
+    copy.fill=this.fill;
+    copy.thinkness=this.thickness;
+    copy.line=this.line.clone();
+    copy.arrow=this.arrow.clone();    
+    return copy;
 }
-get vertices(){
-	  return this.arc.vertices;	
-	}
-isControlRectClicked(x,y) {
-	 if(this.isStartAnglePointClicked(x,y)){
-		    return this.arc.start;
-		 }
-	 if(this.isExtendAnglePointClicked(x,y)){
-		    return this.arc.end;
-		 }
-	 if(this.isMidPointClicked(x,y)){
-		    return this.arc.middle;	 
-		 }
-	     return null;
-	}
+calculateShape() {
+	return this.line.box;		
+}
 isClicked(x, y) {
-	if (this.arc.contains(new d2.Point(x, y)))
+	if (this.arrow.contains(new d2.Point(x, y))){
 		return true;
-	else
-		return false;
-	}
-isMidPointClicked(x,y){
-    let p=this.arc.middle;
-    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
-                 this.selectionRectWidth, this.selectionRectWidth);
-    if (box.contains({x,y})) {
-        return true;
-    }else{                   
-        return false;
-	}	
-}
-isStartAnglePointClicked(x,y){	
-    let p=this.arc.start;
-    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
-                 this.selectionRectWidth, this.selectionRectWidth);
-    if (box.contains({x,y})) {
-        return true;
-    }else{                   
-        return false;
-	}
-}
-isExtendAnglePointClicked(x,y){
-    let p=this.arc.end;
-    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
-                 this.selectionRectWidth, this.selectionRectWidth);
-    if (box.contains({x,y})) {
-        return true;
-    }else{                   
-        return false;
-	}
-}	
-setRotation(rotate,center){
-	let alpha=rotate-this.rotation;
-	if(center==undefined){
-		this.arc.rotate(alpha,this.arc.center);
 	}else{
-		this.arc.rotate(alpha,center);	 	
+		  var rect = d2.Box.fromRect(x
+					- (this.selectionRectWidth / 2), y
+					- (this.selectionRectWidth / 2), this.selectionRectWidth,
+					this.selectionRectWidth);
+		  
+			if (utilities.intersectLineRectangle(
+					this.line.ps,this.line.pe, rect.min, rect.max)) {			
+				return true;
+			}else{
+				return false
+			}
 	}
-	this.rotation=rotate;
 }
-rotate(rotation){
-	//fix angle
-  let alpha=this.rotation+rotation.angle;
-  if(alpha>=360){
-		alpha-=360
-  }
-  if(alpha<0){
-	 alpha+=360; 
-  }	
-  this.rotation=alpha;	
-  this.arc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy)); 
-}
-mirror(line) {
-  this.arc.mirror(line);
-}
-/*
- * Resize through mouse position point
- */
-Resize(xoffset, yoffset,point) {    
-    let pt=this.calculateResizingMidPoint(point.x,point.y);    
-    let r=this.arc.center.distanceTo(pt);
-    this.arc.r=r;
-/*	
-	//old middle point on arc
-	let a1=this.arc.middle;  
-	//mid point on line
-	let m=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
-	//new middle point on arc
-	let a2=this.calculateResizingMidPoint(point.x,point.y);  //new middle
+isControlRectClicked(x, y) {
+	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
 	
-	//do they belong to the same plane in regard to m 
-	let vec = new d2.Vector(m, a2);
-	let linevec=new d2.Vector(m,a1);
-    let samePlane = d2.utils.GT(vec.dot(linevec.normalize()), 0);
-    
-    
-//which plane
-	console.log(samePlane);
-	if(!samePlane){
-		this.temp*=-1;
-		//this.arc.endAngle*=-1;	
-	}
-	if(this.temp>0){
-		let C=this.calculateResizingMidPoint(point.x,point.y);  //projection
-		let C1=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
-    
-		let y=C1.distanceTo(C);
-		let x=C1.distanceTo(this.arc.start);
-    
-		let l=(x*x)/y;
-		let lambda=(l-y)/2;
-
-		let v=new d2.Vector(C,C1);
-		let norm=v.normalize();			  
-	
-		let a=C1.x +lambda*norm.x;
-		let b=C1.y + lambda*norm.y;
-		let center=new d2.Point(a,b);
-    
-    
-		let startAngle =new d2.Vector(center,this.arc.start).slope;
-		let endAngle = new d2.Vector(center, this.arc.end).slope;
-    
-		let r = center.distanceTo(this.arc.start);
-
-    //fix angles
-		let start = 360 - startAngle;
-		let end= (360-endAngle-start);
-		if(end<0){ 
-			end=360-Math.abs(end);
+		if (rect.contains(this.line.ps)){
+		  return this.line.ps;	
+		}else if(rect.contains(this.line.pe)) {					
+		  return this.line.pe;
+		}else{
+		  return null;
 		}
-
-	
-		this.arc.center.set(center.x,center.y);
-		this.arc.r=r;
-		this.arc.startAngle=start;
-		this.arc.endAngle=end;
-	}else{
-		
-	}
-*/
 }
-move(xoffset,yoffset){
-  this.arc.move(xoffset,yoffset);	
+setHeadSize(headSize) {
+
+    this.headSize = headSize;
+    this.arrow.points[0].set(this.line.pe.x,this.line.pe.y);
+    this.arrow.points[1].set(this.line.pe.x-2*headSize,this.line.pe.y -headSize);
+    this.arrow.points[2].set(this.line.pe.x-2*headSize,this.line.pe.y+headSize);  
+    let angle = Math.atan2(((this.line.pe.y) - (this.line.ps.y)),((this.line.pe.x - this.line.ps.x)));
+    let deg=-1*utilities.degrees(angle);    
+    this.arrow.rotate(deg,this.line.pe);
+}	
+Resize(xoffset,yoffset,clickedPoint) {    
+    clickedPoint.set(clickedPoint.x + xoffset, 
+                             clickedPoint.y + yoffset);
+    this.setHeadSize(this.headSize);
+}
+rotate(rotation){		
+	this.arrow.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	this.line.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+}
+move(xoffset, yoffset) {
+	this.line.move(xoffset,yoffset);
+	this.arrow.move(xoffset,yoffset);
+}
+mirror(line){
+	this.line.mirror(line);
+	this.arrow.mirror(line);
 }
 paint(g2, viewportWindow, scale,layersmask) {
-    if((this.copper.getLayerMaskID()&layersmask)==0){
-        return;
-      }
-		var rect = this.arc.box;
-		rect.scale(scale.getScale());
-		if (!rect.intersects(viewportWindow)) {
-			return;
-		}
+	var rect = this.line.box;
+	rect.scale(scale.getScale());
+	if (!rect.intersects(viewportWindow)) {
+		return;
+	}
+	
+	g2.lineWidth = this.thickness * scale.getScale();
 
-		g2.globalCompositeOperation = 'lighter';
-		g2.beginPath(); // clear the canvas context
-		g2.lineCap = 'round';
+	if (this.selection) {
+		g2.strokeStyle = "gray";
+	} else {
+		g2.strokeStyle = this.fillColor;
+	}
 
-						
-		g2.lineWidth = this.thickness * scale.getScale();
-        		
-		
-		if (this.fill == core.Fill.EMPTY) {
-			if (this.selection) {
-					g2.strokeStyle = "gray";
-			} else {
-					g2.strokeStyle = this.copper.getColor();
-			}
-			g2._fill=false;
+
+	
+	let l=this.line.clone();
+	l.pe.set((this.arrow.points[1].x + this.arrow.points[2].x)/2, (this.arrow.points[1].y + this.arrow.points[2].y)/2);
+	l.scale(scale.getScale());
+    l.move(-viewportWindow.x,- viewportWindow.y);
+	l.paint(g2);
+	
+	if (this.fill == core.Fill.EMPTY) {
+		if (this.selection) {
+			g2.strokeStyle = "gray";
 		} else {
-			if (this.selection) {
-				g2.fillStyle = "gray";
-			} else {
-				g2.fillStyle = this.copper.getColor();
-			}
-			g2._fill=true;
+			g2.strokeStyle = this.fillColor;
 		}
-
-		let a=this.arc.clone();
-		a.scale(scale.getScale());
-		a.move( - viewportWindow.x, - viewportWindow.y);		
-		a.paint(g2);
-
-		g2._fill=undefined;
-		
-		g2.globalCompositeOperation = 'source-over';
-
-		if (this.isSelected()&&this.isControlPointVisible) {
-			this.drawControlPoints(g2, viewportWindow, scale);
-		}
-		if (this.center!=null) {
-			utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.center]);	
-		}
-}
-drawControlPoints(g2, viewportWindow, scale) {
-	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.arc.center,this.arc.start,this.arc.end,this.arc.middle]);	
-}
+	} else {
+		g2._fill=true;
+		if (this.selection) {
+			g2.fillStyle = "gray";
+		} else {
+			g2.fillStyle = this.fillColor;
+		}			
+	}
+	let a=this.arrow.clone();	
+	a.scale(scale.getScale());
+    a.move(-viewportWindow.x,- viewportWindow.y);
+	a.paint(g2);
+	g2._fill=false;	
+	
+	if (this.isSelected()) {
+		this.drawControlPoints(g2, viewportWindow, scale);
+	}
+}	
+drawControlPoints(g2, viewportWindow, scale){
+	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,[this.line.ps,this.line.pe]); 		
+}	
 setResizingPoint(pt){
 	this.resizingPoint=pt;
 }
 getResizingPoint() {
 	return this.resizingPoint;
 }
-calculateResizingMidPoint(x,y){
-	let line=new d2.Line(this.arc.center,this.arc.middle);
-	return line.projectionPoint(new d2.Point(x,y));	
+fromXML(data) { 
+	var tokens = data.textContent.split(",");	
+	this.line.ps.set(parseInt(tokens[0]),parseInt(tokens[1]));	
+	this.line.pe.set(parseInt(tokens[2]),parseInt(tokens[3]));
+	this.thickness=parseInt(tokens[4]);
+	this.setHeadSize(parseInt(tokens[5]));
+	this.fill=parseInt(tokens[6]);
 }
-//drawMousePoint(g2,viewportWindow,scale){
-//
-//	let point=this.calculateResizingMidPoint(this.resizingPoint.x,this.resizingPoint.y);
-//    
-//	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[point]);
-//    
-//}
-
+toXML(){
+    return "<arrow thickness=\"" + this.thickness + "\" fill=\"" + this.fill + "\"  head=\"" + this.headSize+ "\">" + utilities.roundFloat(this.line.ps.x,1) + "," + utilities.roundFloat(this.line.ps.y,1) + "," + utilities.roundFloat(this.line.pe.x,1) + "," + utilities.roundFloat(this.line.pe.y,1) + "</arrow>";	
 }
-class SolidRegion extends Shape{
-	constructor(layermaskId) {
-        super( 0, 0, 0,0, 0, layermaskId);
-        this.displayName = "Solid Region";
-        this.floatingStartPoint=new d2.Point();
-        this.floatingEndPoint=new d2.Point();                 
-        this.selectionRectWidth = 3000;
-        this.polygon=new d2.Polygon();
-        this.resizingPoint;
-        this.rotation=0;
-    }
+}
+class Triangle extends Shape{
+	constructor() {
+		super(0, 0, 0,0, 1,core.Layer.LAYER_ALL);
+		this.setDisplayName("Triangle");		
+		this.selectionRectWidth=4;
+		this.resizingPoint = null;
+		this.fillColor='black';	
+	    this.shape=new d2.Polygon();
+	    this.shape.points=[new d2.Point(0,0),new d2.Point(20,20),new d2.Point(0,40)];	    	    	    
+}
 clone(){
-	  var copy=new SolidRegion(this.copper.getLayerMaskID());
-      copy.polygon=this.polygon.clone();
-      copy.rotation=this.rotation;
-      return copy;
+    var copy=new Triangle();
+    copy.shape=this.shape.clone();  
+    copy.fill = this.fill;
+    return copy;
 }
-getOrderWeight(){
-	return this.polygon.box.area; 
-}
-alignResizingPointToGrid(targetPoint) {
-    this.owningUnit.grid.snapToGrid(targetPoint);         
+alignResizingPointToGrid(targetPoint){
+    let point=this.owningUnit.getGrid().positionOnGrid(targetPoint.x,targetPoint.y);  
+    this.Resize(point.x -targetPoint.x,point.y-targetPoint.y,targetPoint);     
 }
 calculateShape() {
-	return this.polygon.box;	
+  return this.shape.box;		
 }
-getLinePoints() {
-	   return this.polygon.points;
+getCenter(){
+	return this.shape.box.center;
 }
-add(point) {
-	    this.polygon.add(point);
-}
-setResizingPoint(point) {
-	    this.resizingPoint=point;
-}
-isFloating() {
-    return (!this.floatingStartPoint.equals(this.floatingEndPoint));                
-}
-isClicked(x,y){
-	  return this.polygon.contains(x,y);
+isClicked(x, y) {
+  return this.shape.contains(new d2.Point(x, y));	
 }
 isControlRectClicked(x, y) {
 	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
 	let point = null;
 
-	this.polygon.points.some(function(wirePoint) {
+	this.shape.points.some(function(wirePoint) {
 		if (rect.contains(wirePoint)) {
-					point = wirePoint;
+		  point = wirePoint;
 		  return true;
 		}else{
 		  return false;
@@ -13217,956 +12785,686 @@ Resize(xoffset, yoffset, clickedPoint) {
 	clickedPoint.set(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);
 }
-reset(){
-	this.resetToPoint(this.floatingStartPoint);	
-}
-resetToPoint(p){
-    this.floatingStartPoint.set(p.x,p.y);
-    this.floatingEndPoint.set(p.x,p.y); 
+rotate(rotation){		
+	this.shape.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	
 }
 move(xoffset, yoffset) {
-	this.polygon.move(xoffset,yoffset);
+	this.shape.move(xoffset,yoffset);	
 }
-mirror(line) {
-    this.polygon.mirror(line);
+mirror(line){
+	this.shape.mirror(line);
 }
-setRotation(rotate,center){
-	let alpha=rotate-this.rotation;
-	let box=this.polygon.box;
-	if(center==null){
-		this.polygon.rotate(alpha,box.center);
-	}else{
-		this.polygon.rotate(alpha,center);	 	
-	}
-	this.rotation=rotate;
-}
-rotate(rotation) {
-	//fix angle
-	let alpha=this.rotation+rotation.angle;
-	if(alpha>=360){
-		alpha-=360
-	}
-	if(alpha<0){
-	 alpha+=360; 
-	}	
-	this.rotation=alpha;
-	this.polygon.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
-}
-paint(g2, viewportWindow, scale,layersmask) {		
-    if((this.copper.getLayerMaskID()&layersmask)==0){
-        return;
-    }
-	var rect = this.polygon.box;
-	rect.scale(scale.getScale());		
-	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
+paint(g2, viewportWindow, scale,layersmask) {
+	var rect = this.shape.box;
+	rect.scale(scale.getScale());
+	if (!rect.intersects(viewportWindow)) {
 		return;
 	}
 	
-	g2.lineWidth = 1;
+	g2.lineWidth = this.thickness * scale.getScale();
 	
-	if(this.isFloating()){
-      g2.strokeStyle = this.copper.getColor();		
-	}else{
-	  g2._fill=true;
-	  if (this.selection) {
-		 g2.fillStyle = "gray";
-	  } else {
-		 g2.fillStyle = this.copper.getColor();
-	  }
+	if (this.fill == core.Fill.EMPTY) {
+		if (this.selection) {
+			g2.strokeStyle = "gray";
+		} else {
+			g2.strokeStyle = this.fillColor;
+		}
+	} else {
+		g2._fill=true;
+		if (this.selection) {
+			g2.fillStyle = "gray";
+		} else {
+			g2.fillStyle = this.fillColor;
+		}			
 	}
-
-	
-
-	let a=this.polygon.clone();	
-	if (this.isFloating()) {
-		let p = this.floatingEndPoint.clone();
-		a.add(p);	
-    }
+	let a=this.shape.clone();	
 	a.scale(scale.getScale());
-	a.move( - viewportWindow.x, - viewportWindow.y);		
-	g2.globalCompositeOperation = 'lighter';
+    a.move(-viewportWindow.x,- viewportWindow.y);
 	a.paint(g2);
-	g2.globalCompositeOperation = 'source-over';
-	g2._fill=false;
-    
+	g2._fill=false;	
+	
 	if (this.isSelected()) {
 		this.drawControlPoints(g2, viewportWindow, scale);
 	}
 }
-drawControlPoints(g2, viewportWindow, scale) {
-	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.polygon.points);	
-}
-toXML() {
-	var result = "<solidregion copper=\"" + this.copper.getName() + "\">";
-	this.polygon.points.forEach(function(point) {
-		result += utilities.roundFloat(point.x,4) + "," + utilities.roundFloat(point.y,4) + ",";
-	});
-	result += "</solidregion>";
-	return result;
-}
-fromXML(data) {
-       if(j$(data).attr("copper")!=null){
-        this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
-       }else{
-        this.copper=core.Layer.Copper.FSilkS;
-       }	
-   	   var tokens = data.textContent.split(",");
-	   var len = Math.floor(tokens.length / 2) * 2;
-	   for (var index = 0; index < len; index += 2) {
-			var x = parseFloat(tokens[index]);
-			var y = parseFloat(tokens[index + 1]);
-			this.polygon.points.push(new d2.Point(x, y));
-		}
-}
-}
-
-class Line extends AbstractLine{
-constructor(thickness,layermaskId) {
-			super(thickness,layermaskId);	
-}
-clone() {
-		  var copy = new Line(this.thickness,this.copper.getLayerMaskID());
-		  copy.polyline=this.polyline.clone();
-		  copy.rotation=this.rotation;
-		  return copy;
-		}
-alignToGrid(isRequired) {
-    if (isRequired) {
-        this.polyline.points.forEach(function(wirePoint){
-            let point = this.owningUnit.getGrid().positionOnGrid(wirePoint.x, wirePoint.y);
-              wirePoint.set(point.x,point.y);
-        }.bind(this));
+//***old schema
+//DIRECTION_WEST = 0x01;
+//DIRECTION_NORTH = 0x02;
+//DIRECTION_EAST = 0x04;
+//DIRECTION_SOUTH = 0x08;
+initPoints(orientation,x,y,width,height){     
+    if(orientation==0x01){   
+    	this.shape.points[0].set(x,y+height/2);        
+    	this.shape.points[1].set(x+width,y);    	
+    	this.shape.points[2].set(x+width,y+height);    	       
+    }else if(orientation==0x02){    	
+    	this.shape.points[0].set(x+width/2, y);
+    	this.shape.points[1].set(x+width, y+height);
+    	this.shape.points[2].set(x, y+height);            
+    }else if(orientation==0x04){                  
+    	this.shape.points[0].set(x+width,y+height/2);
+    	this.shape.points[1].set(x,y+height);
+    	this.shape.points[2].set(x,y);            
+    }else{      
+    	this.shape.points[0].set(x+width/2,y+height);
+    	this.shape.points[1].set(x,y);
+    	this.shape.points[2].set(x+width,y);
+      
     }
-    return null;
+    
 }
-
-getOrderWeight() {
-	return 2;
+fromXML(data){
+	var thickness=j$(data).attr("thickness");
+	var tokens = data.textContent.split(",");	
+	var orientation=parseInt(tokens[0]);
+	
+	this.initPoints(orientation,parseInt(tokens[1]),parseInt(tokens[2]),parseInt(tokens[3]),parseInt(tokens[4]));
+    this.thickness=parseInt(tokens[5]);
+    this.fill=parseInt(tokens[6]);
+    
 }
-paint(g2, viewportWindow, scale,layersmask) {		
-    if((this.copper.getLayerMaskID()&layersmask)==0){
-        return;
+toXML(){
+	let points="";
+	this.shape.points.forEach(function(point) {
+	   points += utilities.roundFloat(point.x,1) + "," + utilities.roundFloat(point.y,1) + ",";
+	});	
+    return "<triangle thickness=\"" + this.thickness + "\" fill=\"" + this.fill + "\">"+points+"</triangle>";	
+}
+drawControlPoints(g2, viewportWindow, scale){
+	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.shape.points); 		
+}
+setResizingPoint(pt){
+	this.resizingPoint=pt;
+}
+getResizingPoint() {
+	return this.resizingPoint;
+}
+}
+Style ={
+    LINE:0, /*default*/
+    INVERTED:1,
+    CLOCK:2,
+    INVERTED_CLOCK:3,
+    INPUT_LOW:4,
+    CLOCK_LOW:5,
+    OUTPUT_LOW:6,
+    FALLING_EDGE_CLOCK:7,
+    NON_LOGIC:8
+}
+Orientation={
+        NORTH:0,
+        SOUTH:1,
+        WEST:2,
+        EAST:3,
+mirror:function(isHorizontal,orientation){
+    if (isHorizontal) {
+        if (orientation == Orientation.EAST)
+            return Orientation.WEST;
+        else if (orientation == Orientation.WEST)
+            return Orientation.EAST;
+        else
+            return orientation;
+    } else {
+        if (orientation == Orientation.NORTH)
+            return Orientation.SOUTH;
+        else if (orientation == Orientation.SOUTH)
+            return Orientation.NORTH;
+        else
+            return orientation;
     }	
-		var rect = this.polyline.box;
-		rect.scale(scale.getScale());		
-		if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
-			return;
-		}
-				
-		g2.globalCompositeOperation = 'lighter';
-		g2.lineCap = 'round';
-		g2.lineJoin = 'round';
-		
-
-		g2.lineWidth = this.thickness * scale.getScale();
-
-
-		if (this.selection)
-			g2.strokeStyle = "gray";
-		else
-			g2.strokeStyle = this.copper.getColor();
-
-		let a=this.polyline.clone();
-		a.scale(scale.getScale());
-		a.move( - viewportWindow.x, - viewportWindow.y);		
-		a.paint(g2);
-		
-		// draw floating point
-		if (this.isFloating()) {
-				let p = this.floatingEndPoint.clone();
-				p.scale(scale.getScale());
-				p.move( - viewportWindow.x, - viewportWindow.y);
-					g2.lineTo(p.x, p.y);									
-					g2.stroke();					
-		}
-		
-		g2.globalCompositeOperation = 'source-over';
-		if (this.selection&&this.isControlPointVisible) {
-			this.drawControlPoints(g2, viewportWindow, scale);
-		}
-
+},      
+rotate:function(isClockwise,orientation) {
+       if (isClockwise) {
+               if (orientation == Orientation.NORTH)
+                    return Orientation.EAST;
+                else if (orientation == Orientation.EAST)
+                    return Orientation.SOUTH;
+                else if (orientation == Orientation.SOUTH)
+                    return Orientation.WEST;
+                else
+                    return Orientation.NORTH;
+        } else {
+                if (orientation == Orientation.NORTH)
+                    return Orientation.WEST;
+                else if (orientation == Orientation.WEST)
+                    return Orientation.SOUTH;
+                else if (orientation == Orientation.SOUTH)
+                    return Orientation.EAST;
+                else
+                    return Orientation.NORTH;
+        }
+  }        
 }
-
-toXML() {
-	var result = "<line copper=\"" + this.copper.getName()
-								+ "\" thickness=\"" + this.thickness + "\">";
-	this.polyline.points.forEach(function(point) {
-		result += utilities.roundFloat(point.x,5) + "," + utilities.roundFloat(point.y,5) + ",";
-	},this);
-	result += "</line>";
-	return result;
-}
-fromXML(data) {
-       if(j$(data).attr("copper")!=null){
-        this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
-       }else{
-        this.copper=core.Layer.Copper.FSilkS;
-       }	
-	   this.thickness = (parseInt(j$(data).attr("thickness")));
-   	   var tokens = data.textContent.split(",");
-	   var len = Math.floor(tokens.length / 2) * 2;
-	   for (var index = 0; index < len; index += 2) {
-			var x = parseFloat(tokens[index]);
-			var y = parseFloat(tokens[index + 1]);
-			this.polyline.points.push(new d2.Point(x, y));
-		}
-}
-}
-
-
-class Drill{
-	 constructor(x,y,width) {
-	    this.circle=new d2.Circle(new d2.Point(x,y),width/2);
-	 }
-	 clone(){
-		 let copy= new Drill(0);
-		 copy.circle.pc.x=this.circle.pc.x;
-		 copy.circle.pc.y=this.circle.pc.y;
-		 copy.circle.r=this.circle.r;
-		 return copy;
-	 }
-	 setLocation(x,y){
-        this.circle.pc.x=x;
-        this.circle.pc.y=y;
-	 }
-	 move( xoffset, yoffset) {
-		this.circle.move(xoffset,yoffset);
-	 }
-	 getWidth(){
-		 return 2*this.circle.r;
-	 }
-	 setWidth(width){
-		 this.circle.r=width/2;
-	 }
-	 rotate(rotation) {
-		 this.circle.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
-	 }	   
-	 mirror( line) {
-	       this.circle.mirror(line);
-	 }
-	 rotate(alpha,origin){
-	    if(origin==null){
-	       this.circle.rotate(alpha);
-	    }else{
-	       this.circle.rotate(alpha,origin);	
-	    }		 
-	 }
-	paint(g2,viewportWindow,scale){
-	    g2._fill=true;
-	    g2.fillStyle = 'black';
-	    let c=this.circle.clone();
-		c.scale(scale.getScale());
-        c.move(-viewportWindow.x,- viewportWindow.y);
-		c.paint(g2);
-		
-		g2._fill=false;
-	}
-	toXML(){
-	    return "<drill type=\"CIRCULAR\" x=\""+utilities.roundFloat(this.circle.pc.x,4)+"\" y=\""+utilities.roundFloat(this.circle.pc.y,4)+"\" width=\""+utilities.roundFloat(2*this.circle.radius,2)+"\" />";	
-	}
-	fromXML(data){ 
-	   this.setLocation(parseFloat(j$(data).attr("x")),parseFloat(j$(data).attr("y")));
-	   this.setWidth(parseFloat(j$(data).attr("width")));  	   
-	}
-}
-
-
-PadShape={
-	 RECTANGULAR:0,
-	 CIRCULAR:1,
-	 OVAL:2,
-	 POLYGON:3,
-	 parse:function(shape){
-		 switch(shape){
-		  case 'RECTANGULAR':
-			     return this.RECTANGULAR;
-				 break;
-		  case 'CIRCULAR':
-				 return this.CIRCULAR;
-				 break; 
-		  case 'OVAL':
-				 return this.OVAL;
-				 break;	
-		  case 'POLYGON':
-				 return this.POLYGON;
-				 break;					 
-		  default:
-			  throw new TypeError('Unrecognized pad Shape:'+shape+' to parse');  
-		  } 
-	 },
-	format:function(shape){
-		if(shape==this.RECTANGULAR)
-			return 'RECTANGULAR';
-		if(shape==this.CIRCULAR)
-			return 'CIRCULAR';
-		if(shape==this.OVAL)
-			return 'OVAL';
-		if(shape==this.POLYGON)
-			return 'POLYGON';
-		else
-			return '';
-	} 
+PinType={
+		SIMPLE:0,
+		COMPLEX:1,
 };
-	    
-PadType={
-	   THROUGH_HOLE:0,
-	   SMD:1,
-	   CONNECTOR:2,
-	   parse:function(type){
-		  switch(type){
-		  case 'THROUGH_HOLE':
-			     return this.THROUGH_HOLE;
-				 break;
-		  case 'SMD':
-				 return this.SMD;
-				 break; 
-		  case 'CONNECTOR':
-				 return this.CONNECTOR;
-				 break;	
-		  default:
-			  throw new TypeError('Unrecognized pad Type:'+type+' to parse');  
-		  } 
-	   },
-	   format:function(type){
-		  if(type==this.THROUGH_HOLE)
-			 return 'THROUGH_HOLE';
-		  if(type==this.SMD)
-				 return 'SMD';
-		  if(type==this.CONNECTOR)
-				 return 'CONNECTOR';
-		  else
-			  return '';
-	   }
-};
+var PIN_LENGTH = 2 * utilities.POINT_TO_POINT;
 
-class Pad extends Shape{
-	constructor(x,y,width,height) {
-	   super(0, 0, width, height, -1, core.Layer.LAYER_BACK);
-	   this.drill=null;
-	   this.rotation=0;
-	   this.offset=new d2.Point(0,0);
-	   this.shape=new CircularShape(0,0,width,this);
-	   this.setType(PadType.THROUGH_HOLE);	   
-	   this.setDisplayName("Pad");
-	   
-	   this.number=new font.FontTexture("1","number",x,y,4000,0);
-	   this.netvalue=new font.FontTexture("","netvalue",x,y,4000,0);   
+class Pin extends Shape{
+constructor() {
+		super(0, 0, 0,0, 1,core.Layer.LAYER_ALL);
+		this.setDisplayName("Pin");		
+		this.selectionRectWidth=4;
+		this.fillColor='black';	
+	    this.segment=new d2.Segment(0,0,0,0);        
+        this.type = PinType.COMPLEX;
+        this.style = Style.LINE;
+
+ 	    this.name=new font.SymbolFontTexture("XXX","name",-8,0,0,8);
+	    this.number=new font.SymbolFontTexture("1","number",10,-4,0,8);
+	    this.init(Orientation.EAST);
 	}
 clone(){
-	     var copy=new Pad(0,0,this.width,this.height);
-	     copy.setType(this.type);
-	     copy.width=this.width;
-	     copy.height=this.height;
-	     copy.rotation=this.rotation;
-	     copy.shape=this.shape.copy(copy);
-	     copy.copper=this.copper;
-	     copy.number=this.number.clone();
-	     copy.netvalue=this.netvalue.clone();
-	     if(this.drill!=null){
-	    	 copy.drill=this.drill.clone();
-	     }
-	     return copy;
-	}
+    var copy=new Pin();
+    copy.orientation=this.orientation;
+    copy.type=this.type;
+    copy.style=this.style;
+    copy.name=this.name.clone();
+    copy.number=this.number.clone();
+    copy.segment=this.segment.clone();
+    return copy;
+}
 
+alignToGrid(isRequired) {
+    var center=this.segment.ps;
+    var point=this.owningUnit.getGrid().positionOnGrid(center.x,center.y);
+    this.move(point.x - center.x,point.y - center.y);
+    return new d2.Point(point.x - center.x, point.y - center.y);  
+}
 getClickedTexture(x,y) {
-    if(this.number.isClicked(x, y))
+	if(this.type==PinType.SIMPLE){
+		return null;
+	}
+    if(this.name.isClicked(x, y))
+        return this.name;
+    else if(this.number.isClicked(x, y))
         return this.number;
-    else if(this.netvalue.isClicked(x, y))
-        return this.netvalue;
     else
     return null;
+}
+getPinPoint(){
+	return this.segment.ps;
 }
 isClickedTexture(x,y) {
     return this.getClickedTexture(x, y)!=null;
 }
 getTextureByTag(tag) {
-    if(tag===(this.number.tag))
+    if(tag===(this.name.tag))
+        return this.name;
+    else if(tag===(this.number.tag))
         return this.number;
-    else if(tag===(this.netvalue.tag))
-        return this.netvalue;
     else
     return null;
 }
-getCenter(){
-	return this.shape.center;
+isClicked(x, y) {
+	  var rect = d2.Box.fromRect(x
+				- (this.selectionRectWidth / 2), y
+				- (this.selectionRectWidth / 2), this.selectionRectWidth,
+				this.selectionRectWidth);
+	  
+		if (utilities.intersectLineRectangle(
+				this.segment.ps,this.segment.pe, rect.min, rect.max)) {			
+			return true;
+		}else{
+			return false
+		}
+		
 }
-toXML(){
-	    var xml="<pad copper=\""+this.copper.getName()+"\" type=\"" +PadType.format(this.type) + "\" shape=\""+PadShape.format(this.getShape())+"\" x=\""+utilities.roundFloat(this.shape.center.x,4)+"\" y=\""+utilities.roundFloat(this.shape.center.y,4)+"\" width=\""+utilities.roundFloat(this.getWidth(),2)+"\" height=\""+utilities.roundFloat(this.getHeight(),2)+"\" rt=\""+utilities.roundFloat(this.rotation,2)+"\">\r\n";
-	        //xml+=this.shape.toXML()+"\r\n";
-	        xml+="<offset x=\""+this.offset.x+"\" y=\""+this.offset.y+"\" />\r\n";
-	    
-	        if (!this.number.isEmpty())
-	        	xml+="<number>" +
-	                      this.number.toXML() +
-	                      "</number>\r\n";
-	    if (!this.netvalue.isEmpty())
-	           xml+="<netvalue>" +
-	                      this.netvalue.toXML() +
-	                      "</netvalue>\r\n";
-	    if(this.drill!=null){
-	        xml+=this.drill.toXML()+"\r\n";  
-	    }
-	    xml+="</pad>";
-	    return xml;	
-	}	
-fromXML(data){   
-		      this.copper=core.Layer.Copper.valueOf(j$(data).attr("copper"));
-		      this.setType(PadType.parse(j$(data).attr("type")));
-		      
-			  let x=(parseFloat(j$(data).attr("x")));
-			  let y=(parseFloat(j$(data).attr("y")));
-		      this.width=(parseFloat(j$(data).attr("width")));
-		      this.height=(parseFloat(j$(data).attr("height")));
-		      
-		      if(j$(data).attr("rt")!=undefined)
-		        this.rotation=(parseFloat(j$(data).attr("rt")));
-		      
-		      this.setShape(x,y,PadShape.parse(j$(data).attr("shape")));
-			  
-		      var offset=(j$(data).find("offset"));
-		      this.offset.x=(parseFloat(j$(offset).attr("x")));
-		      this.offset.y=(parseFloat(j$(offset).attr("y")));
-		      
-		      if(this.drill!=null){
-		          this.drill.fromXML(j$(data).find("drill"));
-		      }   
-
-		      var number=(j$(data).find("number").text()); 
-			  var netvalue=(j$(data).find("netvalue").text());
-			  if(number==''){
-				  this.number.setLocation(this.getX(), this.getY());
-			  }else{
-				  this.number.fromXML(number);
-			  }
-			  if(netvalue==''){
-				  this.netvalue.setLocation(this.getX(), this.getY());
-			  }else{
-				  this.netvalue.fromXML(netvalue);
-			  }
-		     
+mirror(line){
+  let oposname= utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
+  let oposnumber= utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
+	
+  this.segment.mirror(line);	
+  if(line.isVertical){ //left-right 	 	  
+	  this.orientation = Orientation.mirror(true,this.orientation);	  
+  }else{	  
+	  this.orientation = Orientation.mirror(false,this.orientation);
+  }	
+  this.name.mirror(line);
+  this.number.mirror(line);
+  
+	//read new position
+  let nposname=utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);		
+  let nposnumber=utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);	
+  
+  this.normalizeText(this.name,oposname,nposname);
+  this.normalizeText(this.number,oposnumber,nposnumber);  
+}
+rotate(rotation){
+	//read current position	
+	let oposname= utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
+	let oposnumber= utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
+	
+	this.segment.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	this.orientation=Orientation.rotate(rotation.angle>0?false:true,this.orientation);
+	this.name.rotate(rotation);
+	this.number.rotate(rotation);
+	
+	//read new position
+	let nposname=utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);		
+	let nposnumber=utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
+	
+	this.normalizeText(this.name,oposname,nposname);
+	this.normalizeText(this.number,oposnumber,nposnumber);
+	
+	
+}
+normalizeText(text,opos,npos){
+	if(opos==npos){
+	   return;	
 	}
-getPinsRect() {
-	     return d2.Box.fromRect(this.shape.center.x, this.shape.center.y, 0,0);
-	}
-alignToGrid(isRequired){
-	     var center=this.shape.center;
-	     var point=this.owningUnit.getGrid().positionOnGrid(center.x,center.y);
-	     this.move(point.x - center.x,point.y - center.y);
-	     return null;     
-	}	
-getOrderWeight(){
-	     return 2; 
-	}
-isClicked(x,y){
-	    if(this.shape.contains(new d2.Point(x,y)))
-	     return true;
-	    else
-	     return false;  
+	text.mirror(new d2.Line(this.segment.ps,this.segment.pe));
+}
+move(xoffset,yoffset) {
+    this.segment.move(xoffset,yoffset);
+	this.name.move(xoffset,yoffset);
+	this.number.move(xoffset,yoffset);
+}
+calculateShape() {
+	return this.segment.box;
+}
+/*
+ * keep text orientation too, observing text normalization
+ */
+setOrientation(orientation){
+ let o=this.orientation;
+ let r={originx:this.segment.ps.x,
+	       originy:this.segment.ps.y,
+	       angle:-90};
+ 
+ while(o!=orientation){
+	 switch (o) {
+	 case Orientation.EAST:        
+		 //o=Orientation.SOUTH;
+		 this.rotate(r);
+     break;
+	 case Orientation.WEST:
+		 //o=Orientation.NORTH;
+		 this.rotate(r);
+     break;
+	 case Orientation.NORTH:
+		 //o=Orientation.EAST;
+		 this.rotate(r);
+     break;
+	 case Orientation.SOUTH:    	
+		 //o=Orientation.WEST;
+		 this.rotate(r);
+  
 	 }
-isInRect(r) {
-		 let rect=super.getBoundingShape();
-	     if(r.contains(rect.center))
-	         return true;
-	        else
-	         return false; 
-	}
+	 o=this.orientation; 
+ }
+}
+
+init(orientation){
+	this.orientation=orientation;
+    switch (this.orientation) {
+    case Orientation.EAST:        
+        this.segment.pe.set(this.segment.ps.x + (this.type == PinType.COMPLEX ? PIN_LENGTH : PIN_LENGTH / 2), this.segment.ps.y);
+        break;
+    case Orientation.WEST:
+    	this.segment.pe.set(this.segment.ps.x - (this.type == PinType.COMPLEX ? PIN_LENGTH : PIN_LENGTH / 2), this.segment.ps.y);    	
+        break;
+    case Orientation.NORTH:
+    	this.segment.pe.set(this.segment.ps.x, this.segment.ps.y - (this.type == PinType.COMPLEX ? PIN_LENGTH : PIN_LENGTH / 2));    	
+        break;
+    case Orientation.SOUTH:    	
+    	this.segment.pe.set(this.segment.ps.x, this.segment.ps.y + (this.type == PinType.COMPLEX ? PIN_LENGTH : PIN_LENGTH / 2));
+    }   
+}
+setPinType(type){
+	this.type=type;
+	this.init(this.orientation);
+}
+getCenter(){
+	return this.segment.ps;
+}
 setSelected (selection) {
 	super.setSelected(selection);
 	this.number.setSelected(selection);
-	this.netvalue.setSelected(selection);
+	this.name.setSelected(selection);
 }
-move(xoffset, yoffset){
-	   this.shape.move(xoffset, yoffset);
-	   
-	   if(this.drill!=null){
-	     this.drill.move(xoffset, yoffset);
-	   }
-	   this.number.move(xoffset,yoffset);
-	   this.netvalue.move(xoffset,yoffset);
-	   
-	}
 
-mirror(line) {
+paint(g2, viewportWindow, scale,layersmask) {
+	var rect = this.segment.box;
+	rect.scale(scale.getScale());
+	if (!rect.intersects(viewportWindow)) {
+		return;
+	}
+	
+	
 
-}
-setSide(side, line, angle) {
-    this.copper=core.Layer.Side.change(this.copper.getLayerMaskID());
-    this.netvalue.setSide(side,line,angle);
-    this.number.setSide(side,line,angle);
-    this.shape.mirror(line);
-    if(this.drill!=null){
-       this.drill.mirror(line);
-    }
-    this.rotation=angle;
-}
-setRotation(rotate,center){	
-	let alpha=rotate-this.rotation;	
-	
-	  this.shape.rotate(alpha,center);
-	  this.number.setRotation(rotate,center);
-	  this.netvalue.setRotation(rotate,center);
-	  if(this.drill!=null){
-	    this.drill.rotate(alpha,center);	   
-	  }
-	this.rotation=rotate;
-}
-rotate(rotation){
-	let alpha=this.rotation+rotation.angle;
-	if(alpha>=360){
-		alpha-=360
+	g2.lineWidth = this.thickness ;
+	if (this.selection) {
+		g2.strokeStyle = "blue";
+	  	this.name.fillColor = "gray";
+	  	this.number.fillColor = "gray";
+	} else {
+		g2.strokeStyle = this.fillColor;
+	  	this.name.fillColor = this.fillColor;
+		this.number.fillColor =this.fillColor;
 	}
-	 if(alpha<0){
-		 alpha+=360; 
-	 }
-	this.shape.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	
-    if(this.drill!=null){
-     this.drill.rotate(rotation);
-    }	
-	this.number.setRotation(alpha,new d2.Point(rotation.originx,rotation.originy));
-	this.netvalue.setRotation(alpha,new d2.Point(rotation.originx,rotation.originy));
-	this.rotation=alpha;
 	
+	switch(this.style){
+	case Style.LINE:
+		this.drawPinLine(g2, viewportWindow, scale,0);
+		break;
+	case Style.INVERTED:
+		this.drawPinLine(g2, viewportWindow, scale,(PIN_LENGTH / 3));
+		this.drawInverted(g2, viewportWindow, scale);
+		break;	  
+	case Style.CLOCK:
+		this.drawPinLine(g2, viewportWindow, scale,0);
+		this.drawTriState(g2, viewportWindow, scale);
+		break;
+	case Style.INVERTED_CLOCK:
+		this.drawPinLine(g2, viewportWindow, scale,(PIN_LENGTH / 3));
+		this.drawInverted(g2, viewportWindow, scale);
+		this.drawTriState(g2, viewportWindow, scale);
+		break;
+	case Style.INPUT_LOW:
+		this.drawPinLine(g2, viewportWindow, scale,0);
+		this.drawInputLow(g2, viewportWindow, scale);
+		break;
+	case Style.CLOCK_LOW:
+		this.drawPinLine(g2, viewportWindow, scale,0);
+		this.drawInputLow(g2, viewportWindow, scale);
+		this.drawTriState(g2, viewportWindow, scale);
+		break;
+	case  Style.OUTPUT_LOW:
+		this.drawPinLine(g2, viewportWindow, scale,0);
+		this.drawOutputLow(g2, viewportWindow, scale);
+		break;
+	case  Style.FALLING_EDGE_CLOCK:
+		this.drawPinLine(g2, viewportWindow, scale,PIN_LENGTH/ 6);
+		this.drawFallingEdgeClock(g2, viewportWindow, scale);
+		break;
+		  
 	}
-setType(type) {
-	        this.type = type;
-	        switch(type){
-	        case PadType.THROUGH_HOLE:
-	            if(this.drill==null){
-	            	this.drill=new Drill(this.shape.center.x,this.shape.center.y,core.MM_TO_COORD(0.8));		               	                
-	            }
-	            break;
-	        case PadType.SMD:
-	                this.drill=null;
-	            break;
-			}
-}
-setShape(...args){
-	    let shape,x,y; 
-	    if(args.length==1){
-	      x=this.shape.center.x;
-	      y=this.shape.center.y;
-	      shape=args[0];
-	    }else{
-		  x=args[0];
-		  y=args[1];
-		  shape=args[2];	      	
-	    }
-	    switch(shape){
-	    case PadShape.CIRCULAR:
-	        this.shape=new CircularShape(x,y,this.width,this);
-	    break;
-	     case PadShape.OVAL: 
-	        this.shape=new OvalShape(x,y,this.width,this.height,this);
-	        break;
-	    case PadShape.RECTANGULAR:
-	        this.shape=new RectangularShape(x,y,this.width,this.height,this);
-	        break;
-	    case PadShape.POLYGON:
-		    this.shape = new PolygonShape(x,y,this.width,this);
-	        break;
-	    } 
-	    //restore rotation
-	    if(this.rotation!=0){
-		  this.shape.rotate(this.rotation);
-	    }
-}
-getShape(){
-		if(this.shape instanceof CircularShape)
-	        return PadShape.CIRCULAR;
-		if(this.shape instanceof RectangularShape)
-	        return PadShape.RECTANGULAR;
-		if(this.shape instanceof OvalShape)
-	        return PadShape.OVAL;
-		if(this.shape instanceof PolygonShape)
-	        return PadShape.POLYGON;		
-}    
-setWidth(width){
-	        this.width=width;
-	        this.shape.setWidth(width);    
-	    }
-setHeight(height){
-	        this.height=height;
-	        this.shape.setHeight(height);
-	    }
-calculateShape() {
-	return this.shape.box;
-} 
-validateClearance(source){
-    //is different layer and SMD -> no clearance
-    if ((source.copper.getLayerMaskID() & this.copper.getLayerMaskID()) == 0) {
-        //if(this.type==PadType.SMD)
-           return false; //not on the same layer
-    }	
-	return true;
-}
-drawClearence(g2,viewportWindow,scale,source){
-    if(!this.validateClearance(source)){
-        return;
-    }
-	
-	this.shape.drawClearence(g2,viewportWindow,scale,source);
-}
-paint(g2,viewportWindow,scale,layersmask){
-	switch(this.type){
-	    case PadType.THROUGH_HOLE:
-	        if(this.shape.paint(g2, viewportWindow, scale)){
-	         if(this.drill!=null){
-	            this.drill.paint(g2, viewportWindow, scale);
-	         }
-	        }
-	        break;
-	    case PadType.SMD:
-	        this.shape.paint(g2, viewportWindow, scale);
-	        break;
-	    
-	    }
-	    this.number.paint(g2, viewportWindow, scale);
-	    this.netvalue.paint(g2, viewportWindow, scale);
-	 }
-
-}
-	//----------CircularShape-------------------
-class CircularShape{
-	constructor(x,y,width,pad){
-		this.pad=pad;
-		this.circle=new d2.Circle(new d2.Point(x,y),width/2);		
+	if (this.type == PinType.COMPLEX) {		  
+      this.name.paint(g2, viewportWindow, scale);
+      this.number.paint(g2, viewportWindow, scale);
 	}
-	drawClearence(g2,viewportWindow,scale,source){
-	    let c=this.circle.clone();
-	    
-		
-		g2._fill=true;
-		g2.fillStyle = "black";	
-		
-		c.grow(source.clearance);
-		
-		
-	    c.scale(scale.getScale());		
-	    c.move(-viewportWindow.x,- viewportWindow.y);
-		c.paint(g2);
-		
-	    g2._fill=false;			
-	}	
-    paint(g2,viewportWindow,scale){
-    	 var rect = this.circle.box;
-       	 rect.scale(scale.getScale());
-       	 if (!rect.intersects(viewportWindow)) {
-      		  return;
-       	 }
-	    
-		if(this.pad.isSelected())
-	        g2.fillStyle = "gray";  
-	    else{
-	        g2.fillStyle = this.pad.copper.getColor();
-	    }
-	    g2._fill=true;
-		
-	    let c=this.circle.clone();
-		c.scale(scale.getScale());
+    if (this.isSelected()) {
+        let c=new d2.Circle(this.segment.pe.clone(), 2);
+        c.scale(scale.getScale());
         c.move(-viewportWindow.x,- viewportWindow.y);
-		c.paint(g2);
-		
-		g2._fill=false;
-		
-		return true;
+        c.paint(g2,false);        
+    }
+}
+fromXML(data){
+	this.type=parseInt(j$(data).attr("type"));
+	this.style=parseInt(j$(data).attr("style"));
+	
+	let a=j$(data).find("a");
+	if(a.length>0){   //old schema
+	  var tokens = a.text().split(",");
+	  this.segment.ps.set(parseFloat(tokens[0]),parseFloat(tokens[1]));
+	  this.init(parseInt(tokens[3]));
+	}else{
+        this.segment.ps.set(parseFloat(j$(data).attr("x")),parseFloat(j$(data).attr("y")));   
+        this.init(parseInt(j$(data).attr("orientation")));	
 	}
-    copy(pad){
-  	  let _copy=new CircularShape(0,0,0,pad);
-  	  _copy.circle=this.circle.clone();	  
-  	  return _copy;  
-  	} 
-    rotate(alpha,origin){
-    	if(origin==null){
-    	  this.circle.rotate(alpha);
-    	}else{
-    	  this.circle.rotate(alpha,origin);	
-    	}
-    }    
-    contains(pt){
-    	return this.circle.contains(pt);
-    }
-    mirror(line) {
-        this.circle.mirror(line);
-    }
-	move(xoffset, yoffset) {
-		this.circle.move(xoffset,yoffset);
+    var number=(j$(data).find("number").text()); 
+	var name=(j$(data).find("name").text());
+	if(number==''){
+	  this.number.setText('');
+	  this.number.shape.anchorPoint.set(this.segment.ps.x,this.segment.ps.y);
+	}else{
+	  this.number.fromXML(number);
+	}
+	if(name==''){
+	  this.name.setText('');
+	  this.name.shape.anchorPoint.set(this.segment.ps.x,this.segment.ps.y);
+	}else{
+	  this.name.fromXML(name);
 	}	
-	get box(){
-		return this.circle.box;
-	}
-	get center(){
-		return this.circle.center;	
-	}
-    setWidth(width) {
-	   this.circle.r=width/2;
-	}
-    setHeight(height){
-	
+}
+toXML(){
+	let xml="<pin type=\"" + this.type + "\"  style=\"" + this.style + "\"   x=\""+utilities.roundFloat(this.segment.ps.x,1)+"\" y=\""+utilities.roundFloat(this.segment.ps.y,1)+"\" orientation=\""+this.orientation+"\">\r\n";	
+    if(this.type == PinType.COMPLEX){
+	 if (!this.number.isEmpty())
+    	xml+="<number>" +
+                  this.number.toXML() +
+             "</number>\r\n";
+     if (!this.name.isEmpty())
+       xml+="<name>" +
+                  this.name.toXML() +
+             "</name>\r\n";	
+    }
+	xml+="</pin>";
+	return xml;
+}
+drawPinLine(g2,viewportWindow, scale,offset){	
+    let line=this.segment.clone();            
+        
+    switch (this.orientation) {
+    case Orientation.SOUTH:
+    	line.ps.set(line.ps.x,line.ps.y+offset);
+        break;
+    case Orientation.NORTH:
+    	line.ps.set(line.ps.x,line.ps.y-offset);
+        break;
+    case Orientation.WEST:
+    	line.ps.set(line.ps.x-offset,line.ps.y);  
+        break;
+    case Orientation.EAST:
+    	line.ps.set(line.ps.x+offset,line.ps.y);    	
+        break;
+    }
+	line.scale(scale.getScale());
+    line.move(-viewportWindow.x,- viewportWindow.y);
+    
+    line.paint(g2);
+}
+drawFallingEdgeClock( g2, viewportWindow,scale) {
+	let pinlength = PIN_LENGTH *scale.getScale(); 
+    let line=new d2.Segment(0,0,0,0);
+    let x=this.segment.ps.x*scale.getScale();
+    let y=this.segment.ps.y*scale.getScale();
+    switch (this.orientation) {
+    case Orientation.SOUTH:
+        line.set(x - pinlength / 6 - viewportWindow.x, y - viewportWindow.y, x - viewportWindow.x,
+                      y + pinlength / 6 - viewportWindow.y);
+        line.paint(g2);
+        line.set(x + pinlength / 6 - viewportWindow.x, y - viewportWindow.y, x - viewportWindow.x,
+                      y + pinlength / 6 - viewportWindow.y);
+        line.paint(g2);
+        break;
+    case Orientation.NORTH:
+        line.set(x - pinlength / 6 - viewportWindow.x, y - viewportWindow.y, x - viewportWindow.x,
+                      y - pinlength / 6 - viewportWindow.y);
+        line.paint(g2);
+        line.set(x + pinlength / 6 - viewportWindow.x, y - viewportWindow.y, x - viewportWindow.x,
+                      y - pinlength / 6 - viewportWindow.y);
+        line.paint(g2);
+        break;
+    case Orientation.WEST:
+        line.set(x - viewportWindow.x, y - pinlength / 6 - viewportWindow.y,
+                      x - pinlength / 6 - viewportWindow.x, y - viewportWindow.y);
+        line.paint(g2);
+        line.set(x - viewportWindow.x, y + pinlength / 6 - viewportWindow.y,
+                      x - pinlength / 6 - viewportWindow.x, y - viewportWindow.y);
+        line.paint(g2);
+        break;
+    case Orientation.EAST:
+        line.set(x - viewportWindow.x, y - pinlength / 6 - viewportWindow.y,
+                      x + pinlength / 6 - viewportWindow.x, y - viewportWindow.y);
+        line.paint(g2);
+        line.set(x - viewportWindow.x, y + pinlength / 6 - viewportWindow.y,
+                      x + pinlength / 6 - viewportWindow.x, y - viewportWindow.y);
+        line.paint(g2);
+        break;
+    }
+}
+drawOutputLow(g2,viewportWindow, scale) {
+	let pinlength = PIN_LENGTH *scale.getScale(); 
+    let line=new d2.Segment(0,0,0,0);
+    let x=this.segment.ps.x*scale.getScale();
+    let y=this.segment.ps.y*scale.getScale();
+    switch (this.orientation) {
+    case Orientation.SOUTH:
+        line.set(x - viewportWindow.x, y+ (pinlength / 3) - viewportWindow.y, x - (pinlength / 6) - viewportWindow.x,
+                      y  - viewportWindow.y);
+        line.paint(g2);
+        break;
+    case Orientation.NORTH:
+        line.set(x - viewportWindow.x, y- (pinlength / 3) - viewportWindow.y, x - (pinlength / 6) - viewportWindow.x,
+                      y - viewportWindow.y);
+        line.paint(g2);
+        break;
+    case Orientation.WEST:
+        line.set(x - viewportWindow.x, y- (pinlength / 6) - viewportWindow.y, x - (pinlength / 3) - viewportWindow.x,
+                      y - viewportWindow.y);
+        line.paint(g2);
+        break;
+    case Orientation.EAST:
+        line.set(x - viewportWindow.x, y - (pinlength / 6) - viewportWindow.y, x + (pinlength / 3) - viewportWindow.x,
+                      y  - viewportWindow.y);
+        line.paint(g2);
+        break;
     }
 
 }
-//------------RectangularShape----------------
-class RectangularShape{
-	constructor(x,y,width,height,pad){
-		this.pad=pad;
-		this.rect=new d2.Rectangle(new d2.Point(x-width/2,y-height/2),width,height);			
-}
-drawClearence(g2,viewportWindow,scale,source){
-    let r=this.rect.clone();
-    
-	
-	g2._fill=true;
-	g2.fillStyle = "black";	
-	
-	r.grow(source.clearance);
-	
-    r.scale(scale.getScale());		
-    r.move(-viewportWindow.x,- viewportWindow.y);
-	r.paint(g2);
-	
-    g2._fill=false;			
-}
-paint(g2,viewportWindow,scale){
-	   var box=this.rect.box;
-	   box.scale(scale.scale);     
-       //check if outside of visible window
-	   var window=new d2.Box(0,0,0,0);
-	   window.setRect(viewportWindow.x,viewportWindow.y,viewportWindow.width,viewportWindow.height);
-       if(!box.intersects(window)){
-         return false;
-       }
-       
-	    if(this.pad.isSelected())
-	      g2.fillStyle = "gray";  
-	    else{
-	      g2.fillStyle = this.pad.copper.getColor();
-	    }
-	    g2._fill=true;
-        let r=this.rect.clone();
-		r.scale(scale.getScale());
-        r.move(-viewportWindow.x,- viewportWindow.y);
-		r.paint(g2);
-	    
-		g2._fill=false;
-	    return true;
-}
-copy(pad){
-  let _copy=new RectangularShape(0,0,0,0,pad);
-  _copy.rect=this.rect.clone();	  
-  return _copy;  
-}
-contains(pt){
-	return this.rect.contains(pt);
-}
-rotate(alpha,origin){
-	if(origin==null){
-		  this.rect.rotate(alpha);
-	}else{
-		  this.rect.rotate(alpha,origin);	
-	}
-	
-}
-mirror( line) {
-    this.rect.mirror(line);
-}
-move(xoffset, yoffset) {
-	this.rect.move(xoffset,yoffset);
-}
-get box(){
-	return this.rect.box;
-}
-get center(){
-	return this.rect.box.center;	
-}
-setWidth(width) {
-		   this.rect.setSize(this.pad.width,this.pad.height);
-		   this.rect.rotate(this.pad.rotate);
-}
-setHeight(height) {
-		   this.rect.setSize(this.pad.width,this.pad.height);
-		   this.rect.rotate(this.pad.rotate);
-}
-}
-//------------OvalShape-----------------------
-class OvalShape{
-	constructor(x,y,width,height,pad){
-	   this.pad=pad;
-	   this.obround=new d2.Obround(new d2.Point(x,y),width,height);
-	}
-	drawClearence(g2,viewportWindow,scale,source){
-		let o=this.obround.clone();
-	    o.grow(source.clearance);
-	    g2.strokeStyle = "black";  
+drawInputLow(g2,viewportWindow, scale) {
+	let pinlength = PIN_LENGTH *scale.getScale(); 
+    let line=new d2.Segment(0,0,0,0);
+    let x=this.segment.ps.x*scale.getScale();
+    let y=this.segment.ps.y*scale.getScale();
+    switch (this.orientation) {
+    case Orientation.SOUTH:
+        line.set(x - viewportWindow.x, y - viewportWindow.y, x - (pinlength / 6) - viewportWindow.x,
+                      y + (pinlength / 3) - viewportWindow.y);
+        line.paint(g2);
+        line.set(x - (pinlength / 6) - viewportWindow.x, y + (pinlength / 3) - viewportWindow.y,
+                      x - viewportWindow.x, y + (pinlength / 3) - viewportWindow.y);
+        line.paint(g2);
+        break;
+    case Orientation.NORTH:
+        line.set(x - viewportWindow.x, y - viewportWindow.y, x - (pinlength / 6) - viewportWindow.x,
+                      y - (pinlength / 3) - viewportWindow.y);
+        line.paint(g2);
+        line.set(x - (pinlength / 6) - viewportWindow.x, y - (pinlength / 3) - viewportWindow.y,
+                      x - viewportWindow.x, y - (pinlength / 3) - viewportWindow.y);
+        line.paint(g2);
+        break;
+    case Orientation.WEST:
+        line.set(x - viewportWindow.x, y - viewportWindow.y, x - (pinlength / 3) - viewportWindow.x,
+                      y - (pinlength / 6) - viewportWindow.y);
+        line.paint(g2);
+        line.set(x - (pinlength / 3) - viewportWindow.x, y - (pinlength / 6) - viewportWindow.y,
+                      x - (pinlength / 3) - viewportWindow.x, y - viewportWindow.y);
+        line.paint(g2);
+        break;
+    case Orientation.EAST:
+        line.set(x - viewportWindow.x, y - viewportWindow.y, x + (pinlength / 3) - viewportWindow.x,
+                      y - (pinlength / 6) - viewportWindow.y);
+        line.paint(g2);
+        line.set(x + (pinlength / 3) - viewportWindow.x, y - (pinlength / 6) - viewportWindow.y,
+                      x + (pinlength / 3) - viewportWindow.x, y - viewportWindow.y);
+        line.paint(g2);
+        break;
+    }
 
-		o.scale(scale.getScale());
-	    o.move(-viewportWindow.x,- viewportWindow.y);
-		o.paint(g2);
-		
-	}
-paint(g2,viewportWindow,scale){
-	     var box=this.obround.box;
-	     box.scale(scale.scale);     
-       //check if outside of visible window
-	     var window=new d2.Box(0,0,0,0);
-	     window.setRect(viewportWindow.x,viewportWindow.y,viewportWindow.width,viewportWindow.height);
-         if(!box.intersects(window)){
-           return false;
-         }
-         
-	     g2.lineWidth = this.obround.width * scale.getScale();
-	     if(this.pad.isSelected())
-	        g2.strokeStyle = "gray";  
-	     else{
-	        g2.strokeStyle = this.pad.copper.getColor();
-	     }
-	      
-		   let o=this.obround.clone();
-		   o.scale(scale.getScale());
-	       o.move(-viewportWindow.x,- viewportWindow.y);
-		   o.paint(g2);
-
-	      return true;
 }
-copy(pad){
-	  let _copy=new OvalShape(0,0,0,0,pad);
-	  _copy.obround=this.obround.clone();	  
-	  return _copy;  
-	}
-rotate(alpha,origin){
-	if(origin==null){
-	  this.obround.rotate(alpha);
-	}else{
-	  this.obround.rotate(alpha,origin);	
-	}
+drawTriState(g2, viewportWindow, scale){
+    let pinlength = PIN_LENGTH *scale.getScale();    
+    let line=new d2.Segment(0,0,0,0);
+    let x=this.segment.ps.x*scale.getScale();
+    let y=this.segment.ps.y*scale.getScale();
+    switch (this.orientation) {
+      case Orientation.EAST:
+          line.set(x - viewportWindow.x, y - pinlength / 6 - viewportWindow.y,
+                  x - pinlength / 6 - viewportWindow.x, y - viewportWindow.y);
+          line.paint(g2);
+          line.set(x - viewportWindow.x, y + pinlength / 6 - viewportWindow.y,
+                  x - pinlength / 6 - viewportWindow.x, y - viewportWindow.y);
+          line.paint(g2);
+    	  break;
+      case Orientation.WEST:
+          line.set(x - viewportWindow.x, y - pinlength / 6 - viewportWindow.y,
+                  x + pinlength / 6 - viewportWindow.x, y - viewportWindow.y);
+          line.paint(g2);
+          line.set(x - viewportWindow.x, y + pinlength / 6 - viewportWindow.y,
+                  x + pinlength / 6 - viewportWindow.x, y - viewportWindow.y);
+          line.paint(g2);
+    	  break;
+      case Orientation.NORTH:
+          line.set(x - pinlength / 6 - viewportWindow.x, y - viewportWindow.y, x - viewportWindow.x,
+                  y + pinlength / 6 - viewportWindow.y);
+          line.paint(g2);
+          line.set(x + pinlength / 6 - viewportWindow.x, y - viewportWindow.y, x - viewportWindow.x,
+                  y + pinlength / 6 - viewportWindow.y);
+          line.paint(g2);
+    	  break;
+      case Orientation.SOUTH:
+          line.set(x - pinlength / 6 - viewportWindow.x, y - viewportWindow.y, x - viewportWindow.x,
+                  y - pinlength / 6 - viewportWindow.y);
+          line.paint(g2);
+          line.set(x + pinlength / 6 - viewportWindow.x, y - viewportWindow.y, x - viewportWindow.x,
+                  y - pinlength / 6 - viewportWindow.y);
+          line.paint(g2);
+    	  break;	    	  	    
+    }
 }
-contains(pt){
-	return this.obround.contains(pt);
-}
-move(xoffset, yoffset) {
-	this.obround.move(xoffset,yoffset);
-}
-mirror(line) {
-    this.obround.mirror(line);
-}
-get box(){
-	return this.obround.box;
-}
-get center(){
-	return this.obround.center;	
-}
-setWidth(width) {	    
-	    this.obround.setWidth(width);
-}
-setHeight(height) {	    
-	    this.obround.setHeight(height);
-	    this.obround.rotate(this.pad.rotate);
-}
-}
-
-//--------------PolygonShape-------------------------
-class PolygonShape{
-constructor(x,y,width,pad){
-		this.pad=pad;
-		this.hexagon=new d2.Hexagon(new d2.Point(x,y),width);		
-}	
-drawClearence(g2,viewportWindow,scale,source){
-	    let h=this.hexagon.clone();
-	    h.grow(source.clearance);
-     
-	    g2._fill=true;		   
-		g2.fillStyle = "black";	
-	    h.scale(scale.getScale());
-        h.move(-viewportWindow.x,- viewportWindow.y);
-	    h.paint(g2);
-	    
-	    g2._fill=false;
-}
-paint(g2, viewportWindow, scale) {
-		   var box=this.hexagon.box;
-		   box.scale(scale.scale);     
-	       //check if outside of visible window
-		   var window=new d2.Box(0,0,0,0);
-		   window.setRect(viewportWindow.x,viewportWindow.y,viewportWindow.width,viewportWindow.height);
-	       if(!box.intersects(window)){
-	         return false;
-	       }
-	       if(this.pad.isSelected()){
-	         g2.fillStyle = "gray";  
-		   }else{
-	         g2.fillStyle = this.pad.copper.getColor();
-	       }
-	        
-		   g2._fill=true;		   
-	       let p=this.hexagon.clone();
-		   p.scale(scale.getScale());
-	       p.move(-viewportWindow.x,- viewportWindow.y);
-		   p.paint(g2);
-		    
-		   g2._fill=false;
-            
-           return true;
-}
-copy(pad){
-	  let _copy=new PolygonShape(0,0,0,pad);
-	  _copy.hexagon=this.hexagon.clone();	  
-	  return _copy;  
-	}
-contains(pt){
-		return this.hexagon.contains(pt);
-	}
-rotate(alpha,origin){
-	if(origin==null){
-	  this.hexagon.rotate(alpha);
-	}else{
-	  this.hexagon.rotate(alpha,origin);	
-	}
-}
-get box(){
-	return this.hexagon.box;
-}
-get center(){
-	return this.hexagon.center;	
-}
-move(xoffset, yoffset) {
-		this.hexagon.move(xoffset,yoffset);
-}
-mirror(line) {
-   this.hexagon.mirror(line);
-}
-setWidth(width) {
-   this.hexagon.setWidth(width);
-}
-setHeight(height) {
-            
+drawInverted(g2, viewportWindow, scale){
+    let invertCircleRadios = (PIN_LENGTH / 6);
+    let circle=new d2.Circle(new d2.Point(this.segment.ps.x,this.segment.ps.y),invertCircleRadios);
+    switch (this.orientation) {
+      case Orientation.EAST:
+    	  circle.move(invertCircleRadios,0);
+    	  break;
+      case Orientation.WEST:
+    	  circle.move(-invertCircleRadios,0);
+    	  break;
+      case Orientation.NORTH:
+    	  circle.move(0,-invertCircleRadios);
+    	  break;
+      case Orientation.SOUTH:
+    	  circle.move(0,invertCircleRadios);
+    	  break;	    	  	    
+    }
+	circle.scale(scale.getScale());
+	circle.move(-viewportWindow.x,- viewportWindow.y);
+	circle.paint(g2);	
 }	
 }
 module.exports ={
-	GlyphLabel,
-	Line,
-	RoundRect,
-	Circle,
-	Arc,
-	SolidRegion,
-	Pad,Drill,
-	FootprintShapeFactory
-}
-
+		ArrowLine,
+		Triangle,
+		Arc,
+		Pin,
+		Ellipse,
+		Line,
+		FontLabel,
+		RoundRect,
+		PIN_LENGTH,
+		Orientation,
+		SymbolShapeFactory
+	}
 });
 
-;require.register("pads/views/footprintloadview.js", function(exports, require, module) {
+;require.register("symbols/views/symbolloadview.js", function(exports, require, module) {
 var mywebpcb=require('core/core').mywebpcb;
 var core=require('core/core');
-var FootprintContainer=require('pads/d/footprintcomponent').FootprintContainer;
+var SymbolContainer=require('symbols/d/symbolcomponent').SymbolContainer;
 
-var FootprintLoadView=Backbone.View.extend({
+var SymbolLoadView=Backbone.View.extend({
 	  initialize:function(opt){
-			j$('#FootprintLoadDialog').jqxWindow('open');
-			j$('#FootprintLoadDialog').off('close', j$.proxy(this.onclose,this)); 
-			j$('#FootprintLoadDialog').on('close', j$.proxy(this.onclose,this)); 			
+			j$('#SymbolLoadDialog').jqxWindow('open');
+			j$('#SymbolLoadDialog').off('close', j$.proxy(this.onclose,this)); 
+			j$('#SymbolLoadDialog').on('close', j$.proxy(this.onclose,this)); 			
 			this.unitSelectionPanel=new core.UnitSelectionPanel({selectorid:'unitselectionpanel',canvasprefixid:'f',enabled:opt.enabled});
+			this.unitSelectionPanel.textColor='black';
+			this.unitSelectionPanel.backColor='white';
+		    this.unitSelectionPanel.unitSelectionGrid.scaleFactor=0;
+		    this.unitSelectionPanel.unitSelectionGrid.scaleRatio=1.2;    
+		    this.unitSelectionPanel.unitSelectionGrid.minScaleFactor=0;
+		    this.unitSelectionPanel.unitSelectionGrid.maxScaleFactor=10;
+		    
 			this.libraryview=new LibraryView({unitSelectionPanel:this.unitSelectionPanel});  
 	    	this.buttonview=new ButtonView({unitSelectionPanel:this.unitSelectionPanel});  
-	    	j$('#loadtitle').html("Load Footprint");
+	    	j$('#loadtitle').html("Load Symbol");
 		  },
       onclose:function(){
     	  this.undelegateEvents();
@@ -14188,15 +13486,15 @@ var LibraryView=Backbone.View.extend({
 	el:"#librarycomboslot",
 	initialize:function(opt){
 		this.unitSelectionPanel=opt.unitSelectionPanel;
-		j$('#footprinttree').jqxTree({width: '100%',height:'260px'});
+		j$('#symboltree').jqxTree({width: '100%',height:'260px'});
 		//bind select element
-		j$('#footprinttree').on('select',j$.proxy(this.onvaluechange,this));			
+		j$('#symboltree').on('select',j$.proxy(this.onvaluechange,this));			
         this.loadlibrary();
 	},
 	clear:function(){
 	    //unbind select element		
-		j$('#footprinttree').off('select',j$.proxy(this.onvaluechange,this));
-		j$('#footprinttree').jqxTree('clear');
+		j$('#symboltree').off('select',j$.proxy(this.onvaluechange,this));
+		j$('#symboltree').jqxTree('clear');
 		j$('#librarycombo').html("");
 		this.undelegateEvents();
 	},
@@ -14208,7 +13506,7 @@ var LibraryView=Backbone.View.extend({
     },
     onvaluechange:function(event){
         //is this category or footprint selection
-    	var item = j$('#footprinttree').jqxTree('getItem', event.args.element);
+    	var item = j$('#symboltree').jqxTree('getItem', event.args.element);
     	var url="";
     	var callback=null;
     	if(item.value.fullname!=undefined&&item.value.category!=undefined){
@@ -14230,10 +13528,10 @@ var LibraryView=Backbone.View.extend({
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/rest/footprints/libraries/'+url,
+	        url: '/rest/symbols/libraries/'+url,
 	        dataType: "xml",
 	        beforeSend:function(){
-		          j$('#FootprintLoadDialog').block({message:'<h5>Loading...</h5>'});	
+		          j$('#SymbolLoadDialog').block({message:'<h5>Loading...</h5>'});	
 		        },
 	        success: j$.proxy(callback,this),
 	        
@@ -14241,19 +13539,19 @@ var LibraryView=Backbone.View.extend({
 	            	alert(errorThrown+":"+jqXHR.responseText);
 	        },
 	        complete:function(jqXHR, textStatus){
-	        	j$('#FootprintLoadDialog').unblock();
+	        	j$('#SymbolLoadDialog').unblock();
 	        }
 	    });
     	
     },
     loadfootprint:function(data, textStatus, jqXHR){
       this.unitSelectionPanel.release();
-      footprintContainer=new FootprintContainer();
+      symbolContainer=new SymbolContainer();
       //disable 
       core.isEventEnabled=false;
-      footprintContainer.parse(data);
+      symbolContainer.parse(data);
       core.isEventEnabled=true;
-      this.unitSelectionPanel.unitSelectionGrid.setModel(footprintContainer);
+      this.unitSelectionPanel.unitSelectionGrid.setModel(symbolContainer);
       this.unitSelectionPanel.unitSelectionGrid.build();   
       this.unitSelectionPanel.render();
 //****load it    	
@@ -14271,24 +13569,24 @@ var LibraryView=Backbone.View.extend({
 //		  this.footprintComponent.getView().setButtonGroup(mywebpads.ModeEnum.COMPONENT_MODE);
     },
     loadfootprints:function(data, textStatus, jqXHR){
-    	var item = j$('#footprinttree').jqxTree('getSelectedItem');
+    	var item = j$('#symboltree').jqxTree('getSelectedItem');
 		var that=this; 
 		//fill category with footprints
 		j$(data).find("name").each(j$.proxy(function(){	
-			j$('#footprinttree').jqxTree('addTo', { label: j$(this).text(),value:{library:j$(this).attr("library"),category:j$(this).attr("category"),fullname:j$(this).attr("fullname")}}, item);         
+			j$('#symboltree').jqxTree('addTo', { label: j$(this).text(),value:{library:j$(this).attr("library"),category:j$(this).attr("category"),fullname:j$(this).attr("fullname")}}, item);         
 		}),that);
-		j$('#footprinttree').jqxTree('render');
+		j$('#symboltree').jqxTree('render');
 		//expand
-		j$('#footprinttree').jqxTree('expandItem', item.element);
+		j$('#symboltree').jqxTree('expandItem', item.element);
     },
     loadlibrary:function(){
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/rest/footprints/libraries',
+	        url: '/rest/symbols/libraries',
 	        dataType: "xml",
 	        beforeSend:function(){
-		          j$('#FootprintLoadDialog').block({message:'<h5>Loading...</h5>'});	
+		          j$('#SymbolLoadDialog').block({message:'<h5>Loading...</h5>'});	
 		        },
 	        success: j$.proxy(this.onloadlibraries,this),
 	        
@@ -14296,7 +13594,7 @@ var LibraryView=Backbone.View.extend({
 	            	alert(errorThrown+":"+jqXHR.responseText);
 	        },
 	        complete:function(jqXHR, textStatus){
-	        	j$('#FootprintLoadDialog').unblock();
+	        	j$('#SymbolLoadDialog').unblock();
 	        }
 	    });
 	    
@@ -14313,10 +13611,10 @@ var LibraryView=Backbone.View.extend({
 	    j$.ajax({
 	        type: 'GET',
 	        contentType: 'application/xml',
-	        url: '/rest/footprints/libraries/'+library+'/categories',
+	        url: '/rest/symbols/libraries/'+library+'/categories',
 	        dataType: "xml",
 	        beforeSend:function(){
-		          j$('#FootprintLoadDialog').block({message:'<h5>Loading...</h5>'});	
+		          j$('#SymbolLoadDialog').block({message:'<h5>Loading...</h5>'});	
 		        },
 	        success: j$.proxy(this.onloadcategories,this),
 	        
@@ -14324,17 +13622,17 @@ var LibraryView=Backbone.View.extend({
 	            	alert(errorThrown+":"+jqXHR.responseText);
 	        },
 	        complete:function(jqXHR, textStatus){
-	        	j$('#FootprintLoadDialog').unblock();
+	        	j$('#SymbolLoadDialog').unblock();
 	        }
 	    });		
 	},
 	onloadcategories:function(data, textStatus, jqXHR){
 		var that=this; 
-		j$('#footprinttree').jqxTree('clear');
+		j$('#symboltree').jqxTree('clear');
 		j$(data).find("name").each(j$.proxy(function(){	
-			j$('#footprinttree').jqxTree('addTo', { label: j$(this).text(),value:{library:j$(this).attr("library"),category:j$(this).attr("category"),fullname:(j$(this).attr("category")==undefined?j$(this).text():undefined)}}, null);         
+			j$('#symboltree').jqxTree('addTo', { label: j$(this).text(),value:{library:j$(this).attr("library"),category:j$(this).attr("category"),fullname:(j$(this).attr("category")==undefined?j$(this).text():undefined)}}, null);         
 		}),that);		
-		j$('#footprinttree').jqxTree('render');
+		j$('#symboltree').jqxTree('render');
 	},
 	render:function(){
 		j$(this.el).empty();
@@ -14364,10 +13662,10 @@ var ButtonView=Backbone.View.extend({
     	this.unitSelectionPanel.unitSelectionGrid.model.event=e;    	    	
     	mywebpcb.trigger('libraryview:load',this.unitSelectionPanel.unitSelectionGrid.model);
 		//close dialog 
-		j$('#FootprintLoadDialog').jqxWindow('close');
+		j$('#SymbolLoadDialog').jqxWindow('close');
     },
     onclose:function(){
-    	j$('#FootprintLoadDialog').jqxWindow('close'); 	
+    	j$('#SymbolLoadDialog').jqxWindow('close'); 	
     },
     
 	render:function(){
@@ -14378,7 +13676,7 @@ var ButtonView=Backbone.View.extend({
 	}
 });
 
-module.exports =FootprintLoadView	
+module.exports =SymbolLoadView	
 
 
 

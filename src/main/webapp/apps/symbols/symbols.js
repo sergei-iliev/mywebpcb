@@ -187,7 +187,25 @@ var Units=(function(){
         PIXEL:2		
 	}
 })();
-
+SymbolType={
+		SYMBOL:0,
+		GROUND:1,
+		POWER:2,
+		valueOf:function(v){
+		   switch(v){
+		   case 0:return "SYMBOL";
+		   case 1:return "GROUND";
+		   case 2:return "POWER";
+		   }	
+		},
+		parse:function(v){
+			switch(v){
+			   case "SYMBOL": return 0;
+			   case "GROUND":return 1;
+			   case "POWER":return 2;		
+			}
+		}
+	 };
 var ModeEnum=(function(){
 	return{
 		   COMPONENT_MODE:0,		   
@@ -209,6 +227,12 @@ var ModeEnum=(function(){
 		   PIN_MODE:17,
 		   ARROW_MODE:18,
 		   TRIANGLE_MODE:19,
+		   SYMBOL_MODE:20,
+		   JUNCTION_MODE:21,
+		   WIRE_MODE:22,
+		   BUS_MODE:23,
+		   BUSPIN_MODE:24,
+		   NOCONNECTOR_MODE:25,
 	}
 })();
 
@@ -990,7 +1014,8 @@ module.exports ={
     COORD_TO_MM,
 	UnitSelectionPanel,
 	CompositeLayer,
-	isEventEnabled
+	isEventEnabled,
+	SymbolType
 }
 
 var events=require('core/events');
@@ -1054,11 +1079,11 @@ class EventHandle{
 	 setTarget(target){
        this.target=target;
 	 }
-	 Clear(){
+	 clear(){
 		 
 	 }
 	 Detach(){
-	   this.Clear();
+	   this.clear();
 	 }
 isRightMouseButton(e){	 
 	  return e.which!=1
@@ -1106,7 +1131,7 @@ class MoveEventHandle extends EventHandle{
 	 	let new_mx = event.x;
 	    let new_my = event.y;
 		
-	    this.target.Move(new_mx - this.mx, new_my - this.my);
+	    this.target.move(new_mx - this.mx, new_my - this.my);
 	    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
 	    this.mx = new_mx;
 	    this.my = new_my;
@@ -1282,7 +1307,7 @@ mouseMove(event){
 	        let new_mx = event.x;
 	        let new_my = event.y;
 	       
-	        this.component.getModel().getUnit().getCoordinateSystem().Move((new_mx - this.mx), (new_my - this.my));
+	        this.component.getModel().getUnit().getCoordinateSystem().move((new_mx - this.mx), (new_my - this.my));
 	        this.component.getModel().fireUnitEvent({target:this.component.getModel().getUnit(),type:Event.PROPERTY_CHANGE});
 
 	        this.mx = new_mx;
@@ -1326,7 +1351,7 @@ class CursorEventHandle extends EventHandle{
 		    let   new_my = event.y;
 		    
 			
-		    this.target.Move(new_mx - this.mx, new_my - this.my);
+		    this.target.move(new_mx - this.mx, new_my - this.my);
 
 		    this.mx = new_mx;
 		    this.my = new_my;
@@ -1524,7 +1549,7 @@ class TextureEventHandle extends EventHandle{
 		 super(component);
 		 this.texture=null;
 	 }
-Clear() {
+clear() {
 	 this.texture=null;
 }
 mousePressed(event){
@@ -1544,7 +1569,7 @@ mouseDragged(event){
 	 	let new_mx = event.x;
 	    let new_my = event.y;
 		
-		this.texture.Move(new_mx - this.mx, new_my - this.my);
+		this.texture.move(new_mx - this.mx, new_my - this.my);
 		this.target.owningUnit.fireShapeEvent({target:this.target,type: Event.PROPERTY_CHANGE});
 		
 	    this.mx = new_mx;
@@ -1627,7 +1652,344 @@ var UnitMgr = require('core/unit').UnitMgr;
 
 });
 
-require.register("core/models/togglebutton.js", function(exports, require, module) {
+require.register("core/line/linebendingprocessor.js", function(exports, require, module) {
+var core=require('core/core');
+var d2=require('d2/d2');
+var utilities =require('core/utilities');
+
+class LineBendingProcessor{
+constructor () {
+	    this.line;	    
+	    this.isGridAlignable=false;
+  }	
+initialize(line){           
+      this.line=line         
+  }
+addLinePoint(point){
+	
+}   
+
+moveLinePoint(x,y){
+
+}
+isOverlappedPoint(pointToAdd){
+    if(this.line.getLinePoints().length>0){
+      let lastPoint=this.line.getLinePoints()[(this.line.getLinePoints().length-1)]; 
+        //***is this the same point as last one?   
+      if(d2.utils.EQ(pointToAdd.x,lastPoint.x)&&d2.utils.EQ(pointToAdd.y,lastPoint.y))
+        return true;    
+    }
+    return false;
+}
+isPointOnLine(pointToAdd){
+    if(this.line.getLinePoints().length>=2){
+        let lastPoint=this.line.getLinePoints()[(this.line.getLinePoints().length-1)]; 
+        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+      //***check if point to add overlaps last last point
+      if(lastlastPoint.equals(pointToAdd)){
+        this.line.deleteLastPoint();
+        lastPoint.set(pointToAdd);  
+        return true;
+      }
+      if((d2.utils.EQ(lastPoint.x,pointToAdd.x)&&d2.utils.EQ(lastlastPoint.x,pointToAdd.x))||(d2.utils.EQ(lastPoint.y,pointToAdd.y)&&d2.utils.EQ(lastlastPoint.y,pointToAdd.y))){                
+        lastPoint.set(pointToAdd);                           
+        return true;
+      }                    
+   }
+   return false;	
+}
+isSlopeInterval(p1,p2){
+	if(d2.utils.EQ(p1.x,p2.x)){
+		return false;
+	}
+	if(d2.utils.EQ(p1.y,p2.y)){
+		return false;
+	}
+	return true;	
+}
+}
+class LineSlopBendingProcessor extends LineBendingProcessor{
+	constructor () {
+		super();
+  }	
+
+addLinePoint( point) {
+        if(this.line.getLinePoints().length==0){
+             this.line.resetToPoint(point);
+        }               
+        let result=false;
+        if(!this.isOverlappedPoint(point)){
+            if(!this.isPointOnLine(point)) {
+                let midP,endP;
+               
+                if(this.isGridAlignable){
+                  midP=this.line.owningUnit.getGrid().positionOnGrid(this.line.floatingMidPoint.x,this.line.floatingMidPoint.y);
+                  endP=this.line.owningUnit.getGrid().positionOnGrid(this.line.floatingEndPoint.x,this.line.floatingEndPoint.y);
+                }else{
+                  midP=new d2.Point(this.line.floatingMidPoint.x,this.line.floatingMidPoint.y);
+                  endP=new d2.Point(this.line.floatingEndPoint.x,this.line.floatingEndPoint.y);
+                  
+                }
+                if(this.isOverlappedPoint(midP)){
+                   this.line.addPoint(endP);
+                   result=true;  
+                }else if(!this.isPointOnLine(midP)){
+                   this.line.addPoint(midP);
+                   result=true;
+                } 
+            }  
+        }  
+    
+        this.line.shiftFloatingPoints(); 
+        return result;
+        
+        
+}	
+moveLinePoint(x,y){
+	
+	    if(this.line.getLinePoints().length>1){
+	        //line is resumed if line end is not slope then go on from previous segment
+	    	let lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
+	        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+	        if(this.isSlopeInterval(lastPoint, lastlastPoint)){
+	        	this.handleLine(x, y);
+	        }else{
+	           this.handleSlope(x, y); 
+	        }
+	        
+	    }else{
+	        this.handleLine(x, y);
+	    }	
+	}
+
+handleSlope(x,y){    
+    this.line.floatingEndPoint.set(x,y);
+    let quadrant = utilities.getQuadrantLocation(this.line.floatingStartPoint,this.line.floatingEndPoint);
+    let dx=Math.abs(this.line.floatingStartPoint.x-this.line.floatingEndPoint.x);
+    let dy=Math.abs(this.line.floatingStartPoint.y-this.line.floatingEndPoint.y); 
+    
+    
+    if(dx>=dy){ 
+        switch(quadrant){
+            case  utilities.QUADRANT.FIRST:
+                  this.line.floatingMidPoint.set(this.line.floatingStartPoint.x+dy,this.line.floatingEndPoint.y); 
+                  break;            
+            case  utilities.QUADRANT.SECOND:
+                  this.line.floatingMidPoint.set(this.line.floatingStartPoint.x-dy,this.line.floatingEndPoint.y);  
+                  break;             
+            case  utilities.QUADRANT.THIRD:
+                  this.line.floatingMidPoint.set(this.line.floatingStartPoint.x-dy,this.line.floatingEndPoint.y);   
+                  break; 
+            case  utilities.QUADRANT.FORTH:
+                  this.line.floatingMidPoint.set(this.line.floatingStartPoint.x+dy,this.line.floatingEndPoint.y);                        
+                  break;                
+        }
+    }else{
+        switch(quadrant){
+            case  utilities.QUADRANT.FIRST:
+                  this.line.floatingMidPoint.set(this.line.floatingEndPoint.x,this.line.floatingStartPoint.y-dx);                        
+                  break;            
+            case  utilities.QUADRANT.SECOND:
+                  this.line.floatingMidPoint.set(this.line.floatingEndPoint.x,this.line.floatingStartPoint.y-dx); 
+                  break;             
+            case  utilities.QUADRANT.THIRD:
+                  this.line.floatingMidPoint.set(this.line.floatingEndPoint.x,this.line.floatingStartPoint.y+dx); 
+                  break; 
+            case  utilities.QUADRANT.FORTH:
+                  this.line.floatingMidPoint.set(this.line.floatingEndPoint.x,this.line.floatingStartPoint.y+dx);                        
+                  break;                
+        }            
+    }
+       
+}        
+	
+handleLine( x,  y){        
+        this.line.floatingEndPoint.set(x,y);
+        let quadrant = utilities.getQuadrantLocation(this.line.floatingStartPoint,this.line.floatingEndPoint);
+        let dx=Math.abs(this.line.floatingStartPoint.x-this.line.floatingEndPoint.x);
+        let dy=Math.abs(this.line.floatingStartPoint.y-this.line.floatingEndPoint.y); 
+        
+        if(dx>=dy){ 
+            switch(quadrant){
+                case  utilities.QUADRANT.FIRST:
+                      this.line.floatingMidPoint.set(this.line.floatingEndPoint.x-dy,this.line.floatingStartPoint.y); 
+                      break;            
+                case  utilities.QUADRANT.SECOND:
+                      this.line.floatingMidPoint.set(this.line.floatingEndPoint.x+dy,this.line.floatingStartPoint.y);  
+                      break;             
+                case  utilities.QUADRANT.THIRD:
+                      this.line.floatingMidPoint.set(this.line.floatingEndPoint.x+dy,this.line.floatingStartPoint.y);   
+                      break; 
+                case  utilities.QUADRANT.FORTH:
+                      this.line.floatingMidPoint.set(this.line.floatingEndPoint.x-dy,this.line.floatingStartPoint.y);                        
+                      break;                
+            }
+        }else{
+        	switch(quadrant){
+                case  utilities.QUADRANT.FIRST:
+                      this.line.floatingMidPoint.set(this.line.floatingStartPoint.x,this.line.floatingEndPoint.y+dx);                        
+                      break;            
+                case  utilities.QUADRANT.SECOND:
+                      this.line.floatingMidPoint.set(this.line.floatingStartPoint.x,this.line.floatingEndPoint.y+dx); 
+                      break;             
+                case  utilities.QUADRANT.THIRD:
+                      this.line.floatingMidPoint.set(this.line.floatingStartPoint.x,this.line.floatingEndPoint.y-dx); 
+                      break; 
+                case  utilities.QUADRANT.FORTH:
+                      this.line.floatingMidPoint.set(this.line.floatingStartPoint.x,this.line.floatingEndPoint.y-dx);                        
+                      break;                
+            }            
+        }
+        
+    }	
+	
+}
+class SlopLineBendingProcessor extends LineSlopBendingProcessor{
+	constructor () {
+		super();
+  }		
+addLinePoint( point) {
+		super.addLinePoint(point);
+	}
+moveLinePoint(x,y){
+    if(this.line.getLinePoints().length>1){
+        let lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
+        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+        if(this.isSlopeInterval(lastPoint, lastlastPoint)){
+           this.handleLine(x, y);
+        }else{
+           this.handleSlope(x, y); 
+        }
+        
+    }else{
+        this.handleSlope(x, y);
+    }	
+}	
+	
+}
+class DefaultLineBendingProcessor extends LineBendingProcessor {
+constructor () {
+		super();
+  }	   
+addLinePoint(point) {      
+       let result=false;
+       if(!this.isOverlappedPoint(point)){
+           if(!this.isPointOnLine(point)){
+               this.line.addPoint(point);   
+               result=true;
+           }               
+       }         
+       this.line.resetToPoint(point); 
+       return result;
+    }
+
+moveLinePoint( x,  y) {
+      this.line.floatingEndPoint.set(x,y); 
+      this.line.floatingMidPoint.set(x,y);
+    }
+
+}
+
+class HorizontalToVerticalProcessor extends LineBendingProcessor{
+  constructor () {
+		super();
+  }
+  addLinePoint( point) {
+      if(this.line.getLinePoints().length==0){
+          this.line.resetToPoint(point);
+     }               
+     let result=false;
+     if(!this.isOverlappedPoint(point)){
+         if(!this.isPointOnLine(point)) {
+             let midP,endP;
+            
+             if(this.isGridAlignable){
+               midP=this.line.owningUnit.getGrid().positionOnGrid(this.line.floatingMidPoint.x,this.line.floatingMidPoint.y);
+               endP=this.line.owningUnit.getGrid().positionOnGrid(this.line.floatingEndPoint.x,this.line.floatingEndPoint.y);
+             }else{
+               midP=new d2.Point(this.line.floatingMidPoint.x,this.line.floatingMidPoint.y);
+               endP=new d2.Point(this.line.floatingEndPoint.x,this.line.floatingEndPoint.y);
+               
+             }
+             if(this.isOverlappedPoint(midP)){
+                this.line.addPoint(endP);
+                result=true;  
+             }else if(!this.isPointOnLine(midP)){
+                this.line.addPoint(midP);
+                result=true;
+             } 
+         }  
+     }  
+ 
+     this.line.shiftFloatingPoints(); 
+     return result;
+  }	
+  moveLinePoint(x,y){
+		
+	    if(this.line.getLinePoints().length>1){
+	        //line is resumed if line end is not slope then go on from previous segment
+	    	let lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
+	        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+	        if(this.isHorizontalInterval(lastPoint, lastlastPoint)){
+	           this.handleVertical(x, y);
+	        }else{
+	           this.handleHorizontal(x, y); 
+	        }
+	        
+	    }else{
+	        this.handleHorizontal(x, y);
+	    }	
+	}  
+  handleVertical( x,  y){
+	  this.line.floatingEndPoint.set(x,y);
+	  this.line.floatingMidPoint.set(this.line.floatingStartPoint.x,this.line.floatingEndPoint.y); 
+  }
+  handleHorizontal( x,  y){        
+      this.line.floatingEndPoint.set(x,y);
+      this.line.floatingMidPoint.set(this.line.floatingEndPoint.x,this.line.floatingStartPoint.y); 
+                        
+  }	
+  isHorizontalInterval(p1,p2){
+		if(d2.utils.EQ(p1.x,p2.x)){
+			return false;
+		}		
+		return true;	
+	}  
+}
+
+class VerticalToHorizontalProcessor extends HorizontalToVerticalProcessor{
+constructor () {
+			super();
+	  }
+addLinePoint( point) {
+			super.addLinePoint(point);
+		}
+moveLinePoint(x,y){
+    if(this.line.getLinePoints().length>1){
+        //line is resumed if line end is not slope then go on from previous segment
+    	let lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
+        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+        if(this.isHorizontalInterval(lastPoint, lastlastPoint)){
+           this.handleVertical(x, y);
+        }else{
+           this.handleHorizontal(x, y); 
+        }
+        
+    }else{
+        this.handleVertical(x, y);
+    }		
+	}	  
+}
+module.exports ={
+		SlopLineBendingProcessor,
+		LineSlopBendingProcessor,
+		DefaultLineBendingProcessor,
+		HorizontalToVerticalProcessor,
+		VerticalToHorizontalProcessor,
+}
+});
+
+;require.register("core/models/togglebutton.js", function(exports, require, module) {
 
 
 /*
@@ -1672,6 +2034,7 @@ module.exports ={
 var core=require('core/core');
 var UnitMgr = require('core/unit').UnitMgr;
 var d2=require('d2/d2');
+var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').DefaultLineBendingProcessor;
 
 class ContextMenu{
 constructor(component,placeholderid){
@@ -1746,7 +2109,12 @@ attachEventListeners(context){
 }
 
 actionPerformed(id,context){
-	 if (id=="resumeid") {
+	let line =this.component.lineBendingProcessor.line;
+	if(id=='defaultbendid'){
+		this.component.lineBendingProcessor=new DefaultLineBendingProcessor();
+		this.component.lineBendingProcessor.initialize(line);
+	}	
+	if (id=="resumeid") {
 	        this.component.getView().setButtonGroup(core.ModeEnum.LINE_MODE);
 	        this.component.setMode(core.ModeEnum.LINE_MODE);         
 	        this.component.resumeLine(context.target,"line", {x:this.x, y:this.y,which:3});
@@ -1849,7 +2217,7 @@ actionPerformed(id,context){
         	 this.component.getModel().setActiveUnit(0);
         	 this.component.getModel().fireUnitEvent({target:this.component.getModel().getUnit(),type:Event.SELECT_UNIT});
          }else{
-        	 this.component.Clear();
+        	 this.component.clear();
         	 this.component.fireContainerEvent({target:null, type:Event.DELETE_CONTAINER});
          }
          this.component.repaint();  
@@ -1999,21 +2367,21 @@ isSelected() {
 		return this.selection;
 	}
 
-Move(xoffset,yoffset) {
+move(xoffset,yoffset) {
       this.setX(this.getX() + xoffset);
       this.setY(this.getY() + yoffset);    
 }
 
-Mirror(line) {
+mirror(line) {
 
 }
 setSide(side, line, angle) {
     this.copper=(core.Layer.Side.change(this.copper.getLayerMaskID()));
-    this.Mirror(line);
-    this.rotate=angle;
+    this.mirror(line);
+    this.rotation=angle;
 }     
 
-Rotate(rotation) {
+rotate(rotation) {
 //		let point = new Point(this.getX(), this.getY());
 //		point = utilities.rotate(point, rotation.originx,rotation.originy, rotation.angle);
 //	
@@ -2124,7 +2492,7 @@ class AbstractLine extends Shape{
 																		// degree
 																		// forming
 		this.floatingEndPoint = new d2.Point();
-		this.rotate=0;
+		this.rotation=0;
 		
 }
 get vertices(){
@@ -2133,7 +2501,7 @@ get vertices(){
 getLinePoints(){
 		return this.polyline.points;
 	}
-Clear(){
+clear(){
 		this.polyline.points=null;		
 	}
 alignResizingPointToGrid(targetPoint) {
@@ -2142,10 +2510,11 @@ alignResizingPointToGrid(targetPoint) {
 isClicked(x, y) {
 	  var result = false;
 		// build testing rect
+	  var width=this.thickness<4?4:this.thickness;
 	  var rect = d2.Box.fromRect(x
-								- (this.thickness / 2), y
-								- (this.thickness / 2), this.thickness,
-								this.thickness);
+								- (width / 2), y
+								- (width / 2), width,
+								width);
 	  var r1 = rect.min;
 	  var r2 = rect.max;
 
@@ -2343,32 +2712,32 @@ isControlRectClicked(x, y) {
 	return point;
 }
 
-Move(xoffset, yoffset) {
+move(xoffset, yoffset) {
 	this.polyline.move(xoffset,yoffset);
 }
-Mirror(line) {
+mirror(line) {
     this.polyline.mirror(line);
 }
 setRotation(rotate,center){
-	let alpha=rotate-this.rotate;
+	let alpha=rotate-this.rotation;
 	let box=this.polyline.box;
 	if(center==undefined){
 		this.polyline.rotate(alpha,box.center);
 	}else{
 		this.polyline.rotate(alpha,center);	 	
 	}
-	this.rotate=rotate;
+	this.rotation=rotate;
 }
-Rotate(rotation) {
+rotate(rotation) {
 	//fix angle
-	let alpha=this.rotate+rotation.angle;
+	let alpha=this.rotation+rotation.angle;
 	if(alpha>=360){
 	  alpha-=360
 	}
 	if(alpha<0){
 	 alpha+=360; 
 	}	
-	this.rotate=alpha;	
+	this.rotation=alpha;	
 	this.polyline.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
 }
 calculateShape() {
@@ -2476,7 +2845,7 @@ setSize(size){
 setRotation(rotate,pt){	
   this.shape.rotate(rotate,pt);
 }
-Move(xoffset, yoffset){
+move(xoffset, yoffset){
    this.shape.move(xoffset, yoffset);  
 }
 setSide(side,  line,  angle) { 
@@ -2527,7 +2896,7 @@ paint(g2,viewportWindow,scale){
 }
 toXML(){
     return (this.text=="" ? "" :
-        this.shape.text + "," + utilities.roundFloat(this.shape.anchorPoint.x,2) + "," + utilities.roundFloat(this.shape.anchorPoint.y,2) +
+        this.shape.text + "," + utilities.roundFloat(this.shape.anchorPoint.x,3) + "," + utilities.roundFloat(this.shape.anchorPoint.y,3) +
         ",,PLAIN,"+this.shape.fontSize+"," +this.shape.rotation);	 
 }
 fromXML(node){
@@ -2545,81 +2914,244 @@ fromXML(node){
     
 }
 }
+TextAlignment={
+		  RIGHT:0,
+		  TOP:1,
+		  LEFT:2,
+		  BOTTOM:3,
+		  parse:function(align){
+			  switch(align){
+			  case 'LEFT':
+				     return this.LEFT;
+			  case 'RIGHT':
+					 return this.RIGHT; 
+			  case 'TOP':
+					 return this.TOP;
+			  case 'BOTTOM':
+					 return this.BOTTOM;			 
+			  default:
+				  throw new TypeError('Unrecognized align type:'+align+' to parse');  
+			  } 	  
+		  },
+		  mirror:function(align,isHorizontal){	          	               	                 
+	               if(isHorizontal){
+	                   if(align==this.LEFT)
+	                     return this.RIGHT;
+	                   else if(align==this.RIGHT)
+	                     return this.LEFT;
+	                   else
+	                     return align;
+	                  }else{
+	                   if(align==this.BOTTOM)
+	                     return this.TOP;
+	                   else if(align==this.TOP)
+	                     return this.BOTTOM;
+	                   else
+	                     return align;  
+	                  }  
+		  },
+	      rotate:function(align,isClockwise){       
+	           if(align==this.LEFT){
+	              if(isClockwise)
+	                return this.TOP;
+	              else
+	                return this.BOTTOM;
+	           }else if(align==this.RIGHT){
+	                if(isClockwise)
+	                  return this.BOTTOM;
+	                else
+	                  return this.TOP;           
+	            }else if(align==this.TOP){
+	               if(isClockwise) 
+	                   return this.RIGHT;
+	               else
+	                   return this.LEFT;           
+	               }               
+	               else if(align==this.BOTTOM){
+	                if(isClockwise)
+	                    return this.LEFT;
+	                else
+	                   return this.RIGHT;
+	               }
+	                      
+	      },		  
+	      getOrientation:function(align){
+	    	  if(align==0||align==2){
+	    		return  TextOrientation.HORIZONTAL; 
+	    	  }else{
+	    		return  TextOrientation.VERTICAL;  
+	    	  }
+	           
+	      },
+		  from:function(align){
+			 switch(align){
+			 case 0:return 'RIGHT';
+			 case 1:return 'TOP';
+			 case 2:return 'LEFT';
+			 case 3:return 'BOTTOM';
+			 } 
+		  }
+}
 TextOrientation={
         HORIZONTAL:0,
         VERTICAL:1,        
 }
-class SymbolFontTexture extends FontTexture{
-constructor(tag,text,x,y,fontSize,rotation) {
-       super(tag,text,x,y,fontSize,rotation);
-       this.selectionRectWidth=4;
-       this.fillColor='black'; 
-}
-clone(){
-    var copy=new SymbolFontTexture(this.shape.text,this.tag,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.fontSize,this.shape.rotation);     
-    copy.fillColor=this.fillColor;
-    return copy;	 
-} 
-setOrientation(orientation){
-    switch (orientation) {
-    case TextOrientation.HORIZONTAL:
-       if(this.shape.rotation==90){
-    	this.rotate({angle:-90,originx:this.shape.anchorPoint.x,originy:this.shape.anchorPoint.y});
-       }
-       break;
-    case TextOrientation.VERTICAL:
-    	if(this.shape.rotation==0){	
-          this.rotate({angle:90,originx:this.shape.anchorPoint.x,originy:this.shape.anchorPoint.y});
-    	}       
-    }	
-}
-getOrientation(){
-	if(this.shape.rotation==90){
-		return TextOrientation.VERTICAL;
-	}else{
-		return TextOrientation.HORIZONTAL
+
+
+class SymbolFontTexture{
+	constructor(text,tag,x,y,alignment,fontSize) {
+	    this.tag=tag;
+		this.shape=new d2.BaseFontText(x,y,text,alignment,fontSize);    
+		this.selection=false;
+		this.selectionRectWidth=3000;
+		this.constSize=false;		    
+		this.selectionRectWidth=4;
+		this.fillColor='black';
+	    this.isTextLayoutVisible=false;
 	}
-}
-rotate(rotation){	
-    //redesign!!!!!!!!
- 	this.shape.anchorPoint.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
- 	this.shape.metrics.calculateMetrics(this.shape.fontSize,this.shape.text);
- 	if(this.shape.rotation==90){
- 		this.shape.rotation=0;
- 	}else{
- 		this.shape.rotation=90;
- 	}
- } 	    
+	clone(){
+	    var copy=new SymbolFontTexture(this.shape.text,this.tag,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.alignment,this.shape.fontSize);     
+	    copy.fillColor=this.fillColor;
+	    return copy;	 
+	} 
+	copy( _copy){    
+	    this.shape.anchorPoint.set(_copy.shape.anchorPoint.x,_copy.shape.anchorPoint.y); 
+	    this.shape.alignment = _copy.shape.alignment;
+	    this.shape.text=_copy.shape.text;
+	    this.shape.style=_copy.shape.style;
+	    this.shape.rotation=_copy.shape.rotation;
+	    this.shape.fillColor=_copy.shape.fillColor;
+	    this.shape.setSize(_copy.shape.fontSize);                
+	}	
+	isEmpty() {
+	     return this.shape.text==null||this.shape.text.length==0;
+	}	
+	isClicked(x,y){
+	    if (this.shape.text == null || this.shape.text.length == 0){
+	        return false;
+	    } 
+	    return this.shape.box.contains(x,y);
+	    
+	}	
+	getBoundingShape() {
+	    if (this.shape.text == null || this.shape.text.length == 0) {
+	          return null;
+	    }
+	    return this.shape.box;
+	}	
+	setText(text){
+		this.shape.setText(text);
+	}
+	setSize(size){
+		this.shape.setSize(size);
+	}	
+	setSelected(selection){
+		this.selection=selection;
+	}	
+	setAlignment(align){
+		this.shape.alignment=align;
+	}
+	getAlignment(){
+      return this.shape.alignment;
+	}	
+	rotate(rotation){		   
+	   this.shape.anchorPoint.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	   if(rotation.angle<0){  //clockwise
+		   this.shape.alignment=TextAlignment.rotate(this.shape.alignment,true);
+	   }else{
+		   this.shape.alignment=TextAlignment.rotate(this.shape.alignment,false); 
+	   }			 	
+		
+	}
+	/*
+	 * Take into account text offset from anchro point when rotating
+	 */
+	setRotation(rotation){
+	   let oldorientation=TextAlignment.getOrientation(this.shape.alignment);	
+	   this.rotate(rotation);
+	   if(rotation.angle<0){  //clockwise		   
+		   if(oldorientation == TextOrientation.HORIZONTAL){
+			   this.shape.anchorPoint.set(this.shape.anchorPoint.x+(this.shape.metrics.ascent-this.shape.metrics.descent),this.shape.anchorPoint.y);            
+		   }
+		}else{		    
+		   if(oldorientation == TextOrientation.VERTICAL){
+			   this.shape.anchorPoint.set(this.shape.anchorPoint.x,this.shape.anchorPoint.y+(this.shape.metrics.ascent-this.shape.metrics.descent));	           
+		   }
+		}		
+	}
+	mirror(line){
+        let oldalignment = this.shape.alignment;
+        this.shape.mirror(line);
+        if (line.isVertical) { //right-left mirroring
+        	this.shape.alignment = TextAlignment.mirror(oldalignment,true);
+        } else { //***top-botom mirroring
+        	this.shape.alignment = TextAlignment.mirror(oldalignment,false);            
+        }
+	}
+	move(xoffset, yoffset){
+		this.shape.move(xoffset, yoffset);  
+	}
+	paint(g2,viewportWindow,scale){
+		 if(this.isEmpty()){
+			   return;	 
+			 }
+			 if(this.constSize){
+			   g2.font = ""+parseInt(this.shape.fontSize)+"px Monospace";
+			 }else{	 
+				 if(this.shape.fontSize*scale.getScale()<8){
+					 return;
+				 }
+				 g2.font = ""+parseInt(this.shape.fontSize*scale.getScale())+"px Monospace";
+			 }
+			 
+			 g2.fillStyle =this.fillColor;			 			 
+			 this.shape.scalePaint(g2,viewportWindow,scale.getScale());
+			if(this.isTextLayoutVisible){
+				let box=this.shape.box;
+			  	box.scale(scale.getScale());
+			  	box.move(-viewportWindow.x,- viewportWindow.y);
+				g2.lineWidth =1;
+		 		g2.strokeStyle = 'blue';
+			  	box.paint(g2);
+			}
 
-fromXML(node){
-    if (node == null || node.length==0) {
-        this.text = "";
-        return;
-    }
+	     if(this.selection){
+	 		 g2.lineWidth =1;
+	 		 g2.strokeStyle = 'blue';
+	 		 let p=this.shape.anchorPoint.clone();
+	         p.scale(scale.getScale());
+	         p.move(-viewportWindow.x,- viewportWindow.y);
+	         p.paint(g2);    	 
+	     }
+		
+	}	
+	fromXML(node){
+	    if (node == null || node.length==0) {
+	        this.text = "";
+	        return;
+	    }
+	    var tokens=node.split(',');
+	    this.shape.alignment=(TextAlignment.parse(tokens[3]));
+	    this.shape.setText(tokens[0]);
+	    this.shape.anchorPoint.set(parseInt(tokens[1]),
+	            parseInt(tokens[2]));     
+	    this.style=tokens[4];    
+	    this.shape.setSize(parseInt(tokens[5]));
 
-    var tokens=node.split(',');
-    this.shape.setText(tokens[0]);
-    this.shape.anchorPoint.set(parseInt(tokens[1]),
-            parseInt(tokens[2]));     
-    this.style=tokens[4];    
-    this.shape.setSize(parseInt(tokens[5]));
-    //TOP, BOTTOM alignment
-    if(tokens[3]=='TOP'||tokens[3]=='BOTTOM'){
-    	this.shape.rotation=90;	
-    }
-}
-toXML(){
-    return (this.shape.text==="" ? "" :
-        this.shape.text + "," + utilities.roundFloat(this.shape.anchorPoint.x,1) + "," + utilities.roundFloat(this.shape.anchorPoint.y,1) +
-        ",,"+this.shape.style.toUpperCase()+","+this.shape.fontSize+"," +this.shape.rotation);	
-}
-}
+	}
+	toXML(){
+	    return (this.shape.text==="" ? "" :
+	        this.shape.text + "," + utilities.roundFloat(this.shape.anchorPoint.x,1) + "," + utilities.roundFloat(this.shape.anchorPoint.y,1) +
+	        ","+ TextAlignment.from(this.shape.alignment)+","+this.shape.style.toUpperCase()+","+this.shape.fontSize);	
+	}
+	}
+
 var core=require('core/core');
 var utilities=require('core/utilities');
 
 
 module.exports ={
-   TextOrientation,
+   TextAlignment,TextOrientation,
    FontTexture,
    SymbolFontTexture
 }
@@ -2769,7 +3301,7 @@ class GlyphTexture{
 		this.fillColor='gray';
 	    this.layermaskId=core.Layer.SILKSCREEN_LAYER_FRONT;	
 	    this.selection=false;	
-	    this.rotate=0;
+	    this.rotation=0;
 	    this.mirrored=false;
 }
 clone(){
@@ -2782,7 +3314,7 @@ clone(){
 	            copy.glyphs.push(glyph.clone());
 	       });
 		   copy.mirrored=this.mirrored;
-		   copy.rotate=this.rotate;
+		   copy.rotation=this.rotation;
 	       copy.thickness = this.thickness;
 		   copy.fillColor=this.fillColor;
 	       copy.layermaskId=this.layermaskId;		
@@ -2793,7 +3325,7 @@ copy( _copy){
     this.anchorPoint.set(_copy.anchorPoint.x,_copy.anchorPoint.y); 
     this.text = _copy.text;
     this.tag = _copy.tag;
-    this.rotate=_copy.rotate;
+    this.rotation=_copy.rotation;
     this.mirrored=_copy.mirrored;
     this.fillColor=_copy.fillColor;    
     this.thickness=_copy.thickness;
@@ -2870,7 +3402,7 @@ reset(){
     this.resetGlyphsLine();
     //rotate
 	this.glyphs.forEach(function(glyph){		  
-		glyph.rotate(this.rotate,this.anchorPoint);		     
+		glyph.rotate(this.rotation,this.anchorPoint);		     
     }.bind(this));
 }
 setSize(size) {
@@ -2903,11 +3435,11 @@ getBoundingShape() {
 getBoundingRect(){
     if(this.mirrored){
         let rect= new d2.Rectangle(this.anchorPoint.x-this.width,this.anchorPoint.y-this.height,this.width,this.height);
-        rect.rotate(this.rotate,this.anchorPoint);
+        rect.rotate(this.rotation,this.anchorPoint);
         return rect;
      }else{    	
         let rect= new d2.Rectangle(this.anchorPoint.x,this.anchorPoint.y-this.height,this.width,this.height);
-        rect.rotate(this.rotate,this.anchorPoint);
+        rect.rotate(this.rotation,this.anchorPoint);
         return rect;
      }	
 }
@@ -2935,7 +3467,7 @@ mirror(mirrored,line){
        if(this.mirrored){
     	glyph.mirror(line);    	        
        } 
-       glyph.rotate(this.rotate,this.anchorPoint);
+       glyph.rotate(this.rotation,this.anchorPoint);
         
     }.bind(this));
         
@@ -2964,10 +3496,10 @@ setSide(side,  line, angle) {
     let copper=core.Layer.Side.change(this.layermaskId);
     this.fillColor=copper.getColor();
     this.layermaskId=copper.getLayerMaskID();
-    this.rotate=angle;
+    this.rotation=angle;
 }
 
-Move(xoffset,yoffset) {
+move(xoffset,yoffset) {
     this.anchorPoint.move(xoffset,yoffset);
     this.glyphs.forEach(function(glyph){
         glyph.move(xoffset,yoffset);
@@ -2979,23 +3511,23 @@ setLocation(x,y){
 	this.move(xx,yy);
 }
 setRotation(rotate,pt){
-	let alpha=rotate-this.rotate;
+	let alpha=rotate-this.rotation;
 	this.anchorPoint.rotate(alpha,pt);
 	this.glyphs.forEach(function(glyph){
 		glyph.rotate(alpha,pt);   
 	}.bind(this));	
-	this.rotate=rotate;   	
+	this.rotation=rotate;   	
 }
-Rotate(rotate,pt){
+rotate(rotate,pt){
 	//fix angle
-	let alpha=this.rotate+rotate;
+	let alpha=this.rotation+rotate;
 	if(alpha>=360){
 		alpha-=360
 	}
 	if(alpha<0){
 	 alpha+=360; 
 	}	
-	this.rotate=alpha;
+	this.rotation=alpha;
 	//rotate anchor point
 	this.anchorPoint.rotate(rotate,pt);
 	//rotate glyphs
@@ -3045,7 +3577,7 @@ drawControlShape(g2, viewportWindow,scale){
 toXML(){
     return (this.isEmpty()? "" :
         this.text + "," + utilities.roundFloat(this.anchorPoint.x,4) + "," + utilities.roundFloat(this.anchorPoint.y,4) +
-        ",,"+utilities.roundFloat(this.thickness,2)+","+utilities.roundFloat(this.size,2)+","+utilities.roundFloat(this.rotate,2));	
+        ",,"+utilities.roundFloat(this.thickness,2)+","+utilities.roundFloat(this.size,2)+","+utilities.roundFloat(this.rotation,2));	
 }
 fromXML(node){	
 	if (node == null || j$(node).text().length==0) {
@@ -3080,7 +3612,7 @@ fromXML(node){
      if(isNaN(rotate)){
     	 rotate=0;
      }
-	 this.rotate=rotate;
+	 this.rotation=rotate;
 	 
 	 //mirror?
      let side=core.Layer.Side.resolve(this.layermaskId);
@@ -3173,18 +3705,26 @@ var UnitMgr=(function(){
         var isPinnable=false;        
         
         shapes.forEach(function(shape) {            
-            if(typeof shape.getPinsRect === 'function'){
-                r=shape.getPinsRect();
-                x1=Math.min(x1,r.x );
-                y1=Math.min(y1,r.y);
-                x2=Math.max(x2,r.x+r.width);
-                y2=Math.max(y2,r.y +r.height);             
+            if(typeof shape.getPinPoint === 'function'){
+                let point=shape.getPinPoint();                
+                x1 = Math.min(x1, point.x);
+                y1 = Math.min(y1, point.y);
+                x2 = Math.max(x2, point.x);
+                y2 = Math.max(y2, point.y);                
                 isPinnable=true;	
-            }  
+            }
+            if(typeof shape.getPinsRect==='function'){
+            	let box=shape.getPinsRect();
+                x1 = Math.min(x1, box.min.x);
+                y1 = Math.min(y1, box.min.y);
+                x2 = Math.max(x2, box.max.x);
+                y2 = Math.max(y2, box.max.y);                            	
+            	isPinnable=true;
+            }
            });
         
         if(isPinnable)
-            return  d2.Box.fromRect(x1,y1,x2-x1,y2-y1);            
+            return  d2.Box.fromRect(x1,y1,x2-x1,y2-y1);          
         else
             return null;  
         };
@@ -3198,22 +3738,22 @@ class manager{
             let point =grid.positionOnGrid(r.x, r.y); 
             
       	   shapes.forEach(function(shape) {
-      		 shape.Move((point.x - r.x),(point.y - r.y));
+      		 shape.move((point.x - r.x),(point.y - r.y));
            });
         }
         moveBlock(shapes, xoffset,yoffset){
         	   shapes.forEach(function(shape) {
-         		shape.Move(xoffset,yoffset);
+         		shape.move(xoffset,yoffset);
                });
          }    
-        mirrorBlock(shapes,A,B){
+        mirrorBlock(shapes,line){	
      	   shapes.forEach(function(shape) {
-        		shape.Mirror(A,B);
+        		shape.mirror(line);
            });
         }
         rotateBlock(shapes, rotation){
        	   shapes.forEach(function(shape) {
-        		shape.Rotate(rotation);
+        		shape.rotate(rotation);
                 });
         }
         deleteBlock(unit,shapes){
@@ -3804,7 +4344,7 @@ setScrollPosition(x,y) {
 setSize( width, height){
      this.viewportWindow.setSize(width,height);      
  }
-Clear(){
+clear(){
 	this.viewportWindow.setSize(1,1); 
     this.getEventMgr().resetEventHandle();
     this.getModel().clear();
@@ -4378,7 +4918,9 @@ module.exports = function(d2) {
             p0.rotate(angle, this.pc);
             return p0;
         }
-        
+        get length() {
+            return Math.abs(this.sweep * this.r);
+        }
         get end() {
             let p0 = new d2.Point(this.pc.x + this.r, this.pc.y);
             p0.rotate((this.startAngle+this.endAngle), this.pc);
@@ -4389,20 +4931,57 @@ module.exports = function(d2) {
         	return Math.abs(this.endAngle);
         }
         get box(){
-          return new d2.Box([this.start,this.end,this.middle]);      	
+          let points=this.breakToFunctional();
+          points.push(this.start);
+          points.push(this.end);
+          return new d2.Box(points);
+            
+           //let func_arcs = this.breakToFunctional();
+           //let box = func_arcs.reduce((acc, arc) => acc.merge(arc.start.box), new d2.Box());
+           //box = box.merge(this.end.box);
+           //return box;
+            
         }
+        /**
+         * Breaks arc in extreme point 0, pi/2, pi, 3*pi/2 and returns array of sub-arcs
+         * @returns {Arcs[]}
+         */
+        breakToFunctional() {
+            let p1=this.pc.clone();p1.translate(this.r, 0);
+            let p2=this.pc.clone();p2.translate(0,this.r);
+            let p3=this.pc.clone();p3.translate(-this.r,0);
+            let p4=this.pc.clone();p4.translate(0,-this.r);
+            let pts = [
+                p1,p2,p3,p4                
+            ];
+
+            // If arc contains extreme point,
+            // add it to result
+            let points = [];
+            for (let i = 0; i < 4; i++) {
+                if (pts[i].on(this)) {
+                    points.push(pts[i]);
+                }
+            }
+
+            return points;
+          
+        }        
         get vertices() {
             return this.box.vertices;
         }
         contains(pt){
-        	//is outside of the circle
-        	if (d2.utils.GE(this.pc.distanceTo(pt), this.r)){
-                return false;
-        	}    
-        	let l=new d2.Line(this.pc,this.middle);
+        	//is on circle
+            if (!d2.utils.EQ(this.pc.distanceTo(pt), this.r)){
+            	//is outside of the circle
+            	if (d2.utils.GE(this.pc.distanceTo(pt), this.r)){
+                    return false;
+            	}                
+            }
+        	
+            let l=new d2.Line(this.pc,this.middle);
         	let projectionPoint=l.projectionPoint(pt);
         	
-        	let middle=this.middle;
         	let mid=new d2.Point((this.start.x+this.end.x)/2,(this.start.y+this.end.y)/2);  
         	
         	let dist1=this.middle.distanceTo(mid);
@@ -4467,11 +5046,13 @@ module.exports = function(d2) {
           	  g2.fill();	
           	}else{
           	  g2.stroke();
-          	}
+          	}            
+        	
             //let ps=this.start;
             //let pe=this.end;
             //let pm=this.middle;
-            //d2.utils.drawCrosshair(g2,5,[ps,pe,pm]);
+            //d2.utils.drawCrosshair(g2,5,[p1,p2,p3,p4]);
+            
         }
         
 
@@ -4492,7 +5073,7 @@ module.exports = function(d2) {
     d2.Arcellipse = class Arcellipse extends d2.Ellipse {
         constructor(pc,w,h) {
       	    super(pc,w,h);    	
-            this.startAngle = -20;
+            this.startAngle = 20;
             this.rotation=0;
             this.endAngle = 90;
             this.vert=[new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0)]; 
@@ -4551,6 +5132,20 @@ module.exports = function(d2) {
     		 }		 
     		}
     		return  [s,e];
+        } 
+        mirror(line){
+        	this.pc.mirror(line);
+        	this.endAngle=-1*this.endAngle;
+        	if(line.isVertical){
+        		if(this.startAngle>=0&&this.startAngle<=180){
+        		  this.startAngle=180-this.startAngle;  
+        		}else{
+        		  this.startAngle=180+(360-this.startAngle);		
+        		}
+        	}else{
+        		this.startAngle=360-this.startAngle; 
+        	}	
+        	
         }        
         paint(g2){
         	g2.beginPath();  
@@ -4637,6 +5232,20 @@ module.exports = function(d2) {
     	this.min.scale(alpha);
     	this.max.scale(alpha);
       }
+      /**
+       * Returns new box merged with other box
+       * @param {Box} other_box - Other box to merge with
+       * @returns {Box}
+       */
+      merge(other_box) {
+          return new d2.Box(
+              this.min === undefined ? other_box.min.x : Math.min(this.min.x, other_box.min.x),
+              this.min === undefined ? other_box.min.y : Math.min(this.min.y, other_box.min.y),
+              this.max === undefined ? other_box.max.x : Math.max(this.max.x, other_box.max.x),
+              this.max === undefined ? other_box.max.y : Math.max(this.max.y, other_box.max.y)
+          );
+      }
+      
       contains(...args){
     	if(args.length==1){  //point  
     	  if(this.min.x<=args[0].x&&args[0].x<=this.max.x){
@@ -4874,6 +5483,9 @@ module.exports = function(d2) {
         move(offsetX,offsetY){
             this.pc.move(offsetX,offsetY);       	
         }
+        mirror(line){
+        	this.pc.mirror(line);	
+        }
         convert(a){
           return -1*d2.utils.radians(a);	
         }
@@ -4975,8 +5587,157 @@ calculateMetrics(fontSize,text) {
         this.updated=true; 	
 }
 }
-
+/*
+TextAlignment={
+		  RIGHT:0,
+		  TOP:1,
+		  LEFT:2,
+		  BOTTOM:3;
+}
+*/
 module.exports = function(d2) {
+	d2.BaseFontText = class BaseFontText{
+		constructor(x,y,text,alignment,fontSize){
+			this.anchorPoint=new d2.Point(x,y);
+			this.text=text;
+			this.fontSize=fontSize;
+		    this.alignment=alignment;	
+		    this.style='plain';
+		    this.metrics=new TextMetrics();  
+		    this.metrics.calculateMetrics(this.fontSize,this.text);
+		}
+clone(){
+			let copy=new BaseFontText(this.anchorPoint.x,this.anchorPoint.y,this.text,this.alignment,this.fontSize);		
+			copy.style=this.style;
+			return copy;
+		}
+mirror(line){
+	 this.anchorPoint.mirror(line); 	
+}
+setText(text){
+			this.text=text;
+			this.metrics.calculateMetrics(this.fontSize,this.text);
+		}	
+setSize(size){
+	this.fontSize=size;
+	this.metrics.calculateMetrics(this.fontSize,this.text);
+}
+scale(alpha){
+  	this.anchorPoint.scale(alpha);
+	this.fontSize=parseInt(this.fontSize*alpha);
+	this.metrics.calculateMetrics(this.fontSize,this.text);
+	
+}
+setLocation(x,y){
+	this.anchorPoint.set(x,y);			
+}
+move(offsetX,offsetY){
+	this.anchorPoint.move(offsetX,offsetY);
+}
+get box(){
+    if (this.text == null || this.text.length == 0){
+        return null;
+    }   
+    //recalculate or buffer
+    //this.metrics.calculateMetrics(this.fontSize, this.text);
+    var b=null;
+	 switch(this.alignment){
+	   case 2:
+		  b= d2.Box.fromRect(this.anchorPoint.x,this.anchorPoint.y-this.metrics.ascent,this.metrics.width,this.metrics.height);	    
+	    break;
+	   case 0:
+		  b= d2.Box.fromRect(this.anchorPoint.x-this.metrics.width,this.anchorPoint.y-this.metrics.ascent,this.metrics.width,this.metrics.height);
+	   break;
+	   case 1:
+		    b=d2.Box.fromRect(this.anchorPoint.x - this.metrics.ascent,
+	                          this.anchorPoint.y, this.metrics.height,this.metrics.width);
+	   break;	   
+	   case 3:
+		   	 b= d2.Box.fromRect(this.anchorPoint.x - this.metrics.ascent,
+	                          this.anchorPoint.y - this.metrics.width,
+	                          this.metrics.height, this.metrics.width);
+	   break;	   	 
+	 }
+	 
+	 return b;
+	 
+}		
+scalePaint(g2,viewportWindow,alpha){
+	let scaledAnchorPoint=this.anchorPoint.clone();			
+  	scaledAnchorPoint.scale(alpha);
+  	scaledAnchorPoint.move(-viewportWindow.x,- viewportWindow.y);
+  	
+	let scaledFontSize=parseInt(this.fontSize*alpha);
+	
+	
+	g2.font =(this.style==='plain'?'':this.style)+" "+(scaledFontSize)+"px Monospace";
+	g2.textBaseline='alphabetic'; 
+    switch(this.alignment){
+	   case 2:
+	   	 	g2.textAlign = 'left';				   	 
+	   	 	g2.fillText(this.text, scaledAnchorPoint.x, scaledAnchorPoint.y); 
+	   break;
+	   case 0:
+	   	 	g2.textAlign = 'right';
+	   	 	g2.fillText(this.text, scaledAnchorPoint.x, scaledAnchorPoint.y);
+	   break;
+	   case 3:
+		   	g2.save();
+		   	g2.textAlign = 'left';
+		   	g2.translate(scaledAnchorPoint.x, scaledAnchorPoint.y);
+		   	g2.rotate(-0.5*Math.PI);
+		   	g2.fillText(this.text , 0, 0);
+		   	g2.restore();
+	   break;
+	   case 1:
+		   g2.save();
+		   g2.textAlign = 'right';
+		   g2.translate(scaledAnchorPoint.x, scaledAnchorPoint.y);
+		   g2.rotate(-0.5*Math.PI);
+		   g2.fillText(this.text , 0, 0);
+		   g2.restore();	   	   
+	}	
+}	
+paint(g2){				 
+		
+		g2.font =(this.style==='plain'?'':this.style)+" "+(this.fontSize)+"px Monospace";
+				 let r=this.box;
+				 g2.lineWidth=1;
+				 r.paint(g2);
+				 
+	    g2.textBaseline='alphabetic'; 
+	    switch(this.alignment){
+				   case 2:
+				   	 g2.textAlign = 'left';				   	 
+					 g2.fillText(this.text, this.anchorPoint.x, this.anchorPoint.y); 
+				   break;
+				   case 0:
+				   	 g2.textAlign = 'right';
+					 g2.fillText(this.text, this.anchorPoint.x, this.anchorPoint.y);
+				   break;
+				   case 1:
+				   g2.save();
+				   g2.textAlign = 'left';
+				   g2.translate(this.anchorPoint.x, this.anchorPoint.y);
+			       g2.rotate(-0.5*Math.PI);
+			       g2.fillText(this.text , 0, 0);
+			       g2.restore();
+				   break;
+				   case 3:
+				   g2.save();
+				   g2.textAlign = 'right';
+				   g2.translate(this.anchorPoint.x, this.anchorPoint.y);
+			       g2.rotate(-0.5*Math.PI);
+			       g2.fillText(this.text , 0, 0);
+			       g2.restore();	   	   
+				 }
+				 
+	     d2.utils.drawCrosshair(g2,6,[this.anchorPoint]);
+	     
+	}		
+		
+};		
+/*******************************************************************************************/	
 	d2.FontText = class FontText{
 		constructor(x,y,text,fontSize,rotation){
 			this.anchorPoint=new d2.Point(x,y);
@@ -5613,11 +6374,36 @@ module.exports = function(d2) {
             this.y=args[1];
            }
         }
-		translate(vec) {       
-		       this.x += vec.x;
-		       this.y += vec.y;
-		    }
+//		translate(vec) {       
+//		       this.x += vec.x;
+//		       this.y += vec.y;
+//		    }
 		
+		/**
+	     * Returns new point translated by given vector.
+	     * Translation vector may by also defined by a pair of numbers.
+	     * @param {Vector} vector - Translation vector defined as Flatten.Vector or
+	     * @param {number|number} - Translation vector defined as pair of numbers
+	     * @returns {Point}
+	     */
+	    translate(...args) {
+	        if (args.length == 1 &&(args[0] instanceof d2.Vector || !isNaN(args[0].x) && !isNaN(args[0].y))) {
+	            this.x += args[0].x;
+	            this.y += args[0].y;
+	        }
+
+	        if (args.length == 2 && (typeof (args[0]) == "number") && (typeof (args[1]) == "number")) {
+	           this.x += args[0];
+	           this.y += args[1];
+	        }
+	    }		
+	    /**
+	     * Returns bounding box of a point
+	     * @returns {Box}
+	     */
+	    get box() {
+	        return new d2.Box(this.x, this.y, this.x, this.y);
+	    }	    
 		scale(alpha){
 		       this.x *=alpha;
 		       this.y *=alpha;		  		
@@ -5665,6 +6451,38 @@ module.exports = function(d2) {
 		            return Math.sqrt(dx*dx + dy*dy);	               
 	            }
 		}
+		
+		/**
+	     * Returns true if point is on a shape, false otherwise
+	     * @param {Shape} shape Shape of the one of supported types Point, Line, Circle, Segment, Arc, Polygon
+	     * @returns {boolean}
+	     */
+	    on(shape) {
+	        if (shape instanceof d2.Point) {
+	            return this.equalTo(shape);
+	        }
+
+//	        if (shape instanceof Flatten.Line) {
+//	            return shape.contains(this);
+//	        }
+//
+//	        if (shape instanceof Flatten.Circle) {
+//	            return shape.contains(this);
+//	        }
+//
+//	        if (shape instanceof Flatten.Segment) {
+//	            return shape.contains(this);
+//	        }
+
+	        if (shape instanceof d2.Arc) {
+	            return shape.contains(this);
+	        }
+
+	        if (shape instanceof d2.Polygon) {
+	            return shape.contains(this);
+	        }
+	    }
+		
         equals(pt) {
             return d2.utils.EQ(this.x, pt.x) && d2.utils.EQ(this.y, pt.y);
         }
@@ -6525,20 +7343,22 @@ module.exports = function(d2) {
     	    	}
     	    	g2.closePath(); 
     	    	g2.fill();    	    	       		
-
-    	    	this.arcs.forEach(arc=>{
+    	    	if(this.rounding!=0){
+    	    	 this.arcs.forEach(arc=>{
     				var circle=new d2.Circle(arc.pc,arc.r);
     	    		circle.paint(g2);
-    			});
+    			 });
+    	    	}
     		}else{
 			 this.segments.forEach(segment=>{
 				segment.paint(g2);
 			 });
 			
-    		
-			 this.arcs.forEach(arc=>{
+			 if(this.rounding!=0){
+			  this.arcs.forEach(arc=>{
 				arc.paint(g2);
-			 });
+			  });
+			 }
     		}
     	}
     }
@@ -6651,6 +7471,9 @@ module.exports = function(d2) {
 	   degrees :function(radians) {
 			  return radians * 180 / Math.PI;
 	   },
+	   EQ_0(x) {
+		    return ((x) < DP_TOL && (x) > -DP_TOL);
+	   },	   
 	   GT: (x,y) => {
 	        return ( (x)-(y) >  DP_TOL );
 	   },
@@ -6762,15 +7585,19 @@ module.exports = function(d2) {
          *rotate 90 degrees counter clockwise         
          */
         rotate90CCW() {
-            this.x=-this.y;
-            this.y= this.x;
+        	let x=this.x;
+        	let y=this.y;
+            this.x=-1*y;
+            this.y= x;
         }    
         /**
          * rotate 90 degrees clockwise
          */
         rotate90CW() {
-            this.x=this.y;
-            this.y=-this.x;
+        	let x=this.x;
+        	let y=this.y;        	
+            this.x=y;
+            this.y=-1*x;
         };
         
         /**
@@ -6972,6 +7799,7 @@ var UnitComponent = require('core/unit').UnitComponent;
 var UnitMgr = require('core/unit').UnitMgr;
 var mywebpcb=require('core/core').mywebpcb;
 var core = require('core/core');
+var SymbolType = require('core/core').SymbolType;
 var events=require('core/events');
 var RoundRect=require('symbols/shapes').RoundRect;
 var FontLabel=require('symbols/shapes').FontLabel;
@@ -6988,6 +7816,28 @@ var LineEventHandle=require('core/events').LineEventHandle;
 var d2=require('d2/d2');
 var utilities=require('core/utilities');
 
+
+//**********************UnitMgr***************************************
+var SymbolMgr=(function(){
+	var instance=null;
+
+class manager{
+	getLabels(unit) {		
+        var len=symbol.shapes.length;
+          
+    }       
+    
+    }
+	return {getInstance:function(){
+		    if (!instance) {
+              instance = new manager();
+            }
+            return instance;
+	      }
+	};
+		
+	
+})();
 class Symbol extends Unit{
 constructor(width,height) {
        super(width,height);
@@ -6995,6 +7845,7 @@ constructor(width,height) {
 	   this.shapeFactory = new SymbolShapeFactory();
        this.grid.setGridUnits(8, core.Units.PIXEL);
        this.grid.pointsColor='black'; 
+       this.type=SymbolType.SYMBOL;
        this.isTextLayoutVisible = false;
        this.frame.color='black';
 	}
@@ -7045,7 +7896,7 @@ setTextLayoutVisibility( isTextLayoutVisible) {
        });
 }
 format(){   
-   var xml="<symbol width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
+   var xml="<module width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
    xml+="<name>"+this.unitName+"</name>\r\n";
    //***reference
    var text=UnitMgr.getInstance().getLabelByTag(this,'reference');
@@ -7062,15 +7913,15 @@ format(){
        xml+="</unit>\r\n";
    }    
  
-   xml+="<shapes>\r\n";
+   xml+="<elements>\r\n";
    this.shapes.forEach(function(shape) {
 	   if(!((shape instanceof FontLabel)&&(shape.texture.tag=='reference'||shape.texture.tag=='unit'))){
 		   xml+=shape.toXML();
 		   xml+='\r\n';   
 	   }
    });
-   xml+="</shapes>\r\n";   
-   xml+="</symbol>";
+   xml+="</elements>\r\n";   
+   xml+="</module>";
    return xml;
 }	
 }
@@ -7080,7 +7931,21 @@ class SymbolContainer extends UnitContainer{
        super();
        this.formatedFileName="Symbols"
 	}
-
+    getType() {
+        if(this.unitsmap.size==0){
+          return Type.SYMBOL;  //default
+        }else{    		
+          return this.getUnits().next().value.type; 
+        }
+    }
+    
+    setType(type) {
+      let units=this.unitsmap.values();
+  	  for(let i=0;i<this.unitsmap.size;i++){
+          let aunit=units.next();
+  		  aunit.value.type=type;
+  	  }
+    }
     parse(xml){
     	  this.setFileName(j$(xml).find("filename").text());
     	  this.libraryname=(j$(xml).find("library").text());
@@ -7098,14 +7963,14 @@ class SymbolContainer extends UnitContainer{
     }
     format() {
         var xml="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n"; 
-        xml+="<symbols identity=\"Symbol\" version=\""+utilities.version.SYMBOL_VERSION+"\">\r\n";      
+        xml+="<modules identity=\"Symbol\" type=\""+core.SymbolType.valueOf(this.getType())+"\" version=\""+utilities.version.SYMBOL_VERSION+"\">\r\n";      
     	let units=this.unitsmap.values();
   	    for(let i=0;i<this.unitsmap.size;i++){
           let unit=units.next().value;
           xml+=unit.format();
   		  xml+="\r\n";
   	    }    	    	
-        xml+="</symbols>";
+        xml+="</modules>";
         
         return xml;
     }
@@ -7325,6 +8190,7 @@ mouseWheelMoved(event){
 
 
 module.exports ={
+	   SymbolMgr,	
 	   SymbolContainer,
 	   Symbol,
 	   SymbolComponent	   
@@ -7495,16 +8361,16 @@ class SymbolContextMenu extends ContextMenu{
 constructor(component,placeholderid){
 		super(component,placeholderid);	
 	}	
-registerPadPopup(target,event){
-	var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
-	  items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
-	  items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
-	  items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
-	  items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
-	  items+="</table></div>";
-	  this.setContent(items,{target:target});	
-	  this.open(event);	
-	}
+//registerPinPopup(target,event){
+//	var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
+//	  items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
+//	  items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
+//	  items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
+//	  items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
+//	  items+="</table></div>";
+//	  this.setContent(items,{target:target});	
+//	  this.open(event);	
+//	}
 registerUnitPopup(target,event){	          	            
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
 	    items+="<tr id='selectallid' ><td style='padding: 0.4em;'>Select All</td></tr>";
@@ -7709,9 +8575,7 @@ class FontLabel extends Shape{
 	constructor(x, y) {
 		super(x, y, 0, 0, 1,core.Layer.LAYER_ALL);
 		this.setDisplayName("Label");		
-		this.texture=new font.SymbolFontTexture("Label","label",x,y,8,0);
-		this.texture.fillColor = '#000000';
-		this.rotate=0;
+		this.texture=new font.SymbolFontTexture("Label","label",x,y,0,8);
 	}
 	clone(){
 		var copy = new FontLabel(this.x,this.y);
@@ -7737,11 +8601,26 @@ class FontLabel extends Shape{
     getTexture(){
 		  return this.texture;
 		}
-    Rotate(rotation){
-       this.texture.rotate(rotation);
-    }    
-    Move(xoffset,yoffset) {
-        this.texture.Move(xoffset, yoffset);
+    rotate(rotation){
+    	this.texture.setRotation(rotation);	      
+    }
+    mirror(line){
+    	let oldalignment = this.texture.shape.alignment;
+    	this.texture.mirror(line);	
+        if (line.isVertical) { //right-left mirroring
+            if (this.texture.shape.alignment == oldalignment) {
+                this.texture.shape.anchorPoint.set(this.texture.shape.anchorPoint.x +
+                                        (this.texture.shape.metrics.ascent - this.texture.shape.metrics.descent),this.texture.shape.anchorPoint.y);
+            }
+        } else { //***top-botom mirroring          
+            if (this.texture.shape.alignment == oldalignment) {
+            	this.texture.shape.anchorPoint.set(this.texture.shape.anchorPoint.x,this.texture.shape.anchorPoint.y +(this.texture.shape.metrics.ascent - this.texture.shape.metrics.descent));
+            }
+        }        
+      
+    }
+    move(xoffset,yoffset) {
+        this.texture.move(xoffset, yoffset);
     }
    getCenter() {        
         return this.texture.shape.anchorPoint;
@@ -7752,11 +8631,12 @@ paint(g2, viewportWindow, scale,layersmask) {
 	  if (!rect.intersects(viewportWindow)) {
 	  	return;
 	  }
-
 	  this.texture.paint(g2, viewportWindow, scale);
 }
 fromXML(data){	 
-    this.texture.fromXML(j$(data).text());  	
+	
+    this.texture.fromXML(j$(data).text());
+    this.texture.fillColor ="#" +(j$(data).attr("color") & 0x00FFFFFF).toString(16).padStart(6, '0');
 }	    
 toXML(){
     if(this.texture!=null&&!this.texture.isEmpty())
@@ -7775,7 +8655,8 @@ class Arc extends Shape{
 	}
 	clone(){
 		var copy = new Arc(this.arc.pc.x,this.arc.pc.y,this.arc.w,this.arc.h);
-		copy.arc=this.arc.clone();				
+		copy.arc=this.arc.clone();
+		copy.thickness=this.thickness;
 		return copy;
 	}
 	calculateShape() {
@@ -7835,7 +8716,7 @@ class Arc extends Shape{
 	setStartAngle(startAngle){        
 	    this.arc.startAngle=utilities.round(startAngle);
 	}	
-	Rotate(rotation){	
+	rotate(rotation){	
 		   this.arc.pc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 		   let w=this.arc.w;
 		   this.arc.w=this.arc.h;
@@ -7848,7 +8729,10 @@ class Arc extends Shape{
     		 this.arc.startAngle+=360; 
     	   }
 	} 	
-    Move(xoffset,yoffset) {
+	mirror(line) {
+	    this.arc.mirror(line);
+	}
+	move(xoffset,yoffset) {
         this.arc.move(xoffset, yoffset);
     }
 	Resize(xoffset, yoffset,clickedPoint){
@@ -7900,22 +8784,41 @@ getResizingPoint() {
 }
 fromXML(data) {
 	
-	var tokens = data.textContent.split(",");
-
-	let x=parseInt(tokens[0]);
-	let y=parseInt(tokens[1]);
-	let w=parseInt(tokens[2]);
-	let h=parseInt(tokens[3]);
-	this.arc.pc.set(x+w/2,y+h/2);
-	this.arc.w=w/2;
-	this.arc.h=h/2;
+	
+    if(data.textContent.length>0){
+    	var tokens = data.textContent.split(",");
+    	let x=parseInt(tokens[0]);
+    	let y=parseInt(tokens[1]);
+    	let w=parseInt(tokens[2]);
+    	let h=parseInt(tokens[3]);
+    	this.arc.pc.set(x+w/2,y+h/2);
+    	this.arc.w=w/2;
+    	this.arc.h=h/2;
 	
 	
-    this.arc.endAngle = parseInt(tokens[4]);        
-    this.arc.startAngle = parseInt(tokens[5]);
+    	this.arc.endAngle = parseInt(tokens[4]);        
+    	this.arc.startAngle = parseInt(tokens[5]);
     
-    this.thickness = parseInt(tokens[6]);
-	this.fill = parseInt(tokens[7]);
+    	this.thickness = parseInt(tokens[6]);
+		this.fill = parseInt(tokens[7]);
+    }else{    	
+        let x=parseFloat(j$(data).attr("x"));
+        let y=parseFloat(j$(data).attr("y"));
+        let w=parseFloat(j$(data).attr("width"));
+        let h=parseFloat(j$(data).attr("height"));
+        
+        this.arc.pc.set(x,y);
+        this.arc.w=w;
+        this.arc.h=h;
+        
+        this.arc.startAngle = parseFloat(j$(data).attr("start"));       
+        this.arc.endAngle = parseFloat(j$(data).attr("extend"));
+        
+        this.thickness=(parseInt(j$(data).attr("thickness")));
+		this.fill = (parseInt(j$(data).attr("fill"))||1);  	
+    	
+    }
+  
 }
 toXML(){
  return '<arc  x="'+utilities.roundFloat(this.arc.pc.x,1)+'" y="'+utilities.roundFloat(this.arc.pc.y,1)+'" width="'+utilities.roundFloat(this.arc.w,1)+ '" height="'+utilities.roundFloat(this.arc.h,1)+ '"  thickness="'+this.thickness+'" start="'+utilities.roundFloat(this.arc.startAngle,1)+'" extend="'+utilities.roundFloat(this.arc.endAngle,1)+'" fill="'+this.fill+'" />';
@@ -7927,8 +8830,7 @@ class Ellipse extends Shape{
 		this.setDisplayName("Ellipse");		
 		this.ellipse=new d2.Ellipse(new d2.Point(0,0),w,h);
 		this.selectionRectWidth=4;
-		this.fillColor='black';
-		this.rotate=0;
+		this.fillColor='black';		
 	}
 	clone(){
 		var copy = new Ellipse(this.ellipse.w,this.ellipse.h);
@@ -7968,10 +8870,13 @@ class Ellipse extends Shape{
 	   	});
 	   	return result;
 	}	
-    Move(xoffset,yoffset) {
+	move(xoffset,yoffset) {
         this.ellipse.move(xoffset, yoffset);
     }
-	Rotate(rotation){			   
+    mirror(line){
+       this.ellipse.mirror(line);	
+    }
+    rotate(rotation){			   
 	   this.ellipse.pc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	   let w=this.ellipse.w;
 	   this.ellipse.w=this.ellipse.h;
@@ -8025,20 +8930,34 @@ getResizingPoint() {
 	return this.resizingPoint;
 }
 fromXML(data) {
-	var tokens = data.textContent.split(",");
-	let x=parseInt(tokens[0]);
-	let y=parseInt(tokens[1]);
-	let w=parseInt(tokens[2]);
-	let h=parseInt(tokens[3]);
-	this.ellipse.pc.set(x+w/2,y+h/2);
-	this.ellipse.w=w/2;
-	this.ellipse.h=h/2;
-	this.thickness=parseInt(tokens[4]);	
+    if(j$(data).attr("width")!=undefined){
+        let x=(parseFloat(j$(data).attr("x")));
+        let y=(parseFloat(j$(data).attr("y")));
+        this.ellipse.pc.set(x,y);
+        this.ellipse.w=parseFloat(j$(data).attr("width"));
+        this.ellipse.h=parseFloat(j$(data).attr("height"));  
+        this.thickness=(parseInt(j$(data).attr("thickness")));
+        this.fill=parseInt(j$(data).attr("fill"));  
+        this.fill=(this.fill==0?1:this.fill);
+    }else{			
+    	var tokens = data.textContent.split(",");
+    	let x=parseInt(tokens[0]);
+    	let y=parseInt(tokens[1]);
+    	let w=parseInt(tokens[2]);
+    	let h=parseInt(tokens[3]);
+    	this.ellipse.pc.set(x+w/2,y+h/2);
+    	this.ellipse.w=w/2;
+    	this.ellipse.h=h/2;
+    	this.thickness=parseInt(tokens[4]);	
+    }
+    
 }
 toXML() {
     return "<ellipse x=\""+utilities.roundFloat(this.ellipse.pc.x,1)+"\" y=\""+utilities.roundFloat(this.ellipse.pc.y,1)+"\" width=\""+utilities.roundFloat(this.ellipse.w,1)+"\" height=\""+utilities.roundFloat(this.ellipse.h,1)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
 }
 }
+
+
 class RoundRect extends Shape{
 	constructor(x, y, width, height,arc,thickness) {
 		super(x, y, width, height, thickness,core.Layer.LAYER_ALL);
@@ -8100,12 +9019,15 @@ class RoundRect extends Shape{
 	getResizingPoint() {
 			return this.resizingPoint;
 		}	
-	Move(xoffset, yoffset) {
+	move(xoffset, yoffset) {
 		this.roundRect.move(xoffset,yoffset);
 	}
-	Rotate(rotation){		
+	rotate(rotation){		
 		this.roundRect.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
-	}	
+	}
+    mirror(line){
+    	this.roundRect.mirror(line);
+    }	
 	Resize(xoffset, yoffset,clickedPoint){
 		this.roundRect.resize(xoffset, yoffset,clickedPoint);
 	}
@@ -8121,28 +9043,41 @@ class RoundRect extends Shape{
 		g2.lineCap = 'round';
 		g2.lineJoin = 'round';
 		
+
+		let r=this.roundRect.clone();	
+		r.scale(scale.getScale());
+        r.move(-viewportWindow.x,- viewportWindow.y);
+		
 		if (this.fill == core.Fill.EMPTY) {
-			g2.globalCompositeOperation = 'lighter';
 			if (this.selection) {
 				g2.strokeStyle = "gray";
 			} else {
 				g2.strokeStyle = this.fillColor;
 			}
-			g2.globalCompositeOperation = 'source-over';
-		} else {
+			r.paint(g2);
+		}else if(this.fill == core.Fill.GRADIENT){ 
+		  g2._fill=true;		  
+		  var grd = g2.createLinearGradient(r.box.x,r.box.y, r.box.max.x,r.box.max.y);
+		  grd.addColorStop(0, (this.selection?"gray":this.fillColor));
+		  grd.addColorStop(1, "white");
+		  g2.fillStyle = grd;
+		  r.paint(g2);
+		  g2._fill=false;
+          g2.strokeStyle=(this.selection?"gray":this.fillColor);
+          r.paint(g2);
+		}else {
 			g2._fill=true;
 			if (this.selection) {
 				g2.fillStyle = "gray";
 			} else {
 				g2.fillStyle = this.fillColor;
 			}			
-		}
-		let r=this.roundRect.clone();	
-		r.scale(scale.getScale());
-        r.move(-viewportWindow.x,- viewportWindow.y);
-		r.paint(g2);
+			r.paint(g2);
+			g2._fill=false;
+		}        
+        
 		
-		g2._fill=false;
+		
 		
 		
 
@@ -8154,12 +9089,28 @@ drawControlPoints(g2, viewportWindow, scale){
 		utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.roundRect.vertices); 		
 }	
 fromXML(data){
+    if(j$(data).attr("points")!=undefined){                
+        this.roundRect.rounding=(parseInt(j$(data).attr("arc")));
+        var tokens = j$(data).attr("points").split(",");
+ 	    var len = Math.floor(tokens.length / 2) * 2;
+ 	    var points=[]
+	    for (var index = 0; index < len; index += 2) {
+			var x = parseInt(tokens[index]);
+			var y = parseInt(tokens[index + 1]);
+			points.push(new d2.Point(x, y));
+	    }   
+ 	   this.roundRect.setPoints(points);
+        this.thickness=(parseInt(j$(data).attr("thickness")));
+        this.fill=parseInt(j$(data).attr("fill"));  
+        this.fill=(this.fill==0?1:this.fill);
+    }else{
 	 var tokens = data.textContent.split(",");
 	 this.roundRect.setRect(parseInt(tokens[0]),parseInt(tokens[1]),parseInt(tokens[2]),parseInt(tokens[3]));
 	    
      this.thickness=(parseInt(tokens[4]));
      this.fill=parseInt(tokens[5]); 
 	 this.roundRect.setRounding(parseInt(tokens[6]));
+	}
 }
 toXML() {
 	let points="";
@@ -8169,7 +9120,7 @@ toXML() {
 	return "<rectangle  thickness=\"" + this.thickness
 			+ "\" fill=\"" + this.fill + "\" arc=\"" + this.roundRect.rounding
 			+"\" points=\"" + points
-			+ "\"></rectangle>";
+			+ "\"/>";
 }
 }
 
@@ -8241,13 +9192,17 @@ Resize(xoffset,yoffset,clickedPoint) {
                              clickedPoint.y + yoffset);
     this.setHeadSize(this.headSize);
 }
-Rotate(rotation){		
+rotate(rotation){		
 	this.arrow.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	this.line.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 }
-Move(xoffset, yoffset) {
+move(xoffset, yoffset) {
 	this.line.move(xoffset,yoffset);
 	this.arrow.move(xoffset,yoffset);
+}
+mirror(line){
+	this.line.mirror(line);
+	this.arrow.mirror(line);
 }
 paint(g2, viewportWindow, scale,layersmask) {
 	var rect = this.line.box;
@@ -8365,11 +9320,14 @@ Resize(xoffset, yoffset, clickedPoint) {
 	clickedPoint.set(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);
 }
-Rotate(rotation){		
+rotate(rotation){		
 	this.shape.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	
 }
-Move(xoffset, yoffset) {
+move(xoffset, yoffset) {
 	this.shape.move(xoffset,yoffset);	
+}
+mirror(line){
+	this.shape.mirror(line);
 }
 paint(g2, viewportWindow, scale,layersmask) {
 	var rect = this.shape.box;
@@ -8473,6 +9431,23 @@ Orientation={
         SOUTH:1,
         WEST:2,
         EAST:3,
+mirror:function(isHorizontal,orientation){
+    if (isHorizontal) {
+        if (orientation == Orientation.EAST)
+            return Orientation.WEST;
+        else if (orientation == Orientation.WEST)
+            return Orientation.EAST;
+        else
+            return orientation;
+    } else {
+        if (orientation == Orientation.NORTH)
+            return Orientation.SOUTH;
+        else if (orientation == Orientation.SOUTH)
+            return Orientation.NORTH;
+        else
+            return orientation;
+    }	
+},      
 rotate:function(isClockwise,orientation) {
        if (isClockwise) {
                if (orientation == Orientation.NORTH)
@@ -8506,14 +9481,13 @@ constructor() {
 		super(0, 0, 0,0, 1,core.Layer.LAYER_ALL);
 		this.setDisplayName("Pin");		
 		this.selectionRectWidth=4;
-		this.resizingPoint = null;
 		this.fillColor='black';	
 	    this.segment=new d2.Segment(0,0,0,0);        
         this.type = PinType.COMPLEX;
         this.style = Style.LINE;
 
- 	    this.name=new font.SymbolFontTexture("XXX","name",-8,0,8,0);
-	    this.number=new font.SymbolFontTexture("1","number",10,-4,8,0);
+ 	    this.name=new font.SymbolFontTexture("XXX","name",-8,0,0,8);
+	    this.number=new font.SymbolFontTexture("1","number",10,-4,0,8);
 	    this.init(Orientation.EAST);
 	}
 clone(){
@@ -8530,7 +9504,7 @@ clone(){
 alignToGrid(isRequired) {
     var center=this.segment.ps;
     var point=this.owningUnit.getGrid().positionOnGrid(center.x,center.y);
-    this.Move(point.x - center.x,point.y - center.y);
+    this.move(point.x - center.x,point.y - center.y);
     return new d2.Point(point.x - center.x, point.y - center.y);  
 }
 getClickedTexture(x,y) {
@@ -8543,6 +9517,9 @@ getClickedTexture(x,y) {
         return this.number;
     else
     return null;
+}
+getPinPoint(){
+	return this.segment.ps;
 }
 isClickedTexture(x,y) {
     return this.getClickedTexture(x, y)!=null;
@@ -8569,7 +9546,27 @@ isClicked(x, y) {
 		}
 		
 }
-Rotate(rotation){
+mirror(line){
+  let oposname= utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
+  let oposnumber= utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
+	
+  this.segment.mirror(line);	
+  if(line.isVertical){ //left-right 	 	  
+	  this.orientation = Orientation.mirror(true,this.orientation);	  
+  }else{	  
+	  this.orientation = Orientation.mirror(false,this.orientation);
+  }	
+  this.name.mirror(line);
+  this.number.mirror(line);
+  
+	//read new position
+  let nposname=utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);		
+  let nposnumber=utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);	
+  
+  this.normalizeText(this.name,oposname,nposname);
+  this.normalizeText(this.number,oposnumber,nposnumber);  
+}
+rotate(rotation){
 	//read current position	
 	let oposname= utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
 	let oposnumber= utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
@@ -8580,30 +9577,24 @@ Rotate(rotation){
 	this.number.rotate(rotation);
 	
 	//read new position
-	let nposname=utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);	
-	this.normalizeText(this.name,oposname,nposname);
-
+	let nposname=utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);		
+	let nposnumber=utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
 	
-	let nposnumber=utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);	
+	this.normalizeText(this.name,oposname,nposname);
 	this.normalizeText(this.number,oposnumber,nposnumber);
+	
 	
 }
 normalizeText(text,opos,npos){
 	if(opos==npos){
 	   return;	
 	}
-	if(this.orientation==Orientation.EAST||this.orientation==Orientation.WEST){	//horizontal
-	  let off=this.segment.ps.y-text.shape.anchorPoint.y;
-	  text.Move(0,2*off);
-	}else{	//vertical
-	  let off=this.segment.ps.x-text.shape.anchorPoint.x;
-	  text.Move(2*off,0);		  
-	}	
+	text.mirror(new d2.Line(this.segment.ps,this.segment.pe));
 }
-Move(xoffset,yoffset) {
+move(xoffset,yoffset) {
     this.segment.move(xoffset,yoffset);
-	this.name.Move(xoffset,yoffset);
-	this.number.Move(xoffset,yoffset);
+	this.name.move(xoffset,yoffset);
+	this.number.move(xoffset,yoffset);
 }
 calculateShape() {
 	return this.segment.box;
@@ -8620,23 +9611,24 @@ setOrientation(orientation){
  while(o!=orientation){
 	 switch (o) {
 	 case Orientation.EAST:        
-		 o=Orientation.SOUTH;
-		 this.Rotate(r);
+		 //o=Orientation.SOUTH;
+		 this.rotate(r);
      break;
 	 case Orientation.WEST:
-		 o=Orientation.NORTH;
-		 this.Rotate(r);
+		 //o=Orientation.NORTH;
+		 this.rotate(r);
      break;
 	 case Orientation.NORTH:
-		 o=Orientation.EAST;
-		 this.Rotate(r);
+		 //o=Orientation.EAST;
+		 this.rotate(r);
      break;
 	 case Orientation.SOUTH:    	
-		 o=Orientation.WEST;
-		 this.Rotate(r);
-  }   
+		 //o=Orientation.WEST;
+		 this.rotate(r);
+  
+	 }
+	 o=this.orientation; 
  }
-this.orientation=orientation;
 }
 
 init(orientation){
@@ -8679,13 +9671,13 @@ paint(g2, viewportWindow, scale,layersmask) {
 
 	g2.lineWidth = this.thickness ;
 	if (this.selection) {
-		g2.strokeStyle = "gray";
+		g2.strokeStyle = "blue";
 	  	this.name.fillColor = "gray";
 	  	this.number.fillColor = "gray";
 	} else {
 		g2.strokeStyle = this.fillColor;
-	  	this.name.fillColor = 'black';
-		this.number.fillColor = 'black';
+	  	this.name.fillColor = this.fillColor;
+		this.number.fillColor =this.fillColor;
 	}
 	
 	switch(this.style){
@@ -8728,16 +9720,26 @@ paint(g2, viewportWindow, scale,layersmask) {
       this.name.paint(g2, viewportWindow, scale);
       this.number.paint(g2, viewportWindow, scale);
 	}
+    if (this.isSelected()) {
+        let c=new d2.Circle(this.segment.pe.clone(), 2);
+        c.scale(scale.getScale());
+        c.move(-viewportWindow.x,- viewportWindow.y);
+        c.paint(g2,false);        
+    }
 }
 fromXML(data){
 	this.type=parseInt(j$(data).attr("type"));
 	this.style=parseInt(j$(data).attr("style"));
 	
-	let a=j$(data).find("a").text();
-	var tokens = a.split(",");
-	this.segment.ps.set(parseFloat(tokens[0]),parseFloat(tokens[1]));
-	this.init(parseInt(tokens[3]));
-	
+	let a=j$(data).find("a");
+	if(a.length>0){   //old schema
+	  var tokens = a.text().split(",");
+	  this.segment.ps.set(parseFloat(tokens[0]),parseFloat(tokens[1]));
+	  this.init(parseInt(tokens[3]));
+	}else{
+        this.segment.ps.set(parseFloat(j$(data).attr("x")),parseFloat(j$(data).attr("y")));   
+        this.init(parseInt(j$(data).attr("orientation")));	
+	}
     var number=(j$(data).find("number").text()); 
 	var name=(j$(data).find("name").text());
 	if(number==''){
@@ -8754,8 +9756,7 @@ fromXML(data){
 	}	
 }
 toXML(){
-	let xml="<pin type=\"" + this.type + "\"  style=\"" + this.style + "\">\r\n";
-	xml+="<a x=\""+utilities.roundFloat(this.segment.ps.x,1)+"\" y=\""+utilities.roundFloat(this.segment.ps.y,1)+"\" orientation=\""+this.orientation+"\" />\r\n";
+	let xml="<pin type=\"" + this.type + "\"  style=\"" + this.style + "\"   x=\""+utilities.roundFloat(this.segment.ps.x,1)+"\" y=\""+utilities.roundFloat(this.segment.ps.y,1)+"\" orientation=\""+this.orientation+"\">\r\n";	
     if(this.type == PinType.COMPLEX){
 	 if (!this.number.isEmpty())
     	xml+="<number>" +
@@ -8972,6 +9973,8 @@ module.exports ={
 		Line,
 		FontLabel,
 		RoundRect,
+		PIN_LENGTH,
+		Orientation,
 		SymbolShapeFactory
 	}
 });
@@ -9550,7 +10553,7 @@ var ComponentPanelBuilder=BaseBuilder.extend({
     },
     events: {
         'keypress #nameid' : 'onenter',	
-       
+        'change #symboltypeid': 'onchange',
     },
 	
 	onenter:function(event){
@@ -9561,21 +10564,30 @@ var ComponentPanelBuilder=BaseBuilder.extend({
 			 this.target.getModel().setFileName(j$("#nameid").val()); 
 			 this.target.fireContainerEvent({target:null,type:events.Event.RENAME_CONTAINER});
 		 }
-		 if(event.target.id=='importid'){
-			 console.log(34);
-		 }
-		 //mycanvas.focus();
 		
 	},
+    onchange:function(event){
+		 if(event.target.id=='symboltypeid'){
+			 this.target.getModel().setType(parseInt(j$('#symboltypeid').val())); 
+		 }
+		 
+    },
 	updateui:function(){
 		j$("#nameid").val(this.target.getModel().formatedFileName);
+		j$("#symboltypeid").val(this.target.getModel().getType());
 	},
 	render:function(){
 		j$(this.el).empty();
 		j$(this.el).append(
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
-				"</td></tr></table>"
+				"</td></tr>" +
+				"<tr><td style='width:50%;padding:7px'>Symbol Type</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"symboltypeid\">"+
+				this.fillComboBox([{id:0,value:'SYMBOL'},{id:1,value:'GROUND'},{id:2,value:'POWER'}])+
+			    "</select>" +
+				"</td></tr>"+				
+				"</table>"
 		);	
 		return this;
 	}
@@ -9588,18 +10600,18 @@ var PinPanelBuilder=BaseBuilder.extend({
     events: {
         'keypress #numberid' : 'onenter',	
         'keypress #nameid' : 'onenter',	
-        'change #nameorientationid': 'onchange',
-        'change #numberorientationid': 'onchange', 
+        'change #namealignmentid': 'onchange',
+        'change #numberalignmentid': 'onchange', 
         'change #orientationid': 'onchange',
         'change #styleid': 'onchange', 
         'change #pintypeid': 'onchange',
     },
     onchange:function(event){
-        if(event.target.id=='nameorientationid'){
-        	this.target.getTextureByTag("name").setOrientation(parseInt(j$("#nameorientationid").val()));        	
+        if(event.target.id=='namealignmentid'){
+        	this.target.getTextureByTag("name").setAlignment(parseInt(j$("#namealignmentid").val()));        	
         }
-        if(event.target.id=='numberorientationid'){
-        	this.target.getTextureByTag("number").setOrientation(parseInt(j$("#numberorientationid").val()));        	
+        if(event.target.id=='numberalignmentid'){
+        	this.target.getTextureByTag("number").setAlignment(parseInt(j$("#numberalignmentid").val()));        	
         }
         if(event.target.id=='orientationid'){        
         	this.target.setOrientation(parseInt(j$('#orientationid').val()));
@@ -9632,8 +10644,8 @@ var PinPanelBuilder=BaseBuilder.extend({
 		 j$('#styleid').val(this.target.style);
 		 j$('#pintypeid').val(this.target.type);
 	     j$('#numberid').val(this.target.getTextureByTag("number").shape.text); 
-	     j$('#nameorientationid').val(this.target.getTextureByTag("name").getOrientation()); 
-	     j$('#numberorientationid').val(this.target.getTextureByTag("number").getOrientation()); 
+	     j$('#namealignmentid').val(this.target.getTextureByTag("name").getAlignment()); 
+	     j$('#numberalignmentid').val(this.target.getTextureByTag("number").getAlignment()); 
 	},
 	render:function(){
 		j$(this.el).empty();
@@ -9655,16 +10667,16 @@ var PinPanelBuilder=BaseBuilder.extend({
 				                   {id:6,value:'OUTPUT_LOW'},{id:7,value:'FALLING_EDGE_CLOCK'}])+
 				"</select></td></tr>"+				
 				"<tr><td style='padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='width:50%;padding:7px'>Text Orientation</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"nameorientationid\">"+
-				this.fillComboBox([{id:0,value:'HORIZONTAL',selected:true},{id:1,value:'VERTICAL'}])+
+				"<tr><td style='width:50%;padding:7px'>Text Alignment</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"namealignmentid\">"+
+				this.fillComboBox([{id:0,value:'RIGHT',selected:true},{id:1,value:'TOP',selected:true},{id:2,value:'LEFT',selected:true},{id:3,value:'BOTTOM'}])+
 			    "</select></td></tr>"+
 				
 				"<tr><td style='padding:7px'>Number</td><td><input type='text' id='numberid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='width:50%;padding:7px'>Text Orientation</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"numberorientationid\">"+
-				this.fillComboBox([{id:0,value:'HORIZONTAL',selected:true},{id:1,value:'VERTICAL'}])+
-			    "</select>" +
+				"<tr><td style='width:50%;padding:7px'>Text Alignment</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"numberalignmentid\">"+				
+				this.fillComboBox([{id:0,value:'RIGHT',selected:true},{id:1,value:'TOP',selected:true},{id:2,value:'LEFT',selected:true},{id:3,value:'BOTTOM'}])+
+				"</select>" +
 				"</td></tr>"+		        
 		
 		"</table>");
@@ -9678,6 +10690,8 @@ var TrianglePanelBuilder=BaseBuilder.extend({
 		this.id="trianglepanelbuilder";  
     },	
     events: {
+        'keypress #xid' : 'onenter',	
+        'keypress #yid' : 'onenter',
         'keypress #thicknessid' : 'onenter',        
         'change #fillid': 'onchange', 
     },
@@ -9694,9 +10708,21 @@ var TrianglePanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='thicknessid'){
 			 this.target.thickness=(parseFloat(j$('#thicknessid').val()));			 
 		 } 
+		 if(event.target.id=='xid'){			 
+	         var x=this.fromUnitX(j$('#xid').val()); 
+	         this.target.Resize(x-this.target.resizingPoint.x, 0, this.target.resizingPoint);			   
+		 } 
+	     if(event.target.id=='yid'){		
+	         var y=this.fromUnitY(j$('#yid').val()); 
+	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
+		 }		 
 		 this.component.repaint(); 	
     },
 	updateui:function(){	
+        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
+        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
+        j$('#xid').val(utilities.roundFloat(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x),1));
+        j$('#yid').val(utilities.roundFloat(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y),1)); 
 		j$('#thicknessid').val(this.target.thickness);
 		j$("#fillid").val(this.target.fill);
 	},
@@ -9704,7 +10730,9 @@ var TrianglePanelBuilder=BaseBuilder.extend({
 						
 		j$(this.el).empty();
 		j$(this.el).append(
-				"<table width='100%'>"+			
+				"<table width='100%'>"+	
+				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+					
 				"<tr><td style='width:50%;padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+			
 				"<tr><td style='padding:7px'>Fill</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"fillid\">"+
@@ -9743,12 +10771,24 @@ var ArrowLinePanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='headsizeid'){
 		   this.target.setHeadSize((parseInt(j$('#headsizeid').val())));			 
 		 } 
+		 if(event.target.id=='xid'){			 
+	         var x=this.fromUnitX(j$('#xid').val()); 
+	         this.target.Resize(x-this.target.resizingPoint.x, 0, this.target.resizingPoint);			   
+		 } 
+	     if(event.target.id=='yid'){		
+	         var y=this.fromUnitY(j$('#yid').val()); 
+	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
+		 } 		 
 		 this.component.repaint(); 	
     },
 	updateui:function(){	
 		j$('#thicknessid').val(this.target.thickness);
 		j$("#headsizeid").val((this.target.headSize));
 		j$("#fillid").val(this.target.fill);
+        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
+        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
+        j$('#xid').val(utilities.roundFloat(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x),1));
+        j$('#yid').val(utilities.roundFloat(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y),1)); 
 	},
 	render:function(){
 						
@@ -9777,8 +10817,8 @@ var ArcPanelBuilder=BaseBuilder.extend({
         'keypress #xid' : 'onenter',	
         'keypress #yid' : 'onenter',
         'keypress #thicknessid' : 'onenter',
-        'keypress #widthid' : 'onenter',
-        'keypress #heightid' : 'onenter',
+        'keypress #radiusxid' : 'onenter',
+        'keypress #radiusyid' : 'onenter',
         'keypress #startangleid' : 'onenter',
         'keypress #extendangleid' : 'onenter',
         'change #fillid': 'onchange', 
@@ -9796,11 +10836,11 @@ var ArcPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='thicknessid'){
 			 this.target.thickness=(parseFloat(j$('#thicknessid').val()));			 
 		 } 
-		 if(event.target.id=='widthid'){
-			   this.target.arc.w=(parseFloat(j$('#widthid').val()));			 
+		 if(event.target.id=='radiusxid'){
+			   this.target.arc.w=(parseFloat(j$('#radiusxid').val()));			 
 		 } 
-		 if(event.target.id=='heightid'){
-			   this.target.arc.h=(parseFloat(j$('#heightid').val()));			 
+		 if(event.target.id=='radiusyid'){
+			   this.target.arc.h=(parseFloat(j$('#radiusyid').val()));			 
 		 } 
 		 if(event.target.id=='startangleid'){
 			   this.target.setStartAngle(j$('#startangleid').val());			 
@@ -9997,30 +11037,31 @@ var SymbolPanelBuilder=BaseBuilder.extend({
 	     j$("#originxid").val((this.component.getModel().getUnit().getCoordinateSystem().getX()));    
 	     j$("#originyid").val((this.component.getModel().getUnit().getCoordinateSystem().getY()));
 	   }
+
 	   //reference
-//	   var labels=this.target.getShapes(GlyphLabel);
-//	   var hash=[];
-//	   var reftag;
-//	   var valtag;
-//	   
-//	   //add empty entry
-//	   hash.push({id:-1,value:""});
-//	   for(i=0;i<labels.length;i++){
-//		   hash.push({id:labels[i].uuid,value:labels[i].texture.text});
-//		 
-//		   if(labels[i].texture.tag=='reference'){
-//			   reftag=labels[i].uuid;
-//		   }
-//		   if(labels[i].texture.tag=='value'){
-//			   valtag=labels[i].uuid;
-//		   }
-//	   }
-//	   
-//	   this.reloadComboBox('referenceid',hash);
-//	   j$('#referenceid').val(reftag);
-//	   
-//	   this.reloadComboBox('valueid',hash);
-//	   j$('#valueid').val(valtag);
+	   var labels=this.target.getShapes(FontLabel);
+	   var hash=[];
+	   var reftag;
+	   var valtag;
+	   
+	   //add empty entry
+	   hash.push({id:-1,value:""});
+	   for(i=0;i<labels.length;i++){
+		   hash.push({id:labels[i].uuid,value:labels[i].texture.shape.text});
+		 
+		   if(labels[i].texture.tag=='reference'){
+			   reftag=labels[i].uuid;
+		   }
+		   if(labels[i].texture.tag=='unit'){
+			   valtag=labels[i].uuid;
+		   }
+	   }
+	   
+	   this.reloadComboBox('referenceid',hash);
+	   j$('#referenceid').val(reftag);
+	   
+	   this.reloadComboBox('valueid',hash);
+	   j$('#valueid').val(valtag);
 	},
 	render:function(){
 		j$(this.el).empty();
@@ -10064,13 +11105,13 @@ var LabelPanelBuilder=BaseBuilder.extend({
         'keypress #rotateid' : 'onenter',
         'keypress #sizeid' : 'onenter',	
         'keypress #thicknessid' : 'onenter',	
-		'change #orientationid':'onchange',
+		'change #alignmentid':'onchange',
 		'change #colorid':'onchange',
         'change #styleid': 'onchange', 
     },
     onchange:function(event){      
-	  if(event.target.id=='orientationid'){
-		  this.target.texture.setOrientation(parseInt(j$("#orientationid").val()));
+	  if(event.target.id=='alignmentid'){
+		  this.target.texture.shape.alignment= (parseInt(j$("#alignmentid").val()));
       }
 	  if(event.target.id=='colorid'){
 		  this.target.texture.fillColor=(j$('#colorid').val());			  
@@ -10099,7 +11140,7 @@ var LabelPanelBuilder=BaseBuilder.extend({
 	 j$('#textid').val(this.target.texture.shape.text);	
 	 j$('#xid').val(utilities.roundFloat(this.target.texture.shape.anchorPoint.x,1));
 	 j$('#yid').val(utilities.roundFloat(this.target.texture.shape.anchorPoint.y,1));	 
-	 j$("#orientationid").val(this.target.texture.getOrientation());
+	 j$("#alignmentid").val(this.target.texture.shape.alignment);
 	 j$('#colorid').val(this.target.texture.fillColor);		
 	 j$('#sizeid').val(this.target.texture.shape.fontSize);
 	 j$('#styleid').val(this.target.texture.shape.style);
@@ -10112,8 +11153,8 @@ var LabelPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Text</td><td><input type='text' id='textid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='width:50%;padding:7px'>Text Orientation</td><td>" +
-				"<select class=\"form-control input-sm\" id=\"orientationid\">"+
-				this.fillComboBox([{id:0,value:'HORIZONTAL',selected:true},{id:1,value:'VERTICAL'}])+
+				"<select class=\"form-control input-sm\" id=\"alignmentid\">"+
+				this.fillComboBox([{id:0,value:'RIGHT',selected:true},{id:1,value:'TOP',selected:true},{id:2,value:'LEFT',selected:true},{id:3,value:'BOTTOM'}])+
 			    "</select>" +
 				"</td></tr>"+				
 				"<tr><td style='padding:7px'>Color</td><td><input type='color' id='colorid' value='#ff0000'></td></tr>"+
@@ -10159,8 +11200,8 @@ var LinePanelBuilder=BaseBuilder.extend({
 	updateui:function(){
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
         j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
-        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
-        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
+        j$('#xid').val(utilities.roundFloat(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x),1));
+        j$('#yid').val(utilities.roundFloat(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y),1)); 
         j$('#thicknessid').val(this.target.thickness);
 	},
 	render:function(){
@@ -10233,7 +11274,7 @@ var RectPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Fill</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"fillid\">"+
-				this.fillComboBox([{id:1,value:'EMPTY',selected:true},{id:2,value:'FILLED'}])+
+				this.fillComboBox([{id:1,value:'EMPTY',selected:true},{id:2,value:'FILLED'},{id:3,value:'GRADIENT'}])+
 			    "</select>" +
 				"</td></tr>"+
 				//"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+
@@ -10807,9 +11848,8 @@ var ToggleButtonView=Backbone.View.extend({
 	},
 	onload:function(selectedModel){
 		//****load it    	
-		  this.symbolComponent.Clear();
+		  this.symbolComponent.clear();
 		  this.symbolComponent.setMode(core.ModeEnum.COMPONENT_MODE);
-		  
 		  
 		  for(let unit of selectedModel.getUnits()){
 			  core.isEventEnabled=false;

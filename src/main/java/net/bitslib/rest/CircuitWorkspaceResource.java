@@ -22,21 +22,22 @@ import net.bitslib.entity.Footprint;
 import net.bitslib.entity.FootprintLibrary;
 import net.bitslib.repository.BoardRepository;
 import net.bitslib.repository.BoardWorkspaceRepository;
+import net.bitslib.repository.CircuitWorkspaceRepository;
 
 @RestController
-@RequestMapping("/rest/boards")
-public class BoardWorkspaceResource extends AbstractResource{
-	private static final Logger logger = Logger.getLogger(BoardWorkspaceResource.class.getName());
+@RequestMapping("/rest/circuit")
+public class CircuitWorkspaceResource extends AbstractResource{
+	private static final Logger logger = Logger.getLogger(CircuitWorkspaceResource.class.getName());
 
 	@Autowired
-	private BoardWorkspaceRepository boardWorkspaceRepository;
+	private CircuitWorkspaceRepository circuitWorkspaceRepository;
 	
-	@Autowired
-	private BoardRepository boardRepository;
-	
+	//@Autowired
+	//private BoardRepository boardRepository;
+/*	
 	@RequestMapping(value = "/workspaces", method = RequestMethod.GET,produces={MediaType.APPLICATION_XML_VALUE},headers = "Accept=application/xml")
 	public ResponseEntity<String> getWorkspaces(){
-		return ResponseEntity.ok(boardWorkspaceRepository.getWorkspacesToXML(null));
+		return ResponseEntity.ok(circuitWorkspaceRepository.getWorkspacesToXML(null));
 	}
 	@RequestMapping(value = "/workspaces/{workspaceName}", method = RequestMethod.GET,produces={MediaType.APPLICATION_XML_VALUE})
 	public ResponseEntity<String> getBoards(@PathVariable("workspaceName") String workspaceName){
@@ -100,4 +101,5 @@ public class BoardWorkspaceResource extends AbstractResource{
 		}
 		return	ResponseEntity.ok("");
 	}
+	*/
 }

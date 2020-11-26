@@ -60,7 +60,7 @@
         <div class="col-lg-3 d-flex align-items-center justify-content-center">
           <div class=" mx-auto mb-0 mb-lg-3">
             <div class="media-middle">
-               <a href="#" >
+               <a href="apps/circuit.html" >
                 <img src="../img/circuit_icon.png">
                </a>
              </div>
