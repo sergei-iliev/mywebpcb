@@ -144,6 +144,9 @@ class FontLabel extends Shape{
 		copy.texture = this.texture.clone();  				
 		return copy;
 	}
+	getClickableOrder() {		
+		return 0;
+	}	
 	calculateShape(){ 
 		  return this.texture.getBoundingShape();
 		}

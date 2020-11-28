@@ -270,11 +270,11 @@ getClickedShape( x,  y,  isTextIncluded){
         return null;
     }
     //Text?
-    if (undefined !=clickedShapes[0]['getTextureByTag']) {   
-        if(this.isShapeVisibleOnLayers(clickedShapes[0])){             
-          return clickedShapes[0];
-        }
-    }
+//    if (undefined !=clickedShapes[0]['getTextureByTag']) {   
+//        if(this.isShapeVisibleOnLayers(clickedShapes[0])){             
+//          return clickedShapes[0];
+//        }
+//    }
 
     clickedShapes.sort(function(o1, o2){
        
@@ -292,10 +292,10 @@ getClickedShape( x,  y,  isTextIncluded){
                  }
            }
     	 }
-                   
-       if ((o1.getOrderWeight() - o2.getOrderWeight()) == 0)
+
+       if ((o1.getClickableOrder() - o2.getClickableOrder()) == 0)
            return 0;
-       if ((o1.getOrderWeight() - o2.getOrderWeight()) > 0)
+       if ((o1.getClickableOrder() - o2.getClickableOrder()) > 0)
            return 1;
        else
            return -1;

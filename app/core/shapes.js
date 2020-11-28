@@ -67,9 +67,9 @@ getHeight() {
 getDrawingOrder() {
     return 100;
 }
-getOrderWeight() {
-		return (this.getWidth() * this.getHeight());
-	}
+getClickableOrder() {
+		return 100;
+}
 getUUID() {
 		return this.uuid;
 	}
@@ -246,6 +246,9 @@ clear(){
 	}
 alignResizingPointToGrid(targetPoint) {
     this.owningUnit.grid.snapToGrid(targetPoint);         
+}
+getClickableOrder(){
+	return 2;
 }
 isClicked(x, y) {
 	  var result = false;

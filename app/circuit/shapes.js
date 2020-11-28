@@ -150,6 +150,10 @@ calculateShape() {
     r.setRect(x1, y1, x2 - x1, y2 - y1);
     return r;
 }
+getClickableOrder() {
+	var box = this.getBoundingShape();	
+	return box.width*box.height;
+}
 setSelected(selected) {        
     super.setSelected(selected);
     
@@ -270,13 +274,12 @@ fromXML(data){
 class SCHFontLabel extends FontLabel{
 	constructor(x, y) {
 		super(x, y, 0, 0, 1,core.Layer.LAYER_ALL);		
-	}
+	}	
 	clone(){
 		var copy = new SCHFontLabel(this.x,this.y);
 		copy.texture = this.texture.clone();  				
 		return copy;
-	}
-	
+	}	
 }
 class SCHWire extends AbstractLine{
 	constructor(){
@@ -542,6 +545,9 @@ class SCHConnector extends Shape{
 		 }
 		 return copy;
 	}
+	getClickableOrder() {		
+		return 4;
+	}	
 	alignToGrid(isRequired) {
 	    var center=this.segment.ps;
 	    var point=this.owningUnit.getGrid().positionOnGrid(center.x,center.y);
@@ -1001,7 +1007,10 @@ class SCHJunction extends Shape{
 		 copy.circle.pc.y=this.circle.pc.y;
 		 copy.circle.r=this.circle.r;	        	        
 	     return copy;
-	}		
+	}	
+getClickableOrder() {		
+	return 1;
+}	
 alignToGrid(isRequired) {
     let point=this.owningUnit.getGrid().positionOnGrid(this.circle.pc.x, this.circle.pc.y);
     this.circle.pc.set(point.x,point.y);    
@@ -1061,6 +1070,9 @@ clone(){
 alignToGrid(isRequired) {
     this.owningUnit.getGrid().snapToGrid(this.point);         
     return null;
+}
+getClickableOrder() {		
+	return 3;
 }
 calculateShape(){
     return d2.Box.fromRect(this.point.x - this.selectionRectWidth, this.point.y - this.selectionRectWidth, 2 * this.selectionRectWidth,

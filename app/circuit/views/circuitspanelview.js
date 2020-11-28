@@ -115,7 +115,7 @@ var LabelPanelBuilder=BaseBuilder.extend({
 			    "</select>" +
 				"</td></tr>"+				
 				"<tr><td style='padding:7px'>Color</td><td><input type='color' id='colorid' value='#ff0000'></td></tr>"+
-				"<tr><td style='width:50%;padding:7px'>Text Orientation</td><td>" +
+				"<tr><td style='width:50%;padding:7px'>Style</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"styleid\">"+
 				this.fillComboBox([{id:'plain',value:'PLAIN',selected:true},{id:'bold',value:'BOLD'},{id:'italic',value:'ITALIC'}])+
 			    "</select>" +
