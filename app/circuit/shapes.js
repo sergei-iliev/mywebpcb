@@ -238,6 +238,11 @@ paint(g2, viewportWindow, scale,layersmask) {
     	
     
  }
+toXML(){
+    var type="type=\""+(this.getType()==Symbol.Type.SYMBOL?Typeable.Type.SYMBOL.toString():this.getType())+"\"";
+    
+    return "";
+}
 fromXML(data){
 	this.type=SymbolType.parse(j$(data).attr("type"));
 	this.displayName=j$(data).find("name")[0].textContent;	
@@ -305,7 +310,7 @@ class SCHWire extends AbstractLine{
 		g2.lineWidth = this.thickness * scale.getScale();
 
 		if (this.selection)
-			g2.strokeStyle = "gray";
+			g2.strokeStyle = "blue";
 		else
 			g2.strokeStyle = "black";
 
@@ -335,6 +340,16 @@ class SCHWire extends AbstractLine{
 		    
 		    
 	}	
+	toXML(){		
+		let xml="<wire thickness=\""+this.thickness+"\">";
+		xml+="<wirepoints>";		
+		this.polyline.points.forEach(function(point) {
+			xml += utilities.roundFloat(point.x,1) + "," + utilities.roundFloat(point.y,1) + "|";
+		},this);		
+		xml+="</wirepoints>\r\n";
+		xml+="</wire>";
+		return xml;
+	}	
 	fromXML(data){
 		
 		var points= j$(data).find('wirepoints')[0];
@@ -362,7 +377,17 @@ class SCHBus extends SCHWire{
 		var copy = new SCHBus();		
 		copy.polyline=this.polyline.clone();
 		return copy;
-	}	
+	}
+	toXML(){		
+		let xml="<bus thickness=\""+this.thickness+"\">";
+		xml+="<wirepoints>";		
+		this.polyline.points.forEach(function(point) {
+			xml += utilities.roundFloat(point.x,1) + "," + utilities.roundFloat(point.y,1) + "|";
+		},this);		
+		xml+="</wirepoints>\r\n";
+		xml+="</bus>";
+		return xml;
+	}
 }
 class SCHBusPin extends AbstractLine{
 	constructor(){
@@ -486,6 +511,16 @@ class SCHBusPin extends AbstractLine{
         
         
 		    
+	}
+	toXML(){
+        let xml="<buspin>\r\n";
+        xml+="<name>"+this.texture.toXML()+"</name>\r\n";
+        xml+="<wirepoints>";
+        xml+=utilities.roundDouble(this.polyline.points[0].x,1)+","+utilities.roundDouble(this.polyline.points[0].y,1)+"|";
+        xml+=utilities.roundDouble(this.polyline.points[1].x,1)+","+utilities.roundDouble(this.polyline.points[1].y,1)+"|";
+        xml+="</wirepoints>\r\n";       
+        xml+="</buspin>";
+        return xml;
 	}	
 	fromXML(data){
 		var points= j$(data).find('wirepoints')[0];
@@ -554,6 +589,9 @@ class SCHConnector extends Shape{
 	    this.move(point.x - center.x,point.y - center.y);	     	       
 	    return new d2.Point(point.x - center.x, point.y - center.y);
 	}
+    getPinPoint() {     
+        return this.segment.ps;
+    }	
 	getTextureByTag(tag) {
 	    if(tag===(this.texture.tag))
 	        return this.texture;	    
@@ -672,6 +710,28 @@ class SCHConnector extends Shape{
 	    case Orientation.SOUTH:    	
 	    	this.segment.pe.set(this.segment.ps.x, this.segment.ps.y + (PIN_LENGTH / 2));
 	    }   
+	}
+    getOrientation(){
+        if(this.segment.isHorizontal){
+            if(this.segment.ps.x<this.segment.pe.x){
+                return Orientation.EAST;
+            }else{
+                return Orientation.WEST;           
+            }
+        }else{
+            if(this.segment.ps.y<this.segment.pe.y){
+                return Orientation.SOUTH;
+            }else{
+                return Orientation.NORTH;           
+            }            
+        }        
+    }	
+	toXML(){	   		
+        let xml="<connector type=\""+this.type+"\" style=\""+this.getStyle()+"\" >\r\n";        
+        xml+="<name>"+this.texture.toXML()+"</name>\r\n";
+        xml+="<a x=\""+utilities.roundDouble(this.segment.ps.x,1)+"\" y=\""+utilities.roundDouble(this.segment.ps.y,1)+"\"  orientation=\""+this.getOrientation()+"\" />\r\n";        
+        xml+="</connector>";
+        return xml;
 	}	
 	fromXML(data){		
 		var tokens = j$(data).find("a")[0].textContent.split(",");
@@ -1049,9 +1109,16 @@ paint(g2, viewportWindow, scale,layersmask) {
     g2._fill=false;
   	  
 }
+toXML(){	
+    return "<junction x=\""+utilities.roundDouble(this.circle.pc.x,1)+"\" y=\""+utilities.roundDouble(this.circle.pc.y,1)+"\" />";        
+}
 fromXML(data){
-	var tokens = data.textContent.split(",");	
-	this.circle.pc.set(parseFloat(tokens[0]),parseFloat(tokens[1]));
+	if(j$(data).attr("x")){
+		this.circle.pc.set(parseFloat(j$(data).attr("x")),parseFloat(j$(data).attr("y")));
+	}else{
+		var tokens = data.textContent.split(",");	
+		this.circle.pc.set(parseFloat(tokens[0]),parseFloat(tokens[1]));
+	}
 }
 }
 class SCHNoConnector extends Shape{
@@ -1113,6 +1180,10 @@ paint(g2, viewportWindow, scale,layersmask) {
 	  
 	  
 }
+toXML(){	
+	return "<noconnector x=\""+utilities.roundDouble(this.point.x,1)+"\" y=\""+utilities.roundDouble(this.point.y,1)+"\" />";        	
+}
+
 fromXML(data){
 	let x=parseFloat(j$(data).attr("x"));
 	let y=parseFloat(j$(data).attr("y"));			

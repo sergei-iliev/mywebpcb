@@ -76,6 +76,7 @@ ButtonView=Backbone.View.extend({
         "click  #closebuttonid" : "onclose",	
     },
     onsave:function(){
+    	console.log(this.model.format());
     	let workspace=j$('#workspacecomboid').val()!=''?j$('#workspacecomboid').val():'null';
 	    let name=j$('#projectnameid').val()!=''?j$('#projectnameid').val():'null'	
     	j$.ajax({

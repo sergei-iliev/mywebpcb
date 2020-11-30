@@ -36,7 +36,6 @@ class SymbolShapeFactory{
 		}
 		if (data.tagName.toLowerCase() == 'label') {
 			var label = new FontLabel(0,0);
-			console.log(data);
 			label.fromXML(data);		
 			return label;
 		}
@@ -224,6 +223,9 @@ class Arc extends Shape{
 		copy.thickness=this.thickness;
 		return copy;
 	}
+    getClickableOrder() {        
+        return this.getBoundingShape().area;
+    }	
 	calculateShape() {
 		return this.arc.box;		
 	}
@@ -404,6 +406,9 @@ class Ellipse extends Shape{
 		copy.fill=this.fill;
 		return copy;
 	}
+    getClickableOrder() {        
+        return this.getBoundingShape().area;
+    }	
 	calculateShape() {
 		return this.ellipse.box;		
 	}
@@ -539,6 +544,9 @@ class RoundRect extends Shape{
 		copy.fill = this.fill;		
 		return copy;
 	}
+    getClickableOrder() {        
+        return this.getBoundingShape().area;
+    }
 	calculateShape() {
 		return this.roundRect.box;		
 	}
@@ -714,6 +722,9 @@ clone(){
 calculateShape() {
 	return this.line.box;		
 }
+getClickableOrder() {        
+    return 4;
+}
 isClicked(x, y) {
 	if (this.arrow.contains(new d2.Point(x, y))){
 		return true;
@@ -852,6 +863,9 @@ clone(){
     copy.shape=this.shape.clone();  
     copy.fill = this.fill;
     return copy;
+}
+getClickableOrder() {        
+    return this.getBoundingShape().area;
 }
 alignResizingPointToGrid(targetPoint){
     let point=this.owningUnit.getGrid().positionOnGrid(targetPoint.x,targetPoint.y);  
@@ -1071,6 +1085,9 @@ alignToGrid(isRequired) {
     var point=this.owningUnit.getGrid().positionOnGrid(center.x,center.y);
     this.move(point.x - center.x,point.y - center.y);
     return new d2.Point(point.x - center.x, point.y - center.y);  
+}
+getClickableOrder() {        
+    return 1;
 }
 getClickedTexture(x,y) {
 	if(this.type==PinType.SIMPLE){
