@@ -49,10 +49,10 @@ constructor(width,height) {
        this.scalableTransformation.reset(1.2,2,2,15);
 	   this.shapeFactory = new SymbolShapeFactory();
        this.grid.setGridUnits(8, core.Units.PIXEL);
-       this.grid.pointsColor='black'; 
+       this.grid.pointsColor='#000000'; 
        this.type=SymbolType.SYMBOL;
        this.isTextLayoutVisible = false;
-       this.frame.color='black';
+       this.frame.color='#000000';
 	}
 clone(){
 	  var copy=new Symbol(this.width,this.height);
@@ -176,7 +176,7 @@ class SymbolContainer extends UnitContainer{
   		  xml+="\r\n";
   	    }    	    	
         xml+="</modules>";
-        
+        console.log(xml);
         return xml;
     }
 	

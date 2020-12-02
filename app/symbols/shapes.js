@@ -55,7 +55,7 @@ class SymbolShapeFactory{
 class Line extends AbstractLine{
 constructor(thickness) {
 	super(1,core.Layer.LAYER_ALL);	
-	this.fillColor='black';
+	this.fillColor='#000000';
 	this.selectionRectWidth=4;
 }
 clone() {
@@ -89,7 +89,7 @@ paint(g2, viewportWindow, scale,layersmask) {
 
 
 		if (this.selection)
-			g2.strokeStyle = "gray";
+			g2.strokeStyle = "#808080";
 		else
 			g2.strokeStyle = this.fillColor;
 		
@@ -113,7 +113,6 @@ paint(g2, viewportWindow, scale,layersmask) {
 
 }
 fromXML(data){
-	   this.thickness = (parseInt(j$(data).attr("thickness")));
    	   var tokens = data.textContent.split(",");
 	   var len = Math.floor(tokens.length / 2) * 2;
 	   for (var index = 0; index < len; index += 2) {
@@ -121,7 +120,11 @@ fromXML(data){
 			var y = parseInt(tokens[index + 1]);
 			this.polyline.points.push(new d2.Point(x, y));
 	   }
-	   this.thickness=parseInt(tokens[tokens.length-1]);
+	   if(j$(data).attr("thickness")){
+	      this.thickness=(parseInt(j$(data).attr("thickness")));
+	   }else{
+		   this.thickness=parseInt(tokens[tokens.length-1]); 
+	   }
 }
 toXML(){
 	var result = "<line  thickness=\"" + this.thickness + "\">";
@@ -197,15 +200,17 @@ paint(g2, viewportWindow, scale,layersmask) {
 	  }
 	  this.texture.paint(g2, viewportWindow, scale);
 }
-fromXML(data){	 
-	
+fromXML(data){	 	
     this.texture.fromXML(j$(data).text());
     this.texture.fillColor ="#" +(j$(data).attr("color") & 0x00FFFFFF).toString(16).padStart(6, '0');
-}	    
+}
+static formatToXML(texture){
+	return "<label color=\""+utilities.hexToDec(texture.fillColor)+"\">"+texture.toXML()+"</label>";
+}
 toXML(){
-    if(this.texture!=null&&!this.texture.isEmpty())
-        return "<label color=\""+this.texture.fillColor+"\">"+this.texture.toXML()+"</label>";
-      else
+    if(this.texture!=null&&!this.texture.isEmpty()){
+        return "<label color=\""+utilities.hexToDec(this.texture.fillColor)+"\">"+this.texture.toXML()+"</label>";
+    }else
         return "";  	
 }    
 }
@@ -215,7 +220,7 @@ class Arc extends Shape{
 		this.setDisplayName("Arc");		
 		this.arc=new d2.Arcellipse(new d2.Point(x,y),w,h);
 		this.selectionRectWidth=4;
-		this.fillColor='black';								
+		this.fillColor='#000000';							
 	}
 	clone(){
 		var copy = new Arc(this.arc.pc.x,this.arc.pc.y,this.arc.w,this.arc.h);
@@ -318,14 +323,14 @@ class Arc extends Shape{
 			
 		  if (this.fill == core.Fill.EMPTY) {
 				if (this.selection) {
-					g2.strokeStyle = "gray";
+					g2.strokeStyle = "#808080";
 				} else {
 					g2.strokeStyle = this.fillColor;
 				}
 			} else {
 				g2._fill=true;
 				if (this.selection) {
-					g2.fillStyle = "gray";
+					g2.fillStyle = "#808080";
 				} else {
 					g2.fillStyle = this.fillColor;
 				}			
@@ -397,7 +402,7 @@ class Ellipse extends Shape{
 		this.setDisplayName("Ellipse");		
 		this.ellipse=new d2.Ellipse(new d2.Point(0,0),w,h);
 		this.selectionRectWidth=4;
-		this.fillColor='black';		
+		this.fillColor='#000000';	
 	}
 	clone(){
 		var copy = new Ellipse(this.ellipse.w,this.ellipse.h);
@@ -468,14 +473,14 @@ class Ellipse extends Shape{
 		
 		if (this.fill == core.Fill.EMPTY) {
 			if (this.selection) {
-				g2.strokeStyle = "gray";
+				g2.strokeStyle = "#808080";
 			} else {
 				g2.strokeStyle = this.fillColor;
 			}
 		} else {
 			g2._fill=true;
 			if (this.selection) {
-				g2.fillStyle = "gray";
+				g2.fillStyle = "#808080";
 			} else {
 				g2.fillStyle = this.fillColor;
 			}			
@@ -534,8 +539,7 @@ class RoundRect extends Shape{
 		this.setDisplayName("Rect");		
 		this.selectionRectWidth=4;
 		this.resizingPoint = null;
-		this.fillColor='black';
-		//this.rotate=0;
+		this.fillColor='#000000';
 		this.roundRect=new d2.RoundRectangle(new d2.Point(x,y),width,height,arc);		
 	}
 	clone(){
@@ -623,7 +627,7 @@ class RoundRect extends Shape{
 		
 		if (this.fill == core.Fill.EMPTY) {
 			if (this.selection) {
-				g2.strokeStyle = "gray";
+				g2.strokeStyle = "#808080";
 			} else {
 				g2.strokeStyle = this.fillColor;
 			}
@@ -631,17 +635,17 @@ class RoundRect extends Shape{
 		}else if(this.fill == core.Fill.GRADIENT){ 
 		  g2._fill=true;		  
 		  var grd = g2.createLinearGradient(r.box.x,r.box.y, r.box.max.x,r.box.max.y);
-		  grd.addColorStop(0, (this.selection?"gray":this.fillColor));
+		  grd.addColorStop(0, (this.selection?"#808080":this.fillColor));
 		  grd.addColorStop(1, "white");
 		  g2.fillStyle = grd;
 		  r.paint(g2);
 		  g2._fill=false;
-          g2.strokeStyle=(this.selection?"gray":this.fillColor);
+          g2.strokeStyle=(this.selection?"#808080":this.fillColor);
           r.paint(g2);
 		}else {
 			g2._fill=true;
 			if (this.selection) {
-				g2.fillStyle = "gray";
+				g2.fillStyle = "#808080";
 			} else {
 				g2.fillStyle = this.fillColor;
 			}			
@@ -686,24 +690,17 @@ fromXML(data){
 	}
 }
 toXML() {
-	let points="";
-	this.roundRect.points.forEach(function(point) {
-		points += utilities.roundFloat(point.x,1) + "," + utilities.roundFloat(point.y,1) + ",";
-	},this);
-	return "<rectangle  thickness=\"" + this.thickness
-			+ "\" fill=\"" + this.fill + "\" arc=\"" + this.roundRect.rounding
-			+"\" points=\"" + points
-			+ "\"/>";
+	let box=this.roundRect.box;
+    return "<rectangle>"+ utilities.roundFloat(box.min.x,1)+","+ utilities.roundFloat(box.min.y,1)+","+ utilities.roundFloat(box.width,1)+","+ utilities.roundFloat(box.height,1)+","+this.thickness+","+this.fill +","+this.roundRect.rounding+"</rectangle>";
 }
 }
-
 class ArrowLine extends Shape{
 	constructor() {
 		super(0, 0, 0,0, 1,core.Layer.LAYER_ALL);
 		this.setDisplayName("Arrow");		
 		this.selectionRectWidth=4;
 		this.resizingPoint = null;
-		this.fillColor='black';	
+		this.fillColor='#000000';	
 	    this.line=new d2.Segment(0,0,20,20);
 	    this.arrow=new d2.Polygon();
 	    this.arrow.points=[new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0)];
@@ -790,7 +787,7 @@ paint(g2, viewportWindow, scale,layersmask) {
 	g2.lineWidth = this.thickness * scale.getScale();
 
 	if (this.selection) {
-		g2.strokeStyle = "gray";
+		g2.strokeStyle = "#808080";
 	} else {
 		g2.strokeStyle = this.fillColor;
 	}
@@ -805,14 +802,14 @@ paint(g2, viewportWindow, scale,layersmask) {
 	
 	if (this.fill == core.Fill.EMPTY) {
 		if (this.selection) {
-			g2.strokeStyle = "gray";
+			g2.strokeStyle = "#808080";
 		} else {
 			g2.strokeStyle = this.fillColor;
 		}
 	} else {
 		g2._fill=true;
 		if (this.selection) {
-			g2.fillStyle = "gray";
+			g2.fillStyle = "#808080";
 		} else {
 			g2.fillStyle = this.fillColor;
 		}			
@@ -836,13 +833,22 @@ setResizingPoint(pt){
 getResizingPoint() {
 	return this.resizingPoint;
 }
-fromXML(data) { 
-	var tokens = data.textContent.split(",");	
-	this.line.ps.set(parseInt(tokens[0]),parseInt(tokens[1]));	
-	this.line.pe.set(parseInt(tokens[2]),parseInt(tokens[3]));
-	this.thickness=parseInt(tokens[4]);
-	this.setHeadSize(parseInt(tokens[5]));
-	this.fill=parseInt(tokens[6]);
+fromXML(data) { 	
+	if(j$(data).attr("thickness")){
+		var tokens = data.textContent.split(",");	
+		this.line.ps.set(parseInt(tokens[0]),parseInt(tokens[1]));	
+		this.line.pe.set(parseInt(tokens[2]),parseInt(tokens[3]));
+		this.thickness= parseInt(j$(data).attr("thickness"));
+		this.fill=parseInt(j$(data).attr("fill"));
+		this.setHeadSize(parseInt(j$(data).attr("head")));		
+	}else{
+		var tokens = data.textContent.split(",");	
+		this.line.ps.set(parseInt(tokens[0]),parseInt(tokens[1]));	
+		this.line.pe.set(parseInt(tokens[2]),parseInt(tokens[3]));
+		this.thickness=parseInt(tokens[4]);
+		this.setHeadSize(parseInt(tokens[5]));
+		this.fill=parseInt(tokens[6]);
+	}
 }
 toXML(){
     return "<arrow thickness=\"" + this.thickness + "\" fill=\"" + this.fill + "\"  head=\"" + this.headSize+ "\">" + utilities.roundFloat(this.line.ps.x,1) + "," + utilities.roundFloat(this.line.ps.y,1) + "," + utilities.roundFloat(this.line.pe.x,1) + "," + utilities.roundFloat(this.line.pe.y,1) + "</arrow>";	
@@ -854,7 +860,7 @@ class Triangle extends Shape{
 		this.setDisplayName("Triangle");		
 		this.selectionRectWidth=4;
 		this.resizingPoint = null;
-		this.fillColor='black';	
+		this.fillColor='#000000';
 	    this.shape=new d2.Polygon();
 	    this.shape.points=[new d2.Point(0,0),new d2.Point(20,20),new d2.Point(0,40)];	    	    	    
 }
@@ -919,14 +925,14 @@ paint(g2, viewportWindow, scale,layersmask) {
 	
 	if (this.fill == core.Fill.EMPTY) {
 		if (this.selection) {
-			g2.strokeStyle = "gray";
+			g2.strokeStyle = "#808080";
 		} else {
 			g2.strokeStyle = this.fillColor;
 		}
 	} else {
 		g2._fill=true;
 		if (this.selection) {
-			g2.fillStyle = "gray";
+			g2.fillStyle = "#808080";
 		} else {
 			g2.fillStyle = this.fillColor;
 		}			
@@ -1060,7 +1066,7 @@ constructor() {
 		super(0, 0, 0,0, 1,core.Layer.LAYER_ALL);
 		this.setDisplayName("Pin");		
 		this.selectionRectWidth=4;
-		this.fillColor='black';	
+		this.fillColor='#000000';
 	    this.segment=new d2.Segment(0,0,0,0);        
         this.type = PinType.COMPLEX;
         this.style = Style.LINE;
@@ -1253,9 +1259,9 @@ paint(g2, viewportWindow, scale,layersmask) {
 
 	g2.lineWidth = this.thickness ;
 	if (this.selection) {
-		g2.strokeStyle = "blue";
-	  	this.name.fillColor = "gray";
-	  	this.number.fillColor = "gray";
+		g2.strokeStyle = "#0000ff";
+	  	this.name.fillColor = "#808080";
+	  	this.number.fillColor = "#808080";
 	} else {
 		g2.strokeStyle = this.fillColor;
 	  	this.name.fillColor = this.fillColor;

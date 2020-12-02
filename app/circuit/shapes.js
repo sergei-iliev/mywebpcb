@@ -68,8 +68,8 @@ constructor(){
 	    this.reference=new SymbolFontTexture("","reference", 0, 0,1,8);
 	    this.unit=new SymbolFontTexture("","unit", 0,0,1,0);		 	
 	    
-	    this.reference.fillColor='black';
-	    this.unit.fillColor='black';
+	    this.reference.fillColor='#000000';
+	    this.unit.fillColor='#000000';
 	    
 	    this.type=SymbolType.SYMBOL;
 }
@@ -158,7 +158,7 @@ setSelected(selected) {
     super.setSelected(selected);
     
     this.shapes.forEach(shape=>{   
-      shape.fillColor=(selected?"blue":"black");
+      shape.fillColor=(selected?"blue":"#000000");
     });
     this.unit.setSelected(selected);
     this.reference.setSelected(selected);        
@@ -238,10 +238,20 @@ paint(g2, viewportWindow, scale,layersmask) {
     	
     
  }
-toXML(){
-    var type="type=\""+(this.getType()==Symbol.Type.SYMBOL?Typeable.Type.SYMBOL.toString():this.getType())+"\"";
-    
-    return "";
+toXML(){    
+    var xml="<module type=\""+SymbolType.valueOf(this.type)+"\" >\r\n";
+    //xml.append("<footprint library=\""+ (packaging.getFootprintLibrary()==null?"":packaging.getFootprintLibrary())+"\" category=\""+(packaging.getFootprintCategory()==null?"":packaging.getFootprintCategory())+"\"  filename=\""+(packaging.getFootprintFileName()==null?"":packaging.getFootprintFileName())+"\" name=\""+(packaging.getFootprintName()==null?"":packaging.getFootprintName())+"\"/>\r\n");
+    xml+="<name>"+this.displayName+"</name>\r\n";
+    xml+="<reference>"+FontLabel.formatToXML(this.reference)+"</reference>\r\n";                           
+    xml+=("<unit>"+ FontLabel.formatToXML(this.unit)+"</unit>\r\n");
+    xml+="<elements>\r\n";        
+    var len=this.shapes.length;
+    for(i=0;i<len;i++){
+		  xml+=this.shapes[i].toXML();  
+	}
+    xml+="</elements>\r\n";
+    xml+="</module>\r\n"; 
+    return xml;
 }
 fromXML(data){
 	this.type=SymbolType.parse(j$(data).attr("type"));
@@ -285,6 +295,12 @@ class SCHFontLabel extends FontLabel{
 		copy.texture = this.texture.clone();  				
 		return copy;
 	}	
+//    toXML(){
+//        if(this.texture!=null&&!this.texture.isEmpty())
+//          return "<label color=\""+this.texture.fillColor.getRGB()+"\">"+this.texture.toXML()+"</label>\r\n";
+//        else
+//          return "";          
+//    }
 }
 class SCHWire extends AbstractLine{
 	constructor(){
@@ -347,7 +363,7 @@ class SCHWire extends AbstractLine{
 			xml += utilities.roundFloat(point.x,1) + "," + utilities.roundFloat(point.y,1) + "|";
 		},this);		
 		xml+="</wirepoints>\r\n";
-		xml+="</wire>";
+		xml+="</wire>\r\n";
 		return xml;
 	}	
 	fromXML(data){
@@ -385,7 +401,7 @@ class SCHBus extends SCHWire{
 			xml += utilities.roundFloat(point.x,1) + "," + utilities.roundFloat(point.y,1) + "|";
 		},this);		
 		xml+="</wirepoints>\r\n";
-		xml+="</bus>";
+		xml+="</bus>\r\n";
 		return xml;
 	}
 }
@@ -519,7 +535,7 @@ class SCHBusPin extends AbstractLine{
         xml+=utilities.roundDouble(this.polyline.points[0].x,1)+","+utilities.roundDouble(this.polyline.points[0].y,1)+"|";
         xml+=utilities.roundDouble(this.polyline.points[1].x,1)+","+utilities.roundDouble(this.polyline.points[1].y,1)+"|";
         xml+="</wirepoints>\r\n";       
-        xml+="</buspin>";
+        xml+="</buspin>\r\n";
         return xml;
 	}	
 	fromXML(data){
@@ -730,7 +746,7 @@ class SCHConnector extends Shape{
         let xml="<connector type=\""+this.type+"\" style=\""+this.getStyle()+"\" >\r\n";        
         xml+="<name>"+this.texture.toXML()+"</name>\r\n";
         xml+="<a x=\""+utilities.roundDouble(this.segment.ps.x,1)+"\" y=\""+utilities.roundDouble(this.segment.ps.y,1)+"\"  orientation=\""+this.getOrientation()+"\" />\r\n";        
-        xml+="</connector>";
+        xml+="</connector>\r\n";
         return xml;
 	}	
 	fromXML(data){		
@@ -1110,7 +1126,7 @@ paint(g2, viewportWindow, scale,layersmask) {
   	  
 }
 toXML(){	
-    return "<junction x=\""+utilities.roundDouble(this.circle.pc.x,1)+"\" y=\""+utilities.roundDouble(this.circle.pc.y,1)+"\" />";        
+    return "<junction x=\""+utilities.roundDouble(this.circle.pc.x,1)+"\" y=\""+utilities.roundDouble(this.circle.pc.y,1)+"\" />\r\n";        
 }
 fromXML(data){
 	if(j$(data).attr("x")){
@@ -1181,7 +1197,7 @@ paint(g2, viewportWindow, scale,layersmask) {
 	  
 }
 toXML(){	
-	return "<noconnector x=\""+utilities.roundDouble(this.point.x,1)+"\" y=\""+utilities.roundDouble(this.point.y,1)+"\" />";        	
+	return "<noconnector x=\""+utilities.roundDouble(this.point.x,1)+"\" y=\""+utilities.roundDouble(this.point.y,1)+"\" />\r\n";        	
 }
 
 fromXML(data){

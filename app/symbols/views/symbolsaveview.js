@@ -7,7 +7,6 @@ var SymbolSaveView=Backbone.View.extend({
 	el:"#savedialogcontentslot",
 	initialize:function(opt){
 			this.symbolComponent=opt.symbolComponent; 
-			console.log(this.symbolComponent.getModel().format());
 			j$('#SymbolSaveDialog').jqxWindow({height: 300, width: 420});
 			j$('#SymbolSaveDialog').jqxWindow('open');
 			j$('#SymbolSaveDialog').off('close', j$.proxy(this.onclose,this)); 

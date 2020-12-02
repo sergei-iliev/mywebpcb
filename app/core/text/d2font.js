@@ -21,7 +21,7 @@ class FontTexture{
 	this.selection=false;
 	this.selectionRectWidth=3000;
 	this.constSize=false;
-	this.fillColor='white'; 
+	this.fillColor='#ffffff'; 
     this.shape.style='plain';
     this.isTextLayoutVisible=false;
 	//this.cache=new TextureCache(this);
@@ -231,7 +231,7 @@ class SymbolFontTexture{
 		this.selectionRectWidth=3000;
 		this.constSize=false;		    
 		this.selectionRectWidth=4;
-		this.fillColor='black';
+		this.fillColor='#000000';
 	    this.isTextLayoutVisible=false;
 	}
 	clone(){

@@ -92,10 +92,52 @@ class Circuit extends Unit{
 	}
 	format(){    
  	   var xml="<circuit width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
-	   xml+="<name>"+this.unitName+"</name>\r\n";	   	   	   
-	   this.shapes.forEach(s=>{
-		  xml+=s.toXML()+"\r\n";
-	   });	    
+	   xml+="<name>"+this.unitName+"</name>\r\n";
+       xml+="<symbols>\r\n";
+       //***   Chip symbols
+       xml+="<chips>\r\n";
+       this.shapes.forEach(s=>{ 
+           if (s instanceof SCHSymbol)
+               xml+= s.toXML();
+	   });
+       xml+="</chips>\r\n";
+       //***   Bus symbols
+       xml+="<busses>\r\n";
+       this.shapes.forEach(s=>{ 
+           if (s instanceof SCHBus)
+               xml+= s.toXML();
+	   });       
+       xml+="</busses>\r\n";	   
+       //***   Wire symbols
+       xml+="<wires>\r\n";
+       this.shapes.forEach(s=>{ 
+           if (s instanceof SCHWire)
+               xml+= s.toXML();
+	   });        
+       xml+="</wires>\r\n";
+       //***  BusPins
+       xml+="<buspins>\r\n";
+       this.shapes.forEach(s=>{ 
+           if (s instanceof SCHBusPin)
+               xml+= s.toXML();
+	   }); 
+       xml+="</buspins>\r\n";  
+       //***   Junction symbols
+       xml+="<junctions>\r\n";
+       this.shapes.forEach(s=>{ 
+           if (s instanceof SCHJunction)
+               xml+= s.toXML();
+       });
+       xml+="</junctions>\r\n";    
+       //***  Labels without parent
+       xml+="<labels>\r\n";
+       this.shapes.forEach(s=>{ 
+           if (s instanceof SCHFontLabel)
+               xml+= s.toXML();
+       });
+       xml+="</labels>\r\n";      
+       
+       xml+="</symbols>\r\n";
 	   xml+="</circuit>";
 	   return xml;        
 	}

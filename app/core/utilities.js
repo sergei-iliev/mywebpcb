@@ -182,7 +182,15 @@ var Max=function(p1,p2){
 //		g2.arcTo(x,   y,   x+w, y,   r);
 //};
 
-
+var hexToDec=function(hex) {
+	var result = 0, digitValue;
+	hex = hex.toLowerCase();
+	for (var i = 0; i < hex.length; i++) {
+		digitValue = '0123456789abcdefgh'.indexOf(hex[i]);
+		result = result * 16 + digitValue;
+	}
+	return result;
+}
 version=(function(){
 	return {
 		MYWEBPCB_VERSION:"8.0",
@@ -204,6 +212,7 @@ module.exports = {
   intersectLineLine,
   degrees,
   radians,
+  hexToDec,
   QUADRANT,
   POINT_TO_POINT,
   POSITION,
