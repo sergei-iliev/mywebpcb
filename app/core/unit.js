@@ -125,7 +125,7 @@ class Unit{
     	this.shapes=[];
     	this.width=width;
     	this.height=height;
-    	this.unitName="Uknown";
+    	this.unitName="Unknown";
     	this.grid=new core.Grid(0.8,core.Units.MM);
         this.scrollPositionXValue = 0;
         this.scrollPositionYValue = 0;

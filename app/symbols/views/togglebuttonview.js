@@ -24,7 +24,6 @@ var ToggleButtonView=Backbone.View.extend({
 		_.each(this.collection.models,j$.proxy(function(model,index,list) {
 				j$("#"+model.id).bind( "click",{model:model},j$.proxy(this.onclick,this));
 			}),this);
-		j$("#importfromclipboardid").click(j$.proxy(this.onimport,this));
 		
 	},
 	update:function(){
@@ -40,16 +39,7 @@ var ToggleButtonView=Backbone.View.extend({
 		    }
 		}),this);		
 	},
-	onimport:function(event){
-		navigator.clipboard.readText().then(data =>{ 
-		      let symbolContainer=new SymbolContainer(true);
-		      //disable 
-		      core.isEventEnabled=false;
-		      symbolContainer.parse(data);
-		      core.isEventEnabled=true;
-		  	  mywebpcb.trigger('libraryview:load',symbolContainer);
-			});
-	},
+
 	onclick:function(event){
 	    event.preventDefault();
 	    //is this a group button
@@ -62,16 +52,28 @@ var ToggleButtonView=Backbone.View.extend({
 		    event.data.model.attributes.active=!event.data.model.attributes.active;
 	    }
 		this.update();
-//		if(event.data.model.id=='newfootprintid'){
-			
-//			var footprint=new Footprint(core.MM_TO_COORD(50),core.MM_TO_COORD(50));
-//            footprint.name="Sergio Leone";
-//			this.footprintComponent.getModel().add(footprint);
-//            this.footprintComponent.getModel().setActiveUnitUUID(footprint.getUUID());
-//            this.footprintComponent.componentResized(); 
-//            this.footprintComponent.Repaint();
-//            this.footprintComponent.getModel().fireUnitEvent({target:this.footprintComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 	
-//		}
+		if(event.data.model.id=='importfromclipboardid'){	
+			navigator.clipboard.readText().then(data =>{ 
+			      let symbolContainer=new SymbolContainer(true);
+			      //disable 
+			      core.isEventEnabled=false;
+			      symbolContainer.parse(data);
+			      core.isEventEnabled=true;
+			  	  mywebpcb.trigger('libraryview:load',symbolContainer);
+				});		
+		}
+		if(event.data.model.id=='exporttoclipboardid'){	
+			navigator.clipboard.writeText(this.symbolComponent.getModel().format());
+		}
+		if(event.data.model.id=='addunitid'){			
+			var symbol=new Symbol(500,500);
+			symbol.unitName="Unknown";
+			this.symbolComponent.getModel().add(symbol);
+            this.symbolComponent.getModel().setActiveUnitUUID(symbol.getUUID());
+            this.symbolComponent.componentResized(); 
+            this.symbolComponent.repaint();
+            this.symbolComponent.getModel().fireUnitEvent({target:this.symbolComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 	
+		}
 		if(event.data.model.id=='saveid'){
 //		    j$.ajax({
 //		        type: 'GET',

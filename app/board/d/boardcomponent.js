@@ -146,7 +146,7 @@ paint(g2, viewportWindow){
 	     this.frame.paint(g2, viewportWindow,this.scalableTransformation);
        }
 }
-parse(data){
+parse(data){	
 	this.unitName=j$(data).find("name").first().text();
 	this.grid.setGridUnits(j$(data).find("units").first().attr("raster"),core.Units.MM);
 	var that=this;

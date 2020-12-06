@@ -3,6 +3,7 @@ var core=require('core/core');
 var shape=require('core/shapes');
 var events=require('core/events');
 var SymbolLoadView=require('symbols/views/symbolloadview');
+var Circuit=require('circuit/d/circuitcomponent').Circuit;
 var CircuitMgr = require('circuit/d/circuitcomponent').CircuitMgr;
 var CircuitContainer = require('circuit/d/circuitcomponent').CircuitContainer;
 var UnitMgr = require('core/unit').UnitMgr;
@@ -28,7 +29,6 @@ var ToggleButtonView=Backbone.View.extend({
 		_.each(this.collection.models,j$.proxy(function(model,index,list) {
 			    j$("#"+model.id).bind( "click",{model:model},j$.proxy(this.onclick,this));
 			}),this);	
-		j$("#importfromclipboardid").click(j$.proxy(this.onimport,this));
 	},
 	update:function(){
 		_.each(this.collection.models,function(model,index,list) {
@@ -43,17 +43,7 @@ var ToggleButtonView=Backbone.View.extend({
 		    }
 		}),this);		
 	},
-	onimport:function(event){
-		navigator.clipboard.readText().then(data =>{ 
-		      let circuitContainer=new CircuitContainer(true);
-		      let xml=(j$.parseXML(data));		    	  
-		      //disable 
-		      core.isEventEnabled=false;
-		      circuitContainer.parse(xml);
-		      core.isEventEnabled=true;
-		  	  mywebpcb.trigger('workspaceview:load',circuitContainer);
-			});
-	},	
+
 	onclick:function(event){
 	    event.preventDefault();
 	    
@@ -67,11 +57,25 @@ var ToggleButtonView=Backbone.View.extend({
 		    event.data.model.attributes.active=!event.data.model.attributes.active;
 	    }
 		this.update();
-		if(event.data.model.id=='newboardid'){
-			var board=new mywebpcb.board.Board(core.MM_TO_COORD(80),core.MM_TO_COORD(80));
-            board.name="Sergio Leone";
-			this.circuitComponent.getModel().add(board);
-            this.circuitComponent.getModel().setActiveUnitUUID(board.getUUID());
+		if(event.data.model.id=='importfromclipboardid'){	
+			navigator.clipboard.readText().then(data =>{ 
+			      let circuitContainer=new CircuitContainer(true);
+			      let xml=(j$.parseXML(data));		    	  
+			      //disable 
+			      core.isEventEnabled=false;
+			      circuitContainer.parse(xml);
+			      core.isEventEnabled=true;
+			  	  mywebpcb.trigger('workspaceview:load',circuitContainer);
+				});	
+		}
+		if(event.data.model.id=='exporttoclipboardid'){	
+			navigator.clipboard.writeText(this.circuitComponent.getModel().format());
+		}		
+		if(event.data.model.id=='addunitid'){			
+			var circuit=new Circuit(1200,800);
+			circuit.unitName="Unknown";
+			this.circuitComponent.getModel().add(circuit);
+            this.circuitComponent.getModel().setActiveUnitUUID(circuit.getUUID());
             this.circuitComponent.componentResized(); 
             this.circuitComponent.repaint();
             this.circuitComponent.getModel().fireUnitEvent({target:this.circuitComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 	

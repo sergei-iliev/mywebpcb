@@ -24,7 +24,11 @@ var Board=require('board/d/boardcomponent').Board;
 			var bc=new BoardComponent('jqxScrollBar','jqxVerticalScrollBar','mycanvas','popup-menu');
 			//create ui
 			var toggleButtonCollection=new togglebutton.ToggleButtonCollection(
-			[new togglebutton.ToggleButtonModel({id:'newboardid'}),
+			[
+			 new togglebutton.ToggleButtonModel({id:'exporttoclipboardid'}),
+			 new togglebutton.ToggleButtonModel({id:'importfromclipboardid'}),
+			 new togglebutton.ToggleButtonModel({id:'addunitid'}),
+			 new togglebutton.ToggleButtonModel({id:'newboardid'}),
 			 new togglebutton.ToggleButtonModel({id:'printfootrpintid'}),
 			 new togglebutton.ToggleButtonModel({id:'saveid'}),
 			 new togglebutton.ToggleButtonModel({id:'loadid'}),

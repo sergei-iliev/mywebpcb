@@ -131,7 +131,7 @@ toXML(){
 	this.polyline.points.forEach(function(point) {
 		result += utilities.roundFloat(point.x,1) + "," + utilities.roundFloat(point.y,1) + ",";
 	},this);
-	result += "</line>";
+	result += "</line>\r\n";
 	return result;	
 }
 }
@@ -200,9 +200,9 @@ paint(g2, viewportWindow, scale,layersmask) {
 	  }
 	  this.texture.paint(g2, viewportWindow, scale);
 }
-fromXML(data){	 	
-    this.texture.fromXML(j$(data).text());
+fromXML(data){	 		
     this.texture.fillColor ="#" +(j$(data).attr("color") & 0x00FFFFFF).toString(16).padStart(6, '0');
+	this.texture.fromXML(j$(data).text());
 }
 static formatToXML(texture){
 	return "<label color=\""+utilities.hexToDec(texture.fillColor)+"\">"+texture.toXML()+"</label>";
@@ -225,6 +225,7 @@ class Arc extends Shape{
 	clone(){
 		var copy = new Arc(this.arc.pc.x,this.arc.pc.y,this.arc.w,this.arc.h);
 		copy.arc=this.arc.clone();
+		copy.fill=this.fill;
 		copy.thickness=this.thickness;
 		return copy;
 	}
@@ -321,26 +322,41 @@ class Arc extends Shape{
 		  g2.lineCap = 'round';
 		  g2.lineJoin = 'round';
 			
-		  if (this.fill == core.Fill.EMPTY) {
+		  
+			let e=this.arc.clone();	
+			e.scale(scale.getScale());
+	        e.move(-viewportWindow.x,- viewportWindow.y);
+					  
+			if (this.fill == core.Fill.EMPTY) {
 				if (this.selection) {
 					g2.strokeStyle = "#808080";
 				} else {
 					g2.strokeStyle = this.fillColor;
 				}
-			} else {
+				e.paint(g2);
+			}else if(this.fill == core.Fill.GRADIENT){ 
+			  g2._fill=true;		  
+			  var grd = g2.createLinearGradient(e.box.x,e.box.y, e.box.max.x,e.box.max.y);
+			  grd.addColorStop(0, (this.selection?"#808080":this.fillColor));
+			  grd.addColorStop(1, "white");
+			  g2.fillStyle = grd;
+			  e.paint(g2);
+			  g2._fill=false;
+	          g2.strokeStyle=(this.selection?"#808080":this.fillColor);
+	          e.paint(g2);
+			}else {
 				g2._fill=true;
 				if (this.selection) {
 					g2.fillStyle = "#808080";
 				} else {
 					g2.fillStyle = this.fillColor;
 				}			
-			}
-			let e=this.arc.clone();	
-			e.scale(scale.getScale());
-	        e.move(-viewportWindow.x,- viewportWindow.y);
-			e.paint(g2);
+				e.paint(g2);
+				g2._fill=false;
+			}   
+
 			
-			g2._fill=false;
+			
 			if (this.isSelected()) {
 				this.drawControlPoints(g2, viewportWindow, scale);
 			}		
@@ -355,8 +371,7 @@ getResizingPoint() {
 	return this.resizingPoint;
 }
 fromXML(data) {
-	
-	
+		
     if(data.textContent.length>0){
     	var tokens = data.textContent.split(",");
     	let x=parseInt(tokens[0]);
@@ -387,13 +402,12 @@ fromXML(data) {
         this.arc.endAngle = parseFloat(j$(data).attr("extend"));
         
         this.thickness=(parseInt(j$(data).attr("thickness")));
-		this.fill = (parseInt(j$(data).attr("fill"))||1);  	
-    	
+        this.fill = (parseInt(j$(data).attr("fill")));  	
     }
   
 }
 toXML(){
- return '<arc  x="'+utilities.roundFloat(this.arc.pc.x,1)+'" y="'+utilities.roundFloat(this.arc.pc.y,1)+'" width="'+utilities.roundFloat(this.arc.w,1)+ '" height="'+utilities.roundFloat(this.arc.h,1)+ '"  thickness="'+this.thickness+'" start="'+utilities.roundFloat(this.arc.startAngle,1)+'" extend="'+utilities.roundFloat(this.arc.endAngle,1)+'" fill="'+this.fill+'" />';
+ return '<arc  x="'+utilities.roundFloat(this.arc.pc.x,1)+'" y="'+utilities.roundFloat(this.arc.pc.y,1)+'" width="'+utilities.roundFloat(this.arc.w,1)+ '" height="'+utilities.roundFloat(this.arc.h,1)+ '"  thickness="'+this.thickness+'" start="'+utilities.roundFloat(this.arc.startAngle,1)+'" extend="'+utilities.roundFloat(this.arc.endAngle,1)+'" fill="'+this.fill+'" />\r\n';
 }
 }
 class Ellipse extends Shape{
@@ -468,8 +482,11 @@ class Ellipse extends Shape{
   	  }
 
 		g2.lineWidth = this.thickness * scale.getScale();
-		g2.lineCap = 'round';
-		g2.lineJoin = 'round';
+
+		let e=this.ellipse.clone();	
+		e.scale(scale.getScale());
+        e.move(-viewportWindow.x,- viewportWindow.y);
+		e.paint(g2);
 		
 		if (this.fill == core.Fill.EMPTY) {
 			if (this.selection) {
@@ -477,20 +494,28 @@ class Ellipse extends Shape{
 			} else {
 				g2.strokeStyle = this.fillColor;
 			}
-		} else {
+			e.paint(g2);
+		}else if(this.fill == core.Fill.GRADIENT){ 
+		  g2._fill=true;		  
+		  var grd = g2.createLinearGradient(e.box.x,e.box.y, e.box.max.x,e.box.max.y);
+		  grd.addColorStop(0, (this.selection?"#808080":this.fillColor));
+		  grd.addColorStop(1, "white");
+		  g2.fillStyle = grd;
+		  e.paint(g2);
+		  g2._fill=false;
+          g2.strokeStyle=(this.selection?"#808080":this.fillColor);
+          e.paint(g2);
+		}else {
 			g2._fill=true;
 			if (this.selection) {
 				g2.fillStyle = "#808080";
 			} else {
 				g2.fillStyle = this.fillColor;
 			}			
-		}
-		let e=this.ellipse.clone();	
-		e.scale(scale.getScale());
-        e.move(-viewportWindow.x,- viewportWindow.y);
-		e.paint(g2);
+			e.paint(g2);
+			g2._fill=false;
+		} 
 		
-		g2._fill=false;
 		if (this.isSelected()) {
 			this.drawControlPoints(g2, viewportWindow, scale);
 		}
@@ -528,7 +553,7 @@ fromXML(data) {
     
 }
 toXML() {
-    return "<ellipse x=\""+utilities.roundFloat(this.ellipse.pc.x,1)+"\" y=\""+utilities.roundFloat(this.ellipse.pc.y,1)+"\" width=\""+utilities.roundFloat(this.ellipse.w,1)+"\" height=\""+utilities.roundFloat(this.ellipse.h,1)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
+    return "<ellipse x=\""+utilities.roundFloat(this.ellipse.pc.x,1)+"\" y=\""+utilities.roundFloat(this.ellipse.pc.y,1)+"\" width=\""+utilities.roundFloat(this.ellipse.w,1)+"\" height=\""+utilities.roundFloat(this.ellipse.h,1)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>\r\n";
 }
 }
 
@@ -691,7 +716,7 @@ fromXML(data){
 }
 toXML() {
 	let box=this.roundRect.box;
-    return "<rectangle>"+ utilities.roundFloat(box.min.x,1)+","+ utilities.roundFloat(box.min.y,1)+","+ utilities.roundFloat(box.width,1)+","+ utilities.roundFloat(box.height,1)+","+this.thickness+","+this.fill +","+this.roundRect.rounding+"</rectangle>";
+    return "<rectangle>"+ utilities.roundFloat(box.min.x,1)+","+ utilities.roundFloat(box.min.y,1)+","+ utilities.roundFloat(box.width,1)+","+ utilities.roundFloat(box.height,1)+","+this.thickness+","+this.fill +","+this.roundRect.rounding+"</rectangle>\r\n";
 }
 }
 class ArrowLine extends Shape{
@@ -851,7 +876,7 @@ fromXML(data) {
 	}
 }
 toXML(){
-    return "<arrow thickness=\"" + this.thickness + "\" fill=\"" + this.fill + "\"  head=\"" + this.headSize+ "\">" + utilities.roundFloat(this.line.ps.x,1) + "," + utilities.roundFloat(this.line.ps.y,1) + "," + utilities.roundFloat(this.line.pe.x,1) + "," + utilities.roundFloat(this.line.pe.y,1) + "</arrow>";	
+    return "<arrow thickness=\"" + this.thickness + "\" fill=\"" + this.fill + "\"  head=\"" + this.headSize+ "\">" + utilities.roundFloat(this.line.ps.x,1) + "," + utilities.roundFloat(this.line.ps.y,1) + "," + utilities.roundFloat(this.line.pe.x,1) + "," + utilities.roundFloat(this.line.pe.y,1) + "</arrow>\r\n";	
 }
 }
 class Triangle extends Shape{
@@ -922,27 +947,38 @@ paint(g2, viewportWindow, scale,layersmask) {
 	}
 	
 	g2.lineWidth = this.thickness * scale.getScale();
-	
+	let a=this.shape.clone();	
+	a.scale(scale.getScale());
+    a.move(-viewportWindow.x,- viewportWindow.y);
+	a.paint(g2);
 	if (this.fill == core.Fill.EMPTY) {
 		if (this.selection) {
 			g2.strokeStyle = "#808080";
 		} else {
 			g2.strokeStyle = this.fillColor;
 		}
-	} else {
+		a.paint(g2);
+	}else if(this.fill == core.Fill.GRADIENT){ 
+	  g2._fill=true;		  
+	  var grd = g2.createLinearGradient(a.box.x,a.box.y, a.box.max.x,a.box.max.y);
+	  grd.addColorStop(0, (this.selection?"#808080":this.fillColor));
+	  grd.addColorStop(1, "white");
+	  g2.fillStyle = grd;
+	  a.paint(g2);
+	  g2._fill=false;
+      g2.strokeStyle=(this.selection?"#808080":this.fillColor);
+      a.paint(g2);
+	}else {
 		g2._fill=true;
 		if (this.selection) {
 			g2.fillStyle = "#808080";
 		} else {
 			g2.fillStyle = this.fillColor;
 		}			
-	}
-	let a=this.shape.clone();	
-	a.scale(scale.getScale());
-    a.move(-viewportWindow.x,- viewportWindow.y);
-	a.paint(g2);
-	g2._fill=false;	
-	
+		a.paint(g2);
+		g2._fill=false;
+	} 
+
 	if (this.isSelected()) {
 		this.drawControlPoints(g2, viewportWindow, scale);
 	}
@@ -974,13 +1010,21 @@ initPoints(orientation,x,y,width,height){
     
 }
 fromXML(data){
-	var thickness=j$(data).attr("thickness");
-	var tokens = data.textContent.split(",");	
-	var orientation=parseInt(tokens[0]);
-	
-	this.initPoints(orientation,parseInt(tokens[1]),parseInt(tokens[2]),parseInt(tokens[3]),parseInt(tokens[4]));
-    this.thickness=parseInt(tokens[5]);
-    this.fill=parseInt(tokens[6]);
+	if(j$(data).attr("thickness")){
+		this.thickness=parseInt(j$(data).attr("thickness"));
+		this.fill=parseInt(j$(data).attr("fill"));
+		var tokens = data.textContent.split(",");		
+		    	
+		this.shape.points[0].set(parseFloat(tokens[0]),parseFloat(tokens[1]));
+		this.shape.points[1].set(parseFloat(tokens[2]),parseFloat(tokens[3]));
+		this.shape.points[2].set(parseFloat(tokens[4]),parseFloat(tokens[5]));
+	}else{
+		var tokens = data.textContent.split(",");	
+        var orientation=parseInt(tokens[0]);
+        this.initPoints(orientation,parseFloat(tokens[1]),parseFloat(tokens[2]),parseFloat(tokens[3]),parseFloat(tokens[4]));           
+        this.thickness=parseInt(tokens[5]);
+        this.fill=parseInt(tokens[6]);   		
+	}
     
 }
 toXML(){
@@ -988,7 +1032,7 @@ toXML(){
 	this.shape.points.forEach(function(point) {
 	   points += utilities.roundFloat(point.x,1) + "," + utilities.roundFloat(point.y,1) + ",";
 	});	
-    return "<triangle thickness=\"" + this.thickness + "\" fill=\"" + this.fill + "\">"+points+"</triangle>";	
+    return "<triangle thickness=\"" + this.thickness + "\" fill=\"" + this.fill + "\">"+points+"</triangle>\r\n";	
 }
 drawControlPoints(g2, viewportWindow, scale){
 	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.shape.points); 		
@@ -1317,8 +1361,11 @@ paint(g2, viewportWindow, scale,layersmask) {
 }
 fromXML(data){
 	this.type=parseInt(j$(data).attr("type"));
-	this.style=parseInt(j$(data).attr("style"));
-	
+	if(j$(data).attr("style")){
+	  this.style=parseInt(j$(data).attr("style"));
+	}else{
+	  this.style=0;		
+	}
 	let a=j$(data).find("a");
 	if(a.length>0){   //old schema
 	  var tokens = a.text().split(",");

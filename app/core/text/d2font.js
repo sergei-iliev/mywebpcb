@@ -237,6 +237,7 @@ class SymbolFontTexture{
 	clone(){
 	    var copy=new SymbolFontTexture(this.shape.text,this.tag,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.alignment,this.shape.fontSize);     
 	    copy.fillColor=this.fillColor;
+	    copy.shape.style=this.shape.style;
 	    return copy;	 
 	} 
 	copy( _copy){    
@@ -245,7 +246,7 @@ class SymbolFontTexture{
 	    this.shape.text=_copy.shape.text;
 	    this.shape.style=_copy.shape.style;
 	    this.shape.rotation=_copy.shape.rotation;
-	    this.shape.fillColor=_copy.shape.fillColor;
+	    this.fillColor=_copy.fillColor;
 	    this.shape.setSize(_copy.shape.fontSize);                
 	}	
 	isEmpty() {
@@ -359,9 +360,13 @@ class SymbolFontTexture{
 	    this.shape.alignment=(TextAlignment.parse(tokens[3]));
 	    this.shape.setText(tokens[0]);
 	    this.shape.anchorPoint.set(parseInt(tokens[1]),
-	            parseInt(tokens[2]));     
-	    this.style=tokens[4];    
-	    this.shape.setSize(parseInt(tokens[5]));
+	            parseInt(tokens[2]));  
+	    if(tokens[4]){
+	    	this.shape.style=tokens[4].toLowerCase();	
+	    }
+	    if(tokens[5]){    
+	    	this.shape.setSize(parseInt(tokens[5]));
+	    }
 
 	}
 	toXML(){

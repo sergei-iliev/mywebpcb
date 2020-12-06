@@ -599,7 +599,7 @@ var LabelPanelBuilder=BaseBuilder.extend({
 			 this.target.texture.setSize((parseInt(j$('#sizeid').val())));			 
 		 }	          
 		 if((event.target.id=='yid')||(event.target.id=='xid')){	            
-			 this.target.texture.setLocation(this.fromUnitX(j$('#xid').val()),this.fromUnitY(j$('#yid').val()));  
+			 this.target.texture.shape.anchorPoint.set(this.fromUnitX(j$('#xid').val()),this.fromUnitY(j$('#yid').val()));  
 	     }		 
 		 this.component.repaint();     		    	
     },

@@ -25,7 +25,11 @@ var SymbolComponent=require('symbols/d/symbolcomponent').SymbolComponent;
 			
 			//create ui
 			var toggleButtonCollection=new togglebutton.ToggleButtonCollection(
-			[new togglebutton.ToggleButtonModel({id:'mainmenuid'}),
+			[
+			 new togglebutton.ToggleButtonModel({id:'exporttoclipboardid'}),
+			 new togglebutton.ToggleButtonModel({id:'importfromclipboardid'}),
+			 new togglebutton.ToggleButtonModel({id:'addunitid'}),
+			 new togglebutton.ToggleButtonModel({id:'mainmenuid'}),
 			 new togglebutton.ToggleButtonModel({id:'printfootrpintid'}),
 			 new togglebutton.ToggleButtonModel({id:'saveid'}),
 			 new togglebutton.ToggleButtonModel({id:'loadid'}),

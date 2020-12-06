@@ -411,7 +411,7 @@ fromXML(data) {
          
  		 this.thickness = (parseInt(j$(data).attr("thickness")));
  		 this.fill = parseInt(j$(data).attr("fill")); 
- 		 this.fill=(this.fill==0?1:this.fill);
+ 		
 	}
 	mirror(line){
 	   this.circle.mirror(line);	
@@ -562,8 +562,7 @@ fromXML(data){
 		this.arc.startAngle = parseInt(j$(data).attr("start"));
         this.arc.endAngle = parseInt(j$(data).attr("extend"));        
 		this.thickness = (parseInt(j$(data).attr("thickness")));
-		this.fill = (parseInt(j$(data).attr("fill"))||1);
-		this.fill=(this.fill==0?1:this.fill);
+		this.fill=parseInt(j$(data).attr("fill"));
 }
 toXML() {
     return '<arc copper="'+this.copper.getName()+'"  x="'+utilities.roundFloat(this.arc.pc.x,4)+'" y="'+utilities.roundFloat(this.arc.pc.y,4)+'" radius="'+utilities.roundFloat(this.arc.r,4)+'"  thickness="'+this.thickness+'" start="'+utilities.roundFloat(this.arc.startAngle,2)+'" extend="'+utilities.roundFloat(this.arc.endAngle,2)+'" fill="'+this.fill+'" />';

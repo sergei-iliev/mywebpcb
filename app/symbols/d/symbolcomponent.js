@@ -75,13 +75,21 @@ parse(data){
 	 	  
 	 	   if(reference!=null&&reference.text()!=''){
 		        var label = new FontLabel(0,0);
-		        label.fromXML(reference[0]);
+		        if(reference[0].children[0]){
+		          label.fromXML(reference[0].children[0]);   //new schema
+		        }else{
+		          label.fromXML(reference[0]);	
+		        }
 		        label.texture.tag="reference";
 		        this.add(label);      		 	      
 	 	   }
 	 	   if(value!=null&&value.text()!=''){
 		        var label = new FontLabel(0,0);
-		        label.fromXML(value[0]);
+		        if(value[0].children[0]){
+		        	label.fromXML(value[0].children[0]);  //new schema
+		        }else{
+		        	label.fromXML(value[0]);  
+		        }
 		        label.texture.tag="unit";
 		        this.add(label);  
 	 	   }
@@ -107,22 +115,21 @@ format(){
    var text=UnitMgr.getInstance().getLabelByTag(this,'reference');
    if(text!=null){
        xml+="<reference>";
-       xml+=text.getTexture().toXML();
+       xml+=text.toXML();
        xml+="</reference>\r\n";
    } 
    //value
    text=UnitMgr.getInstance().getLabelByTag(this,'unit');
    if(text!=null){
        xml+="<unit>";
-       xml+=text.getTexture().toXML();
+       xml+=text.toXML();
        xml+="</unit>\r\n";
    }    
  
    xml+="<elements>\r\n";
    this.shapes.forEach(function(shape) {
 	   if(!((shape instanceof FontLabel)&&(shape.texture.tag=='reference'||shape.texture.tag=='unit'))){
-		   xml+=shape.toXML();
-		   xml+='\r\n';   
+		   xml+=shape.toXML();  
 	   }
    });
    xml+="</elements>\r\n";   

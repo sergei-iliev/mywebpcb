@@ -34,10 +34,10 @@ class BoardShapeFactory{
 			circle.fromXML(data);
 			return circle;
 		}
-		if (data.tagName.toLowerCase() == 'ellipse') {
-			var circle = new Circle(0, 0, 0, 0, 0);
-			circle.fromXML(data);
-			return circle;
+		if (data.tagName.toLowerCase() == 'arc') {
+			var arc = new PCBArc(0, 0, 0, 0, 0);
+			arc.fromXML(data);
+			return arc;
 		}
 		if (data.tagName.toLowerCase() == 'line') {
 			var line = new PCBLine( 0, 0, 0, 0, 0);
