@@ -98,7 +98,31 @@ add(shape){
           return;
     shape.isControlPointVisible=false;
     this.shapes.push(shape);  
-} 
+}
+getPinsRect(){
+    var x1=Number.MAX_VALUE,y1=Number.MAX_VALUE,x2=Number.MIN_VALUE,y2=Number.MIN_VALUE;
+    var isPinnable=false;
+    //***empty schematic,element,package
+    if (this.shapes.length == 0) {
+        return null;
+    }
+
+    this.shapes.forEach(function(shape) { 
+        if(shape instanceof Pad){
+          let p=shape.getPinPoint();
+          x1=Math.min(x1,p.x );
+          y1=Math.min(y1,p.y);
+          x2=Math.max(x2,p.x);
+          y2=Math.max(y2,p.y);             
+          isPinnable=true;
+        }
+    });
+    if(isPinnable)
+        return  d2.Box.fromRect(x1,y1,x2-x1,y2-y1);          
+    else
+        return null;  
+    
+}
 getPads(){
    return this.shapes.filter(s => s instanceof Pad);        
 }

@@ -13,7 +13,7 @@ var UnitMgr=(function(){
     function getPinsRect(shapes){
         var x1=Number.MAX_VALUE,y1=Number.MAX_VALUE,x2=Number.MIN_VALUE,y2=Number.MIN_VALUE;
         var isPinnable=false;        
-        
+
         shapes.forEach(function(shape) {            
             if(typeof shape.getPinPoint === 'function'){
                 let point=shape.getPinPoint();                

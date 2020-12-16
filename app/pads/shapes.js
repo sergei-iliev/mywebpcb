@@ -1281,9 +1281,10 @@ fromXML(data){
 			  }
 		     
 	}
-getPinsRect() {
-	     return d2.Box.fromRect(this.shape.center.x, this.shape.center.y, 0,0);
-	}
+
+getPinPoint() {        
+    return this.shape.center;
+}
 alignToGrid(isRequired){
 	     var center=this.shape.center;
 	     var point=this.owningUnit.getGrid().positionOnGrid(center.x,center.y);
