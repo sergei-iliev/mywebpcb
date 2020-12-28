@@ -158,7 +158,7 @@ setMode(_mode){
      		case core.ModeEnum.SOLID_REGION:
          	break;	 
 	        case core.ModeEnum.PAD_MODE:
-	            shape=new Pad(0,0,core.MM_TO_COORD(1.52),core.MM_TO_COORD(2.52));	            	            		                        
+	            shape=new Pad(0,0,core.MM_TO_COORD(2.52),core.MM_TO_COORD(1.6));	            	            		                        
 	            this.setContainerCursor(shape);               
 	            this.getEventMgr().setEventHandle("cursor",shape);  
 	          break;

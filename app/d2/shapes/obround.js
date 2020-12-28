@@ -27,11 +27,46 @@ module.exports = function(d2) {
 			return copy;
 		}
 		get box(){
+			 let r=this.getDiameter()/2;
+	         //first point		 
+			 let v=new d2.Vector(this.pe,this.ps);
+			 let n=v.normalize();
+			 let a=this.ps.x +r*n.x;
+			 let b=this.ps.y +r*n.y;			 
+			 
+			 			 
+			 v.rotate90CW();
+			 let norm=v.normalize();
+			 
+			 let x=a +r*norm.x;
+			 let y=b +r*norm.y;			 
+			 let pa=new d2.Point(x,y);
+			 
+			 norm.invert();
+			 x=a +r*norm.x;
+			 y=b +r*norm.y;			 
+			 let pb=new d2.Point(x,y);
+			 //second point
+			 v=new d2.Vector(this.ps,this.pe);
+			 n=v.normalize();
+			 let c=this.pe.x +r*n.x;
+			 let d=this.pe.y +r*n.y;			 
+			 
+			 v.rotate90CW();
+			 norm=v.normalize();
+			 
+			 x=c +r*norm.x;
+			 y=d +r*norm.y;			 
+			 let pc=new d2.Point(x,y);
+			 
+			 norm.invert();
+			 x=c +r*norm.x;
+			 y=d +r*norm.y;			 
+			 let pd=new d2.Point(x,y);
+			 
 			 return new d2.Box(
-		                Math.min(this.ps.x, this.pe.x),
-		                Math.min(this.ps.y, this.pe.y),
-		                Math.max(this.ps.x, this.pe.x),
-		                Math.max(this.ps.y, this.pe.y)
+		                [
+		                pa,pb,pc,pd]
 		            );			
 		}
 		setWidth(width){
@@ -125,14 +160,18 @@ module.exports = function(d2) {
 	            this.width +=  2*offset;
 	        }
 	    }
+	    getDiameter(){
+	        if(d2.utils.GE(this.width,this.height)){
+	            return this.height;
+	        } else {
+	            return this.width;
+	        }
+	    }
+	    
 		paint(g2){
 			g2.beginPath();
 			let l=g2.lineWidth;
-			if(this.width>=this.height)
-			  g2.lineWidth =this.height;
-			else
-			  g2.lineWidth =this.width;
-			
+			g2.lineWidth=this.getDiameter();
 			g2.lineCap="round";
 			g2.moveTo(this.ps.x, this.ps.y);
 			g2.lineTo(this.pe.x, this.pe.y);
