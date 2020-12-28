@@ -658,6 +658,8 @@ class RoundRect extends Shape{
 			}
 			r.paint(g2);
 		}else if(this.fill == core.Fill.GRADIENT){ 
+		  
+		  g2.globalAlpha=0.5;	
 		  g2._fill=true;		  
 		  var grd = g2.createLinearGradient(r.box.x,r.box.y, r.box.max.x,r.box.max.y);
 		  grd.addColorStop(0, (this.selection?"#808080":this.fillColor));
@@ -667,6 +669,7 @@ class RoundRect extends Shape{
 		  g2._fill=false;
           g2.strokeStyle=(this.selection?"#808080":this.fillColor);
           r.paint(g2);
+          g2.globalAlpha=1;
 		}else {
 			g2._fill=true;
 			if (this.selection) {
@@ -1178,9 +1181,17 @@ isClicked(x, y) {
 		}
 		
 }
-mirror(line){
+mirror(line){	
+  let pinorientation=this.segment.isHorizontal?TextOrientation.HORIZONTAL:TextOrientation.VERTICAL;
+  
   let oposname= utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
   let oposnumber= utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
+	
+  
+  let oalignmentname=TextAlignment.getOrientation(this.name.shape.alignment);
+  let alignmentname=this.name.shape.alignment;
+  let oalignmentnumber=TextAlignment.getOrientation(this.number.shape.alignment);
+  let alignmentnumber=this.number.shape.alignment;
 	
   this.segment.mirror(line);	
   if(line.isVertical){ //left-right 	 	  
@@ -1191,29 +1202,54 @@ mirror(line){
   this.name.mirror(line);
   this.number.mirror(line);
   
-	//read new position
-  let nposname=utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);		
-  let nposnumber=utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);	
+  if(oalignmentname!=pinorientation){  //pin and text different orientation
+	  this.__normalizeText(this.name, alignmentname, line.isVertical);
+  }else{
+	  let nposname=utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);  
+	  this.normalizeText(this.name,oposname,nposname);
+  }
   
-  this.normalizeText(this.name,oposname,nposname);
-  this.normalizeText(this.number,oposnumber,nposnumber);  
+  if(oalignmentnumber!=pinorientation){  //pin and text different orientation
+	  this.__normalizeText(this.number, alignmentnumber, line.isVertical); 
+  }else{
+	  let nposnumber=utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);  
+	  this.normalizeText(this.number,oposnumber,nposnumber);  
+  }
+
 }
+
 rotate(rotation){
+	let pinorientation=this.segment.isHorizontal?TextOrientation.HORIZONTAL:TextOrientation.VERTICAL;
+	
 	//read current position	
 	let oposname= utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
 	let oposnumber= utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
+	
+	let oalignmentname=TextAlignment.getOrientation(this.name.shape.alignment);
+	let alignmentname=this.name.shape.alignment;
+	let oalignmentnumber=TextAlignment.getOrientation(this.number.shape.alignment);
+	let alignmentnumber=this.number.shape.alignment;
 	
 	this.segment.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	this.orientation=Orientation.rotate(rotation.angle>0?false:true,this.orientation);
 	this.name.rotate(rotation);
 	this.number.rotate(rotation);
 	
-	//read new position
-	let nposname=utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);		
-	let nposnumber=utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
-	
-	this.normalizeText(this.name,oposname,nposname);
-	this.normalizeText(this.number,oposnumber,nposnumber);
+    if(oalignmentname!=pinorientation){  //pin and text different orientation
+        this._normalizeText(this.name,oalignmentname, rotation.angle);  
+    }else{  //pin and text same orientation
+      //read new position
+    	let nposname=utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);   
+    	this.normalizeText(this.name,oposname,nposname);            
+    }
+
+    if(oalignmentnumber!=pinorientation){  //pin and text different orientation
+        this._normalizeText(this.number,oalignmentnumber, rotation.angle);  
+    }else{  //pin and text same orientation
+
+    	let nposnumber=utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);    	
+    	this.normalizeText(this.number,oposnumber,nposnumber);
+    }    
 	
 	
 }
@@ -1222,6 +1258,31 @@ normalizeText(text,opos,npos){
 	   return;	
 	}
 	text.mirror(new d2.Line(this.segment.ps,this.segment.pe));
+}
+//pin and text have different orientation
+_normalizeText(text,orientation,angle){
+    if(angle<0){  //clockwise              
+        if(orientation == TextOrientation.HORIZONTAL){
+            text.shape.anchorPoint.set(text.shape.anchorPoint.x+(text.shape.metrics.ascent-text.shape.metrics.descent),text.shape.anchorPoint.y);            
+        }
+    }else{                   
+        if(orientation == TextOrientation.VERTICAL){
+            text.shape.anchorPoint.set(text.shape.anchorPoint.x,text.shape.anchorPoint.y+(text.shape.metrics.ascent-text.shape.metrics.descent));                   
+        }
+    }
+}
+//pin and text have different orientation
+__normalizeText(text, alignment, isVertical){
+    if (isVertical) { //right-left mirroring
+        if (text.shape.alignment == alignment) {
+            text.shape.anchorPoint.set(text.shape.anchorPoint.x +
+                                    (text.shape.metrics.ascent - text.shape.metrics.descent),text.shape.anchorPoint.y);
+        }
+    } else { //***top-botom mirroring          
+        if (text.shape.alignment == alignment) {
+            text.shape.anchorPoint.set(text.shape.anchorPoint.x,text.shape.anchorPoint.y +(text.shape.metrics.ascent - text.shape.metrics.descent));
+        }
+    }  
 }
 move(xoffset,yoffset) {
     this.segment.move(xoffset,yoffset);

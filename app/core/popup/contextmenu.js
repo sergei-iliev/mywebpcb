@@ -76,8 +76,9 @@ attachEventListeners(context){
 }
 
 actionPerformed(id,context){
-	let line =this.component.lineBendingProcessor.line;
+	
 	if(id=='defaultbendid'){
+		let line =this.component.lineBendingProcessor.line;
 		this.component.lineBendingProcessor=new DefaultLineBendingProcessor();
 		this.component.lineBendingProcessor.initialize(line);
 	}	
