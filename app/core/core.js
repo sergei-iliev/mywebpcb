@@ -689,7 +689,28 @@ getOffset(){
  }	  
 }
 
+//-----------------------Queue--------------------
+class Queue {
+    constructor() {
+        this.items = [];
+    }
 
+    isEmpty() {
+        return (this.items.length === 0);
+    }
+
+    enqueue(item) {
+        this.items.unshift(item);
+    }
+
+    dequeue() {
+        return this.items.pop();
+    }
+
+    size() {
+        return this.items.length;
+    }
+}
 //-----------------------UnitSelectionCell---------
 var UnitSelectionCell = function (uuid,x, y,width,height,name) {
 	 return {
@@ -865,7 +886,8 @@ module.exports ={
 	UnitSelectionPanel,
 	CompositeLayer,
 	isEventEnabled,
-	SymbolType
+	SymbolType,
+	Queue,
 }
 
 var events=require('core/events');

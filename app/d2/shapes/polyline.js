@@ -46,6 +46,25 @@ module.exports = function(d2) {
            	point.rotate(angle,center);
            });
        }
+       intersect(shape){
+    	   let segment=new d2.Segment(0,0,0,0);
+    	   if(shape instanceof d2.Circle){
+    	          let prevPoint = this.points[0];        
+    	          for(let point of this.points){    	        	  
+    	              if(prevPoint.equals(point)){    	            	  
+    	            	  prevPoint = point;
+    	                  continue;
+    	              }    	              
+    	              segment.set(prevPoint.x,prevPoint.y,point.x,point.y);
+    	              if(segment.intersect(shape)){
+    	                  return true;
+    	              }
+    	              prevPoint = point;
+    	          }
+    		   
+    	   }
+    	   
+       }
        get box(){
          return new d2.Box(this.points);	
        }

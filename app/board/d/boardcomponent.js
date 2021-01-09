@@ -123,6 +123,29 @@ setActiveSide(side) {
     this.compositeLayer.activeSide=side;
     this.reorder();
 }
+selectNetAt(target){
+   let targets=new core.Queue();	   
+   targets.enqueue(target);
+   
+   let selectedShapes=new Set();
+   selectedShapes.add(target.uuid);
+   
+   while(!targets.isEmpty()){
+	   let shape=targets.dequeue();  
+	   let list=shape.getNetShapes(selectedShapes);
+	   console.log(list)
+       for(let item of list){
+           if(!selectedShapes.has(item.uuid)){
+               selectedShapes.add(item.uuid);
+               targets.enqueue(item);
+           }
+       }
+   }
+  
+   for(let  uuid of selectedShapes){
+       this.getShape(uuid).setSelected(true);
+   }
+}
 paint(g2, viewportWindow){
 	   let len=this.shapes.length;
  	   for(let i=0;i<len;i++){

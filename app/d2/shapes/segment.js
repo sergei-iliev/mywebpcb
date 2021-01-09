@@ -48,6 +48,42 @@ module.exports = function(d2) {
         contains(pt){
       	   return false;    	   
         }
+        projectionPoint(pt) {
+            let v1 = new d2.Vector(this.ps, pt);
+            let v2 = new d2.Vector(this.ps, this.pe);
+
+            let v = v1.projectionOn(v2);
+            //translate point
+            let x = this.ps.x + v.x;
+            let y = this.ps.y + v.y;
+            return new d2.Point(x, y);
+        }        
+        intersect(shape){
+          if(shape instanceof d2.Circle){  
+            let projectionPoint = this.projectionPoint(shape.pc);
+
+            let a = (projectionPoint.x - this.ps.x) / ((this.pe.x - this.ps.x) == 0 ? 1 : this.pe.x - this.ps.x);
+            let b = (projectionPoint.y - this.ps.y) / ((this.pe.y - this.ps.y) == 0 ? 1 : this.pe.y - this.ps.y);
+
+            let dist = projectionPoint.distanceTo(shape.pc);
+            
+            if (0 <= a && a <= 1 && 0 <= b && b <= 1) { //is projection between start and end point
+                if (!d2.utils.GT(dist,shape.r)) {
+                    return true;
+                }
+            }
+            //end points in circle?
+            if (d2.utils.LE(this.ps.distanceTo(shape.pc), shape.r)) {
+                return true;
+            }
+            if (d2.utils.LE(this.pe.distanceTo(shape.pc), shape.r)) {
+                return true;
+            }        
+          }
+           
+          
+          return false;
+        }        
         rotate(angle, center = {x:0, y:0}) {
           this.ps.rotate(angle,center);
           this.pe.rotate(angle,center);

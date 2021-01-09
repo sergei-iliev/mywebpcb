@@ -542,6 +542,20 @@ drawClearence(g2,viewportWindow,scale,source){
 
    g2.restore();
 }
+getNetShapes(selectedShapes){
+	let net=[];
+    let vias=this.owningUnit.getShapes(PCBVia);
+    
+    vias.forEach(via=>{
+        if(selectedShapes.has(via.uuid)){
+            return;
+        }else if(this.polyline.intersect(via.outer)){
+           net.push(via); 
+        }
+    });
+    
+    return net;
+}
 paint(g2, viewportWindow, scale,layersmask) {
     if((this.copper.getLayerMaskID()&layersmask)==0){
         return;
@@ -747,6 +761,21 @@ setWidth(width){
 }
 calculateShape() {
     return this.outer.box;
+}
+getNetShapes(selected) {
+    let net=[]; 
+    let tracks=this.owningUnit.getShapes(PCBTrack); 
+    console.log(111);
+    for(let  track of tracks){
+        if(selected.has(track.uuid)){
+            continue;
+        }            
+
+        if(track.intersect(this.outer)){
+           net.add(track); 
+        }
+    }
+    return net;
 }
 drawClearence(g2, viewportWindow,scale, source) {    
 	
