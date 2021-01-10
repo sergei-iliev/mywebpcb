@@ -57,7 +57,8 @@ module.exports = function(d2) {
             let x = this.ps.x + v.x;
             let y = this.ps.y + v.y;
             return new d2.Point(x, y);
-        }        
+        }   
+      //https://github.com/psalaets/line-intersect        
         intersect(shape){
           if(shape instanceof d2.Circle){  
             let projectionPoint = this.projectionPoint(shape.pc);
@@ -79,6 +80,32 @@ module.exports = function(d2) {
             if (d2.utils.LE(this.pe.distanceTo(shape.pc), shape.r)) {
                 return true;
             }        
+          }
+          else if(shape instanceof d2.Segment){
+              let x1=this.ps.x, y1=this.ps.y, x2=this.pe.x, y2=this.pe.y, x3=shape.ps.x, y3=shape.ps.y, x4=shape.pe.x, y4=shape.pe.y; 
+              let denom = ((y4 - y3) * (x2 - x1)) - ((x4 - x3) * (y2 - y1));
+              let numeA = ((x4 - x3) * (y1 - y3)) - ((y4 - y3) * (x1 - x3));
+              let numeB = ((x2 - x1) * (y1 - y3)) - ((y2 - y1) * (x1 - x3));
+
+              if (denom == 0) {
+                if (numeA == 0 && numeB == 0) {
+                  return true;  //COLINEAR;
+                }
+                return false; //PARALLEL;
+              }
+
+              let uA = numeA / denom;
+              let uB = numeB / denom;
+
+              if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1) {
+                return true;
+                //return intersecting({
+                //  x: x1 + (uA * (x2 - x1)),
+                //  y: y1 + (uA * (y2 - y1))
+                //});
+              }
+
+              return false;        	  
           }
            
           

@@ -542,8 +542,23 @@ drawClearence(g2,viewportWindow,scale,source){
 
    g2.restore();
 }
+getSegments(){
+    let list=[];
+    let prevPoint = this.polyline.points[0];        
+    for(let point of this.polyline.points){                          
+        if(prevPoint.equals(point)){                        
+            prevPoint = point;
+            continue;
+        }                       
+        list.push(new d2.Segment(prevPoint.x,prevPoint.y,point.x,point.y));
+        
+        prevPoint = point;
+    }
+    return list;         
+}
 getNetShapes(selectedShapes){
 	let net=[];
+	//1.vias
     let vias=this.owningUnit.getShapes(PCBVia);
     
     vias.forEach(via=>{
@@ -553,7 +568,57 @@ getNetShapes(selectedShapes){
            net.push(via); 
         }
     });
-    
+    //2.track on same layer
+    let sameSideTracks=this.owningUnit.getShapes(PCBTrack,this.copper.getLayerMaskID());         
+    let  circle=new Circle(new d2.Point(0,0),0);
+    for(let track of sameSideTracks ){
+        if(track==this){
+            continue;
+        }
+        if(selectedShapes.has(track.uuid)){
+            continue;
+        }
+        //my points on another
+        for(let pt of this.polyline.points){
+            circle.pc=pt;
+            circle.r=this.thickness/2;
+            if(track.polyline.intersect(circle)){
+               net.push(track);
+               break;
+            }   
+        }
+        console.log(1);
+        //another points on me
+        for(let pt of track.polyline.points){
+            circle.pc=pt;
+            circle.r=track.thickness/2;
+            if(this.polyline.intersect(circle)){
+               net.push(track);
+               break;
+            }   
+        }            
+        
+    }
+    //my track crossing other track on same layer
+    let segments=this.getSegments();
+    for(let track of sameSideTracks){
+        if(track==this){
+            continue;
+        }
+        if(selectedShapes.has(track.uuid)){
+            continue;
+        }            
+        for(let segment of segments){
+          //is my segment crossing anyone elses's?
+            for(let other of track.getSegments()){
+                if(segment.intersect(other)){
+                    net.push(track);
+                    break;
+                }
+            }
+        }
+        
+    }    
     return net;
 }
 paint(g2, viewportWindow, scale,layersmask) {

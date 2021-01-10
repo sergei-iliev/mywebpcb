@@ -388,7 +388,9 @@ isControlRectClicked( x,  y) {
          }
          return null;
      }
-getShapes(clazz) {
+getShapes(...args) {
+	if(args.length==1){  //clazz
+		let clazz=args[0];
         var selectionList=[];
   	    this.shapes.forEach(function(shape) {
             if (shape instanceof clazz) {
@@ -396,6 +398,18 @@ getShapes(clazz) {
             }
          });           
          return selectionList;
+	}else{      //clazz,layerid
+		let clazz=args[0];
+		let layermaskId=args[1];
+		
+        var selectionList=[];
+  	    for(let shape of this.shapes) {
+            if ((shape instanceof clazz)&&(shape.isVisibleOnLayers(layermaskId))) {
+         	   selectionList.push(shape);				
+            }
+         };           
+         return selectionList;		
+	}
  }    
 getShape(uuid){
  	    if (uuid == null){
