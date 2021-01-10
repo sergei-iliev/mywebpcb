@@ -133,7 +133,6 @@ selectNetAt(target){
    while(!targets.isEmpty()){
 	   let shape=targets.dequeue();  
 	   let list=shape.getNetShapes(selectedShapes);
-	   console.log(list)
        for(let item of list){
            if(!selectedShapes.has(item.uuid)){
                selectedShapes.add(item.uuid);

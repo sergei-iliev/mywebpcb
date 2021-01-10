@@ -1783,6 +1783,6 @@ module.exports ={
 	Circle,
 	Arc,
 	SolidRegion,
-	Pad,Drill,
+	Pad,Drill,PadType,
 	FootprintShapeFactory
 }

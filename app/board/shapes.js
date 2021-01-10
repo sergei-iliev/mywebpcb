@@ -587,7 +587,6 @@ getNetShapes(selectedShapes){
                break;
             }   
         }
-        console.log(1);
         //another points on me
         for(let pt of track.polyline.points){
             circle.pc=pt;
@@ -618,7 +617,48 @@ getNetShapes(selectedShapes){
             }
         }
         
-    }    
+    }
+    //3.Footprint pads on me
+    let footprints=this.owningUnit.getShapes(PCBFootprint);         
+    //the other side
+    let oppositeSideTracks=this.owningUnit.getShapes(PCBTrack,core.Layer.Side.change(this.copper.getLayerMaskID()).getLayerMaskID());    
+    for(let footprint of footprints){
+        let pads=footprint.getPads();        
+        for(let pad of pads){              
+            for(let pt of this.polyline.points){
+                if(pad.shape.contains(pt)){  //found pad on track -> investigate both SMD and THROUGH_HOLE
+                   if(pad.type==PadType.SMD){                	   
+                       for(let track of sameSideTracks ){  //each track on SAME layer
+                        if(selectedShapes.has(track.uuid)){
+                           continue;
+                        }
+                        //another points on me
+                        for(let p of track.polyline.points){
+                            if(pad.shape.contains(p)){
+                              net.push(track);
+                              break;
+                            }
+                         }   
+                       }                              
+                   }else{ 
+                    for(let track of oppositeSideTracks ){  //each track on OPPOSITE layer
+                     if(selectedShapes.has(track.uuid)){
+                        continue;
+                     }
+                     //another points on me
+                     for(let p of track.polyline.points){
+                         if(pad.shape.contains(p)){
+                           net.push(track);
+                           break;
+                         }
+                     }
+                    }     
+                  }
+                }                 
+            }
+        }    	
+    }
+    
     return net;
 }
 paint(g2, viewportWindow, scale,layersmask) {
@@ -830,14 +870,13 @@ calculateShape() {
 getNetShapes(selected) {
     let net=[]; 
     let tracks=this.owningUnit.getShapes(PCBTrack); 
-    console.log(111);
     for(let  track of tracks){
         if(selected.has(track.uuid)){
             continue;
         }            
 
-        if(track.intersect(this.outer)){
-           net.add(track); 
+        if(track.polyline.intersect(this.outer)){
+           net.push(track); 
         }
     }
     return net;
