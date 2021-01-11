@@ -570,7 +570,7 @@ getNetShapes(selectedShapes){
     });
     //2.track on same layer
     let sameSideTracks=this.owningUnit.getShapes(PCBTrack,this.copper.getLayerMaskID());         
-    let  circle=new Circle(new d2.Point(0,0),0);
+    let  circle=new d2.Circle(new d2.Point(0,0),0);
     for(let track of sameSideTracks ){
         if(track==this){
             continue;
@@ -622,39 +622,31 @@ getNetShapes(selectedShapes){
     let footprints=this.owningUnit.getShapes(PCBFootprint);         
     //the other side
     let oppositeSideTracks=this.owningUnit.getShapes(PCBTrack,core.Layer.Side.change(this.copper.getLayerMaskID()).getLayerMaskID());    
+    
+    let bothSideTracks = [...sameSideTracks, ...oppositeSideTracks];
     for(let footprint of footprints){
         let pads=footprint.getPads();        
         for(let pad of pads){              
             for(let pt of this.polyline.points){
                 if(pad.shape.contains(pt)){  //found pad on track -> investigate both SMD and THROUGH_HOLE
-                   if(pad.type==PadType.SMD){                	   
-                       for(let track of sameSideTracks ){  //each track on SAME layer
-                        if(selectedShapes.has(track.uuid)){
-                           continue;
-                        }
+                    for(let track of bothSideTracks ){  //each track on SAME layer
                         //another points on me
                         for(let p of track.polyline.points){
                             if(pad.shape.contains(p)){
-                              net.push(track);
-                              break;
+                                  if(selectedShapes.has(track.uuid)){
+                                      continue;
+                                  }
+                                  //track and pad should be on the same layer
+                                  if((this.copper.getLayerMaskID()&pad.copper.getLayerMaskID())!=0){
+                                      if((track.copper.getLayerMaskID()&pad.copper.getLayerMaskID())!=0){ 
+                                            net.push(track);
+                                            break;
+                                      }
+                                  }
                             }
-                         }   
-                       }                              
-                   }else{ 
-                    for(let track of oppositeSideTracks ){  //each track on OPPOSITE layer
-                     if(selectedShapes.has(track.uuid)){
-                        continue;
-                     }
-                     //another points on me
-                     for(let p of track.polyline.points){
-                         if(pad.shape.contains(p)){
-                           net.push(track);
-                           break;
-                         }
-                     }
-                    }     
-                  }
-                }                 
+                        }   
+                    }                        
+                }               
             }
         }    	
     }
