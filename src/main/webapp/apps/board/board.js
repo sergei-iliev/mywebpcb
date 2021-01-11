@@ -174,7 +174,11 @@ var Board=require('board/d/boardcomponent').Board;
 			var bc=new BoardComponent('jqxScrollBar','jqxVerticalScrollBar','mycanvas','popup-menu');
 			//create ui
 			var toggleButtonCollection=new togglebutton.ToggleButtonCollection(
-			[new togglebutton.ToggleButtonModel({id:'newboardid'}),
+			[
+			 new togglebutton.ToggleButtonModel({id:'exporttoclipboardid'}),
+			 new togglebutton.ToggleButtonModel({id:'importfromclipboardid'}),
+			 new togglebutton.ToggleButtonModel({id:'addunitid'}),
+			 new togglebutton.ToggleButtonModel({id:'newboardid'}),
 			 new togglebutton.ToggleButtonModel({id:'printfootrpintid'}),
 			 new togglebutton.ToggleButtonModel({id:'saveid'}),
 			 new togglebutton.ToggleButtonModel({id:'loadid'}),
@@ -408,6 +412,28 @@ setActiveSide(side) {
     this.compositeLayer.activeSide=side;
     this.reorder();
 }
+selectNetAt(target){
+   let targets=new core.Queue();	   
+   targets.enqueue(target);
+   
+   let selectedShapes=new Set();
+   selectedShapes.add(target.uuid);
+   
+   while(!targets.isEmpty()){
+	   let shape=targets.dequeue();  
+	   let list=shape.getNetShapes(selectedShapes);
+       for(let item of list){
+           if(!selectedShapes.has(item.uuid)){
+               selectedShapes.add(item.uuid);
+               targets.enqueue(item);
+           }
+       }
+   }
+  
+   for(let  uuid of selectedShapes){
+       this.getShape(uuid).setSelected(true);
+   }
+}
 paint(g2, viewportWindow){
 	   let len=this.shapes.length;
  	   for(let i=0;i<len;i++){
@@ -431,7 +457,7 @@ paint(g2, viewportWindow){
 	     this.frame.paint(g2, viewportWindow,this.scalableTransformation);
        }
 }
-parse(data){
+parse(data){	
 	this.unitName=j$(data).find("name").first().text();
 	this.grid.setGridUnits(j$(data).find("units").first().attr("raster"),core.Units.MM);
 	var that=this;
@@ -1042,6 +1068,27 @@ registerUnitPopup(target,event){
 	    this.setContent(items,{target:target});	    
 	    this.open(event);	
 }
+registerLineSelectPopup(target,event){
+	  let bending=target.isBendingPointClicked(event.x,event.y);
+	  var items="<div id='menu-items'><table style='cursor: default;'>";		
+	    items+="<tr id='tracknetselectid' ><td style='padding: 0.4em;'>Track Net Select</td></tr>";
+	    items+="<tr id='cloneid' ><td style='padding: 0.4em;'>Clone</td></tr>";	    
+	    if(bending!=null){
+	      if(target.isEndPoint(event.x,event.y)){	
+	        items+="<tr id='resumeid'><td style='padding: 0.4em;'>Resume</td></tr>";
+	      }
+	    }else{
+	    	items+="<tr id='addbendingpointid'><td style='padding: 0.4em;'>Add Bending point</td></tr>";	
+	    }
+	    
+	    if(bending!=null){
+	      items+="<tr id='deletebendingpointid'><td style='padding: 0.4em'>Delete Bending point</td></tr>";
+	    }
+	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
+	    items+="</table></div>";
+	    this.setContent(items,{target:target});	
+	    this.open(event);	
+}
 registerBlockPopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
 	    items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
@@ -1077,6 +1124,11 @@ attachEventListeners(context){
 	  }
 }
 actionPerformed(id,context){
+   if(id=="tracknetselectid"){
+	   context.target.owningUnit.selectNetAt(context.target);
+	   this.component.repaint();
+	   return;
+   }	
    if (id=="resumeid") {
         //this.component.getView().setButtonGroup(core.ModeEnum.LINE_MODE);
         //this.component.setMode(core.ModeEnum.LINE_MODE);         
@@ -1154,10 +1206,10 @@ class BoardShapeFactory{
 			circle.fromXML(data);
 			return circle;
 		}
-		if (data.tagName.toLowerCase() == 'ellipse') {
-			var circle = new Circle(0, 0, 0, 0, 0);
-			circle.fromXML(data);
-			return circle;
+		if (data.tagName.toLowerCase() == 'arc') {
+			var arc = new PCBArc(0, 0, 0, 0, 0);
+			arc.fromXML(data);
+			return arc;
 		}
 		if (data.tagName.toLowerCase() == 'line') {
 			var line = new PCBLine( 0, 0, 0, 0, 0);
@@ -1218,7 +1270,31 @@ add(shape){
           return;
     shape.isControlPointVisible=false;
     this.shapes.push(shape);  
-} 
+}
+getPinsRect(){
+    var x1=Number.MAX_VALUE,y1=Number.MAX_VALUE,x2=Number.MIN_VALUE,y2=Number.MIN_VALUE;
+    var isPinnable=false;
+    //***empty schematic,element,package
+    if (this.shapes.length == 0) {
+        return null;
+    }
+
+    this.shapes.forEach(function(shape) { 
+        if(shape instanceof Pad){
+          let p=shape.getPinPoint();
+          x1=Math.min(x1,p.x );
+          y1=Math.min(y1,p.y);
+          x2=Math.max(x2,p.x);
+          y2=Math.max(y2,p.y);             
+          isPinnable=true;
+        }
+    });
+    if(isPinnable)
+        return  d2.Box.fromRect(x1,y1,x2-x1,y2-y1);          
+    else
+        return null;  
+    
+}
 getPads(){
    return this.shapes.filter(s => s instanceof Pad);        
 }
@@ -1638,6 +1714,117 @@ drawClearence(g2,viewportWindow,scale,source){
 
    g2.restore();
 }
+getSegments(){
+    let list=[];
+    let prevPoint = this.polyline.points[0];        
+    for(let point of this.polyline.points){                          
+        if(prevPoint.equals(point)){                        
+            prevPoint = point;
+            continue;
+        }                       
+        list.push(new d2.Segment(prevPoint.x,prevPoint.y,point.x,point.y));
+        
+        prevPoint = point;
+    }
+    return list;         
+}
+getNetShapes(selectedShapes){
+	let net=[];
+	//1.vias
+    let vias=this.owningUnit.getShapes(PCBVia);
+    
+    vias.forEach(via=>{
+        if(selectedShapes.has(via.uuid)){
+            return;
+        }else if(this.polyline.intersect(via.outer)){
+           net.push(via); 
+        }
+    });
+    //2.track on same layer
+    let sameSideTracks=this.owningUnit.getShapes(PCBTrack,this.copper.getLayerMaskID());         
+    let  circle=new d2.Circle(new d2.Point(0,0),0);
+    for(let track of sameSideTracks ){
+        if(track==this){
+            continue;
+        }
+        if(selectedShapes.has(track.uuid)){
+            continue;
+        }
+        //my points on another
+        for(let pt of this.polyline.points){
+            circle.pc=pt;
+            circle.r=this.thickness/2;
+            if(track.polyline.intersect(circle)){
+               net.push(track);
+               break;
+            }   
+        }
+        //another points on me
+        for(let pt of track.polyline.points){
+            circle.pc=pt;
+            circle.r=track.thickness/2;
+            if(this.polyline.intersect(circle)){
+               net.push(track);
+               break;
+            }   
+        }            
+        
+    }
+    //my track crossing other track on same layer
+    let segments=this.getSegments();
+    for(let track of sameSideTracks){
+        if(track==this){
+            continue;
+        }
+        if(selectedShapes.has(track.uuid)){
+            continue;
+        }            
+        for(let segment of segments){
+          //is my segment crossing anyone elses's?
+            for(let other of track.getSegments()){
+                if(segment.intersect(other)){
+                    net.push(track);
+                    break;
+                }
+            }
+        }
+        
+    }
+    //3.Footprint pads on me
+    let footprints=this.owningUnit.getShapes(PCBFootprint);         
+    //the other side
+    let oppositeSideTracks=this.owningUnit.getShapes(PCBTrack,core.Layer.Side.change(this.copper.getLayerMaskID()).getLayerMaskID());    
+    
+    let bothSideTracks = [...sameSideTracks, ...oppositeSideTracks];
+    for(let footprint of footprints){
+        let pads=footprint.getPads();        
+        for(let pad of pads){              
+            for(let pt of this.polyline.points){
+                if(pad.shape.contains(pt)){  //found pad on track -> investigate both SMD and THROUGH_HOLE
+                    for(let track of bothSideTracks ){  //each track on SAME layer
+                        //another points on me
+                        for(let p of track.polyline.points){
+                            if(pad.shape.contains(p)){
+                                  if(selectedShapes.has(track.uuid)){
+                                      continue;
+                                  }
+                                  //track and pad should be on the same layer
+                                  if((this.copper.getLayerMaskID()&pad.copper.getLayerMaskID())!=0){
+                                      if((track.copper.getLayerMaskID()&pad.copper.getLayerMaskID())!=0){ 
+                                            net.push(track);
+                                            break;
+                                      }
+                                  }
+                            }
+                        }   
+                    }                        
+                }               
+            }
+        }    	
+    }
+    
+    return net;
+}
 paint(g2, viewportWindow, scale,layersmask) {
     if((this.copper.getLayerMaskID()&layersmask)==0){
         return;
@@ -1843,6 +2030,20 @@ setWidth(width){
 }
 calculateShape() {
     return this.outer.box;
+}
+getNetShapes(selected) {
+    let net=[]; 
+    let tracks=this.owningUnit.getShapes(PCBTrack); 
+    for(let  track of tracks){
+        if(selected.has(track.uuid)){
+            continue;
+        }            
+
+        if(track.polyline.intersect(this.outer)){
+           net.push(track); 
+        }
+    }
+    return net;
 }
 drawClearence(g2, viewportWindow,scale, source) {    
 	
@@ -3799,6 +4000,7 @@ var core=require('core/core');
 var shape=require('core/shapes');
 var events=require('core/events');
 var FootprintLoadView=require('pads/views/footprintloadview');
+var Board=require('board/d/boardcomponent').Board;
 var BoardMgr = require('board/d/boardcomponent').BoardMgr;
 var BoardContainer = require('board/d/boardcomponent').BoardContainer;
 var UnitMgr = require('core/unit').UnitMgr;
@@ -3824,7 +4026,6 @@ var ToggleButtonView=Backbone.View.extend({
 		_.each(this.collection.models,j$.proxy(function(model,index,list) {
 			    j$("#"+model.id).bind( "click",{model:model},j$.proxy(this.onclick,this));
 			}),this);	
-		j$("#importfromclipboardid").click(j$.proxy(this.onimport,this));
 	},
 	update:function(){
 		_.each(this.collection.models,function(model,index,list) {
@@ -3838,17 +4039,6 @@ var ToggleButtonView=Backbone.View.extend({
 				model.attributes.active=false;
 		    }
 		}),this);		
-	},
-	onimport:function(event){
-		navigator.clipboard.readText().then(data =>{ 
-		      let boardContainer=new BoardContainer(true);
-		      let xml=(j$.parseXML(data));		    	  
-		      //disable 
-		      core.isEventEnabled=false;
-		      boardContainer.parse(xml);
-		      core.isEventEnabled=true;
-		  	  mywebpcb.trigger('workspaceview:load',boardContainer);
-			});
 	},	
 	onclick:function(event){
 	    event.preventDefault();
@@ -3862,9 +4052,23 @@ var ToggleButtonView=Backbone.View.extend({
 		    event.data.model.attributes.active=!event.data.model.attributes.active;
 	    }
 		this.update();
-		if(event.data.model.id=='newboardid'){
-			var board=new mywebpcb.board.Board(core.MM_TO_COORD(80),core.MM_TO_COORD(80));
-            board.name="Sergio Leone";
+		if(event.data.model.id=='importfromclipboardid'){	
+			navigator.clipboard.readText().then(data =>{ 
+			      let boardContainer=new BoardContainer(true);
+			      let xml=(j$.parseXML(data));		    	  
+			      //disable 
+			      core.isEventEnabled=false;
+			      boardContainer.parse(xml);
+			      core.isEventEnabled=true;
+			  	  mywebpcb.trigger('workspaceview:load',boardContainer);
+				});
+		}
+		if(event.data.model.id=='exporttoclipboardid'){	
+			navigator.clipboard.writeText(this.boardComponent.getModel().format());
+		}
+		if(event.data.model.id=='addunitid'){			
+			var board=new Board(core.MM_TO_COORD(80),core.MM_TO_COORD(80));
+            board.unitName="Unknown";
 			this.boardComponent.getModel().add(board);
             this.boardComponent.getModel().setActiveUnitUUID(board.getUUID());
             this.boardComponent.componentResized(); 
@@ -3942,7 +4146,6 @@ var ToggleButtonView=Backbone.View.extend({
             if(shapes.length==0){
                return; 
             }  
-			//shapes= this.boardComponent.getModel().getUnit().getSelectedShapes();
 			var r=this.boardComponent.getModel().getUnit().getShapesRect(shapes);
                
             UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(event.data.model.id==("rotateleftid")?1:-1)*(90.0)));
@@ -4725,7 +4928,28 @@ getOffset(){
  }	  
 }
 
+//-----------------------Queue--------------------
+class Queue {
+    constructor() {
+        this.items = [];
+    }
 
+    isEmpty() {
+        return (this.items.length === 0);
+    }
+
+    enqueue(item) {
+        this.items.unshift(item);
+    }
+
+    dequeue() {
+        return this.items.pop();
+    }
+
+    size() {
+        return this.items.length;
+    }
+}
 //-----------------------UnitSelectionCell---------
 var UnitSelectionCell = function (uuid,x, y,width,height,name) {
 	 return {
@@ -4901,7 +5125,8 @@ module.exports ={
 	UnitSelectionPanel,
 	CompositeLayer,
 	isEventEnabled,
-	SymbolType
+	SymbolType,
+	Queue,
 }
 
 var events=require('core/events');
@@ -5995,8 +6220,9 @@ attachEventListeners(context){
 }
 
 actionPerformed(id,context){
-	let line =this.component.lineBendingProcessor.line;
+	
 	if(id=='defaultbendid'){
+		let line =this.component.lineBendingProcessor.line;
 		this.component.lineBendingProcessor=new DefaultLineBendingProcessor();
 		this.component.lineBendingProcessor.initialize(line);
 	}	
@@ -6213,9 +6439,9 @@ getHeight() {
 getDrawingOrder() {
     return 100;
 }
-getOrderWeight() {
-		return (this.getWidth() * this.getHeight());
-	}
+getClickableOrder() {
+		return 100;
+}
 getUUID() {
 		return this.uuid;
 	}
@@ -6392,6 +6618,9 @@ clear(){
 	}
 alignResizingPointToGrid(targetPoint) {
     this.owningUnit.grid.snapToGrid(targetPoint);         
+}
+getClickableOrder(){
+	return 2;
 }
 isClicked(x, y) {
 	  var result = false;
@@ -6682,7 +6911,7 @@ class FontTexture{
 	this.selection=false;
 	this.selectionRectWidth=3000;
 	this.constSize=false;
-	this.fillColor='white'; 
+	this.fillColor='#ffffff'; 
     this.shape.style='plain';
     this.isTextLayoutVisible=false;
 	//this.cache=new TextureCache(this);
@@ -6892,12 +7121,13 @@ class SymbolFontTexture{
 		this.selectionRectWidth=3000;
 		this.constSize=false;		    
 		this.selectionRectWidth=4;
-		this.fillColor='black';
+		this.fillColor='#000000';
 	    this.isTextLayoutVisible=false;
 	}
 	clone(){
 	    var copy=new SymbolFontTexture(this.shape.text,this.tag,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.alignment,this.shape.fontSize);     
 	    copy.fillColor=this.fillColor;
+	    copy.shape.style=this.shape.style;
 	    return copy;	 
 	} 
 	copy( _copy){    
@@ -6906,7 +7136,7 @@ class SymbolFontTexture{
 	    this.shape.text=_copy.shape.text;
 	    this.shape.style=_copy.shape.style;
 	    this.shape.rotation=_copy.shape.rotation;
-	    this.shape.fillColor=_copy.shape.fillColor;
+	    this.fillColor=_copy.fillColor;
 	    this.shape.setSize(_copy.shape.fontSize);                
 	}	
 	isEmpty() {
@@ -7020,9 +7250,13 @@ class SymbolFontTexture{
 	    this.shape.alignment=(TextAlignment.parse(tokens[3]));
 	    this.shape.setText(tokens[0]);
 	    this.shape.anchorPoint.set(parseInt(tokens[1]),
-	            parseInt(tokens[2]));     
-	    this.style=tokens[4];    
-	    this.shape.setSize(parseInt(tokens[5]));
+	            parseInt(tokens[2]));  
+	    if(tokens[4]){
+	    	this.shape.style=tokens[4].toLowerCase();	
+	    }
+	    if(tokens[5]){    
+	    	this.shape.setSize(parseInt(tokens[5]));
+	    }
 
 	}
 	toXML(){
@@ -7589,7 +7823,7 @@ var UnitMgr=(function(){
     function getPinsRect(shapes){
         var x1=Number.MAX_VALUE,y1=Number.MAX_VALUE,x2=Number.MIN_VALUE,y2=Number.MIN_VALUE;
         var isPinnable=false;        
-        
+
         shapes.forEach(function(shape) {            
             if(typeof shape.getPinPoint === 'function'){
                 let point=shape.getPinPoint();                
@@ -7701,7 +7935,7 @@ class Unit{
     	this.shapes=[];
     	this.width=width;
     	this.height=height;
-    	this.unitName="Uknown";
+    	this.unitName="Unknown";
     	this.grid=new core.Grid(0.8,core.Units.MM);
         this.scrollPositionXValue = 0;
         this.scrollPositionYValue = 0;
@@ -7846,11 +8080,11 @@ getClickedShape( x,  y,  isTextIncluded){
         return null;
     }
     //Text?
-    if (undefined !=clickedShapes[0]['getTextureByTag']) {   
-        if(this.isShapeVisibleOnLayers(clickedShapes[0])){             
-          return clickedShapes[0];
-        }
-    }
+//    if (undefined !=clickedShapes[0]['getTextureByTag']) {   
+//        if(this.isShapeVisibleOnLayers(clickedShapes[0])){             
+//          return clickedShapes[0];
+//        }
+//    }
 
     clickedShapes.sort(function(o1, o2){
        
@@ -7868,10 +8102,10 @@ getClickedShape( x,  y,  isTextIncluded){
                  }
            }
     	 }
-                   
-       if ((o1.getOrderWeight() - o2.getOrderWeight()) == 0)
+
+       if ((o1.getClickableOrder() - o2.getClickableOrder()) == 0)
            return 0;
-       if ((o1.getOrderWeight() - o2.getOrderWeight()) > 0)
+       if ((o1.getClickableOrder() - o2.getClickableOrder()) > 0)
            return 1;
        else
            return -1;
@@ -7964,7 +8198,9 @@ isControlRectClicked( x,  y) {
          }
          return null;
      }
-getShapes(clazz) {
+getShapes(...args) {
+	if(args.length==1){  //clazz
+		let clazz=args[0];
         var selectionList=[];
   	    this.shapes.forEach(function(shape) {
             if (shape instanceof clazz) {
@@ -7972,6 +8208,18 @@ getShapes(clazz) {
             }
          });           
          return selectionList;
+	}else{      //clazz,layerid
+		let clazz=args[0];
+		let layermaskId=args[1];
+		
+        var selectionList=[];
+  	    for(let shape of this.shapes) {
+            if ((shape instanceof clazz)&&(shape.isVisibleOnLayers(layermaskId))) {
+         	   selectionList.push(shape);				
+            }
+         };           
+         return selectionList;		
+	}
  }    
 getShape(uuid){
  	    if (uuid == null){
@@ -8628,7 +8876,15 @@ var Max=function(p1,p2){
 //		g2.arcTo(x,   y,   x+w, y,   r);
 //};
 
-
+var hexToDec=function(hex) {
+	var result = 0, digitValue;
+	hex = hex.toLowerCase();
+	for (var i = 0; i < hex.length; i++) {
+		digitValue = '0123456789abcdefgh'.indexOf(hex[i]);
+		result = result * 16 + digitValue;
+	}
+	return result;
+}
 version=(function(){
 	return {
 		MYWEBPCB_VERSION:"8.0",
@@ -8650,6 +8906,7 @@ module.exports = {
   intersectLineLine,
   degrees,
   radians,
+  hexToDec,
   QUADRANT,
   POINT_TO_POINT,
   POSITION,
@@ -9935,11 +10192,46 @@ module.exports = function(d2) {
 			return copy;
 		}
 		get box(){
+			 let r=this.getDiameter()/2;
+	         //first point		 
+			 let v=new d2.Vector(this.pe,this.ps);
+			 let n=v.normalize();
+			 let a=this.ps.x +r*n.x;
+			 let b=this.ps.y +r*n.y;			 
+			 
+			 			 
+			 v.rotate90CW();
+			 let norm=v.normalize();
+			 
+			 let x=a +r*norm.x;
+			 let y=b +r*norm.y;			 
+			 let pa=new d2.Point(x,y);
+			 
+			 norm.invert();
+			 x=a +r*norm.x;
+			 y=b +r*norm.y;			 
+			 let pb=new d2.Point(x,y);
+			 //second point
+			 v=new d2.Vector(this.ps,this.pe);
+			 n=v.normalize();
+			 let c=this.pe.x +r*n.x;
+			 let d=this.pe.y +r*n.y;			 
+			 
+			 v.rotate90CW();
+			 norm=v.normalize();
+			 
+			 x=c +r*norm.x;
+			 y=d +r*norm.y;			 
+			 let pc=new d2.Point(x,y);
+			 
+			 norm.invert();
+			 x=c +r*norm.x;
+			 y=d +r*norm.y;			 
+			 let pd=new d2.Point(x,y);
+			 
 			 return new d2.Box(
-		                Math.min(this.ps.x, this.pe.x),
-		                Math.min(this.ps.y, this.pe.y),
-		                Math.max(this.ps.x, this.pe.x),
-		                Math.max(this.ps.y, this.pe.y)
+		                [
+		                pa,pb,pc,pd]
 		            );			
 		}
 		setWidth(width){
@@ -10033,14 +10325,18 @@ module.exports = function(d2) {
 	            this.width +=  2*offset;
 	        }
 	    }
+	    getDiameter(){
+	        if(d2.utils.GE(this.width,this.height)){
+	            return this.height;
+	        } else {
+	            return this.width;
+	        }
+	    }
+	    
 		paint(g2){
 			g2.beginPath();
 			let l=g2.lineWidth;
-			if(this.width>=this.height)
-			  g2.lineWidth =this.height;
-			else
-			  g2.lineWidth =this.width;
-			
+			g2.lineWidth=this.getDiameter();
 			g2.lineCap="round";
 			g2.moveTo(this.ps.x, this.ps.y);
 			g2.lineTo(this.pe.x, this.pe.y);
@@ -10533,6 +10829,25 @@ module.exports = function(d2) {
            this.points.forEach(point=>{
            	point.rotate(angle,center);
            });
+       }
+       intersect(shape){
+    	   let segment=new d2.Segment(0,0,0,0);
+    	   if(shape instanceof d2.Circle){
+    	          let prevPoint = this.points[0];        
+    	          for(let point of this.points){    	        	  
+    	              if(prevPoint.equals(point)){    	            	  
+    	            	  prevPoint = point;
+    	                  continue;
+    	              }    	              
+    	              segment.set(prevPoint.x,prevPoint.y,point.x,point.y);
+    	              if(segment.intersect(shape)){
+    	                  return true;
+    	              }
+    	              prevPoint = point;
+    	          }
+    		   
+    	   }
+    	   
        }
        get box(){
          return new d2.Box(this.points);	
@@ -11303,6 +11618,69 @@ module.exports = function(d2) {
         contains(pt){
       	   return false;    	   
         }
+        projectionPoint(pt) {
+            let v1 = new d2.Vector(this.ps, pt);
+            let v2 = new d2.Vector(this.ps, this.pe);
+
+            let v = v1.projectionOn(v2);
+            //translate point
+            let x = this.ps.x + v.x;
+            let y = this.ps.y + v.y;
+            return new d2.Point(x, y);
+        }   
+      //https://github.com/psalaets/line-intersect        
+        intersect(shape){
+          if(shape instanceof d2.Circle){  
+            let projectionPoint = this.projectionPoint(shape.pc);
+
+            let a = (projectionPoint.x - this.ps.x) / ((this.pe.x - this.ps.x) == 0 ? 1 : this.pe.x - this.ps.x);
+            let b = (projectionPoint.y - this.ps.y) / ((this.pe.y - this.ps.y) == 0 ? 1 : this.pe.y - this.ps.y);
+
+            let dist = projectionPoint.distanceTo(shape.pc);
+            
+            if (0 <= a && a <= 1 && 0 <= b && b <= 1) { //is projection between start and end point
+                if (!d2.utils.GT(dist,shape.r)) {
+                    return true;
+                }
+            }
+            //end points in circle?
+            if (d2.utils.LE(this.ps.distanceTo(shape.pc), shape.r)) {
+                return true;
+            }
+            if (d2.utils.LE(this.pe.distanceTo(shape.pc), shape.r)) {
+                return true;
+            }        
+          }
+          else if(shape instanceof d2.Segment){
+              let x1=this.ps.x, y1=this.ps.y, x2=this.pe.x, y2=this.pe.y, x3=shape.ps.x, y3=shape.ps.y, x4=shape.pe.x, y4=shape.pe.y; 
+              let denom = ((y4 - y3) * (x2 - x1)) - ((x4 - x3) * (y2 - y1));
+              let numeA = ((x4 - x3) * (y1 - y3)) - ((y4 - y3) * (x1 - x3));
+              let numeB = ((x2 - x1) * (y1 - y3)) - ((y2 - y1) * (x1 - x3));
+
+              if (denom == 0) {
+                if (numeA == 0 && numeB == 0) {
+                  return true;  //COLINEAR;
+                }
+                return false; //PARALLEL;
+              }
+
+              let uA = numeA / denom;
+              let uB = numeB / denom;
+
+              if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1) {
+                return true;
+                //return intersecting({
+                //  x: x1 + (uA * (x2 - x1)),
+                //  y: y1 + (uA * (y2 - y1))
+                //});
+              }
+
+              return false;        	  
+          }
+           
+          
+          return false;
+        }        
         rotate(angle, center = {x:0, y:0}) {
           this.ps.rotate(angle,center);
           this.pe.rotate(angle,center);
@@ -11839,7 +12217,7 @@ setMode(_mode){
      		case core.ModeEnum.SOLID_REGION:
          	break;	 
 	        case core.ModeEnum.PAD_MODE:
-	            shape=new Pad(0,0,core.MM_TO_COORD(1.52),core.MM_TO_COORD(2.52));	            	            		                        
+	            shape=new Pad(0,0,core.MM_TO_COORD(2.52),core.MM_TO_COORD(1.6));	            	            		                        
 	            this.setContainerCursor(shape);               
 	            this.getEventMgr().setEventHandle("cursor",shape);  
 	          break;
@@ -12585,7 +12963,6 @@ class RoundRect extends Shape{
 	  this.roundRect.setRounding(rounding);
 	}
 	setResizingPoint(pt){
-		console.log(pt);
 		this.resizingPoint=pt;
 	}
 	getResizingPoint() {
@@ -12774,7 +13151,7 @@ fromXML(data) {
          
  		 this.thickness = (parseInt(j$(data).attr("thickness")));
  		 this.fill = parseInt(j$(data).attr("fill")); 
- 		 this.fill=(this.fill==0?1:this.fill);
+ 		
 	}
 	mirror(line){
 	   this.circle.mirror(line);	
@@ -12925,8 +13302,7 @@ fromXML(data){
 		this.arc.startAngle = parseInt(j$(data).attr("start"));
         this.arc.endAngle = parseInt(j$(data).attr("extend"));        
 		this.thickness = (parseInt(j$(data).attr("thickness")));
-		this.fill = (parseInt(j$(data).attr("fill"))||1);
-		this.fill=(this.fill==0?1:this.fill);
+		this.fill=parseInt(j$(data).attr("fill"));
 }
 toXML() {
     return '<arc copper="'+this.copper.getName()+'"  x="'+utilities.roundFloat(this.arc.pc.x,4)+'" y="'+utilities.roundFloat(this.arc.pc.y,4)+'" radius="'+utilities.roundFloat(this.arc.r,4)+'"  thickness="'+this.thickness+'" start="'+utilities.roundFloat(this.arc.startAngle,2)+'" extend="'+utilities.roundFloat(this.arc.endAngle,2)+'" fill="'+this.fill+'" />';
@@ -13645,9 +14021,10 @@ fromXML(data){
 			  }
 		     
 	}
-getPinsRect() {
-	     return d2.Box.fromRect(this.shape.center.x, this.shape.center.y, 0,0);
-	}
+
+getPinPoint() {        
+    return this.shape.center;
+}
 alignToGrid(isRequired){
 	     var center=this.shape.center;
 	     var point=this.owningUnit.getGrid().positionOnGrid(center.x,center.y);
@@ -14147,7 +14524,7 @@ module.exports ={
 	Circle,
 	Arc,
 	SolidRegion,
-	Pad,Drill,
+	Pad,Drill,PadType,
 	FootprintShapeFactory
 }
 

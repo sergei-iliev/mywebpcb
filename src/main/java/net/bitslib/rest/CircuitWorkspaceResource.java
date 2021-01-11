@@ -15,51 +15,48 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import net.bitslib.entity.Board;
-import net.bitslib.entity.BoardWorkspace;
+import net.bitslib.entity.Circuit;
+import net.bitslib.entity.CircuitWorkspace;
 import net.bitslib.entity.FileObject;
-import net.bitslib.entity.Footprint;
-import net.bitslib.entity.FootprintLibrary;
-import net.bitslib.repository.BoardRepository;
-import net.bitslib.repository.BoardWorkspaceRepository;
+import net.bitslib.repository.CircuitRepository;
 import net.bitslib.repository.CircuitWorkspaceRepository;
 
 @RestController
-@RequestMapping("/rest/circuit")
+@RequestMapping("/rest/circuits")
 public class CircuitWorkspaceResource extends AbstractResource{
 	private static final Logger logger = Logger.getLogger(CircuitWorkspaceResource.class.getName());
 
 	@Autowired
 	private CircuitWorkspaceRepository circuitWorkspaceRepository;
 	
-	//@Autowired
-	//private BoardRepository boardRepository;
-/*	
+	@Autowired
+	private CircuitRepository circuitRepository;
+	
 	@RequestMapping(value = "/workspaces", method = RequestMethod.GET,produces={MediaType.APPLICATION_XML_VALUE},headers = "Accept=application/xml")
 	public ResponseEntity<String> getWorkspaces(){
 		return ResponseEntity.ok(circuitWorkspaceRepository.getWorkspacesToXML(null));
 	}
 	@RequestMapping(value = "/workspaces/{workspaceName}", method = RequestMethod.GET,produces={MediaType.APPLICATION_XML_VALUE})
 	public ResponseEntity<String> getBoards(@PathVariable("workspaceName") String workspaceName){
-		BoardWorkspace workspace = boardWorkspaceRepository.getWorkspaceByName(workspaceName);
+		CircuitWorkspace workspace = circuitWorkspaceRepository.getWorkspaceByName(workspaceName);
 		if (workspace == null) {
 			logger.log(Level.SEVERE, "Unable to find workspace with name: "+ workspaceName);
 			return ResponseEntity.badRequest().body("No such workspace");
 		}
-		return ResponseEntity.ok(boardWorkspaceRepository.getBoardsToXML(workspace.getKey()));
+		return ResponseEntity.ok(circuitWorkspaceRepository.getBoardsToXML(workspace.getKey()));
 	}	
 	
 	@RequestMapping(value = "/workspaces/{workspaceName}/{projectName}", method = RequestMethod.GET,produces={MediaType.APPLICATION_XML_VALUE},headers = "Accept=application/xml")
 	public ResponseEntity<String> getBoard(@PathVariable("workspaceName") String workspaceName,@PathVariable("projectName") String projectName){
-		BoardWorkspace workspace = boardWorkspaceRepository.getWorkspaceByName(workspaceName);
+		CircuitWorkspace workspace = circuitWorkspaceRepository.getWorkspaceByName(workspaceName);
 		if(workspace==null){
 			logger.log(Level.SEVERE, "Unable to find workspace with name: "+ workspace);
 			return ResponseEntity.badRequest().body("No such workspace");
 		}
 
 		// read symbol
-		Board board = boardRepository.getBoard(workspace.getKey(), projectName);
-		FileObject xml=boardRepository.getFileObjectById(board.getXml());
+		Circuit circuit = circuitRepository.getCircuit(workspace.getKey(), projectName);
+		FileObject xml=circuitRepository.getFileObjectById(circuit.getXml());
 		
 		String content=xml.toString();
 		
@@ -77,29 +74,29 @@ public class CircuitWorkspaceResource extends AbstractResource{
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Workspace does not have name.");
 		}
 		
-		BoardWorkspace workspace = boardWorkspaceRepository.getWorkspaceByName(workspaceName);
+		CircuitWorkspace workspace = circuitWorkspaceRepository.getWorkspaceByName(workspaceName);
 		if(workspace==null){
-			workspace=new BoardWorkspace();
+			workspace=new CircuitWorkspace();
 			workspace.setName(workspaceName);
-			boardWorkspaceRepository.createWorkspace(workspace);
+			circuitWorkspaceRepository.createWorkspace(workspace);
 		}
 		
-		Board board = boardRepository.getBoard(workspace.getKey(), projectName);
-		if (board != null && overwrite == false) {
-			return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body("Board '" + projectName + "' already exists.");
+		Circuit circuit = circuitRepository.getCircuit(workspace.getKey(), projectName);
+		if (circuit != null && overwrite == false) {
+			return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body("Circuit '" + projectName + "' already exists.");
 		}
 		
-		if (board == null) {
-			board = new Board(workspace.getKey());
-			board.setName(projectName);		
-			board.setContent(xml);			
-			boardRepository.createBoard(board);
+		if (circuit == null) {
+			circuit = new Circuit(workspace.getKey());
+			circuit.setName(projectName);		
+			circuit.setContent(xml);			
+			circuitRepository.createCircuit(circuit);
 		}else{
-			board.setName(projectName);		
-			board.setContent(xml);
-			boardRepository.updateBoard(board);
+			circuit.setName(projectName);		
+			circuit.setContent(xml);
+			circuitRepository.updateCircuit(circuit);
 		}
 		return	ResponseEntity.ok("");
 	}
-	*/
+	
 }

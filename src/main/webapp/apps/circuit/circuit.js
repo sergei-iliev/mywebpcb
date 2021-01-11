@@ -175,7 +175,11 @@ var CircuitComponent=require('circuit/d/circuitcomponent').CircuitComponent;
 			
 			//create ui
 			var toggleButtonCollection=new togglebutton.ToggleButtonCollection(
-			[new togglebutton.ToggleButtonModel({id:'mainmenuid'}),
+			[
+			 new togglebutton.ToggleButtonModel({id:'exporttoclipboardid'}),
+			 new togglebutton.ToggleButtonModel({id:'importfromclipboardid'}),
+			 new togglebutton.ToggleButtonModel({id:'addunitid'}),
+			 new togglebutton.ToggleButtonModel({id:'mainmenuid'}),
 			 new togglebutton.ToggleButtonModel({id:'printfootrpintid'}),
 			 new togglebutton.ToggleButtonModel({id:'saveid'}),
 			 new togglebutton.ToggleButtonModel({id:'loadid'}),
@@ -379,10 +383,52 @@ class Circuit extends Unit{
 	}
 	format(){    
  	   var xml="<circuit width=\""+ this.width +"\" height=\""+this.height+"\">\r\n"; 
-	   xml+="<name>"+this.unitName+"</name>\r\n";	   	   	   
-	   this.shapes.forEach(s=>{
-		  xml+=s.toXML()+"\r\n";
-	   });	    
+	   xml+="<name>"+this.unitName+"</name>\r\n";
+       xml+="<symbols>\r\n";
+       //***   Chip symbols
+       xml+="<chips>\r\n";
+       this.shapes.forEach(s=>{ 
+           if (s instanceof SCHSymbol)
+               xml+= s.toXML();
+	   });
+       xml+="</chips>\r\n";
+       //***   Bus symbols
+       xml+="<busses>\r\n";
+       this.shapes.forEach(s=>{ 
+           if (s instanceof SCHBus)
+               xml+= s.toXML();
+	   });       
+       xml+="</busses>\r\n";	   
+       //***   Wire symbols
+       xml+="<wires>\r\n";
+       this.shapes.forEach(s=>{ 
+           if (s instanceof SCHWire)
+               xml+= s.toXML();
+	   });        
+       xml+="</wires>\r\n";
+       //***  BusPins
+       xml+="<buspins>\r\n";
+       this.shapes.forEach(s=>{ 
+           if (s instanceof SCHBusPin)
+               xml+= s.toXML();
+	   }); 
+       xml+="</buspins>\r\n";  
+       //***   Junction symbols
+       xml+="<junctions>\r\n";
+       this.shapes.forEach(s=>{ 
+           if (s instanceof SCHJunction)
+               xml+= s.toXML();
+       });
+       xml+="</junctions>\r\n";    
+       //***  Labels without parent
+       xml+="<labels>\r\n";
+       this.shapes.forEach(s=>{ 
+           if (s instanceof SCHFontLabel)
+               xml+= s.toXML();
+       });
+       xml+="</labels>\r\n";      
+       
+       xml+="</symbols>\r\n";
 	   xml+="</circuit>";
 	   return xml;        
 	}
@@ -1017,8 +1063,8 @@ constructor(){
 	    this.reference=new SymbolFontTexture("","reference", 0, 0,1,8);
 	    this.unit=new SymbolFontTexture("","unit", 0,0,1,0);		 	
 	    
-	    this.reference.fillColor='black';
-	    this.unit.fillColor='black';
+	    this.reference.fillColor='#000000';
+	    this.unit.fillColor='#000000';
 	    
 	    this.type=SymbolType.SYMBOL;
 }
@@ -1099,11 +1145,15 @@ calculateShape() {
     r.setRect(x1, y1, x2 - x1, y2 - y1);
     return r;
 }
+getClickableOrder() {
+	var box = this.getBoundingShape();	
+	return box.width*box.height;
+}
 setSelected(selected) {        
     super.setSelected(selected);
     
     this.shapes.forEach(shape=>{   
-      shape.fillColor=(selected?"blue":"black");
+      shape.fillColor=(selected?"blue":"#000000");
     });
     this.unit.setSelected(selected);
     this.reference.setSelected(selected);        
@@ -1183,6 +1233,21 @@ paint(g2, viewportWindow, scale,layersmask) {
     	
     
  }
+toXML(){    
+    var xml="<module type=\""+SymbolType.valueOf(this.type)+"\" >\r\n";
+    //xml.append("<footprint library=\""+ (packaging.getFootprintLibrary()==null?"":packaging.getFootprintLibrary())+"\" category=\""+(packaging.getFootprintCategory()==null?"":packaging.getFootprintCategory())+"\"  filename=\""+(packaging.getFootprintFileName()==null?"":packaging.getFootprintFileName())+"\" name=\""+(packaging.getFootprintName()==null?"":packaging.getFootprintName())+"\"/>\r\n");
+    xml+="<name>"+this.displayName+"</name>\r\n";
+    xml+="<reference>"+FontLabel.formatToXML(this.reference)+"</reference>\r\n";                           
+    xml+=("<unit>"+ FontLabel.formatToXML(this.unit)+"</unit>\r\n");
+    xml+="<elements>\r\n";        
+    var len=this.shapes.length;
+    for(i=0;i<len;i++){
+		  xml+=this.shapes[i].toXML();  
+	}
+    xml+="</elements>\r\n";
+    xml+="</module>\r\n"; 
+    return xml;
+}
 fromXML(data){
 	this.type=SymbolType.parse(j$(data).attr("type"));
 	this.displayName=j$(data).find("name")[0].textContent;	
@@ -1219,13 +1284,18 @@ fromXML(data){
 class SCHFontLabel extends FontLabel{
 	constructor(x, y) {
 		super(x, y, 0, 0, 1,core.Layer.LAYER_ALL);		
-	}
+	}	
 	clone(){
 		var copy = new SCHFontLabel(this.x,this.y);
 		copy.texture = this.texture.clone();  				
 		return copy;
-	}
-	
+	}	
+//    toXML(){
+//        if(this.texture!=null&&!this.texture.isEmpty())
+//          return "<label color=\""+this.texture.fillColor.getRGB()+"\">"+this.texture.toXML()+"</label>\r\n";
+//        else
+//          return "";          
+//    }
 }
 class SCHWire extends AbstractLine{
 	constructor(){
@@ -1251,7 +1321,7 @@ class SCHWire extends AbstractLine{
 		g2.lineWidth = this.thickness * scale.getScale();
 
 		if (this.selection)
-			g2.strokeStyle = "gray";
+			g2.strokeStyle = "blue";
 		else
 			g2.strokeStyle = "black";
 
@@ -1281,6 +1351,16 @@ class SCHWire extends AbstractLine{
 		    
 		    
 	}	
+	toXML(){		
+		let xml="<wire thickness=\""+this.thickness+"\">";
+		xml+="<wirepoints>";		
+		this.polyline.points.forEach(function(point) {
+			xml += utilities.roundFloat(point.x,1) + "," + utilities.roundFloat(point.y,1) + "|";
+		},this);		
+		xml+="</wirepoints>\r\n";
+		xml+="</wire>\r\n";
+		return xml;
+	}	
 	fromXML(data){
 		
 		var points= j$(data).find('wirepoints')[0];
@@ -1308,7 +1388,17 @@ class SCHBus extends SCHWire{
 		var copy = new SCHBus();		
 		copy.polyline=this.polyline.clone();
 		return copy;
-	}	
+	}
+	toXML(){		
+		let xml="<bus thickness=\""+this.thickness+"\">";
+		xml+="<wirepoints>";		
+		this.polyline.points.forEach(function(point) {
+			xml += utilities.roundFloat(point.x,1) + "," + utilities.roundFloat(point.y,1) + "|";
+		},this);		
+		xml+="</wirepoints>\r\n";
+		xml+="</bus>\r\n";
+		return xml;
+	}
 }
 class SCHBusPin extends AbstractLine{
 	constructor(){
@@ -1432,6 +1522,16 @@ class SCHBusPin extends AbstractLine{
         
         
 		    
+	}
+	toXML(){
+        let xml="<buspin>\r\n";
+        xml+="<name>"+this.texture.toXML()+"</name>\r\n";
+        xml+="<wirepoints>";
+        xml+=utilities.roundDouble(this.polyline.points[0].x,1)+","+utilities.roundDouble(this.polyline.points[0].y,1)+"|";
+        xml+=utilities.roundDouble(this.polyline.points[1].x,1)+","+utilities.roundDouble(this.polyline.points[1].y,1)+"|";
+        xml+="</wirepoints>\r\n";       
+        xml+="</buspin>\r\n";
+        return xml;
 	}	
 	fromXML(data){
 		var points= j$(data).find('wirepoints')[0];
@@ -1491,12 +1591,18 @@ class SCHConnector extends Shape{
 		 }
 		 return copy;
 	}
+	getClickableOrder() {		
+		return 4;
+	}	
 	alignToGrid(isRequired) {
 	    var center=this.segment.ps;
 	    var point=this.owningUnit.getGrid().positionOnGrid(center.x,center.y);
 	    this.move(point.x - center.x,point.y - center.y);	     	       
 	    return new d2.Point(point.x - center.x, point.y - center.y);
 	}
+    getPinPoint() {     
+        return this.segment.ps;
+    }	
 	getTextureByTag(tag) {
 	    if(tag===(this.texture.tag))
 	        return this.texture;	    
@@ -1615,6 +1721,28 @@ class SCHConnector extends Shape{
 	    case Orientation.SOUTH:    	
 	    	this.segment.pe.set(this.segment.ps.x, this.segment.ps.y + (PIN_LENGTH / 2));
 	    }   
+	}
+    getOrientation(){
+        if(this.segment.isHorizontal){
+            if(this.segment.ps.x<this.segment.pe.x){
+                return Orientation.EAST;
+            }else{
+                return Orientation.WEST;           
+            }
+        }else{
+            if(this.segment.ps.y<this.segment.pe.y){
+                return Orientation.SOUTH;
+            }else{
+                return Orientation.NORTH;           
+            }            
+        }        
+    }	
+	toXML(){	   		
+        let xml="<connector type=\""+this.type+"\" style=\""+this.getStyle()+"\" >\r\n";        
+        xml+="<name>"+this.texture.toXML()+"</name>\r\n";
+        xml+="<a x=\""+utilities.roundDouble(this.segment.ps.x,1)+"\" y=\""+utilities.roundDouble(this.segment.ps.y,1)+"\"  orientation=\""+this.getOrientation()+"\" />\r\n";        
+        xml+="</connector>\r\n";
+        return xml;
 	}	
 	fromXML(data){		
 		var tokens = j$(data).find("a")[0].textContent.split(",");
@@ -1950,7 +2078,10 @@ class SCHJunction extends Shape{
 		 copy.circle.pc.y=this.circle.pc.y;
 		 copy.circle.r=this.circle.r;	        	        
 	     return copy;
-	}		
+	}	
+getClickableOrder() {		
+	return 1;
+}	
 alignToGrid(isRequired) {
     let point=this.owningUnit.getGrid().positionOnGrid(this.circle.pc.x, this.circle.pc.y);
     this.circle.pc.set(point.x,point.y);    
@@ -1989,9 +2120,16 @@ paint(g2, viewportWindow, scale,layersmask) {
     g2._fill=false;
   	  
 }
+toXML(){	
+    return "<junction x=\""+utilities.roundDouble(this.circle.pc.x,1)+"\" y=\""+utilities.roundDouble(this.circle.pc.y,1)+"\" />\r\n";        
+}
 fromXML(data){
-	var tokens = data.textContent.split(",");	
-	this.circle.pc.set(parseFloat(tokens[0]),parseFloat(tokens[1]));
+	if(j$(data).attr("x")){
+		this.circle.pc.set(parseFloat(j$(data).attr("x")),parseFloat(j$(data).attr("y")));
+	}else{
+		var tokens = data.textContent.split(",");	
+		this.circle.pc.set(parseFloat(tokens[0]),parseFloat(tokens[1]));
+	}
 }
 }
 class SCHNoConnector extends Shape{
@@ -2010,6 +2148,9 @@ clone(){
 alignToGrid(isRequired) {
     this.owningUnit.getGrid().snapToGrid(this.point);         
     return null;
+}
+getClickableOrder() {		
+	return 3;
 }
 calculateShape(){
     return d2.Box.fromRect(this.point.x - this.selectionRectWidth, this.point.y - this.selectionRectWidth, 2 * this.selectionRectWidth,
@@ -2050,6 +2191,10 @@ paint(g2, viewportWindow, scale,layersmask) {
 	  
 	  
 }
+toXML(){	
+	return "<noconnector x=\""+utilities.roundDouble(this.point.x,1)+"\" y=\""+utilities.roundDouble(this.point.y,1)+"\" />\r\n";        	
+}
+
 fromXML(data){
 	let x=parseFloat(j$(data).attr("x"));
 	let y=parseFloat(j$(data).attr("y"));			
@@ -2341,6 +2486,7 @@ ButtonView=Backbone.View.extend({
         "click  #closebuttonid" : "onclose",	
     },
     onsave:function(){
+    	console.log(this.model.format());
     	let workspace=j$('#workspacecomboid').val()!=''?j$('#workspacecomboid').val():'null';
 	    let name=j$('#projectnameid').val()!=''?j$('#projectnameid').val():'null'	
     	j$.ajax({
@@ -2506,7 +2652,7 @@ var LabelPanelBuilder=BaseBuilder.extend({
 			    "</select>" +
 				"</td></tr>"+				
 				"<tr><td style='padding:7px'>Color</td><td><input type='color' id='colorid' value='#ff0000'></td></tr>"+
-				"<tr><td style='width:50%;padding:7px'>Text Orientation</td><td>" +
+				"<tr><td style='width:50%;padding:7px'>Style</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"styleid\">"+
 				this.fillComboBox([{id:'plain',value:'PLAIN',selected:true},{id:'bold',value:'BOLD'},{id:'italic',value:'ITALIC'}])+
 			    "</select>" +
@@ -3391,6 +3537,7 @@ var core=require('core/core');
 var shape=require('core/shapes');
 var events=require('core/events');
 var SymbolLoadView=require('symbols/views/symbolloadview');
+var Circuit=require('circuit/d/circuitcomponent').Circuit;
 var CircuitMgr = require('circuit/d/circuitcomponent').CircuitMgr;
 var CircuitContainer = require('circuit/d/circuitcomponent').CircuitContainer;
 var UnitMgr = require('core/unit').UnitMgr;
@@ -3416,7 +3563,6 @@ var ToggleButtonView=Backbone.View.extend({
 		_.each(this.collection.models,j$.proxy(function(model,index,list) {
 			    j$("#"+model.id).bind( "click",{model:model},j$.proxy(this.onclick,this));
 			}),this);	
-		j$("#importfromclipboardid").click(j$.proxy(this.onimport,this));
 	},
 	update:function(){
 		_.each(this.collection.models,function(model,index,list) {
@@ -3431,17 +3577,7 @@ var ToggleButtonView=Backbone.View.extend({
 		    }
 		}),this);		
 	},
-	onimport:function(event){
-		navigator.clipboard.readText().then(data =>{ 
-		      let circuitContainer=new CircuitContainer(true);
-		      let xml=(j$.parseXML(data));		    	  
-		      //disable 
-		      core.isEventEnabled=false;
-		      circuitContainer.parse(xml);
-		      core.isEventEnabled=true;
-		  	  mywebpcb.trigger('workspaceview:load',circuitContainer);
-			});
-	},	
+
 	onclick:function(event){
 	    event.preventDefault();
 	    
@@ -3455,11 +3591,25 @@ var ToggleButtonView=Backbone.View.extend({
 		    event.data.model.attributes.active=!event.data.model.attributes.active;
 	    }
 		this.update();
-		if(event.data.model.id=='newboardid'){
-			var board=new mywebpcb.board.Board(core.MM_TO_COORD(80),core.MM_TO_COORD(80));
-            board.name="Sergio Leone";
-			this.circuitComponent.getModel().add(board);
-            this.circuitComponent.getModel().setActiveUnitUUID(board.getUUID());
+		if(event.data.model.id=='importfromclipboardid'){	
+			navigator.clipboard.readText().then(data =>{ 
+			      let circuitContainer=new CircuitContainer(true);
+			      let xml=(j$.parseXML(data));		    	  
+			      //disable 
+			      core.isEventEnabled=false;
+			      circuitContainer.parse(xml);
+			      core.isEventEnabled=true;
+			  	  mywebpcb.trigger('workspaceview:load',circuitContainer);
+				});	
+		}
+		if(event.data.model.id=='exporttoclipboardid'){	
+			navigator.clipboard.writeText(this.circuitComponent.getModel().format());
+		}		
+		if(event.data.model.id=='addunitid'){			
+			var circuit=new Circuit(1200,800);
+			circuit.unitName="Unknown";
+			this.circuitComponent.getModel().add(circuit);
+            this.circuitComponent.getModel().setActiveUnitUUID(circuit.getUUID());
             this.circuitComponent.componentResized(); 
             this.circuitComponent.repaint();
             this.circuitComponent.getModel().fireUnitEvent({target:this.circuitComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 	
@@ -4304,7 +4454,28 @@ getOffset(){
  }	  
 }
 
+//-----------------------Queue--------------------
+class Queue {
+    constructor() {
+        this.items = [];
+    }
 
+    isEmpty() {
+        return (this.items.length === 0);
+    }
+
+    enqueue(item) {
+        this.items.unshift(item);
+    }
+
+    dequeue() {
+        return this.items.pop();
+    }
+
+    size() {
+        return this.items.length;
+    }
+}
 //-----------------------UnitSelectionCell---------
 var UnitSelectionCell = function (uuid,x, y,width,height,name) {
 	 return {
@@ -4480,7 +4651,8 @@ module.exports ={
 	UnitSelectionPanel,
 	CompositeLayer,
 	isEventEnabled,
-	SymbolType
+	SymbolType,
+	Queue,
 }
 
 var events=require('core/events');
@@ -5574,8 +5746,9 @@ attachEventListeners(context){
 }
 
 actionPerformed(id,context){
-	let line =this.component.lineBendingProcessor.line;
+	
 	if(id=='defaultbendid'){
+		let line =this.component.lineBendingProcessor.line;
 		this.component.lineBendingProcessor=new DefaultLineBendingProcessor();
 		this.component.lineBendingProcessor.initialize(line);
 	}	
@@ -5792,9 +5965,9 @@ getHeight() {
 getDrawingOrder() {
     return 100;
 }
-getOrderWeight() {
-		return (this.getWidth() * this.getHeight());
-	}
+getClickableOrder() {
+		return 100;
+}
 getUUID() {
 		return this.uuid;
 	}
@@ -5971,6 +6144,9 @@ clear(){
 	}
 alignResizingPointToGrid(targetPoint) {
     this.owningUnit.grid.snapToGrid(targetPoint);         
+}
+getClickableOrder(){
+	return 2;
 }
 isClicked(x, y) {
 	  var result = false;
@@ -6261,7 +6437,7 @@ class FontTexture{
 	this.selection=false;
 	this.selectionRectWidth=3000;
 	this.constSize=false;
-	this.fillColor='white'; 
+	this.fillColor='#ffffff'; 
     this.shape.style='plain';
     this.isTextLayoutVisible=false;
 	//this.cache=new TextureCache(this);
@@ -6471,12 +6647,13 @@ class SymbolFontTexture{
 		this.selectionRectWidth=3000;
 		this.constSize=false;		    
 		this.selectionRectWidth=4;
-		this.fillColor='black';
+		this.fillColor='#000000';
 	    this.isTextLayoutVisible=false;
 	}
 	clone(){
 	    var copy=new SymbolFontTexture(this.shape.text,this.tag,this.shape.anchorPoint.x,this.shape.anchorPoint.y,this.shape.alignment,this.shape.fontSize);     
 	    copy.fillColor=this.fillColor;
+	    copy.shape.style=this.shape.style;
 	    return copy;	 
 	} 
 	copy( _copy){    
@@ -6485,7 +6662,7 @@ class SymbolFontTexture{
 	    this.shape.text=_copy.shape.text;
 	    this.shape.style=_copy.shape.style;
 	    this.shape.rotation=_copy.shape.rotation;
-	    this.shape.fillColor=_copy.shape.fillColor;
+	    this.fillColor=_copy.fillColor;
 	    this.shape.setSize(_copy.shape.fontSize);                
 	}	
 	isEmpty() {
@@ -6599,9 +6776,13 @@ class SymbolFontTexture{
 	    this.shape.alignment=(TextAlignment.parse(tokens[3]));
 	    this.shape.setText(tokens[0]);
 	    this.shape.anchorPoint.set(parseInt(tokens[1]),
-	            parseInt(tokens[2]));     
-	    this.style=tokens[4];    
-	    this.shape.setSize(parseInt(tokens[5]));
+	            parseInt(tokens[2]));  
+	    if(tokens[4]){
+	    	this.shape.style=tokens[4].toLowerCase();	
+	    }
+	    if(tokens[5]){    
+	    	this.shape.setSize(parseInt(tokens[5]));
+	    }
 
 	}
 	toXML(){
@@ -7168,7 +7349,7 @@ var UnitMgr=(function(){
     function getPinsRect(shapes){
         var x1=Number.MAX_VALUE,y1=Number.MAX_VALUE,x2=Number.MIN_VALUE,y2=Number.MIN_VALUE;
         var isPinnable=false;        
-        
+
         shapes.forEach(function(shape) {            
             if(typeof shape.getPinPoint === 'function'){
                 let point=shape.getPinPoint();                
@@ -7280,7 +7461,7 @@ class Unit{
     	this.shapes=[];
     	this.width=width;
     	this.height=height;
-    	this.unitName="Uknown";
+    	this.unitName="Unknown";
     	this.grid=new core.Grid(0.8,core.Units.MM);
         this.scrollPositionXValue = 0;
         this.scrollPositionYValue = 0;
@@ -7425,11 +7606,11 @@ getClickedShape( x,  y,  isTextIncluded){
         return null;
     }
     //Text?
-    if (undefined !=clickedShapes[0]['getTextureByTag']) {   
-        if(this.isShapeVisibleOnLayers(clickedShapes[0])){             
-          return clickedShapes[0];
-        }
-    }
+//    if (undefined !=clickedShapes[0]['getTextureByTag']) {   
+//        if(this.isShapeVisibleOnLayers(clickedShapes[0])){             
+//          return clickedShapes[0];
+//        }
+//    }
 
     clickedShapes.sort(function(o1, o2){
        
@@ -7447,10 +7628,10 @@ getClickedShape( x,  y,  isTextIncluded){
                  }
            }
     	 }
-                   
-       if ((o1.getOrderWeight() - o2.getOrderWeight()) == 0)
+
+       if ((o1.getClickableOrder() - o2.getClickableOrder()) == 0)
            return 0;
-       if ((o1.getOrderWeight() - o2.getOrderWeight()) > 0)
+       if ((o1.getClickableOrder() - o2.getClickableOrder()) > 0)
            return 1;
        else
            return -1;
@@ -7543,7 +7724,9 @@ isControlRectClicked( x,  y) {
          }
          return null;
      }
-getShapes(clazz) {
+getShapes(...args) {
+	if(args.length==1){  //clazz
+		let clazz=args[0];
         var selectionList=[];
   	    this.shapes.forEach(function(shape) {
             if (shape instanceof clazz) {
@@ -7551,6 +7734,18 @@ getShapes(clazz) {
             }
          });           
          return selectionList;
+	}else{      //clazz,layerid
+		let clazz=args[0];
+		let layermaskId=args[1];
+		
+        var selectionList=[];
+  	    for(let shape of this.shapes) {
+            if ((shape instanceof clazz)&&(shape.isVisibleOnLayers(layermaskId))) {
+         	   selectionList.push(shape);				
+            }
+         };           
+         return selectionList;		
+	}
  }    
 getShape(uuid){
  	    if (uuid == null){
@@ -8207,7 +8402,15 @@ var Max=function(p1,p2){
 //		g2.arcTo(x,   y,   x+w, y,   r);
 //};
 
-
+var hexToDec=function(hex) {
+	var result = 0, digitValue;
+	hex = hex.toLowerCase();
+	for (var i = 0; i < hex.length; i++) {
+		digitValue = '0123456789abcdefgh'.indexOf(hex[i]);
+		result = result * 16 + digitValue;
+	}
+	return result;
+}
 version=(function(){
 	return {
 		MYWEBPCB_VERSION:"8.0",
@@ -8229,6 +8432,7 @@ module.exports = {
   intersectLineLine,
   degrees,
   radians,
+  hexToDec,
   QUADRANT,
   POINT_TO_POINT,
   POSITION,
@@ -9514,11 +9718,46 @@ module.exports = function(d2) {
 			return copy;
 		}
 		get box(){
+			 let r=this.getDiameter()/2;
+	         //first point		 
+			 let v=new d2.Vector(this.pe,this.ps);
+			 let n=v.normalize();
+			 let a=this.ps.x +r*n.x;
+			 let b=this.ps.y +r*n.y;			 
+			 
+			 			 
+			 v.rotate90CW();
+			 let norm=v.normalize();
+			 
+			 let x=a +r*norm.x;
+			 let y=b +r*norm.y;			 
+			 let pa=new d2.Point(x,y);
+			 
+			 norm.invert();
+			 x=a +r*norm.x;
+			 y=b +r*norm.y;			 
+			 let pb=new d2.Point(x,y);
+			 //second point
+			 v=new d2.Vector(this.ps,this.pe);
+			 n=v.normalize();
+			 let c=this.pe.x +r*n.x;
+			 let d=this.pe.y +r*n.y;			 
+			 
+			 v.rotate90CW();
+			 norm=v.normalize();
+			 
+			 x=c +r*norm.x;
+			 y=d +r*norm.y;			 
+			 let pc=new d2.Point(x,y);
+			 
+			 norm.invert();
+			 x=c +r*norm.x;
+			 y=d +r*norm.y;			 
+			 let pd=new d2.Point(x,y);
+			 
 			 return new d2.Box(
-		                Math.min(this.ps.x, this.pe.x),
-		                Math.min(this.ps.y, this.pe.y),
-		                Math.max(this.ps.x, this.pe.x),
-		                Math.max(this.ps.y, this.pe.y)
+		                [
+		                pa,pb,pc,pd]
 		            );			
 		}
 		setWidth(width){
@@ -9612,14 +9851,18 @@ module.exports = function(d2) {
 	            this.width +=  2*offset;
 	        }
 	    }
+	    getDiameter(){
+	        if(d2.utils.GE(this.width,this.height)){
+	            return this.height;
+	        } else {
+	            return this.width;
+	        }
+	    }
+	    
 		paint(g2){
 			g2.beginPath();
 			let l=g2.lineWidth;
-			if(this.width>=this.height)
-			  g2.lineWidth =this.height;
-			else
-			  g2.lineWidth =this.width;
-			
+			g2.lineWidth=this.getDiameter();
 			g2.lineCap="round";
 			g2.moveTo(this.ps.x, this.ps.y);
 			g2.lineTo(this.pe.x, this.pe.y);
@@ -10112,6 +10355,25 @@ module.exports = function(d2) {
            this.points.forEach(point=>{
            	point.rotate(angle,center);
            });
+       }
+       intersect(shape){
+    	   let segment=new d2.Segment(0,0,0,0);
+    	   if(shape instanceof d2.Circle){
+    	          let prevPoint = this.points[0];        
+    	          for(let point of this.points){    	        	  
+    	              if(prevPoint.equals(point)){    	            	  
+    	            	  prevPoint = point;
+    	                  continue;
+    	              }    	              
+    	              segment.set(prevPoint.x,prevPoint.y,point.x,point.y);
+    	              if(segment.intersect(shape)){
+    	                  return true;
+    	              }
+    	              prevPoint = point;
+    	          }
+    		   
+    	   }
+    	   
        }
        get box(){
          return new d2.Box(this.points);	
@@ -10882,6 +11144,69 @@ module.exports = function(d2) {
         contains(pt){
       	   return false;    	   
         }
+        projectionPoint(pt) {
+            let v1 = new d2.Vector(this.ps, pt);
+            let v2 = new d2.Vector(this.ps, this.pe);
+
+            let v = v1.projectionOn(v2);
+            //translate point
+            let x = this.ps.x + v.x;
+            let y = this.ps.y + v.y;
+            return new d2.Point(x, y);
+        }   
+      //https://github.com/psalaets/line-intersect        
+        intersect(shape){
+          if(shape instanceof d2.Circle){  
+            let projectionPoint = this.projectionPoint(shape.pc);
+
+            let a = (projectionPoint.x - this.ps.x) / ((this.pe.x - this.ps.x) == 0 ? 1 : this.pe.x - this.ps.x);
+            let b = (projectionPoint.y - this.ps.y) / ((this.pe.y - this.ps.y) == 0 ? 1 : this.pe.y - this.ps.y);
+
+            let dist = projectionPoint.distanceTo(shape.pc);
+            
+            if (0 <= a && a <= 1 && 0 <= b && b <= 1) { //is projection between start and end point
+                if (!d2.utils.GT(dist,shape.r)) {
+                    return true;
+                }
+            }
+            //end points in circle?
+            if (d2.utils.LE(this.ps.distanceTo(shape.pc), shape.r)) {
+                return true;
+            }
+            if (d2.utils.LE(this.pe.distanceTo(shape.pc), shape.r)) {
+                return true;
+            }        
+          }
+          else if(shape instanceof d2.Segment){
+              let x1=this.ps.x, y1=this.ps.y, x2=this.pe.x, y2=this.pe.y, x3=shape.ps.x, y3=shape.ps.y, x4=shape.pe.x, y4=shape.pe.y; 
+              let denom = ((y4 - y3) * (x2 - x1)) - ((x4 - x3) * (y2 - y1));
+              let numeA = ((x4 - x3) * (y1 - y3)) - ((y4 - y3) * (x1 - x3));
+              let numeB = ((x2 - x1) * (y1 - y3)) - ((y2 - y1) * (x1 - x3));
+
+              if (denom == 0) {
+                if (numeA == 0 && numeB == 0) {
+                  return true;  //COLINEAR;
+                }
+                return false; //PARALLEL;
+              }
+
+              let uA = numeA / denom;
+              let uB = numeB / denom;
+
+              if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1) {
+                return true;
+                //return intersecting({
+                //  x: x1 + (uA * (x2 - x1)),
+                //  y: y1 + (uA * (y2 - y1))
+                //});
+              }
+
+              return false;        	  
+          }
+           
+          
+          return false;
+        }        
         rotate(angle, center = {x:0, y:0}) {
           this.ps.rotate(angle,center);
           this.pe.rotate(angle,center);
@@ -11309,10 +11634,10 @@ constructor(width,height) {
        this.scalableTransformation.reset(1.2,2,2,15);
 	   this.shapeFactory = new SymbolShapeFactory();
        this.grid.setGridUnits(8, core.Units.PIXEL);
-       this.grid.pointsColor='black'; 
+       this.grid.pointsColor='#000000'; 
        this.type=SymbolType.SYMBOL;
        this.isTextLayoutVisible = false;
-       this.frame.color='black';
+       this.frame.color='#000000';
 	}
 clone(){
 	  var copy=new Symbol(this.width,this.height);
@@ -11335,13 +11660,21 @@ parse(data){
 	 	  
 	 	   if(reference!=null&&reference.text()!=''){
 		        var label = new FontLabel(0,0);
-		        label.fromXML(reference[0]);
+		        if(reference[0].children[0]){
+		          label.fromXML(reference[0].children[0]);   //new schema
+		        }else{
+		          label.fromXML(reference[0]);	
+		        }
 		        label.texture.tag="reference";
 		        this.add(label);      		 	      
 	 	   }
 	 	   if(value!=null&&value.text()!=''){
 		        var label = new FontLabel(0,0);
-		        label.fromXML(value[0]);
+		        if(value[0].children[0]){
+		        	label.fromXML(value[0].children[0]);  //new schema
+		        }else{
+		        	label.fromXML(value[0]);  
+		        }
 		        label.texture.tag="unit";
 		        this.add(label);  
 	 	   }
@@ -11367,22 +11700,21 @@ format(){
    var text=UnitMgr.getInstance().getLabelByTag(this,'reference');
    if(text!=null){
        xml+="<reference>";
-       xml+=text.getTexture().toXML();
+       xml+=text.toXML();
        xml+="</reference>\r\n";
    } 
    //value
    text=UnitMgr.getInstance().getLabelByTag(this,'unit');
    if(text!=null){
        xml+="<unit>";
-       xml+=text.getTexture().toXML();
+       xml+=text.toXML();
        xml+="</unit>\r\n";
    }    
  
    xml+="<elements>\r\n";
    this.shapes.forEach(function(shape) {
 	   if(!((shape instanceof FontLabel)&&(shape.texture.tag=='reference'||shape.texture.tag=='unit'))){
-		   xml+=shape.toXML();
-		   xml+='\r\n';   
+		   xml+=shape.toXML();  
 	   }
    });
    xml+="</elements>\r\n";   
@@ -11436,7 +11768,7 @@ class SymbolContainer extends UnitContainer{
   		  xml+="\r\n";
   	    }    	    	
         xml+="</modules>";
-        
+        console.log(xml);
         return xml;
     }
 	
@@ -11836,6 +12168,20 @@ constructor(component,placeholderid){
 //	  this.setContent(items,{target:target});	
 //	  this.open(event);	
 //	}
+registerShapePopup(target,event){
+	var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
+	  items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
+	  items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
+	  items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
+	  items+="<tr id='topbottomid'><td style='padding: 0.4em'>Mirror Top-Bottom</td></tr>";
+	  items+="<tr id='leftrightid'><td style='padding: 0.4em'>Mirror Left-Right</td></tr>";
+	  items+="<tr id='sendbackid'><td style='padding: 0.4em'>Send To Back</td></tr>";
+	  items+="<tr id='sendfrontid'><td style='padding: 0.4em'>Send To Front</td></tr>";	  
+	  items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
+	  items+="</table></div>";
+	  this.setContent(items,{target:target});	
+	  this.open(event);	
+	}
 registerUnitPopup(target,event){	          	            
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
 	    items+="<tr id='selectallid' ><td style='padding: 0.4em;'>Select All</td></tr>";
@@ -11939,7 +12285,6 @@ class SymbolShapeFactory{
 		}
 		if (data.tagName.toLowerCase() == 'label') {
 			var label = new FontLabel(0,0);
-			console.log(data);
 			label.fromXML(data);		
 			return label;
 		}
@@ -11959,7 +12304,7 @@ class SymbolShapeFactory{
 class Line extends AbstractLine{
 constructor(thickness) {
 	super(1,core.Layer.LAYER_ALL);	
-	this.fillColor='black';
+	this.fillColor='#000000';
 	this.selectionRectWidth=4;
 }
 clone() {
@@ -11993,7 +12338,7 @@ paint(g2, viewportWindow, scale,layersmask) {
 
 
 		if (this.selection)
-			g2.strokeStyle = "gray";
+			g2.strokeStyle = "#808080";
 		else
 			g2.strokeStyle = this.fillColor;
 		
@@ -12017,7 +12362,6 @@ paint(g2, viewportWindow, scale,layersmask) {
 
 }
 fromXML(data){
-	   this.thickness = (parseInt(j$(data).attr("thickness")));
    	   var tokens = data.textContent.split(",");
 	   var len = Math.floor(tokens.length / 2) * 2;
 	   for (var index = 0; index < len; index += 2) {
@@ -12025,14 +12369,18 @@ fromXML(data){
 			var y = parseInt(tokens[index + 1]);
 			this.polyline.points.push(new d2.Point(x, y));
 	   }
-	   this.thickness=parseInt(tokens[tokens.length-1]);
+	   if(j$(data).attr("thickness")){
+	      this.thickness=(parseInt(j$(data).attr("thickness")));
+	   }else{
+		   this.thickness=parseInt(tokens[tokens.length-1]); 
+	   }
 }
 toXML(){
 	var result = "<line  thickness=\"" + this.thickness + "\">";
 	this.polyline.points.forEach(function(point) {
 		result += utilities.roundFloat(point.x,1) + "," + utilities.roundFloat(point.y,1) + ",";
 	},this);
-	result += "</line>";
+	result += "</line>\r\n";
 	return result;	
 }
 }
@@ -12047,6 +12395,9 @@ class FontLabel extends Shape{
 		copy.texture = this.texture.clone();  				
 		return copy;
 	}
+	getClickableOrder() {		
+		return 0;
+	}	
 	calculateShape(){ 
 		  return this.texture.getBoundingShape();
 		}
@@ -12098,15 +12449,17 @@ paint(g2, viewportWindow, scale,layersmask) {
 	  }
 	  this.texture.paint(g2, viewportWindow, scale);
 }
-fromXML(data){	 
-	
-    this.texture.fromXML(j$(data).text());
+fromXML(data){	 		
     this.texture.fillColor ="#" +(j$(data).attr("color") & 0x00FFFFFF).toString(16).padStart(6, '0');
-}	    
+	this.texture.fromXML(j$(data).text());
+}
+static formatToXML(texture){
+	return "<label color=\""+utilities.hexToDec(texture.fillColor)+"\">"+texture.toXML()+"</label>";
+}
 toXML(){
-    if(this.texture!=null&&!this.texture.isEmpty())
-        return "<label color=\""+this.texture.fillColor+"\">"+this.texture.toXML()+"</label>";
-      else
+    if(this.texture!=null&&!this.texture.isEmpty()){
+        return "<label color=\""+utilities.hexToDec(this.texture.fillColor)+"\">"+this.texture.toXML()+"</label>";
+    }else
         return "";  	
 }    
 }
@@ -12116,14 +12469,18 @@ class Arc extends Shape{
 		this.setDisplayName("Arc");		
 		this.arc=new d2.Arcellipse(new d2.Point(x,y),w,h);
 		this.selectionRectWidth=4;
-		this.fillColor='black';								
+		this.fillColor='#000000';							
 	}
 	clone(){
 		var copy = new Arc(this.arc.pc.x,this.arc.pc.y,this.arc.w,this.arc.h);
 		copy.arc=this.arc.clone();
+		copy.fill=this.fill;
 		copy.thickness=this.thickness;
 		return copy;
 	}
+    getClickableOrder() {        
+        return this.getBoundingShape().area;
+    }	
 	calculateShape() {
 		return this.arc.box;		
 	}
@@ -12214,26 +12571,41 @@ class Arc extends Shape{
 		  g2.lineCap = 'round';
 		  g2.lineJoin = 'round';
 			
-		  if (this.fill == core.Fill.EMPTY) {
-				if (this.selection) {
-					g2.strokeStyle = "gray";
-				} else {
-					g2.strokeStyle = this.fillColor;
-				}
-			} else {
-				g2._fill=true;
-				if (this.selection) {
-					g2.fillStyle = "gray";
-				} else {
-					g2.fillStyle = this.fillColor;
-				}			
-			}
+		  
 			let e=this.arc.clone();	
 			e.scale(scale.getScale());
 	        e.move(-viewportWindow.x,- viewportWindow.y);
-			e.paint(g2);
+					  
+			if (this.fill == core.Fill.EMPTY) {
+				if (this.selection) {
+					g2.strokeStyle = "#808080";
+				} else {
+					g2.strokeStyle = this.fillColor;
+				}
+				e.paint(g2);
+			}else if(this.fill == core.Fill.GRADIENT){ 
+			  g2._fill=true;		  
+			  var grd = g2.createLinearGradient(e.box.x,e.box.y, e.box.max.x,e.box.max.y);
+			  grd.addColorStop(0, (this.selection?"#808080":this.fillColor));
+			  grd.addColorStop(1, "white");
+			  g2.fillStyle = grd;
+			  e.paint(g2);
+			  g2._fill=false;
+	          g2.strokeStyle=(this.selection?"#808080":this.fillColor);
+	          e.paint(g2);
+			}else {
+				g2._fill=true;
+				if (this.selection) {
+					g2.fillStyle = "#808080";
+				} else {
+					g2.fillStyle = this.fillColor;
+				}			
+				e.paint(g2);
+				g2._fill=false;
+			}   
+
 			
-			g2._fill=false;
+			
 			if (this.isSelected()) {
 				this.drawControlPoints(g2, viewportWindow, scale);
 			}		
@@ -12248,8 +12620,7 @@ getResizingPoint() {
 	return this.resizingPoint;
 }
 fromXML(data) {
-	
-	
+		
     if(data.textContent.length>0){
     	var tokens = data.textContent.split(",");
     	let x=parseInt(tokens[0]);
@@ -12280,13 +12651,12 @@ fromXML(data) {
         this.arc.endAngle = parseFloat(j$(data).attr("extend"));
         
         this.thickness=(parseInt(j$(data).attr("thickness")));
-		this.fill = (parseInt(j$(data).attr("fill"))||1);  	
-    	
+        this.fill = (parseInt(j$(data).attr("fill")));  	
     }
   
 }
 toXML(){
- return '<arc  x="'+utilities.roundFloat(this.arc.pc.x,1)+'" y="'+utilities.roundFloat(this.arc.pc.y,1)+'" width="'+utilities.roundFloat(this.arc.w,1)+ '" height="'+utilities.roundFloat(this.arc.h,1)+ '"  thickness="'+this.thickness+'" start="'+utilities.roundFloat(this.arc.startAngle,1)+'" extend="'+utilities.roundFloat(this.arc.endAngle,1)+'" fill="'+this.fill+'" />';
+ return '<arc  x="'+utilities.roundFloat(this.arc.pc.x,1)+'" y="'+utilities.roundFloat(this.arc.pc.y,1)+'" width="'+utilities.roundFloat(this.arc.w,1)+ '" height="'+utilities.roundFloat(this.arc.h,1)+ '"  thickness="'+this.thickness+'" start="'+utilities.roundFloat(this.arc.startAngle,1)+'" extend="'+utilities.roundFloat(this.arc.endAngle,1)+'" fill="'+this.fill+'" />\r\n';
 }
 }
 class Ellipse extends Shape{
@@ -12295,7 +12665,7 @@ class Ellipse extends Shape{
 		this.setDisplayName("Ellipse");		
 		this.ellipse=new d2.Ellipse(new d2.Point(0,0),w,h);
 		this.selectionRectWidth=4;
-		this.fillColor='black';		
+		this.fillColor='#000000';	
 	}
 	clone(){
 		var copy = new Ellipse(this.ellipse.w,this.ellipse.h);
@@ -12304,6 +12674,9 @@ class Ellipse extends Shape{
 		copy.fill=this.fill;
 		return copy;
 	}
+    getClickableOrder() {        
+        return this.getBoundingShape().area;
+    }	
 	calculateShape() {
 		return this.ellipse.box;		
 	}
@@ -12358,29 +12731,40 @@ class Ellipse extends Shape{
   	  }
 
 		g2.lineWidth = this.thickness * scale.getScale();
-		g2.lineCap = 'round';
-		g2.lineJoin = 'round';
-		
-		if (this.fill == core.Fill.EMPTY) {
-			if (this.selection) {
-				g2.strokeStyle = "gray";
-			} else {
-				g2.strokeStyle = this.fillColor;
-			}
-		} else {
-			g2._fill=true;
-			if (this.selection) {
-				g2.fillStyle = "gray";
-			} else {
-				g2.fillStyle = this.fillColor;
-			}			
-		}
+
 		let e=this.ellipse.clone();	
 		e.scale(scale.getScale());
         e.move(-viewportWindow.x,- viewportWindow.y);
 		e.paint(g2);
 		
-		g2._fill=false;
+		if (this.fill == core.Fill.EMPTY) {
+			if (this.selection) {
+				g2.strokeStyle = "#808080";
+			} else {
+				g2.strokeStyle = this.fillColor;
+			}
+			e.paint(g2);
+		}else if(this.fill == core.Fill.GRADIENT){ 
+		  g2._fill=true;		  
+		  var grd = g2.createLinearGradient(e.box.x,e.box.y, e.box.max.x,e.box.max.y);
+		  grd.addColorStop(0, (this.selection?"#808080":this.fillColor));
+		  grd.addColorStop(1, "white");
+		  g2.fillStyle = grd;
+		  e.paint(g2);
+		  g2._fill=false;
+          g2.strokeStyle=(this.selection?"#808080":this.fillColor);
+          e.paint(g2);
+		}else {
+			g2._fill=true;
+			if (this.selection) {
+				g2.fillStyle = "#808080";
+			} else {
+				g2.fillStyle = this.fillColor;
+			}			
+			e.paint(g2);
+			g2._fill=false;
+		} 
+		
 		if (this.isSelected()) {
 			this.drawControlPoints(g2, viewportWindow, scale);
 		}
@@ -12418,7 +12802,7 @@ fromXML(data) {
     
 }
 toXML() {
-    return "<ellipse x=\""+utilities.roundFloat(this.ellipse.pc.x,1)+"\" y=\""+utilities.roundFloat(this.ellipse.pc.y,1)+"\" width=\""+utilities.roundFloat(this.ellipse.w,1)+"\" height=\""+utilities.roundFloat(this.ellipse.h,1)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
+    return "<ellipse x=\""+utilities.roundFloat(this.ellipse.pc.x,1)+"\" y=\""+utilities.roundFloat(this.ellipse.pc.y,1)+"\" width=\""+utilities.roundFloat(this.ellipse.w,1)+"\" height=\""+utilities.roundFloat(this.ellipse.h,1)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>\r\n";
 }
 }
 
@@ -12429,8 +12813,7 @@ class RoundRect extends Shape{
 		this.setDisplayName("Rect");		
 		this.selectionRectWidth=4;
 		this.resizingPoint = null;
-		this.fillColor='black';
-		//this.rotate=0;
+		this.fillColor='#000000';
 		this.roundRect=new d2.RoundRectangle(new d2.Point(x,y),width,height,arc);		
 	}
 	clone(){
@@ -12439,6 +12822,9 @@ class RoundRect extends Shape{
 		copy.fill = this.fill;		
 		return copy;
 	}
+    getClickableOrder() {        
+        return this.getBoundingShape().area;
+    }
 	calculateShape() {
 		return this.roundRect.box;		
 	}
@@ -12515,25 +12901,28 @@ class RoundRect extends Shape{
 		
 		if (this.fill == core.Fill.EMPTY) {
 			if (this.selection) {
-				g2.strokeStyle = "gray";
+				g2.strokeStyle = "#808080";
 			} else {
 				g2.strokeStyle = this.fillColor;
 			}
 			r.paint(g2);
 		}else if(this.fill == core.Fill.GRADIENT){ 
+		  
+		  g2.globalAlpha=0.5;	
 		  g2._fill=true;		  
 		  var grd = g2.createLinearGradient(r.box.x,r.box.y, r.box.max.x,r.box.max.y);
-		  grd.addColorStop(0, (this.selection?"gray":this.fillColor));
+		  grd.addColorStop(0, (this.selection?"#808080":this.fillColor));
 		  grd.addColorStop(1, "white");
 		  g2.fillStyle = grd;
 		  r.paint(g2);
 		  g2._fill=false;
-          g2.strokeStyle=(this.selection?"gray":this.fillColor);
+          g2.strokeStyle=(this.selection?"#808080":this.fillColor);
           r.paint(g2);
+          g2.globalAlpha=1;
 		}else {
 			g2._fill=true;
 			if (this.selection) {
-				g2.fillStyle = "gray";
+				g2.fillStyle = "#808080";
 			} else {
 				g2.fillStyle = this.fillColor;
 			}			
@@ -12578,24 +12967,17 @@ fromXML(data){
 	}
 }
 toXML() {
-	let points="";
-	this.roundRect.points.forEach(function(point) {
-		points += utilities.roundFloat(point.x,1) + "," + utilities.roundFloat(point.y,1) + ",";
-	},this);
-	return "<rectangle  thickness=\"" + this.thickness
-			+ "\" fill=\"" + this.fill + "\" arc=\"" + this.roundRect.rounding
-			+"\" points=\"" + points
-			+ "\"/>";
+	let box=this.roundRect.box;
+    return "<rectangle>"+ utilities.roundFloat(box.min.x,1)+","+ utilities.roundFloat(box.min.y,1)+","+ utilities.roundFloat(box.width,1)+","+ utilities.roundFloat(box.height,1)+","+this.thickness+","+this.fill +","+this.roundRect.rounding+"</rectangle>\r\n";
 }
 }
-
 class ArrowLine extends Shape{
 	constructor() {
 		super(0, 0, 0,0, 1,core.Layer.LAYER_ALL);
 		this.setDisplayName("Arrow");		
 		this.selectionRectWidth=4;
 		this.resizingPoint = null;
-		this.fillColor='black';	
+		this.fillColor='#000000';	
 	    this.line=new d2.Segment(0,0,20,20);
 	    this.arrow=new d2.Polygon();
 	    this.arrow.points=[new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0)];
@@ -12613,6 +12995,9 @@ clone(){
 }
 calculateShape() {
 	return this.line.box;		
+}
+getClickableOrder() {        
+    return 4;
 }
 isClicked(x, y) {
 	if (this.arrow.contains(new d2.Point(x, y))){
@@ -12679,7 +13064,7 @@ paint(g2, viewportWindow, scale,layersmask) {
 	g2.lineWidth = this.thickness * scale.getScale();
 
 	if (this.selection) {
-		g2.strokeStyle = "gray";
+		g2.strokeStyle = "#808080";
 	} else {
 		g2.strokeStyle = this.fillColor;
 	}
@@ -12694,14 +13079,14 @@ paint(g2, viewportWindow, scale,layersmask) {
 	
 	if (this.fill == core.Fill.EMPTY) {
 		if (this.selection) {
-			g2.strokeStyle = "gray";
+			g2.strokeStyle = "#808080";
 		} else {
 			g2.strokeStyle = this.fillColor;
 		}
 	} else {
 		g2._fill=true;
 		if (this.selection) {
-			g2.fillStyle = "gray";
+			g2.fillStyle = "#808080";
 		} else {
 			g2.fillStyle = this.fillColor;
 		}			
@@ -12725,16 +13110,25 @@ setResizingPoint(pt){
 getResizingPoint() {
 	return this.resizingPoint;
 }
-fromXML(data) { 
-	var tokens = data.textContent.split(",");	
-	this.line.ps.set(parseInt(tokens[0]),parseInt(tokens[1]));	
-	this.line.pe.set(parseInt(tokens[2]),parseInt(tokens[3]));
-	this.thickness=parseInt(tokens[4]);
-	this.setHeadSize(parseInt(tokens[5]));
-	this.fill=parseInt(tokens[6]);
+fromXML(data) { 	
+	if(j$(data).attr("thickness")){
+		var tokens = data.textContent.split(",");	
+		this.line.ps.set(parseInt(tokens[0]),parseInt(tokens[1]));	
+		this.line.pe.set(parseInt(tokens[2]),parseInt(tokens[3]));
+		this.thickness= parseInt(j$(data).attr("thickness"));
+		this.fill=parseInt(j$(data).attr("fill"));
+		this.setHeadSize(parseInt(j$(data).attr("head")));		
+	}else{
+		var tokens = data.textContent.split(",");	
+		this.line.ps.set(parseInt(tokens[0]),parseInt(tokens[1]));	
+		this.line.pe.set(parseInt(tokens[2]),parseInt(tokens[3]));
+		this.thickness=parseInt(tokens[4]);
+		this.setHeadSize(parseInt(tokens[5]));
+		this.fill=parseInt(tokens[6]);
+	}
 }
 toXML(){
-    return "<arrow thickness=\"" + this.thickness + "\" fill=\"" + this.fill + "\"  head=\"" + this.headSize+ "\">" + utilities.roundFloat(this.line.ps.x,1) + "," + utilities.roundFloat(this.line.ps.y,1) + "," + utilities.roundFloat(this.line.pe.x,1) + "," + utilities.roundFloat(this.line.pe.y,1) + "</arrow>";	
+    return "<arrow thickness=\"" + this.thickness + "\" fill=\"" + this.fill + "\"  head=\"" + this.headSize+ "\">" + utilities.roundFloat(this.line.ps.x,1) + "," + utilities.roundFloat(this.line.ps.y,1) + "," + utilities.roundFloat(this.line.pe.x,1) + "," + utilities.roundFloat(this.line.pe.y,1) + "</arrow>\r\n";	
 }
 }
 class Triangle extends Shape{
@@ -12743,7 +13137,7 @@ class Triangle extends Shape{
 		this.setDisplayName("Triangle");		
 		this.selectionRectWidth=4;
 		this.resizingPoint = null;
-		this.fillColor='black';	
+		this.fillColor='#000000';
 	    this.shape=new d2.Polygon();
 	    this.shape.points=[new d2.Point(0,0),new d2.Point(20,20),new d2.Point(0,40)];	    	    	    
 }
@@ -12752,6 +13146,9 @@ clone(){
     copy.shape=this.shape.clone();  
     copy.fill = this.fill;
     return copy;
+}
+getClickableOrder() {        
+    return this.getBoundingShape().area;
 }
 alignResizingPointToGrid(targetPoint){
     let point=this.owningUnit.getGrid().positionOnGrid(targetPoint.x,targetPoint.y);  
@@ -12802,27 +13199,38 @@ paint(g2, viewportWindow, scale,layersmask) {
 	}
 	
 	g2.lineWidth = this.thickness * scale.getScale();
-	
-	if (this.fill == core.Fill.EMPTY) {
-		if (this.selection) {
-			g2.strokeStyle = "gray";
-		} else {
-			g2.strokeStyle = this.fillColor;
-		}
-	} else {
-		g2._fill=true;
-		if (this.selection) {
-			g2.fillStyle = "gray";
-		} else {
-			g2.fillStyle = this.fillColor;
-		}			
-	}
 	let a=this.shape.clone();	
 	a.scale(scale.getScale());
     a.move(-viewportWindow.x,- viewportWindow.y);
 	a.paint(g2);
-	g2._fill=false;	
-	
+	if (this.fill == core.Fill.EMPTY) {
+		if (this.selection) {
+			g2.strokeStyle = "#808080";
+		} else {
+			g2.strokeStyle = this.fillColor;
+		}
+		a.paint(g2);
+	}else if(this.fill == core.Fill.GRADIENT){ 
+	  g2._fill=true;		  
+	  var grd = g2.createLinearGradient(a.box.x,a.box.y, a.box.max.x,a.box.max.y);
+	  grd.addColorStop(0, (this.selection?"#808080":this.fillColor));
+	  grd.addColorStop(1, "white");
+	  g2.fillStyle = grd;
+	  a.paint(g2);
+	  g2._fill=false;
+      g2.strokeStyle=(this.selection?"#808080":this.fillColor);
+      a.paint(g2);
+	}else {
+		g2._fill=true;
+		if (this.selection) {
+			g2.fillStyle = "#808080";
+		} else {
+			g2.fillStyle = this.fillColor;
+		}			
+		a.paint(g2);
+		g2._fill=false;
+	} 
+
 	if (this.isSelected()) {
 		this.drawControlPoints(g2, viewportWindow, scale);
 	}
@@ -12854,13 +13262,21 @@ initPoints(orientation,x,y,width,height){
     
 }
 fromXML(data){
-	var thickness=j$(data).attr("thickness");
-	var tokens = data.textContent.split(",");	
-	var orientation=parseInt(tokens[0]);
-	
-	this.initPoints(orientation,parseInt(tokens[1]),parseInt(tokens[2]),parseInt(tokens[3]),parseInt(tokens[4]));
-    this.thickness=parseInt(tokens[5]);
-    this.fill=parseInt(tokens[6]);
+	if(j$(data).attr("thickness")){
+		this.thickness=parseInt(j$(data).attr("thickness"));
+		this.fill=parseInt(j$(data).attr("fill"));
+		var tokens = data.textContent.split(",");		
+		    	
+		this.shape.points[0].set(parseFloat(tokens[0]),parseFloat(tokens[1]));
+		this.shape.points[1].set(parseFloat(tokens[2]),parseFloat(tokens[3]));
+		this.shape.points[2].set(parseFloat(tokens[4]),parseFloat(tokens[5]));
+	}else{
+		var tokens = data.textContent.split(",");	
+        var orientation=parseInt(tokens[0]);
+        this.initPoints(orientation,parseFloat(tokens[1]),parseFloat(tokens[2]),parseFloat(tokens[3]),parseFloat(tokens[4]));           
+        this.thickness=parseInt(tokens[5]);
+        this.fill=parseInt(tokens[6]);   		
+	}
     
 }
 toXML(){
@@ -12868,7 +13284,7 @@ toXML(){
 	this.shape.points.forEach(function(point) {
 	   points += utilities.roundFloat(point.x,1) + "," + utilities.roundFloat(point.y,1) + ",";
 	});	
-    return "<triangle thickness=\"" + this.thickness + "\" fill=\"" + this.fill + "\">"+points+"</triangle>";	
+    return "<triangle thickness=\"" + this.thickness + "\" fill=\"" + this.fill + "\">"+points+"</triangle>\r\n";	
 }
 drawControlPoints(g2, viewportWindow, scale){
 	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.shape.points); 		
@@ -12946,7 +13362,7 @@ constructor() {
 		super(0, 0, 0,0, 1,core.Layer.LAYER_ALL);
 		this.setDisplayName("Pin");		
 		this.selectionRectWidth=4;
-		this.fillColor='black';	
+		this.fillColor='#000000';
 	    this.segment=new d2.Segment(0,0,0,0);        
         this.type = PinType.COMPLEX;
         this.style = Style.LINE;
@@ -12971,6 +13387,9 @@ alignToGrid(isRequired) {
     var point=this.owningUnit.getGrid().positionOnGrid(center.x,center.y);
     this.move(point.x - center.x,point.y - center.y);
     return new d2.Point(point.x - center.x, point.y - center.y);  
+}
+getClickableOrder() {        
+    return 1;
 }
 getClickedTexture(x,y) {
 	if(this.type==PinType.SIMPLE){
@@ -13011,9 +13430,17 @@ isClicked(x, y) {
 		}
 		
 }
-mirror(line){
+mirror(line){	
+  let pinorientation=this.segment.isHorizontal?TextOrientation.HORIZONTAL:TextOrientation.VERTICAL;
+  
   let oposname= utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
   let oposnumber= utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
+	
+  
+  let oalignmentname=TextAlignment.getOrientation(this.name.shape.alignment);
+  let alignmentname=this.name.shape.alignment;
+  let oalignmentnumber=TextAlignment.getOrientation(this.number.shape.alignment);
+  let alignmentnumber=this.number.shape.alignment;
 	
   this.segment.mirror(line);	
   if(line.isVertical){ //left-right 	 	  
@@ -13024,29 +13451,54 @@ mirror(line){
   this.name.mirror(line);
   this.number.mirror(line);
   
-	//read new position
-  let nposname=utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);		
-  let nposnumber=utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);	
+  if(oalignmentname!=pinorientation){  //pin and text different orientation
+	  this.__normalizeText(this.name, alignmentname, line.isVertical);
+  }else{
+	  let nposname=utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);  
+	  this.normalizeText(this.name,oposname,nposname);
+  }
   
-  this.normalizeText(this.name,oposname,nposname);
-  this.normalizeText(this.number,oposnumber,nposnumber);  
+  if(oalignmentnumber!=pinorientation){  //pin and text different orientation
+	  this.__normalizeText(this.number, alignmentnumber, line.isVertical); 
+  }else{
+	  let nposnumber=utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);  
+	  this.normalizeText(this.number,oposnumber,nposnumber);  
+  }
+
 }
+
 rotate(rotation){
+	let pinorientation=this.segment.isHorizontal?TextOrientation.HORIZONTAL:TextOrientation.VERTICAL;
+	
 	//read current position	
 	let oposname= utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
 	let oposnumber= utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
+	
+	let oalignmentname=TextAlignment.getOrientation(this.name.shape.alignment);
+	let alignmentname=this.name.shape.alignment;
+	let oalignmentnumber=TextAlignment.getOrientation(this.number.shape.alignment);
+	let alignmentnumber=this.number.shape.alignment;
 	
 	this.segment.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
 	this.orientation=Orientation.rotate(rotation.angle>0?false:true,this.orientation);
 	this.name.rotate(rotation);
 	this.number.rotate(rotation);
 	
-	//read new position
-	let nposname=utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);		
-	let nposnumber=utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);
-	
-	this.normalizeText(this.name,oposname,nposname);
-	this.normalizeText(this.number,oposnumber,nposnumber);
+    if(oalignmentname!=pinorientation){  //pin and text different orientation
+        this._normalizeText(this.name,oalignmentname, rotation.angle);  
+    }else{  //pin and text same orientation
+      //read new position
+    	let nposname=utilities.POSITION.findPositionToLine(this.name.shape.anchorPoint.x,this.name.shape.anchorPoint.y,this.segment.ps,this.segment.pe);   
+    	this.normalizeText(this.name,oposname,nposname);            
+    }
+
+    if(oalignmentnumber!=pinorientation){  //pin and text different orientation
+        this._normalizeText(this.number,oalignmentnumber, rotation.angle);  
+    }else{  //pin and text same orientation
+
+    	let nposnumber=utilities.POSITION.findPositionToLine(this.number.shape.anchorPoint.x,this.number.shape.anchorPoint.y,this.segment.ps,this.segment.pe);    	
+    	this.normalizeText(this.number,oposnumber,nposnumber);
+    }    
 	
 	
 }
@@ -13055,6 +13507,31 @@ normalizeText(text,opos,npos){
 	   return;	
 	}
 	text.mirror(new d2.Line(this.segment.ps,this.segment.pe));
+}
+//pin and text have different orientation
+_normalizeText(text,orientation,angle){
+    if(angle<0){  //clockwise              
+        if(orientation == TextOrientation.HORIZONTAL){
+            text.shape.anchorPoint.set(text.shape.anchorPoint.x+(text.shape.metrics.ascent-text.shape.metrics.descent),text.shape.anchorPoint.y);            
+        }
+    }else{                   
+        if(orientation == TextOrientation.VERTICAL){
+            text.shape.anchorPoint.set(text.shape.anchorPoint.x,text.shape.anchorPoint.y+(text.shape.metrics.ascent-text.shape.metrics.descent));                   
+        }
+    }
+}
+//pin and text have different orientation
+__normalizeText(text, alignment, isVertical){
+    if (isVertical) { //right-left mirroring
+        if (text.shape.alignment == alignment) {
+            text.shape.anchorPoint.set(text.shape.anchorPoint.x +
+                                    (text.shape.metrics.ascent - text.shape.metrics.descent),text.shape.anchorPoint.y);
+        }
+    } else { //***top-botom mirroring          
+        if (text.shape.alignment == alignment) {
+            text.shape.anchorPoint.set(text.shape.anchorPoint.x,text.shape.anchorPoint.y +(text.shape.metrics.ascent - text.shape.metrics.descent));
+        }
+    }  
 }
 move(xoffset,yoffset) {
     this.segment.move(xoffset,yoffset);
@@ -13136,9 +13613,9 @@ paint(g2, viewportWindow, scale,layersmask) {
 
 	g2.lineWidth = this.thickness ;
 	if (this.selection) {
-		g2.strokeStyle = "blue";
-	  	this.name.fillColor = "gray";
-	  	this.number.fillColor = "gray";
+		g2.strokeStyle = "#0000ff";
+	  	this.name.fillColor = "#808080";
+	  	this.number.fillColor = "#808080";
 	} else {
 		g2.strokeStyle = this.fillColor;
 	  	this.name.fillColor = this.fillColor;
@@ -13194,8 +13671,11 @@ paint(g2, viewportWindow, scale,layersmask) {
 }
 fromXML(data){
 	this.type=parseInt(j$(data).attr("type"));
-	this.style=parseInt(j$(data).attr("style"));
-	
+	if(j$(data).attr("style")){
+	  this.style=parseInt(j$(data).attr("style"));
+	}else{
+	  this.style=0;		
+	}
 	let a=j$(data).find("a");
 	if(a.length>0){   //old schema
 	  var tokens = a.text().split(",");
@@ -13455,7 +13935,7 @@ var SymbolLoadView=Backbone.View.extend({
 			j$('#SymbolLoadDialog').off('close', j$.proxy(this.onclose,this)); 
 			j$('#SymbolLoadDialog').on('close', j$.proxy(this.onclose,this)); 			
 			this.unitSelectionPanel=new core.UnitSelectionPanel({selectorid:'unitselectionpanel',canvasprefixid:'f',enabled:opt.enabled});
-			this.unitSelectionPanel.textColor='black';
+			this.unitSelectionPanel.textColor='#000000';
 			this.unitSelectionPanel.backColor='white';
 		    this.unitSelectionPanel.unitSelectionGrid.scaleFactor=0;
 		    this.unitSelectionPanel.unitSelectionGrid.scaleRatio=1.2;    

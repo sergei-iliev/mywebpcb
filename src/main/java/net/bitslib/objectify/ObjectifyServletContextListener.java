@@ -9,12 +9,15 @@ import com.googlecode.objectify.ObjectifyService;
 
 import net.bitslib.entity.Board;
 import net.bitslib.entity.BoardWorkspace;
+import net.bitslib.entity.Circuit;
+import net.bitslib.entity.CircuitWorkspace;
 import net.bitslib.entity.FileObject;
 import net.bitslib.entity.Footprint;
 import net.bitslib.entity.FootprintLibrary;
 import net.bitslib.entity.Symbol;
 import net.bitslib.entity.SymbolLibrary;
 import net.bitslib.entity.User;
+import net.bitslib.entity.UserRole;
 
 
 public class ObjectifyServletContextListener implements ServletContextListener{
@@ -40,6 +43,10 @@ public class ObjectifyServletContextListener implements ServletContextListener{
 		 ObjectifyService.register(FootprintLibrary.class);
 		 ObjectifyService.register(BoardWorkspace.class);
 		 ObjectifyService.register(Board.class);
+		 ObjectifyService.register(CircuitWorkspace.class);
+		 ObjectifyService.register(Circuit.class);
+		 ObjectifyService.register(UserRole.class);
+
 	}
 
 	@Override
