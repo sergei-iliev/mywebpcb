@@ -57,20 +57,7 @@ registerBlockPopup(target,event){
 	    this.setContent(items,{target:target});	
 		this.open(event);		
 }
-attachEventListeners(context){
-	  var placeholder=document.getElementById('menu-items');		  
-	  var rows=placeholder.getElementsByTagName("table")[0].rows;
-	  var self=this;
-	  for (var i = 0; i < rows.length; i++) {
-	      //closure		   
-	      (function(row) {
-	          row.addEventListener("click", function() {	    		          	    	  		        	 
-	        	  self.close();	        	  
-	        	  self.actionPerformed(row.id,context);
-	          });
-	      })(rows[i]);
-	  }
-}
+
 actionPerformed(id,context){	
     let line =this.component.lineBendingProcessor.line;
 	if(id=='hvid'){		

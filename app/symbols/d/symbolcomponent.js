@@ -304,7 +304,7 @@ mouseDown(event){
          }
     		
     	  var shape=this.getModel().getUnit().isControlRectClicked(scaledEvent.x, scaledEvent.y);
-		  if(shape!=null){
+    	  if(shape!=null){
                 if(shape instanceof Arc){
                      if(shape.isStartAnglePointClicked(scaledEvent.x , scaledEvent.y)){ 
                          this.getEventMgr().setEventHandle("arc.start.angle",shape);                    
@@ -324,8 +324,8 @@ mouseDown(event){
 		     shape = this.getModel().getUnit().getClickedShape(scaledEvent.x, scaledEvent.y, true);
 		     
 		     if(shape!=null){
-			   if (UnitMgr.getInstance().isBlockSelected(this.getModel().getUnit().shapes) && shape.isSelected()){
-                 this.getEventMgr().setEventHandle("block", null);						 
+		       if ((UnitMgr.getInstance().isBlockSelected(this.getModel().getUnit().shapes)&& shape.isSelected())||event.ctrlKey){			   
+                 this.getEventMgr().setEventHandle("block", shape);						 
 		       }else if ((!(shape instanceof FontLabel))&&(undefined !=shape['getTextureByTag'])&&shape.getClickedTexture(scaledEvent.x, scaledEvent.y)!=null){
 			     this.getEventMgr().setEventHandle("texture",shape);
                }else

@@ -320,7 +320,7 @@ mouseDown(event){
 	    	  }
 	   
 	    	  var shape=this.getModel().getUnit().isControlRectClicked(scaledEvent.x, scaledEvent.y);
-			  if(shape!=null){
+	    	  if(shape!=null){
 //	              if(shape instanceof PCBArc){
 //	                  if(shape.isStartAnglePointClicked(scaledEvent.x , scaledEvent.y)){ 
 //	                      this.getEventMgr().setEventHandle("arc.start.angle",shape);                    
