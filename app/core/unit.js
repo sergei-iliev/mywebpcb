@@ -628,9 +628,9 @@ class UnitComponent{
 	
 }
 resumeLine(line,handleKey,event) {	      
-	   line.reset(event.x,event.y);
+	   line.reset();
 	      //***do we need to reorder
-	   line.reverse(event.x,event.y);     
+	   line.reverse(event.x,event.y);     	   
 	   this.eventMgr.setEventHandle(handleKey,line);
 } 
 getMode(){

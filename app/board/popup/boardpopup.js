@@ -97,10 +97,6 @@ actionPerformed(id,context){
 	   return;
    }	
    if (id=="resumeid") {
-        //this.component.getView().setButtonGroup(core.ModeEnum.LINE_MODE);
-        //this.component.setMode(core.ModeEnum.LINE_MODE);         
-        //this.component.resumeLine(context.target,"line", {x:this.x, y:this.y,which:3});
-        
         if(context.target instanceof PCBTrack){                
             this.component.getView().setButtonGroup(core.ModeEnum.TRACK_MODE);
             this.component.setMode(core.ModeEnum.TRACK_MODE);
