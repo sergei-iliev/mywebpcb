@@ -229,7 +229,7 @@ class FootprintEventMgr{
 	  if(eventKey=='component'||eventKey=="origin"){
 		 this.component.getModel().fireUnitEvent({target:this.component.getModel().getUnit(),type:events.Event.SELECT_UNIT});
 	  }
-	  handle.Attach();
+	  handle.attach();
 	}
 	return handle;
  }

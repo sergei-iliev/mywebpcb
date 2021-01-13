@@ -23,7 +23,7 @@ class EventHandle{
 		 this.mx=0;
 		 this.target=null;
 	 }	
-	 Attach(){
+	 attach(){
 	     this.ctrlButtonPress = false;
 	     this.mx=0;
 	     this.my=0;  	     
@@ -198,8 +198,8 @@ class UnitEventHandle extends EventHandle{
 		 super(component);
 		 this.selectionBox=new d2.Box(0,0,0,0);
 	 }
-	 Attach(){
-		 super.Attach();
+	 attach(){
+		 super.attach();
 	     this.selectionBox.setRect(0,0,0,0);
 	 }
 	 mousePressed(event){
@@ -254,8 +254,8 @@ class OriginEventHandle extends EventHandle{
 constructor(component) {
 		super(component);		
 	}
-Attach(){
-		 super.Attach();
+attach(){
+		 super.attach();
 		 this.component.getModel().getUnit().coordinateSystem.reset(0,0);  
 	 }
 mousePressed(event){
@@ -295,8 +295,8 @@ class CursorEventHandle extends EventHandle{
 	 constructor(component) {
 		 super(component);
 	 }
-	 Attach(){
-		 super.Attach();
+	 attach(){
+		 super.attach();
 		    this.mx = this.target.getCenter().x;
 		    this.my = this.target.getCenter().y;
 	 }	 
@@ -469,8 +469,8 @@ class BlockEventHandle extends EventHandle{
 		 super(component);
 		 this.selectedShapes=[];
 	 }
-	 Attach(){
-		 super.Attach();
+	 attach(){
+		 super.attach();
 	     this.selectedShapes = this.component.getModel().getUnit().getSelectedShapes(false);
 	 }
 	 Detach(){
@@ -559,8 +559,8 @@ class MeasureEventHandle extends EventHandle{
 constructor(component) {
 		 super(component);
 	 }
-Attach(){
-	 super.Attach();
+attach(){
+	 super.attach();
 }	 
 Detach() {
     this.component.getModel().getUnit().ruler.resizingPoint=null;

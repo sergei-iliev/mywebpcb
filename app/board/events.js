@@ -65,8 +65,8 @@ constructor(component) {
 		 super(component);
 }
 
-Attach() {        
-    super.Attach();
+attach() {        
+    super.attach();
     this.component.lineBendingProcessor.initialize(this.target);
 }
 mousePressed(event){
@@ -220,7 +220,7 @@ class BoardEventMgr{
 		  if(eventKey=='component'||eventKey=="origin"){
 			 this.component.getModel().fireUnitEvent({target:this.component.getModel().getUnit(),type:events.Event.SELECT_UNIT});
 		  }
-		  handle.Attach();
+		  handle.attach();
 		}
 		return handle;
 	 }
