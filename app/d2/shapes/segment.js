@@ -80,8 +80,7 @@ module.exports = function(d2) {
             if (d2.utils.LE(this.pe.distanceTo(shape.pc), shape.r)) {
                 return true;
             }        
-          }
-          else if(shape instanceof d2.Segment){
+          }else if(shape instanceof d2.Segment){
               let x1=this.ps.x, y1=this.ps.y, x2=this.pe.x, y2=this.pe.y, x3=shape.ps.x, y3=shape.ps.y, x4=shape.pe.x, y4=shape.pe.y; 
               let denom = ((y4 - y3) * (x2 - x1)) - ((x4 - x3) * (y2 - y1));
               let numeA = ((x4 - x3) * (y1 - y3)) - ((y4 - y3) * (x1 - x3));
@@ -89,7 +88,7 @@ module.exports = function(d2) {
 
               if (denom == 0) {
                 if (numeA == 0 && numeB == 0) {
-                  return true;  //COLINEAR;
+                  return false;  //COLINEAR;
                 }
                 return false; //PARALLEL;
               }

@@ -450,7 +450,7 @@ class ScalableTransformation{
   getInversePoint(x,y){
        let s=1.0;
        if(this.scaleFactor!=0){     
-           for(i=0;i<this.scaleFactor;i++){
+           for(let i=0;i<this.scaleFactor;i++){
              s*=this.getInverseScaleRatio();
            }
        }
