@@ -58,7 +58,7 @@ var ToggleButtonView=Backbone.View.extend({
 	    }
 		this.update();
 		if(event.data.model.id=='importfromclipboardid'){	
-			navigator.clipboard.readText().then(data =>{ 
+			navigator.clipboard.readText().then(data =>{ 				 
 			      let circuitContainer=new CircuitContainer(true);
 			      let xml=(j$.parseXML(data));		    	  
 			      //disable 

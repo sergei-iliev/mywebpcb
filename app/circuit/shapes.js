@@ -749,17 +749,30 @@ class SCHConnector extends Shape{
         xml+="</connector>\r\n";
         return xml;
 	}	
-	fromXML(data){		
-		var tokens = j$(data).find("a")[0].textContent.split(",");
-		this.segment.ps.set(parseFloat(tokens[0]),parseFloat(tokens[1]));
-		this.init(parseInt(tokens[3]));
+	fromXML(data){				
+		if(j$(data).attr("type")){
+            this.setType(Number.parseInt(j$(data).attr("type")));
+            this.setStyle(Number.parseInt(j$(data).attr("style")));
+            
+			var texture=j$(data).find("name")[0];	
+			this.texture.fromXML(texture.textContent);
+			
+			let a=j$(data).find("a");
+			this.segment.ps.set(Number.parseFloat(j$(a).attr("x")),Number.parseFloat(j$(a).attr("y")));
+			this.init(Number.parseInt(j$(a).attr("orientation")));
+			
+		}else{
+			var tokens = j$(data).find("a")[0].textContent.split(",");
+			this.segment.ps.set(parseFloat(tokens[0]),parseFloat(tokens[1]));
+			this.init(parseInt(tokens[3]));
 		
-		this.setStyle(Number.parseInt(j$(data).attr("style")));
-		this.setType(Number.parseInt(j$(data).find("type")[0].textContent));
-		var texture=j$(data).find("name")[0];	
-		this.texture.fromXML(texture.textContent);
+			this.setStyle(Number.parseInt(j$(data).attr("style")));
+			this.setType(Number.parseInt(j$(data).find("type")[0].textContent));
+			var texture=j$(data).find("name")[0];	
+			this.texture.fromXML(texture.textContent);
 		
-		this.shape.calculatePoints();
+			this.shape.calculatePoints();
+		}
 	}	
 }
 class BoxShape{
