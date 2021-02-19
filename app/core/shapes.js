@@ -233,6 +233,7 @@ class AbstractLine extends Shape{
 																		// forming
 		this.floatingEndPoint = new d2.Point();
 		this.rotation=0;
+	    this.resumeState=core.ResumeState.ADD_AT_END;
 		
 }
 get vertices(){
@@ -279,17 +280,30 @@ isClicked(x, y) {
 
 	return result;
 }
+add(x,y){
+    if(this.resumeState==ResumeState.ADD_AT_FRONT)
+        this.polyline.points.unshift(new d2.Point(x,y));        
+    else
+        this.polyline.add(x,y);  	
+}
 addPoint(point) {
-    this.polyline.add(point);
+    this.add(point.x,point.y);	
 }
-resetToPoint(point) {
-	this.floatingStartPoint.set(point);
-	this.floatingMidPoint.set(point);
-	this.floatingEndPoint.set(point);
+
+reset(...args) {
+   if(args.length==0){
+	this.floatingStartPoint.set(this.floatingStartPoint);
+	this.floatingMidPoint.set(this.floatingStartPoint);
+	this.floatingEndPoint.set(this.floatingStartPoint);	  
+   }else{	
+	this.floatingStartPoint.set(args[0]);
+	this.floatingMidPoint.set(args[0]);
+	this.floatingEndPoint.set(args[0]);
+   }
 }
-reset() {
-	this.resetToPoint(this.floatingStartPoint);
-}
+//reset() {
+//	this.resetToPoint(this.floatingStartPoint);
+//}
 //reverse(x,y) {
 //    let p=this.isBendingPointClicked(x, y);
 //    if (this.polyline.points[0].x == p.x &&
@@ -301,9 +315,40 @@ Resize(xoffset, yoffset, clickedPoint) {
 	clickedPoint.set(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);
 }
+resumeLine( x,  y) {        
+    //the end or beginning
+    if (this.polyline.points.length ==0) {
+      this.resumeState=core.ResumeState.ADD_AT_END;
+      return;
+    }
+    
+    let point=this.isBendingPointClicked(x, y);
+    if(point==null){
+        this.resumeState=code.ResumeState.ADD_AT_END;
+    }
+    //***head point
+    if (this.polyline.points.get(0).x==point.x&&this.polyline.points.get(0).y==point.y) {
+        this.resumeState=core.ResumeState.ADD_AT_FRONT;
+    }
+    //***tail point
+    if ((this.polyline.points.get(polyline.points.size() - 1)).x==point.x&& (this.polyline.points.get(polyline.points.size() - 1)).y==point.y) {
+        this.resumeState=core.ResumeState.ADD_AT_END;
+    }        
+    
+    if(this.resumeState==ResumeState.ADD_AT_FRONT)
+       this.reset(this.polyline.points.get(0));
+    else
+       this.reset(this.polyline.points.get(this.polyline.points.size()-1));
+}
 shiftFloatingPoints(){
-    this.floatingStartPoint.set(this.polyline.points[this.polyline.points.length-1].x, this.polyline.points[this.polyline.points.length-1].y);
-    this.floatingMidPoint.set(this.floatingEndPoint.x, this.floatingEndPoint.y); 	
+    if(this.resumeState==ResumeState.ADD_AT_FRONT){
+        this.floatingStartPoint.set(this.polyline.points[0].x,this.polyline.points[0].y);
+        this.floatingMidPoint.set(this.floatingEndPoint.x, this.floatingEndPoint.y);                  
+    }else{
+    	this.floatingStartPoint.set(this.polyline.points[this.polyline.points.length-1].x, this.polyline.points[this.polyline.points.length-1].y);
+        this.floatingMidPoint.set(this.floatingEndPoint.x, this.floatingEndPoint.y); 	    
+    }
+	    
 }
 insertPoint( x, y) {
     
@@ -358,12 +403,15 @@ deleteLastPoint() {
 	if (this.points.length == 0)
 		return;
 
-	this.points.pop();
-
-						// ***reset floating start point
+    if(this.resumeState==ResumeState.ADD_AT_FRONT){
+        polyline.points.shift();
+    }else{   
+        polyline.points.pop();
+    }	
+	// ***reset floating start point
 	if (this.points.length > 0)
 					this.floatingStartPoint
-									.setLocation(this.points[this.points.length - 1]);
+									.setLocation(this.points[this.points.length - 1]);    
 }
 isEndPoint(x,y){
     if (this.polyline.points.length< 2) {

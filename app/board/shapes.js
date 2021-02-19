@@ -497,7 +497,8 @@ constructor(thickness,layermaskId){
 	}
 clone() {
 	var copy = new PCBTrack(this.thickness,this.copper.getLayerMaskID());
-	copy.clearance=this.clearance=0;;
+	copy.clearance=this.clearance=0;
+	copy.resumeState=this.resumeState;
 	copy.polyline=this.polyline.clone();
 	return copy;
 
@@ -678,24 +679,28 @@ paint(g2, viewportWindow, scale,layersmask) {
 		g2.strokeStyle = this.copper.getColor();
 
 	let a=this.polyline.clone();
-	a.scale(scale.getScale());
-	a.move( - viewportWindow.x, - viewportWindow.y);		
-	a.paint(g2);
+	
+	
 	
 	// draw floating point
 	if (this.isFloating()) {
+		if(this.resumeState==ResumeState.ADD_AT_FRONT){
 			let p = this.floatingMidPoint.clone();
-			p.scale(scale.getScale());
-			p.move( - viewportWindow.x, - viewportWindow.y);
-			g2.lineTo(p.x, p.y);									
-			g2.stroke();							    		
+			a.points.unshift(p);						    		
 		
 			p = this.floatingEndPoint.clone();
-			p.scale(scale.getScale());
-			p.move( - viewportWindow.x, - viewportWindow.y);
-			g2.lineTo(p.x, p.y);									
-			g2.stroke();					
+			a.points.unshift(p);			
+		}else{
+			let p = this.floatingMidPoint.clone();
+			a.add(p);						    		
+		
+			p = this.floatingEndPoint.clone();
+			a.add(p);
+		}	
 	}
+	a.scale(scale.getScale());
+	a.move( - viewportWindow.x, - viewportWindow.y);	
+	a.paint(g2);	
 
 	g2.globalCompositeOperation = 'source-over';
 

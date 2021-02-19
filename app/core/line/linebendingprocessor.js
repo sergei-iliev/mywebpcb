@@ -60,7 +60,7 @@ class LineSlopBendingProcessor extends LineBendingProcessor{
 
 addLinePoint( point) {
         if(this.line.getLinePoints().length==0){
-             this.line.resetToPoint(point);
+             this.line.reset(point);
         }               
         let result=false;
         if(!this.isOverlappedPoint(point)){
@@ -224,7 +224,7 @@ addLinePoint(point) {
                result=true;
            }               
        }         
-       this.line.resetToPoint(point); 
+       this.line.reset(point); 
        return result;
     }
 
@@ -241,7 +241,7 @@ class HorizontalToVerticalProcessor extends LineBendingProcessor{
   }
   addLinePoint( point) {
       if(this.line.getLinePoints().length==0){
-          this.line.resetToPoint(point);
+          this.line.reset(point);
      }               
      let result=false;
      if(!this.isOverlappedPoint(point)){

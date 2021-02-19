@@ -190,12 +190,12 @@ dblClick(){
     this.component.getEventMgr().resetEventHandle();
     this.component.repaint();	 
 } 
-Detach() {
+detach() {
     this.target.reset(); 
     if(this.target.polygon.points.length<3){
         this.target.owningUnit.remove(this.target.uuid);
     }
-    super.Detach();
+    super.detach();
 }	
 }
 class FootprintEventMgr{
@@ -247,7 +247,7 @@ class FootprintEventMgr{
 	    //hide context menu
 	    this.component.popup.close();
         if (this.targetEventHandle != null) {
-            this.targetEventHandle.Detach();
+            this.targetEventHandle.detach();
         }
         this.targetEventHandle = null;                
     }
