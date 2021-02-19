@@ -56,7 +56,7 @@ class EventHandle{
 	 clear(){
 		 
 	 }
-	 Detach(){
+	 detach(){
 	   this.clear();
 	 }
 isRightMouseButton(e){	 
@@ -456,12 +456,12 @@ class LineEventHandle extends EventHandle{
 //		       //this.component.setMode(ModeEnum.COMPONENT_MODE);  
 //	     }   
 	// }
-	 Detach(){
+	 detach(){
 		 if(this.target!=null){
 			 this.lineBendingProcessor.Release();
 		     this.target.reset();  
 		 }	     
-		 super.Detach();
+		 super.detach();
 	 }    
 	}
 class BlockEventHandle extends EventHandle{
@@ -473,9 +473,9 @@ class BlockEventHandle extends EventHandle{
 		 super.attach();
 	     this.selectedShapes = this.component.getModel().getUnit().getSelectedShapes(false);
 	 }
-	 Detach(){
+	 detach(){
 	     this.selectedShapes=null;
-	     super.Detach();
+	     super.detach();
 	 }
 	 mousePressed(event){
 		if(super.isRightMouseButton(event)){
@@ -562,9 +562,9 @@ constructor(component) {
 attach(){
 	 super.attach();
 }	 
-Detach() {
+detach() {
     this.component.getModel().getUnit().ruler.resizingPoint=null;
-    super.Detach();
+    super.detach();
 }
 mouseReleased(e){
 

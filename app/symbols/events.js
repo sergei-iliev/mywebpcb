@@ -50,7 +50,7 @@ class SymbolEventMgr{
 		    //hide context menu
 		    this.component.popup.close();
 	        if (this.targetEventHandle != null) {
-	            this.targetEventHandle.Detach();
+	            this.targetEventHandle.detach();
 	        }
 	        this.targetEventHandle = null;                
 	    }

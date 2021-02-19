@@ -290,13 +290,13 @@ resetToPoint(point) {
 reset() {
 	this.resetToPoint(this.floatingStartPoint);
 }
-reverse(x,y) {
-    let p=this.isBendingPointClicked(x, y);
-    if (this.polyline.points[0].x == p.x &&
-        this.polyline.points[0].y == p.y) {
-    	this.polyline.points.reverse(); 
-    }       
-}
+//reverse(x,y) {
+//    let p=this.isBendingPointClicked(x, y);
+//    if (this.polyline.points[0].x == p.x &&
+//        this.polyline.points[0].y == p.y) {
+//    	this.polyline.points.reverse(); 
+//    }       
+//}
 Resize(xoffset, yoffset, clickedPoint) {
 	clickedPoint.set(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);

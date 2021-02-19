@@ -3,6 +3,8 @@ var core=require('core/core');
 var HorizontalToVerticalProcessor=require('core/line/linebendingprocessor').HorizontalToVerticalProcessor;
 var VerticalToHorizontalProcessor=require('core/line/linebendingprocessor').VerticalToHorizontalProcessor;
 
+var SCHWire=require('circuit/shapes').SCHWire;
+var SCHBus=require('circuit/shapes').SCHBus;
 
 class CircuitContextMenu extends ContextMenu{
 constructor(component,placeholderid){
@@ -70,6 +72,17 @@ actionPerformed(id,context){
 		this.component.lineBendingProcessor.initialize(line);
 	    return
 	}
+	if (id=="resumeid") {
+	        if(context.target instanceof SCHBus){                
+	            this.component.getView().setButtonGroup(core.ModeEnum.BUS_MODE);
+	            this.component.setMode(core.ModeEnum.BUS_MODE);	            	            
+	        }else{
+	        	this.component.getView().setButtonGroup(core.ModeEnum.WIRE_MODE);
+	        	this.component.setMode(core.ModeEnum.WIRE_MODE);	        	
+	        }
+	        this.component.resumeLine(context.target,"wire",  {x:this.x, y:this.y,which:3});
+	        return;
+	} 	
    super.actionPerformed(id,context);
    
 }
