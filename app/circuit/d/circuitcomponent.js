@@ -71,7 +71,7 @@ class manager{
 class Circuit extends Unit{
 	constructor(width,height) {
 	  super(width,height); 
-      this.scalableTransformation.reset(1.2,2,2,15);
+      this.scalableTransformation.reset(1.2,0,0,15);
 	  this.shapeFactory = new CircuitShapeFactory();
       this.grid.setGridUnits(8, core.Units.PIXEL);
       this.grid.pointsColor='black';             

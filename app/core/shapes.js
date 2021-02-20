@@ -327,18 +327,18 @@ resumeLine( x,  y) {
         this.resumeState=code.ResumeState.ADD_AT_END;
     }
     //***head point
-    if (this.polyline.points.get(0).x==point.x&&this.polyline.points.get(0).y==point.y) {
+    if (this.polyline.points[0].x==point.x&&this.polyline.points[0].y==point.y) {
         this.resumeState=core.ResumeState.ADD_AT_FRONT;
     }
     //***tail point
-    if ((this.polyline.points.get(polyline.points.size() - 1)).x==point.x&& (this.polyline.points.get(polyline.points.size() - 1)).y==point.y) {
+    if (this.polyline.points[this.polyline.points.length - 1].x==point.x&& this.polyline.points[this.polyline.points.length - 1].y==point.y) {
         this.resumeState=core.ResumeState.ADD_AT_END;
     }        
     
     if(this.resumeState==ResumeState.ADD_AT_FRONT)
-       this.reset(this.polyline.points.get(0));
+       this.reset(this.polyline.points[0]);
     else
-       this.reset(this.polyline.points.get(this.polyline.points.size()-1));
+       this.reset(this.polyline.points[this.polyline.points.length-1]);
 }
 shiftFloatingPoints(){
     if(this.resumeState==ResumeState.ADD_AT_FRONT){

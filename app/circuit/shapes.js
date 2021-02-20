@@ -331,24 +331,26 @@ class SCHWire extends AbstractLine{
 			g2.strokeStyle = "black";
 
 		let a=this.polyline.clone();
-		a.scale(scale.getScale());
-		a.move( - viewportWindow.x, - viewportWindow.y);		
-		a.paint(g2);
 		
 		// draw floating point
 		if (this.isFloating()) {
+			if(this.resumeState==ResumeState.ADD_AT_FRONT){
 				let p = this.floatingMidPoint.clone();
-				p.scale(scale.getScale());
-				p.move( - viewportWindow.x, - viewportWindow.y);
-				g2.lineTo(p.x, p.y);									
-				g2.stroke();							    		
+				a.points.unshift(p);						    		
 			
 				p = this.floatingEndPoint.clone();
-				p.scale(scale.getScale());
-				p.move( - viewportWindow.x, - viewportWindow.y);
-				g2.lineTo(p.x, p.y);									
-				g2.stroke();					
+				a.points.unshift(p);			
+			}else{
+				let p = this.floatingMidPoint.clone();
+				a.add(p);						    		
+			
+				p = this.floatingEndPoint.clone();
+				a.add(p);
+			}			
 		}
+		a.scale(scale.getScale());
+		a.move( - viewportWindow.x, - viewportWindow.y);		
+		a.paint(g2);
 
 	    if((this.isSelected())/*&&(!this.isSublineSelected())*/){
 	    	this.drawControlPoints(g2, viewportWindow, scale);
@@ -573,11 +575,11 @@ class SCHConnector extends Shape{
 	constructor(){
 		super(0, 0, 0,0, 1,core.Layer.LAYER_ALL);
 		this.selectionRectWidth=4;
-		this.texture=new SymbolFontTexture("Nikola","name", -4, 0,0,8);		
+		this.texture=new SymbolFontTexture("Label","name", -4, 2,0,8);		
 		this.type=ConnectorType.INPUT;
 		this.displayName="Connector";
 		this.segment=new d2.Segment(0,0,(PIN_LENGTH / 2),0);		
-		this.shape=new ArrowShape(this);
+		this.shape=new BoxShape(this);
 	}
 	clone(){
 		 var copy=new SCHConnector();

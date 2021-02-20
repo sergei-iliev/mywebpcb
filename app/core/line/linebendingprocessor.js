@@ -18,9 +18,14 @@ moveLinePoint(x,y){
 
 }
 isOverlappedPoint(pointToAdd){
-    if(this.line.getLinePoints().length>0){
-      let lastPoint=this.line.getLinePoints()[(this.line.getLinePoints().length-1)]; 
-        //***is this the same point as last one?   
+    if(this.line.getLinePoints().length>0){      
+      let lastPoint;
+          if(this.line.resumeState==core.ResumeState.ADD_AT_END){
+        	  lastPoint=this.line.getLinePoints()[(this.line.getLinePoints().length-1)];                 
+          }else{
+              lastPoint=this.line.getLinePoints()[0]; 
+          }
+      //***is this the same point as last one?   
       if(d2.utils.EQ(pointToAdd.x,lastPoint.x)&&d2.utils.EQ(pointToAdd.y,lastPoint.y))
         return true;    
     }
@@ -28,11 +33,19 @@ isOverlappedPoint(pointToAdd){
 }
 isPointOnLine(pointToAdd){
     if(this.line.getLinePoints().length>=2){
-        let lastPoint=this.line.getLinePoints()[(this.line.getLinePoints().length-1)]; 
-        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+        //let lastPoint=this.line.getLinePoints()[(this.line.getLinePoints().length-1)]; 
+        //let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2];
+    	let lastPoint,lastlastPoint;
+    	if(this.line.resumeState==core.ResumeState.ADD_AT_END){  
+            lastPoint=this.line.getLinePoints()[(this.line.getLinePoints().length-1)]; 
+            lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+        }else{
+            lastPoint=this.line.getLinePoints()[0];  
+            lastlastPoint=this.line.getLinePoints()[1];                  
+        }    	
       //***check if point to add overlaps last last point
       if(lastlastPoint.equals(pointToAdd)){
-        this.line.deleteLastPoint();
+        //this.line.deleteLastPoint();
         lastPoint.set(pointToAdd);  
         return true;
       }
@@ -93,9 +106,15 @@ addLinePoint( point) {
 moveLinePoint(x,y){
 	
 	    if(this.line.getLinePoints().length>1){
-	        //line is resumed if line end is not slope then go on from previous segment
-	    	let lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
-	        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+	        //line is resumed if line end is not slope then go on from previous segment	        
+	        let lastPoint,lastlastPoint;
+	        if(this.line.resumeState==core.ResumeState.ADD_AT_FRONT){	        	
+	            lastPoint=this.line.getLinePoints()[0];  
+	            lastlastPoint=this.line.getLinePoints()[1];  
+	        }else{
+		    	lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
+		        lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 	        		             
+	        }	        
 	        if(this.isSlopeInterval(lastPoint, lastlastPoint)){
 	        	this.handleLine(x, y);
 	        }else{
@@ -198,8 +217,15 @@ addLinePoint( point) {
 	}
 moveLinePoint(x,y){
     if(this.line.getLinePoints().length>1){
-        let lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
-        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+        let lastPoint,lastlastPoint;
+        if(this.line.resumeState==core.ResumeState.ADD_AT_FRONT){	        	
+            lastPoint=this.line.getLinePoints()[0];  
+            lastlastPoint=this.line.getLinePoints()[1];  
+        }else{
+	    	lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
+	        lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 	        		             
+        }        
+        
         if(this.isSlopeInterval(lastPoint, lastlastPoint)){
            this.handleLine(x, y);
         }else{
@@ -272,9 +298,16 @@ class HorizontalToVerticalProcessor extends LineBendingProcessor{
   moveLinePoint(x,y){
 		
 	    if(this.line.getLinePoints().length>1){
-	        //line is resumed if line end is not slope then go on from previous segment
-	    	let lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
-	        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+	        //line is resumed if line end is not slope then go on from previous segment	    	
+	        let lastPoint,lastlastPoint;
+	        if(this.line.resumeState==core.ResumeState.ADD_AT_FRONT){	        	
+	            lastPoint=this.line.getLinePoints()[0];  
+	            lastlastPoint=this.line.getLinePoints()[1];  
+	        }else{
+		    	lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
+		        lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 	        		             
+	        }  	        
+	        
 	        if(this.isHorizontalInterval(lastPoint, lastlastPoint)){
 	           this.handleVertical(x, y);
 	        }else{
@@ -312,8 +345,14 @@ addLinePoint( point) {
 moveLinePoint(x,y){
     if(this.line.getLinePoints().length>1){
         //line is resumed if line end is not slope then go on from previous segment
-    	let lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
-        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+        let lastPoint,lastlastPoint;
+        if(this.line.resumeState==core.ResumeState.ADD_AT_FRONT){	        	
+            lastPoint=this.line.getLinePoints()[0];  
+            lastlastPoint=this.line.getLinePoints()[1];  
+        }else{
+	    	lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
+	        lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 	        		             
+        }  
         if(this.isHorizontalInterval(lastPoint, lastlastPoint)){
            this.handleVertical(x, y);
         }else{
