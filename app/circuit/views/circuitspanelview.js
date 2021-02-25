@@ -69,8 +69,7 @@ var LabelPanelBuilder=BaseBuilder.extend({
 	  if(event.target.id=='alignmentid'){
 		  this.target.texture.shape.alignment= (parseInt(j$("#alignmentid").val()));
       }
-	  if(event.target.id=='colorid'){
-		  console.log(j$('#colorid').val());		
+	  if(event.target.id=='colorid'){		  	
 		  this.target.texture.fillColor=(j$('#colorid').val());			  
 	  }
 	  if(event.target.id=='styleid'){
