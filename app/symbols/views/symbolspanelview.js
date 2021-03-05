@@ -724,9 +724,11 @@ var RectPanelBuilder=BaseBuilder.extend({
     },
 	updateui:function(){
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
-        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
-        j$('#xid').val(utilities.roundDouble(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x)));
-        j$('#yid').val(utilities.roundDouble(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y))); 
+        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);                
+        
+        j$('#xid').val(utilities.roundFloat(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x),1));
+        j$('#yid').val(utilities.roundFloat(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y),1)); 
+        
 		j$('#thicknessid').val(this.target.thickness);
 		//j$("#rotateid").val(this.target.rotate);    
 		j$("#roundingid").val(this.target.roundRect.rounding);

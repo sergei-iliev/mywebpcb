@@ -385,7 +385,7 @@ class LineEventHandle extends EventHandle{
 					                result=true;
 					            }               
 					        }         
-					        line.resetToPoint(p); 
+					        line.reset(p); 
 					        return result;
 				   },
 				   Release:function(){

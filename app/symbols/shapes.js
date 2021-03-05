@@ -229,6 +229,9 @@ class Arc extends Shape{
 		copy.thickness=this.thickness;
 		return copy;
 	}
+    alignResizingPointToGrid(point) {
+
+    }	
     getClickableOrder() {        
         return this.getBoundingShape().area;
     }	
@@ -425,6 +428,9 @@ class Ellipse extends Shape{
 		copy.fill=this.fill;
 		return copy;
 	}
+    alignResizingPointToGrid(point) {
+
+    }	
     getClickableOrder() {        
         return this.getBoundingShape().area;
     }	

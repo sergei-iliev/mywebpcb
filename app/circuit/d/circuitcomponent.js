@@ -135,7 +135,15 @@ class Circuit extends Unit{
            if (s instanceof SCHFontLabel)
                xml+= s.toXML();
        });
-       xml+="</labels>\r\n";      
+       xml+="</labels>\r\n";   
+       //***  Labels without parent
+       xml+="<connectors>\r\n";
+       this.shapes.forEach(s=>{ 
+    	   if (s instanceof SCHConnector){
+               xml+= s.toXML();
+           }
+       });
+       xml+="</connectors>\r\n";                 
        
        xml+="</symbols>\r\n";
 	   xml+="</circuit>";
@@ -233,6 +241,7 @@ class CircuitContainer extends UnitContainer{
 		  xml+="\r\n";
 		}    	    	
 	    xml+="</circuits>";
+	    console.log(xml);
 	    return xml;
 	}	
 }
@@ -311,7 +320,7 @@ mouseDown(event){
 	                * 1.Coordinate origin
 	                * 2.Control rect/reshape point
 	                * 3.selected shapes comes before control points
-	                */	 
+	                */	
 	    	  if(this.getModel().getUnit().getCoordinateSystem()!=null){ 		
 	           if(this.getModel().getUnit().getCoordinateSystem().isClicked(scaledEvent.x, scaledEvent.y)){
 	              this.getEventMgr().setEventHandle("origin",null); 

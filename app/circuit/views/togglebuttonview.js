@@ -131,6 +131,7 @@ var ToggleButtonView=Backbone.View.extend({
 			event.data.model.setActive(!event.data.model.isActive());
 			if(event.data.model.isActive()){
 			  this.circuitComponent.getModel().getUnit().coordinateSystem=new shape.CoordinateSystem(this.circuitComponent.getModel().getUnit());
+			  this.circuitComponent.getModel().getUnit().coordinateSystem.selectionRectWidth=4;
 			  this.circuitComponent.setMode(core.ModeEnum.ORIGIN_SHIFT_MODE);
 			}else{
 			  this.circuitComponent.getModel().getUnit().coordinateSystem=null;

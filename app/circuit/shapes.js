@@ -747,7 +747,7 @@ class SCHConnector extends Shape{
 	toXML(){	   		
         let xml="<connector type=\""+this.type+"\" style=\""+this.getStyle()+"\" >\r\n";        
         xml+="<name>"+this.texture.toXML()+"</name>\r\n";
-        xml+="<a x=\""+utilities.roundDouble(this.segment.ps.x,1)+"\" y=\""+utilities.roundDouble(this.segment.ps.y,1)+"\"  orientation=\""+this.getOrientation()+"\" />\r\n";        
+        xml+="<a x=\""+utilities.roundDouble(this.segment.ps.x,1)+"\" y=\""+utilities.roundDouble(this.segment.ps.y,1)+"\"  orientation=\""+this.getOrientation()+"\"/>\r\n";        
         xml+="</connector>\r\n";
         return xml;
 	}	
