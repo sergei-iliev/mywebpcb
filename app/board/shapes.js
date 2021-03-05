@@ -199,6 +199,24 @@ isClicked(x,y){
 	this.sortPolygon(ps.points);  //line only
 	return ps.contains(x,y);
 }
+
+isVisibleOnLayers(layermasks){
+    for(const shape of this.shapes){
+       if(shape.isVisibleOnLayers(layermasks))
+         return true;
+    }
+    return false;
+}  
+
+isClickedOnLayers(x, y, layermasks) {
+    for(const shape of this.shapes){
+        if(shape.isVisibleOnLayers(layermasks)){
+            if(shape.isClicked(x, y))
+              return true;
+        }             
+    }
+    return false;   
+}
 getPolygonCentroid(points){
 	let x=0,y=0;
 	points.forEach(p=>{

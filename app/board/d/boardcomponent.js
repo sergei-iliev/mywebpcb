@@ -109,6 +109,23 @@ add(shape){
         super.add(shape);
     }
 }
+buildClickedShapesList(x,  y,  isTextIncluded){
+	
+	   var orderElements = [];
+	   let len=this.shapes.length;
+	   for(i=0;i<len;i++){   
+	       if(isTextIncluded){
+	    	if((undefined !=this.shapes[i]['getTextureByTag'])&&this.shapes[i].getClickedTexture(x, y)){                               
+	             orderElements.splice(0, 0, this.shapes[i]);
+	             continue;
+	        }
+	       }     	       
+	       if(this.isShapeVisibleOnLayers(this.shapes[i])&&this.shapes[i].isClickedOnLayers(x, y,this.compositeLayer.getLayerMaskID())){	   
+	          orderElements.push(this.shapes[i]);	       
+	       }  
+	   }
+	   return orderElements;
+}
 reorder(){
     this.shapes.sort(function(a,b){
 		if (a.getDrawingOrder() > b.getDrawingOrder()) {  

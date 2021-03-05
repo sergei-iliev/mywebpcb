@@ -257,9 +257,8 @@ buildClickedShapesList(x,  y,  isTextIncluded){
              continue;
         }
        }     
-       if(this.shapes[i].isClicked(x, y)){
-          orderElements.push(this.shapes[i]);
-       
+       if(this.isShapeVisibleOnLayers(this.shapes[i])&&this.shapes[i].isClicked(x, y)){
+          orderElements.push(this.shapes[i]);       
        }  
    }
    return orderElements;
@@ -269,13 +268,6 @@ getClickedShape( x,  y,  isTextIncluded){
     if(clickedShapes.length==0){
         return null;
     }
-    //Text?
-//    if (undefined !=clickedShapes[0]['getTextureByTag']) {   
-//        if(this.isShapeVisibleOnLayers(clickedShapes[0])){             
-//          return clickedShapes[0];
-//        }
-//    }
-
     clickedShapes.sort(function(o1, o2){
        
             //both on same side
@@ -302,13 +294,8 @@ getClickedShape( x,  y,  isTextIncluded){
        
    }.bind(this));
     
-    for(i=0;i<clickedShapes.length;i++){
-       if(!this.isShapeVisibleOnLayers(clickedShapes[i])){             
-           continue;              
-       }        
-       return clickedShapes[i];
-    };
-    return null;  
+       
+    return clickedShapes[0]; 
 }
 isShapeVisibleOnLayers(shape){
    if (undefined !=this.compositeLayer) {	

@@ -96,7 +96,10 @@ isClicked(x,y) {
          return true;
         else
          return false;           
-    }
+}
+isClickedOnLayers(x, y, layermasks) {        
+  return this.isClicked(x, y);
+}
 getBoundingShape() {
 	return this.calculateShape();
 	}
