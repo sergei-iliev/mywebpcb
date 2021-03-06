@@ -233,7 +233,7 @@ var PadPanelBuilder=BaseBuilder.extend({
     onenter:function(event){
 		 if(event.keyCode != 13){
 				return; 
-		 }
+		 }		 
 	     if(event.target.id=='padwidthid'){	    	
 	        this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#padwidthid').val()))); 
 	     }
@@ -250,7 +250,7 @@ var PadPanelBuilder=BaseBuilder.extend({
 			 this.target.getTextureByTag("number").setSize(core.MM_TO_COORD(parseFloat(j$('#numbersizeid').val())));  
 		 }
 		 if(event.target.id=='numberxid'||event.target.id=='numberyid'){ 
-			 this.targetgetTextureByTag("number").setLocation(this.fromUnitX(parseFloat(j$('#numberxid').val())),this.fromUnitY(parseFloat(j$('#numberyid').val())));
+			 this.target.getTextureByTag("number").setLocation(this.fromUnitX(parseFloat(j$('#numberxid').val())),this.fromUnitY(parseFloat(j$('#numberyid').val())));
 			 
 		 }
 		 //--------netvalue-------
