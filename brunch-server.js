@@ -152,7 +152,7 @@ app.get('/rest/footprints/libraries/Atmel/categories/CPU', (req, res, next) => {
 '<name fullname="mega8" category="CPU"  library="Atmel">mega8</name>'+
 '<name fullname="Tiny2313" category="CPU"  library="Atmel">Tiny2313</name>'+
 '<name fullname="Mega16" category="CPU"  library="Atmel">Mega16</name>'+
-'<name fullname="test" category="CPU"  library="Atmel">test</name>'+
+'<name fullname="Mega328" category="CPU"  library="Atmel">Mega328</name>'+
 '<name fullname="test1" category="CPU"  library="Atmel">test1</name>'+
 '<name fullname="testpackage" category="CPU"  library="Atmel">testpackage</name>'+
 '</units>'
@@ -176,8 +176,8 @@ app.get('/rest/footprints/libraries/Atmel/categories/CPU/mega8', (req, res, next
 		res.send(data);
   });
 });
-app.get('/rest/footprints/libraries/Atmel/categories/CPU/test', (req, res, next) => {
-    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\library\\footprints\\Atmel\\CPU\\test.xml','utf8', function(err, data) {
+app.get('/rest/footprints/libraries/Atmel/categories/CPU/Mega328', (req, res, next) => {
+    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\library\\footprints\\Atmel\\CPU\\Mega328.xml','utf8', function(err, data) {
 		res.send(data);
   });
 });
