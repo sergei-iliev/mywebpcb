@@ -162,7 +162,10 @@ var  UUID=(function(){
 })();
 
 GridRaster=[{id:2.54,value:2.54},{id:1.27,value:1.27},{id:0.635,value:0.635},{id:0.508,value:0.508},{id:0.254,value:0.254},{id:0.127,value:0.127},{id:0.0635,value:0.0635},{id:0.0508,value:0.0508},{id:0.0254,value:0.0254},{id:0.0127,value:0.0127},{id:5.0,value:5.0},{id:2.5,value:2.5},{id:1.0,value:1.0},{id:0.5,value:0.5},{id:0.25,value:0.25},{id:0.8,value:0.8},{id:0.2,value:0.2},{id:0.1,value:0.1},{id:0.05,value:0.05},{id:0.025,value:0.025},{id:0.01,value:0.01}];
-
+ResumeState={
+		 ADD_AT_FRONT:0,
+		 ADD_AT_END:1		
+};
 Fill = {
 		EMPTY : 1,
 		FILLED : 2,
@@ -600,7 +603,7 @@ class ScalableTransformation{
   getInversePoint(x,y){
        let s=1.0;
        if(this.scaleFactor!=0){     
-           for(i=0;i<this.scaleFactor;i++){
+           for(let i=0;i<this.scaleFactor;i++){
              s*=this.getInverseScaleRatio();
            }
        }
@@ -1038,6 +1041,7 @@ module.exports ={
 	isEventEnabled,
 	SymbolType,
 	Queue,
+	ResumeState,
 }
 
 var events=require('core/events');
@@ -1071,7 +1075,7 @@ class EventHandle{
 		 this.mx=0;
 		 this.target=null;
 	 }	
-	 Attach(){
+	 attach(){
 	     this.ctrlButtonPress = false;
 	     this.mx=0;
 	     this.my=0;  	     
@@ -1104,7 +1108,7 @@ class EventHandle{
 	 clear(){
 		 
 	 }
-	 Detach(){
+	 detach(){
 	   this.clear();
 	 }
 isRightMouseButton(e){	 
@@ -1246,8 +1250,8 @@ class UnitEventHandle extends EventHandle{
 		 super(component);
 		 this.selectionBox=new d2.Box(0,0,0,0);
 	 }
-	 Attach(){
-		 super.Attach();
+	 attach(){
+		 super.attach();
 	     this.selectionBox.setRect(0,0,0,0);
 	 }
 	 mousePressed(event){
@@ -1302,8 +1306,8 @@ class OriginEventHandle extends EventHandle{
 constructor(component) {
 		super(component);		
 	}
-Attach(){
-		 super.Attach();
+attach(){
+		 super.attach();
 		 this.component.getModel().getUnit().coordinateSystem.reset(0,0);  
 	 }
 mousePressed(event){
@@ -1343,8 +1347,8 @@ class CursorEventHandle extends EventHandle{
 	 constructor(component) {
 		 super(component);
 	 }
-	 Attach(){
-		 super.Attach();
+	 attach(){
+		 super.attach();
 		    this.mx = this.target.getCenter().x;
 		    this.my = this.target.getCenter().y;
 	 }	 
@@ -1433,7 +1437,7 @@ class LineEventHandle extends EventHandle{
 					                result=true;
 					            }               
 					        }         
-					        line.resetToPoint(p); 
+					        line.reset(p); 
 					        return result;
 				   },
 				   Release:function(){
@@ -1504,12 +1508,12 @@ class LineEventHandle extends EventHandle{
 //		       //this.component.setMode(ModeEnum.COMPONENT_MODE);  
 //	     }   
 	// }
-	 Detach(){
+	 detach(){
 		 if(this.target!=null){
 			 this.lineBendingProcessor.Release();
 		     this.target.reset();  
 		 }	     
-		 super.Detach();
+		 super.detach();
 	 }    
 	}
 class BlockEventHandle extends EventHandle{
@@ -1517,13 +1521,13 @@ class BlockEventHandle extends EventHandle{
 		 super(component);
 		 this.selectedShapes=[];
 	 }
-	 Attach(){
-		 super.Attach();
+	 attach(){
+		 super.attach();
 	     this.selectedShapes = this.component.getModel().getUnit().getSelectedShapes(false);
 	 }
-	 Detach(){
+	 detach(){
 	     this.selectedShapes=null;
-	     super.Detach();
+	     super.detach();
 	 }
 	 mousePressed(event){
 		if(super.isRightMouseButton(event)){
@@ -1607,12 +1611,12 @@ class MeasureEventHandle extends EventHandle{
 constructor(component) {
 		 super(component);
 	 }
-Attach(){
-	 super.Attach();
+attach(){
+	 super.attach();
 }	 
-Detach() {
+detach() {
     this.component.getModel().getUnit().ruler.resizingPoint=null;
-    super.Detach();
+    super.detach();
 }
 mouseReleased(e){
 
@@ -1695,9 +1699,14 @@ moveLinePoint(x,y){
 
 }
 isOverlappedPoint(pointToAdd){
-    if(this.line.getLinePoints().length>0){
-      let lastPoint=this.line.getLinePoints()[(this.line.getLinePoints().length-1)]; 
-        //***is this the same point as last one?   
+    if(this.line.getLinePoints().length>0){      
+      let lastPoint;
+          if(this.line.resumeState==core.ResumeState.ADD_AT_END){
+        	  lastPoint=this.line.getLinePoints()[(this.line.getLinePoints().length-1)];                 
+          }else{
+              lastPoint=this.line.getLinePoints()[0]; 
+          }
+      //***is this the same point as last one?   
       if(d2.utils.EQ(pointToAdd.x,lastPoint.x)&&d2.utils.EQ(pointToAdd.y,lastPoint.y))
         return true;    
     }
@@ -1705,11 +1714,19 @@ isOverlappedPoint(pointToAdd){
 }
 isPointOnLine(pointToAdd){
     if(this.line.getLinePoints().length>=2){
-        let lastPoint=this.line.getLinePoints()[(this.line.getLinePoints().length-1)]; 
-        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+        //let lastPoint=this.line.getLinePoints()[(this.line.getLinePoints().length-1)]; 
+        //let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2];
+    	let lastPoint,lastlastPoint;
+    	if(this.line.resumeState==core.ResumeState.ADD_AT_END){  
+            lastPoint=this.line.getLinePoints()[(this.line.getLinePoints().length-1)]; 
+            lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+        }else{
+            lastPoint=this.line.getLinePoints()[0];  
+            lastlastPoint=this.line.getLinePoints()[1];                  
+        }    	
       //***check if point to add overlaps last last point
       if(lastlastPoint.equals(pointToAdd)){
-        this.line.deleteLastPoint();
+        //this.line.deleteLastPoint();
         lastPoint.set(pointToAdd);  
         return true;
       }
@@ -1737,7 +1754,7 @@ class LineSlopBendingProcessor extends LineBendingProcessor{
 
 addLinePoint( point) {
         if(this.line.getLinePoints().length==0){
-             this.line.resetToPoint(point);
+             this.line.reset(point);
         }               
         let result=false;
         if(!this.isOverlappedPoint(point)){
@@ -1770,9 +1787,15 @@ addLinePoint( point) {
 moveLinePoint(x,y){
 	
 	    if(this.line.getLinePoints().length>1){
-	        //line is resumed if line end is not slope then go on from previous segment
-	    	let lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
-	        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+	        //line is resumed if line end is not slope then go on from previous segment	        
+	        let lastPoint,lastlastPoint;
+	        if(this.line.resumeState==core.ResumeState.ADD_AT_FRONT){	        	
+	            lastPoint=this.line.getLinePoints()[0];  
+	            lastlastPoint=this.line.getLinePoints()[1];  
+	        }else{
+		    	lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
+		        lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 	        		             
+	        }	        
 	        if(this.isSlopeInterval(lastPoint, lastlastPoint)){
 	        	this.handleLine(x, y);
 	        }else{
@@ -1875,8 +1898,15 @@ addLinePoint( point) {
 	}
 moveLinePoint(x,y){
     if(this.line.getLinePoints().length>1){
-        let lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
-        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+        let lastPoint,lastlastPoint;
+        if(this.line.resumeState==core.ResumeState.ADD_AT_FRONT){	        	
+            lastPoint=this.line.getLinePoints()[0];  
+            lastlastPoint=this.line.getLinePoints()[1];  
+        }else{
+	    	lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
+	        lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 	        		             
+        }        
+        
         if(this.isSlopeInterval(lastPoint, lastlastPoint)){
            this.handleLine(x, y);
         }else{
@@ -1901,7 +1931,7 @@ addLinePoint(point) {
                result=true;
            }               
        }         
-       this.line.resetToPoint(point); 
+       this.line.reset(point); 
        return result;
     }
 
@@ -1918,7 +1948,7 @@ class HorizontalToVerticalProcessor extends LineBendingProcessor{
   }
   addLinePoint( point) {
       if(this.line.getLinePoints().length==0){
-          this.line.resetToPoint(point);
+          this.line.reset(point);
      }               
      let result=false;
      if(!this.isOverlappedPoint(point)){
@@ -1947,11 +1977,18 @@ class HorizontalToVerticalProcessor extends LineBendingProcessor{
      return result;
   }	
   moveLinePoint(x,y){
-		
+		console.log(1);
 	    if(this.line.getLinePoints().length>1){
-	        //line is resumed if line end is not slope then go on from previous segment
-	    	let lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
-	        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+	        //line is resumed if line end is not slope then go on from previous segment	    	
+	        let lastPoint,lastlastPoint;
+	        if(this.line.resumeState==core.ResumeState.ADD_AT_FRONT){	        	
+	            lastPoint=this.line.getLinePoints()[0];  
+	            lastlastPoint=this.line.getLinePoints()[1];  
+	        }else{
+		    	lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
+		        lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 	        		             
+	        }  	        
+	        
 	        if(this.isHorizontalInterval(lastPoint, lastlastPoint)){
 	           this.handleVertical(x, y);
 	        }else{
@@ -1989,8 +2026,14 @@ addLinePoint( point) {
 moveLinePoint(x,y){
     if(this.line.getLinePoints().length>1){
         //line is resumed if line end is not slope then go on from previous segment
-    	let lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
-        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+        let lastPoint,lastlastPoint;
+        if(this.line.resumeState==core.ResumeState.ADD_AT_FRONT){	        	
+            lastPoint=this.line.getLinePoints()[0];  
+            lastlastPoint=this.line.getLinePoints()[1];  
+        }else{
+	    	lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
+	        lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 	        		             
+        }  
         if(this.isHorizontalInterval(lastPoint, lastlastPoint)){
            this.handleVertical(x, y);
         }else{
@@ -2127,7 +2170,18 @@ setContent(content,context) {
 }	
 
 attachEventListeners(context){
-	
+	  var placeholder=document.getElementById('menu-items');		  
+	  var rows=placeholder.getElementsByTagName("table")[0].rows;
+	  var self=this;
+	  for (var i = 0; i < rows.length; i++) {
+	      //closure		   
+	      (function(row) {
+	          row.addEventListener("click", function() {	    		          	    	  		        	 
+	        	  self.close();	        	  
+	        	  self.actionPerformed(row.id,context);
+	          });
+	      })(rows[i]);
+	  }
 }
 
 actionPerformed(id,context){
@@ -2379,7 +2433,10 @@ isClicked(x,y) {
          return true;
         else
          return false;           
-    }
+}
+isClickedOnLayers(x, y, layermasks) {        
+  return this.isClicked(x, y);
+}
 getBoundingShape() {
 	return this.calculateShape();
 	}
@@ -2516,6 +2573,7 @@ class AbstractLine extends Shape{
 																		// forming
 		this.floatingEndPoint = new d2.Point();
 		this.rotation=0;
+	    this.resumeState=core.ResumeState.ADD_AT_END;
 		
 }
 get vertices(){
@@ -2562,31 +2620,75 @@ isClicked(x, y) {
 
 	return result;
 }
+add(x,y){
+    if(this.resumeState==ResumeState.ADD_AT_FRONT)
+        this.polyline.points.unshift(new d2.Point(x,y));        
+    else
+        this.polyline.add(x,y);  	
+}
 addPoint(point) {
-    this.polyline.add(point);
+    this.add(point.x,point.y);	
 }
-resetToPoint(point) {
-	this.floatingStartPoint.set(point);
-	this.floatingMidPoint.set(point);
-	this.floatingEndPoint.set(point);
+
+reset(...args) {
+   if(args.length==0){
+	this.floatingStartPoint.set(this.floatingStartPoint);
+	this.floatingMidPoint.set(this.floatingStartPoint);
+	this.floatingEndPoint.set(this.floatingStartPoint);	  
+   }else{	
+	this.floatingStartPoint.set(args[0]);
+	this.floatingMidPoint.set(args[0]);
+	this.floatingEndPoint.set(args[0]);
+   }
 }
-reset() {
-	this.resetToPoint(this.floatingStartPoint);
-}
-reverse(x,y) {
-    let p=this.isBendingPointClicked(x, y);
-    if (this.polyline.points[0].x == p.x &&
-        this.polyline.points[0].y == p.y) {
-    	this.polyline.points.reverse(); 
-    }       
-}
+//reset() {
+//	this.resetToPoint(this.floatingStartPoint);
+//}
+//reverse(x,y) {
+//    let p=this.isBendingPointClicked(x, y);
+//    if (this.polyline.points[0].x == p.x &&
+//        this.polyline.points[0].y == p.y) {
+//    	this.polyline.points.reverse(); 
+//    }       
+//}
 Resize(xoffset, yoffset, clickedPoint) {
 	clickedPoint.set(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);
 }
+resumeLine( x,  y) {        
+    //the end or beginning
+    if (this.polyline.points.length ==0) {
+      this.resumeState=core.ResumeState.ADD_AT_END;
+      return;
+    }
+    
+    let point=this.isBendingPointClicked(x, y);
+    if(point==null){
+        this.resumeState=code.ResumeState.ADD_AT_END;
+    }
+    //***head point
+    if (this.polyline.points[0].x==point.x&&this.polyline.points[0].y==point.y) {
+        this.resumeState=core.ResumeState.ADD_AT_FRONT;
+    }
+    //***tail point
+    if (this.polyline.points[this.polyline.points.length - 1].x==point.x&& this.polyline.points[this.polyline.points.length - 1].y==point.y) {
+        this.resumeState=core.ResumeState.ADD_AT_END;
+    }        
+    
+    if(this.resumeState==ResumeState.ADD_AT_FRONT)
+       this.reset(this.polyline.points[0]);
+    else
+       this.reset(this.polyline.points[this.polyline.points.length-1]);
+}
 shiftFloatingPoints(){
-    this.floatingStartPoint.set(this.polyline.points[this.polyline.points.length-1].x, this.polyline.points[this.polyline.points.length-1].y);
-    this.floatingMidPoint.set(this.floatingEndPoint.x, this.floatingEndPoint.y); 	
+    if(this.resumeState==ResumeState.ADD_AT_FRONT){
+        this.floatingStartPoint.set(this.polyline.points[0].x,this.polyline.points[0].y);
+        this.floatingMidPoint.set(this.floatingEndPoint.x, this.floatingEndPoint.y);                  
+    }else{
+    	this.floatingStartPoint.set(this.polyline.points[this.polyline.points.length-1].x, this.polyline.points[this.polyline.points.length-1].y);
+        this.floatingMidPoint.set(this.floatingEndPoint.x, this.floatingEndPoint.y); 	    
+    }
+	    
 }
 insertPoint( x, y) {
     
@@ -2641,12 +2743,15 @@ deleteLastPoint() {
 	if (this.points.length == 0)
 		return;
 
-	this.points.pop();
-
-						// ***reset floating start point
+    if(this.resumeState==ResumeState.ADD_AT_FRONT){
+        polyline.points.shift();
+    }else{   
+        polyline.points.pop();
+    }	
+	// ***reset floating start point
 	if (this.points.length > 0)
 					this.floatingStartPoint
-									.setLocation(this.points[this.points.length - 1]);
+									.setLocation(this.points[this.points.length - 1]);    
 }
 isEndPoint(x,y){
     if (this.polyline.points.length< 2) {
@@ -3978,9 +4083,8 @@ buildClickedShapesList(x,  y,  isTextIncluded){
              continue;
         }
        }     
-       if(this.shapes[i].isClicked(x, y)){
-          orderElements.push(this.shapes[i]);
-       
+       if(this.isShapeVisibleOnLayers(this.shapes[i])&&this.shapes[i].isClicked(x, y)){
+          orderElements.push(this.shapes[i]);       
        }  
    }
    return orderElements;
@@ -3990,13 +4094,6 @@ getClickedShape( x,  y,  isTextIncluded){
     if(clickedShapes.length==0){
         return null;
     }
-    //Text?
-//    if (undefined !=clickedShapes[0]['getTextureByTag']) {   
-//        if(this.isShapeVisibleOnLayers(clickedShapes[0])){             
-//          return clickedShapes[0];
-//        }
-//    }
-
     clickedShapes.sort(function(o1, o2){
        
             //both on same side
@@ -4023,13 +4120,8 @@ getClickedShape( x,  y,  isTextIncluded){
        
    }.bind(this));
     
-    for(i=0;i<clickedShapes.length;i++){
-       if(!this.isShapeVisibleOnLayers(clickedShapes[i])){             
-           continue;              
-       }        
-       return clickedShapes[i];
-    };
-    return null;  
+       
+    return clickedShapes[0]; 
 }
 isShapeVisibleOnLayers(shape){
    if (undefined !=this.compositeLayer) {	
@@ -4348,11 +4440,10 @@ class UnitComponent{
 	this.cursor=null;
 	
 }
-resumeLine(line,handleKey,event) {	      
-	   line.reset(event.x,event.y);
-	      //***do we need to reorder
-	   line.reverse(event.x,event.y);     
-	   this.eventMgr.setEventHandle(handleKey,line);
+resumeLine(line,handleKey,event) {	
+	console.log(this.lineBendingProcessor);
+	  line.resumeLine(event.x,event.y);
+	  this.eventMgr.setEventHandle(handleKey,line);
 } 
 getMode(){
 	return this.mode; 
@@ -7561,8 +7652,7 @@ module.exports = function(d2) {
             if (d2.utils.LE(this.pe.distanceTo(shape.pc), shape.r)) {
                 return true;
             }        
-          }
-          else if(shape instanceof d2.Segment){
+          }else if(shape instanceof d2.Segment){
               let x1=this.ps.x, y1=this.ps.y, x2=this.pe.x, y2=this.pe.y, x3=shape.ps.x, y3=shape.ps.y, x4=shape.pe.x, y4=shape.pe.y; 
               let denom = ((y4 - y3) * (x2 - x1)) - ((x4 - x3) * (y2 - y1));
               let numeA = ((x4 - x3) * (y1 - y3)) - ((y4 - y3) * (x1 - x3));
@@ -7570,7 +7660,7 @@ module.exports = function(d2) {
 
               if (denom == 0) {
                 if (numeA == 0 && numeB == 0) {
-                  return true;  //COLINEAR;
+                  return false;  //COLINEAR;
                 }
                 return false; //PARALLEL;
               }
@@ -8274,7 +8364,7 @@ mouseDown(event){
          }
     		
     	  var shape=this.getModel().getUnit().isControlRectClicked(scaledEvent.x, scaledEvent.y);
-		  if(shape!=null){
+    	  if(shape!=null){
                 if(shape instanceof Arc){
                      if(shape.isStartAnglePointClicked(scaledEvent.x , scaledEvent.y)){ 
                          this.getEventMgr().setEventHandle("arc.start.angle",shape);                    
@@ -8294,8 +8384,8 @@ mouseDown(event){
 		     shape = this.getModel().getUnit().getClickedShape(scaledEvent.x, scaledEvent.y, true);
 		     
 		     if(shape!=null){
-			   if (UnitMgr.getInstance().isBlockSelected(this.getModel().getUnit().shapes) && shape.isSelected()){
-                 this.getEventMgr().setEventHandle("block", null);						 
+		       if ((UnitMgr.getInstance().isBlockSelected(this.getModel().getUnit().shapes)&& shape.isSelected())||event.ctrlKey){			   
+                 this.getEventMgr().setEventHandle("block", shape);						 
 		       }else if ((!(shape instanceof FontLabel))&&(undefined !=shape['getTextureByTag'])&&shape.getClickedTexture(scaledEvent.x, scaledEvent.y)!=null){
 			     this.getEventMgr().setEventHandle("texture",shape);
                }else
@@ -8414,7 +8504,7 @@ class SymbolEventMgr{
 		  if(eventKey=='component'||eventKey=="origin"){
 			 this.component.getModel().fireUnitEvent({target:this.component.getModel().getUnit(),type:events.Event.SELECT_UNIT});
 		  }
-		  handle.Attach();
+		  handle.attach();
 		}
 		return handle;
 	 }
@@ -8432,7 +8522,7 @@ class SymbolEventMgr{
 		    //hide context menu
 		    this.component.popup.close();
 	        if (this.targetEventHandle != null) {
-	            this.targetEventHandle.Detach();
+	            this.targetEventHandle.detach();
 	        }
 	        this.targetEventHandle = null;                
 	    }
@@ -8603,20 +8693,7 @@ registerLinePopup(target,event){
 	    this.setContent(items,{target:target});	
 	    this.open(event);	  	
 }
-attachEventListeners(context){
-	  var placeholder=document.getElementById('menu-items');		  
-	  var rows=placeholder.getElementsByTagName("table")[0].rows;
-	  var self=this;
-	  for (var i = 0; i < rows.length; i++) {
-	      //closure		   
-	      (function(row) {
-	          row.addEventListener("click", function() {	    		          	    	  		        	 
-	        	  self.close();	        	  
-	        	  self.actionPerformed(row.id,context);
-	          });
-	      })(rows[i]);
-	  }
-}
+
 actionPerformed(id,context){ 	
 	
    super.actionPerformed(id,context);
@@ -8863,6 +8940,9 @@ class Arc extends Shape{
 		copy.thickness=this.thickness;
 		return copy;
 	}
+    alignResizingPointToGrid(point) {
+
+    }	
     getClickableOrder() {        
         return this.getBoundingShape().area;
     }	
@@ -9059,6 +9139,9 @@ class Ellipse extends Shape{
 		copy.fill=this.fill;
 		return copy;
 	}
+    alignResizingPointToGrid(point) {
+
+    }	
     getClickableOrder() {        
         return this.getBoundingShape().area;
     }	
@@ -11367,8 +11450,8 @@ var SymbolPanelBuilder=BaseBuilder.extend({
 	   
 	   
 	   if(this.component.getModel().getUnit().coordinateSystem!=null){
-	     j$("#originxid").val((this.component.getModel().getUnit().getCoordinateSystem().getX()));    
-	     j$("#originyid").val((this.component.getModel().getUnit().getCoordinateSystem().getY()));
+	     j$("#originxid").val(utilities.roundFloat((this.component.getModel().getUnit().getCoordinateSystem().getX()),1));    
+	     j$("#originyid").val(utilities.roundFloat((this.component.getModel().getUnit().getCoordinateSystem().getY()),1));
 	   }
 
 	   //reference
@@ -11590,9 +11673,11 @@ var RectPanelBuilder=BaseBuilder.extend({
     },
 	updateui:function(){
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
-        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
-        j$('#xid').val(utilities.roundDouble(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x)));
-        j$('#yid').val(utilities.roundDouble(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y))); 
+        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);                
+        
+        j$('#xid').val(utilities.roundFloat(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x),1));
+        j$('#yid').val(utilities.roundFloat(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y),1)); 
+        
 		j$('#thicknessid').val(this.target.thickness);
 		//j$("#rotateid").val(this.target.rotate);    
 		j$("#roundingid").val(this.target.roundRect.rounding);

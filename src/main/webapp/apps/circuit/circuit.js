@@ -362,7 +362,7 @@ class manager{
 class Circuit extends Unit{
 	constructor(width,height) {
 	  super(width,height); 
-      this.scalableTransformation.reset(1.2,2,2,15);
+      this.scalableTransformation.reset(1.2,0,0,15);
 	  this.shapeFactory = new CircuitShapeFactory();
       this.grid.setGridUnits(8, core.Units.PIXEL);
       this.grid.pointsColor='black';             
@@ -426,7 +426,15 @@ class Circuit extends Unit{
            if (s instanceof SCHFontLabel)
                xml+= s.toXML();
        });
-       xml+="</labels>\r\n";      
+       xml+="</labels>\r\n";   
+       //***  Labels without parent
+       xml+="<connectors>\r\n";
+       this.shapes.forEach(s=>{ 
+    	   if (s instanceof SCHConnector){
+               xml+= s.toXML();
+           }
+       });
+       xml+="</connectors>\r\n";                 
        
        xml+="</symbols>\r\n";
 	   xml+="</circuit>";
@@ -524,6 +532,7 @@ class CircuitContainer extends UnitContainer{
 		  xml+="\r\n";
 		}    	    	
 	    xml+="</circuits>";
+	    console.log(xml);
 	    return xml;
 	}	
 }
@@ -602,7 +611,7 @@ mouseDown(event){
 	                * 1.Coordinate origin
 	                * 2.Control rect/reshape point
 	                * 3.selected shapes comes before control points
-	                */	 
+	                */	
 	    	  if(this.getModel().getUnit().getCoordinateSystem()!=null){ 		
 	           if(this.getModel().getUnit().getCoordinateSystem().isClicked(scaledEvent.x, scaledEvent.y)){
 	              this.getEventMgr().setEventHandle("origin",null); 
@@ -611,7 +620,7 @@ mouseDown(event){
 	    	  }
 	   
 	    	  var shape=this.getModel().getUnit().isControlRectClicked(scaledEvent.x, scaledEvent.y);
-			  if(shape!=null){
+	    	  if(shape!=null){
 //	              if(shape instanceof PCBArc){
 //	                  if(shape.isStartAnglePointClicked(scaledEvent.x , scaledEvent.y)){ 
 //	                      this.getEventMgr().setEventHandle("arc.start.angle",shape);                    
@@ -772,8 +781,8 @@ class WireEventHandle extends EventHandle{
 		 super(component);
 }
 
-Attach() {        
-   super.Attach();
+attach() {        
+   super.attach();
    this.component.lineBendingProcessor.initialize(this.target);
 }
 mousePressed(event){
@@ -825,12 +834,12 @@ dblClick(){
    this.component.getEventMgr().resetEventHandle();
    this.component.repaint();	 
 } 
-Detach() {
+detach() {
    this.target.reset(); 
    if(this.target.getLinePoints().length<2){
        this.target.owningUnit.remove(this.target.uuid);
    }
-   super.Detach();
+   super.detach();
 }
 }
 
@@ -863,7 +872,7 @@ class CircuitEventMgr{
 		  if(eventKey=='component'||eventKey=="origin"){
 			 this.component.getModel().fireUnitEvent({target:this.component.getModel().getUnit(),type:events.Event.SELECT_UNIT});
 		  }
-		  handle.Attach();
+		  handle.attach();
 		}
 		return handle;
 	 }
@@ -881,7 +890,7 @@ class CircuitEventMgr{
 		    //hide context menu
 		    this.component.popup.close();
 	        if (this.targetEventHandle != null) {
-	            this.targetEventHandle.Detach();
+	            this.targetEventHandle.detach();
 	        }
 	        this.targetEventHandle = null;                
 	    }
@@ -900,6 +909,8 @@ var core=require('core/core');
 var HorizontalToVerticalProcessor=require('core/line/linebendingprocessor').HorizontalToVerticalProcessor;
 var VerticalToHorizontalProcessor=require('core/line/linebendingprocessor').VerticalToHorizontalProcessor;
 
+var SCHWire=require('circuit/shapes').SCHWire;
+var SCHBus=require('circuit/shapes').SCHBus;
 
 class CircuitContextMenu extends ContextMenu{
 constructor(component,placeholderid){
@@ -954,20 +965,7 @@ registerBlockPopup(target,event){
 	    this.setContent(items,{target:target});	
 		this.open(event);		
 }
-attachEventListeners(context){
-	  var placeholder=document.getElementById('menu-items');		  
-	  var rows=placeholder.getElementsByTagName("table")[0].rows;
-	  var self=this;
-	  for (var i = 0; i < rows.length; i++) {
-	      //closure		   
-	      (function(row) {
-	          row.addEventListener("click", function() {	    		          	    	  		        	 
-	        	  self.close();	        	  
-	        	  self.actionPerformed(row.id,context);
-	          });
-	      })(rows[i]);
-	  }
-}
+
 actionPerformed(id,context){	
     let line =this.component.lineBendingProcessor.line;
 	if(id=='hvid'){		
@@ -980,6 +978,17 @@ actionPerformed(id,context){
 		this.component.lineBendingProcessor.initialize(line);
 	    return
 	}
+	if (id=="resumeid") {
+	        if(context.target instanceof SCHBus){                
+	            this.component.getView().setButtonGroup(core.ModeEnum.BUS_MODE);
+	            this.component.setMode(core.ModeEnum.BUS_MODE);	            	            
+	        }else{
+	        	this.component.getView().setButtonGroup(core.ModeEnum.WIRE_MODE);
+	        	this.component.setMode(core.ModeEnum.WIRE_MODE);	        	
+	        }
+	        this.component.resumeLine(context.target,"wire",  {x:this.x, y:this.y,which:3});
+	        return;
+	} 	
    super.actionPerformed(id,context);
    
 }
@@ -1326,24 +1335,26 @@ class SCHWire extends AbstractLine{
 			g2.strokeStyle = "black";
 
 		let a=this.polyline.clone();
-		a.scale(scale.getScale());
-		a.move( - viewportWindow.x, - viewportWindow.y);		
-		a.paint(g2);
 		
 		// draw floating point
 		if (this.isFloating()) {
+			if(this.resumeState==ResumeState.ADD_AT_FRONT){
 				let p = this.floatingMidPoint.clone();
-				p.scale(scale.getScale());
-				p.move( - viewportWindow.x, - viewportWindow.y);
-				g2.lineTo(p.x, p.y);									
-				g2.stroke();							    		
+				a.points.unshift(p);						    		
 			
 				p = this.floatingEndPoint.clone();
-				p.scale(scale.getScale());
-				p.move( - viewportWindow.x, - viewportWindow.y);
-				g2.lineTo(p.x, p.y);									
-				g2.stroke();					
+				a.points.unshift(p);			
+			}else{
+				let p = this.floatingMidPoint.clone();
+				a.add(p);						    		
+			
+				p = this.floatingEndPoint.clone();
+				a.add(p);
+			}			
 		}
+		a.scale(scale.getScale());
+		a.move( - viewportWindow.x, - viewportWindow.y);		
+		a.paint(g2);
 
 	    if((this.isSelected())/*&&(!this.isSublineSelected())*/){
 	    	this.drawControlPoints(g2, viewportWindow, scale);
@@ -1568,11 +1579,11 @@ class SCHConnector extends Shape{
 	constructor(){
 		super(0, 0, 0,0, 1,core.Layer.LAYER_ALL);
 		this.selectionRectWidth=4;
-		this.texture=new SymbolFontTexture("Nikola","name", -4, 0,0,8);		
+		this.texture=new SymbolFontTexture("Label","name", -4, 2,0,8);		
 		this.type=ConnectorType.INPUT;
 		this.displayName="Connector";
 		this.segment=new d2.Segment(0,0,(PIN_LENGTH / 2),0);		
-		this.shape=new ArrowShape(this);
+		this.shape=new BoxShape(this);
 	}
 	clone(){
 		 var copy=new SCHConnector();
@@ -1740,21 +1751,34 @@ class SCHConnector extends Shape{
 	toXML(){	   		
         let xml="<connector type=\""+this.type+"\" style=\""+this.getStyle()+"\" >\r\n";        
         xml+="<name>"+this.texture.toXML()+"</name>\r\n";
-        xml+="<a x=\""+utilities.roundDouble(this.segment.ps.x,1)+"\" y=\""+utilities.roundDouble(this.segment.ps.y,1)+"\"  orientation=\""+this.getOrientation()+"\" />\r\n";        
+        xml+="<a x=\""+utilities.roundDouble(this.segment.ps.x,1)+"\" y=\""+utilities.roundDouble(this.segment.ps.y,1)+"\"  orientation=\""+this.getOrientation()+"\"/>\r\n";        
         xml+="</connector>\r\n";
         return xml;
 	}	
-	fromXML(data){		
-		var tokens = j$(data).find("a")[0].textContent.split(",");
-		this.segment.ps.set(parseFloat(tokens[0]),parseFloat(tokens[1]));
-		this.init(parseInt(tokens[3]));
+	fromXML(data){				
+		if(j$(data).attr("type")){
+            this.setType(Number.parseInt(j$(data).attr("type")));
+            this.setStyle(Number.parseInt(j$(data).attr("style")));
+            
+			var texture=j$(data).find("name")[0];	
+			this.texture.fromXML(texture.textContent);
+			
+			let a=j$(data).find("a");
+			this.segment.ps.set(Number.parseFloat(j$(a).attr("x")),Number.parseFloat(j$(a).attr("y")));
+			this.init(Number.parseInt(j$(a).attr("orientation")));
+			
+		}else{
+			var tokens = j$(data).find("a")[0].textContent.split(",");
+			this.segment.ps.set(parseFloat(tokens[0]),parseFloat(tokens[1]));
+			this.init(parseInt(tokens[3]));
 		
-		this.setStyle(Number.parseInt(j$(data).attr("style")));
-		this.setType(Number.parseInt(j$(data).find("type")[0].textContent));
-		var texture=j$(data).find("name")[0];	
-		this.texture.fromXML(texture.textContent);
+			this.setStyle(Number.parseInt(j$(data).attr("style")));
+			this.setType(Number.parseInt(j$(data).find("type")[0].textContent));
+			var texture=j$(data).find("name")[0];	
+			this.texture.fromXML(texture.textContent);
 		
-		this.shape.calculatePoints();
+			this.shape.calculatePoints();
+		}
 	}	
 }
 class BoxShape{
@@ -2485,8 +2509,7 @@ ButtonView=Backbone.View.extend({
         "click  #savebuttonid" : "onsave",	
         "click  #closebuttonid" : "onclose",	
     },
-    onsave:function(){
-    	console.log(this.model.format());
+    onsave:function(){    	
     	let workspace=j$('#workspacecomboid').val()!=''?j$('#workspacecomboid').val():'null';
 	    let name=j$('#projectnameid').val()!=''?j$('#projectnameid').val():'null'	
     	j$.ajax({
@@ -2606,8 +2629,7 @@ var LabelPanelBuilder=BaseBuilder.extend({
 	  if(event.target.id=='alignmentid'){
 		  this.target.texture.shape.alignment= (parseInt(j$("#alignmentid").val()));
       }
-	  if(event.target.id=='colorid'){
-		  console.log(j$('#colorid').val());		
+	  if(event.target.id=='colorid'){		  	
 		  this.target.texture.fillColor=(j$('#colorid').val());			  
 	  }
 	  if(event.target.id=='styleid'){
@@ -3115,8 +3137,8 @@ var CircuitPanelBuilder=BaseBuilder.extend({
         'keypress #nameid' : 'onenter',
         'keypress #widthid':'onenter',
         'keypress #heightid':'onenter',
-        'keypress #originxid':'onenter',
-        'keypress #originyid':'onenter',
+        //'keypress #originxid':'onenter',
+        //'keypress #originyid':'onenter',
     },
 	onenter:function(event){
 		 if(event.keyCode != 13){
@@ -3131,21 +3153,21 @@ var CircuitPanelBuilder=BaseBuilder.extend({
 			 this.target.unitName=j$("#nameid").val(); 
 			 this.component.getModel().fireUnitEvent({target:this.target,type:events.Event.RENAME_UNIT});
 		 }
-		 if(event.target.id=='originxid'||event.target.id=='originyid'){           
-			    this.component.getModel().getUnit().getCoordinateSystem().reset(core.MM_TO_COORD(parseFloat(j$('#originxid').val())),core.MM_TO_COORD(parseFloat(j$('#originyid').val())));  
-			    this.component.componentResized();     
-			    this.component.repaint();
-		 }
+//		 if(event.target.id=='originxid'||event.target.id=='originyid'){           
+//			    this.component.getModel().getUnit().getCoordinateSystem().reset(core.MM_TO_COORD(parseFloat(j$('#originxid').val())),core.MM_TO_COORD(parseFloat(j$('#originyid').val())));  
+//			    this.component.componentResized();     
+//			    this.component.repaint();
+//		 }
 		 //mycanvas.focus();
 	},
 	updateui:function(){
 	   j$("#nameid").val(this.target.unitName);
 	   j$("#widthid").val(this.target.width);    
 	   j$("#heightid").val(this.target.height);	 
-	   if(this.component.getModel().getUnit().coordinateSystem!=null){
-		     j$("#originxid").val(utilities.roundFloat(this.component.getModel().getUnit().getCoordinateSystem().getX(),1));    
-		     j$("#originyid").val(utilities.roundFloat(this.component.getModel().getUnit().getCoordinateSystem().getY(),1));
-	   }	   
+//	   if(this.component.getModel().getUnit().coordinateSystem!=null){
+//		     j$("#originxid").val(utilities.roundFloat(this.component.getModel().getUnit().getCoordinateSystem().getX(),1));    
+//		     j$("#originyid").val(utilities.roundFloat(this.component.getModel().getUnit().getCoordinateSystem().getY(),1));
+//	   }	   
 	},
 	render:function(){
 		j$(this.el).empty();
@@ -3154,8 +3176,8 @@ var CircuitPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+					
 				"<tr><td style='padding:7px'>Width</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='heightid' value='' class='form-control input-sm\'></td></tr>"+							
-				"<tr><td style='width:50%;padding:7px'>Origin X</td><td><input type='text' id='originxid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='width:50%;padding:7px'>Origin Y</td><td><input type='text' id='originyid' value='' class='form-control input-sm\'></td></tr>"+
+				//"<tr><td style='width:50%;padding:7px'>Origin X</td><td><input type='text' id='originxid' value='' class='form-control input-sm\'></td></tr>"+
+				//"<tr><td style='width:50%;padding:7px'>Origin Y</td><td><input type='text' id='originyid' value='' class='form-control input-sm\'></td></tr>"+
 
 		"</table>");
 			
@@ -3592,7 +3614,7 @@ var ToggleButtonView=Backbone.View.extend({
 	    }
 		this.update();
 		if(event.data.model.id=='importfromclipboardid'){	
-			navigator.clipboard.readText().then(data =>{ 
+			navigator.clipboard.readText().then(data =>{ 				 
 			      let circuitContainer=new CircuitContainer(true);
 			      let xml=(j$.parseXML(data));		    	  
 			      //disable 
@@ -3665,6 +3687,7 @@ var ToggleButtonView=Backbone.View.extend({
 			event.data.model.setActive(!event.data.model.isActive());
 			if(event.data.model.isActive()){
 			  this.circuitComponent.getModel().getUnit().coordinateSystem=new shape.CoordinateSystem(this.circuitComponent.getModel().getUnit());
+			  this.circuitComponent.getModel().getUnit().coordinateSystem.selectionRectWidth=4;
 			  this.circuitComponent.setMode(core.ModeEnum.ORIGIN_SHIFT_MODE);
 			}else{
 			  this.circuitComponent.getModel().getUnit().coordinateSystem=null;
@@ -3777,7 +3800,10 @@ var  UUID=(function(){
 })();
 
 GridRaster=[{id:2.54,value:2.54},{id:1.27,value:1.27},{id:0.635,value:0.635},{id:0.508,value:0.508},{id:0.254,value:0.254},{id:0.127,value:0.127},{id:0.0635,value:0.0635},{id:0.0508,value:0.0508},{id:0.0254,value:0.0254},{id:0.0127,value:0.0127},{id:5.0,value:5.0},{id:2.5,value:2.5},{id:1.0,value:1.0},{id:0.5,value:0.5},{id:0.25,value:0.25},{id:0.8,value:0.8},{id:0.2,value:0.2},{id:0.1,value:0.1},{id:0.05,value:0.05},{id:0.025,value:0.025},{id:0.01,value:0.01}];
-
+ResumeState={
+		 ADD_AT_FRONT:0,
+		 ADD_AT_END:1		
+};
 Fill = {
 		EMPTY : 1,
 		FILLED : 2,
@@ -4215,7 +4241,7 @@ class ScalableTransformation{
   getInversePoint(x,y){
        let s=1.0;
        if(this.scaleFactor!=0){     
-           for(i=0;i<this.scaleFactor;i++){
+           for(let i=0;i<this.scaleFactor;i++){
              s*=this.getInverseScaleRatio();
            }
        }
@@ -4653,6 +4679,7 @@ module.exports ={
 	isEventEnabled,
 	SymbolType,
 	Queue,
+	ResumeState,
 }
 
 var events=require('core/events');
@@ -4686,7 +4713,7 @@ class EventHandle{
 		 this.mx=0;
 		 this.target=null;
 	 }	
-	 Attach(){
+	 attach(){
 	     this.ctrlButtonPress = false;
 	     this.mx=0;
 	     this.my=0;  	     
@@ -4719,7 +4746,7 @@ class EventHandle{
 	 clear(){
 		 
 	 }
-	 Detach(){
+	 detach(){
 	   this.clear();
 	 }
 isRightMouseButton(e){	 
@@ -4861,8 +4888,8 @@ class UnitEventHandle extends EventHandle{
 		 super(component);
 		 this.selectionBox=new d2.Box(0,0,0,0);
 	 }
-	 Attach(){
-		 super.Attach();
+	 attach(){
+		 super.attach();
 	     this.selectionBox.setRect(0,0,0,0);
 	 }
 	 mousePressed(event){
@@ -4917,8 +4944,8 @@ class OriginEventHandle extends EventHandle{
 constructor(component) {
 		super(component);		
 	}
-Attach(){
-		 super.Attach();
+attach(){
+		 super.attach();
 		 this.component.getModel().getUnit().coordinateSystem.reset(0,0);  
 	 }
 mousePressed(event){
@@ -4958,8 +4985,8 @@ class CursorEventHandle extends EventHandle{
 	 constructor(component) {
 		 super(component);
 	 }
-	 Attach(){
-		 super.Attach();
+	 attach(){
+		 super.attach();
 		    this.mx = this.target.getCenter().x;
 		    this.my = this.target.getCenter().y;
 	 }	 
@@ -5048,7 +5075,7 @@ class LineEventHandle extends EventHandle{
 					                result=true;
 					            }               
 					        }         
-					        line.resetToPoint(p); 
+					        line.reset(p); 
 					        return result;
 				   },
 				   Release:function(){
@@ -5119,12 +5146,12 @@ class LineEventHandle extends EventHandle{
 //		       //this.component.setMode(ModeEnum.COMPONENT_MODE);  
 //	     }   
 	// }
-	 Detach(){
+	 detach(){
 		 if(this.target!=null){
 			 this.lineBendingProcessor.Release();
 		     this.target.reset();  
 		 }	     
-		 super.Detach();
+		 super.detach();
 	 }    
 	}
 class BlockEventHandle extends EventHandle{
@@ -5132,13 +5159,13 @@ class BlockEventHandle extends EventHandle{
 		 super(component);
 		 this.selectedShapes=[];
 	 }
-	 Attach(){
-		 super.Attach();
+	 attach(){
+		 super.attach();
 	     this.selectedShapes = this.component.getModel().getUnit().getSelectedShapes(false);
 	 }
-	 Detach(){
+	 detach(){
 	     this.selectedShapes=null;
-	     super.Detach();
+	     super.detach();
 	 }
 	 mousePressed(event){
 		if(super.isRightMouseButton(event)){
@@ -5222,12 +5249,12 @@ class MeasureEventHandle extends EventHandle{
 constructor(component) {
 		 super(component);
 	 }
-Attach(){
-	 super.Attach();
+attach(){
+	 super.attach();
 }	 
-Detach() {
+detach() {
     this.component.getModel().getUnit().ruler.resizingPoint=null;
-    super.Detach();
+    super.detach();
 }
 mouseReleased(e){
 
@@ -5310,9 +5337,14 @@ moveLinePoint(x,y){
 
 }
 isOverlappedPoint(pointToAdd){
-    if(this.line.getLinePoints().length>0){
-      let lastPoint=this.line.getLinePoints()[(this.line.getLinePoints().length-1)]; 
-        //***is this the same point as last one?   
+    if(this.line.getLinePoints().length>0){      
+      let lastPoint;
+          if(this.line.resumeState==core.ResumeState.ADD_AT_END){
+        	  lastPoint=this.line.getLinePoints()[(this.line.getLinePoints().length-1)];                 
+          }else{
+              lastPoint=this.line.getLinePoints()[0]; 
+          }
+      //***is this the same point as last one?   
       if(d2.utils.EQ(pointToAdd.x,lastPoint.x)&&d2.utils.EQ(pointToAdd.y,lastPoint.y))
         return true;    
     }
@@ -5320,11 +5352,19 @@ isOverlappedPoint(pointToAdd){
 }
 isPointOnLine(pointToAdd){
     if(this.line.getLinePoints().length>=2){
-        let lastPoint=this.line.getLinePoints()[(this.line.getLinePoints().length-1)]; 
-        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+        //let lastPoint=this.line.getLinePoints()[(this.line.getLinePoints().length-1)]; 
+        //let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2];
+    	let lastPoint,lastlastPoint;
+    	if(this.line.resumeState==core.ResumeState.ADD_AT_END){  
+            lastPoint=this.line.getLinePoints()[(this.line.getLinePoints().length-1)]; 
+            lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+        }else{
+            lastPoint=this.line.getLinePoints()[0];  
+            lastlastPoint=this.line.getLinePoints()[1];                  
+        }    	
       //***check if point to add overlaps last last point
       if(lastlastPoint.equals(pointToAdd)){
-        this.line.deleteLastPoint();
+        //this.line.deleteLastPoint();
         lastPoint.set(pointToAdd);  
         return true;
       }
@@ -5352,7 +5392,7 @@ class LineSlopBendingProcessor extends LineBendingProcessor{
 
 addLinePoint( point) {
         if(this.line.getLinePoints().length==0){
-             this.line.resetToPoint(point);
+             this.line.reset(point);
         }               
         let result=false;
         if(!this.isOverlappedPoint(point)){
@@ -5385,9 +5425,15 @@ addLinePoint( point) {
 moveLinePoint(x,y){
 	
 	    if(this.line.getLinePoints().length>1){
-	        //line is resumed if line end is not slope then go on from previous segment
-	    	let lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
-	        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+	        //line is resumed if line end is not slope then go on from previous segment	        
+	        let lastPoint,lastlastPoint;
+	        if(this.line.resumeState==core.ResumeState.ADD_AT_FRONT){	        	
+	            lastPoint=this.line.getLinePoints()[0];  
+	            lastlastPoint=this.line.getLinePoints()[1];  
+	        }else{
+		    	lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
+		        lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 	        		             
+	        }	        
 	        if(this.isSlopeInterval(lastPoint, lastlastPoint)){
 	        	this.handleLine(x, y);
 	        }else{
@@ -5490,8 +5536,15 @@ addLinePoint( point) {
 	}
 moveLinePoint(x,y){
     if(this.line.getLinePoints().length>1){
-        let lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
-        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+        let lastPoint,lastlastPoint;
+        if(this.line.resumeState==core.ResumeState.ADD_AT_FRONT){	        	
+            lastPoint=this.line.getLinePoints()[0];  
+            lastlastPoint=this.line.getLinePoints()[1];  
+        }else{
+	    	lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
+	        lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 	        		             
+        }        
+        
         if(this.isSlopeInterval(lastPoint, lastlastPoint)){
            this.handleLine(x, y);
         }else{
@@ -5516,7 +5569,7 @@ addLinePoint(point) {
                result=true;
            }               
        }         
-       this.line.resetToPoint(point); 
+       this.line.reset(point); 
        return result;
     }
 
@@ -5533,7 +5586,7 @@ class HorizontalToVerticalProcessor extends LineBendingProcessor{
   }
   addLinePoint( point) {
       if(this.line.getLinePoints().length==0){
-          this.line.resetToPoint(point);
+          this.line.reset(point);
      }               
      let result=false;
      if(!this.isOverlappedPoint(point)){
@@ -5562,11 +5615,18 @@ class HorizontalToVerticalProcessor extends LineBendingProcessor{
      return result;
   }	
   moveLinePoint(x,y){
-		
+		console.log(1);
 	    if(this.line.getLinePoints().length>1){
-	        //line is resumed if line end is not slope then go on from previous segment
-	    	let lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
-	        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+	        //line is resumed if line end is not slope then go on from previous segment	    	
+	        let lastPoint,lastlastPoint;
+	        if(this.line.resumeState==core.ResumeState.ADD_AT_FRONT){	        	
+	            lastPoint=this.line.getLinePoints()[0];  
+	            lastlastPoint=this.line.getLinePoints()[1];  
+	        }else{
+		    	lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
+		        lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 	        		             
+	        }  	        
+	        
 	        if(this.isHorizontalInterval(lastPoint, lastlastPoint)){
 	           this.handleVertical(x, y);
 	        }else{
@@ -5604,8 +5664,14 @@ addLinePoint( point) {
 moveLinePoint(x,y){
     if(this.line.getLinePoints().length>1){
         //line is resumed if line end is not slope then go on from previous segment
-    	let lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
-        let lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 
+        let lastPoint,lastlastPoint;
+        if(this.line.resumeState==core.ResumeState.ADD_AT_FRONT){	        	
+            lastPoint=this.line.getLinePoints()[0];  
+            lastlastPoint=this.line.getLinePoints()[1];  
+        }else{
+	    	lastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-1];  
+	        lastlastPoint=this.line.getLinePoints()[this.line.getLinePoints().length-2]; 	        		             
+        }  
         if(this.isHorizontalInterval(lastPoint, lastlastPoint)){
            this.handleVertical(x, y);
         }else{
@@ -5742,7 +5808,18 @@ setContent(content,context) {
 }	
 
 attachEventListeners(context){
-	
+	  var placeholder=document.getElementById('menu-items');		  
+	  var rows=placeholder.getElementsByTagName("table")[0].rows;
+	  var self=this;
+	  for (var i = 0; i < rows.length; i++) {
+	      //closure		   
+	      (function(row) {
+	          row.addEventListener("click", function() {	    		          	    	  		        	 
+	        	  self.close();	        	  
+	        	  self.actionPerformed(row.id,context);
+	          });
+	      })(rows[i]);
+	  }
 }
 
 actionPerformed(id,context){
@@ -5994,7 +6071,10 @@ isClicked(x,y) {
          return true;
         else
          return false;           
-    }
+}
+isClickedOnLayers(x, y, layermasks) {        
+  return this.isClicked(x, y);
+}
 getBoundingShape() {
 	return this.calculateShape();
 	}
@@ -6131,6 +6211,7 @@ class AbstractLine extends Shape{
 																		// forming
 		this.floatingEndPoint = new d2.Point();
 		this.rotation=0;
+	    this.resumeState=core.ResumeState.ADD_AT_END;
 		
 }
 get vertices(){
@@ -6177,31 +6258,75 @@ isClicked(x, y) {
 
 	return result;
 }
+add(x,y){
+    if(this.resumeState==ResumeState.ADD_AT_FRONT)
+        this.polyline.points.unshift(new d2.Point(x,y));        
+    else
+        this.polyline.add(x,y);  	
+}
 addPoint(point) {
-    this.polyline.add(point);
+    this.add(point.x,point.y);	
 }
-resetToPoint(point) {
-	this.floatingStartPoint.set(point);
-	this.floatingMidPoint.set(point);
-	this.floatingEndPoint.set(point);
+
+reset(...args) {
+   if(args.length==0){
+	this.floatingStartPoint.set(this.floatingStartPoint);
+	this.floatingMidPoint.set(this.floatingStartPoint);
+	this.floatingEndPoint.set(this.floatingStartPoint);	  
+   }else{	
+	this.floatingStartPoint.set(args[0]);
+	this.floatingMidPoint.set(args[0]);
+	this.floatingEndPoint.set(args[0]);
+   }
 }
-reset() {
-	this.resetToPoint(this.floatingStartPoint);
-}
-reverse(x,y) {
-    let p=this.isBendingPointClicked(x, y);
-    if (this.polyline.points[0].x == p.x &&
-        this.polyline.points[0].y == p.y) {
-    	this.polyline.points.reverse(); 
-    }       
-}
+//reset() {
+//	this.resetToPoint(this.floatingStartPoint);
+//}
+//reverse(x,y) {
+//    let p=this.isBendingPointClicked(x, y);
+//    if (this.polyline.points[0].x == p.x &&
+//        this.polyline.points[0].y == p.y) {
+//    	this.polyline.points.reverse(); 
+//    }       
+//}
 Resize(xoffset, yoffset, clickedPoint) {
 	clickedPoint.set(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);
 }
+resumeLine( x,  y) {        
+    //the end or beginning
+    if (this.polyline.points.length ==0) {
+      this.resumeState=core.ResumeState.ADD_AT_END;
+      return;
+    }
+    
+    let point=this.isBendingPointClicked(x, y);
+    if(point==null){
+        this.resumeState=code.ResumeState.ADD_AT_END;
+    }
+    //***head point
+    if (this.polyline.points[0].x==point.x&&this.polyline.points[0].y==point.y) {
+        this.resumeState=core.ResumeState.ADD_AT_FRONT;
+    }
+    //***tail point
+    if (this.polyline.points[this.polyline.points.length - 1].x==point.x&& this.polyline.points[this.polyline.points.length - 1].y==point.y) {
+        this.resumeState=core.ResumeState.ADD_AT_END;
+    }        
+    
+    if(this.resumeState==ResumeState.ADD_AT_FRONT)
+       this.reset(this.polyline.points[0]);
+    else
+       this.reset(this.polyline.points[this.polyline.points.length-1]);
+}
 shiftFloatingPoints(){
-    this.floatingStartPoint.set(this.polyline.points[this.polyline.points.length-1].x, this.polyline.points[this.polyline.points.length-1].y);
-    this.floatingMidPoint.set(this.floatingEndPoint.x, this.floatingEndPoint.y); 	
+    if(this.resumeState==ResumeState.ADD_AT_FRONT){
+        this.floatingStartPoint.set(this.polyline.points[0].x,this.polyline.points[0].y);
+        this.floatingMidPoint.set(this.floatingEndPoint.x, this.floatingEndPoint.y);                  
+    }else{
+    	this.floatingStartPoint.set(this.polyline.points[this.polyline.points.length-1].x, this.polyline.points[this.polyline.points.length-1].y);
+        this.floatingMidPoint.set(this.floatingEndPoint.x, this.floatingEndPoint.y); 	    
+    }
+	    
 }
 insertPoint( x, y) {
     
@@ -6256,12 +6381,15 @@ deleteLastPoint() {
 	if (this.points.length == 0)
 		return;
 
-	this.points.pop();
-
-						// ***reset floating start point
+    if(this.resumeState==ResumeState.ADD_AT_FRONT){
+        polyline.points.shift();
+    }else{   
+        polyline.points.pop();
+    }	
+	// ***reset floating start point
 	if (this.points.length > 0)
 					this.floatingStartPoint
-									.setLocation(this.points[this.points.length - 1]);
+									.setLocation(this.points[this.points.length - 1]);    
 }
 isEndPoint(x,y){
     if (this.polyline.points.length< 2) {
@@ -7593,9 +7721,8 @@ buildClickedShapesList(x,  y,  isTextIncluded){
              continue;
         }
        }     
-       if(this.shapes[i].isClicked(x, y)){
-          orderElements.push(this.shapes[i]);
-       
+       if(this.isShapeVisibleOnLayers(this.shapes[i])&&this.shapes[i].isClicked(x, y)){
+          orderElements.push(this.shapes[i]);       
        }  
    }
    return orderElements;
@@ -7605,13 +7732,6 @@ getClickedShape( x,  y,  isTextIncluded){
     if(clickedShapes.length==0){
         return null;
     }
-    //Text?
-//    if (undefined !=clickedShapes[0]['getTextureByTag']) {   
-//        if(this.isShapeVisibleOnLayers(clickedShapes[0])){             
-//          return clickedShapes[0];
-//        }
-//    }
-
     clickedShapes.sort(function(o1, o2){
        
             //both on same side
@@ -7638,13 +7758,8 @@ getClickedShape( x,  y,  isTextIncluded){
        
    }.bind(this));
     
-    for(i=0;i<clickedShapes.length;i++){
-       if(!this.isShapeVisibleOnLayers(clickedShapes[i])){             
-           continue;              
-       }        
-       return clickedShapes[i];
-    };
-    return null;  
+       
+    return clickedShapes[0]; 
 }
 isShapeVisibleOnLayers(shape){
    if (undefined !=this.compositeLayer) {	
@@ -7963,11 +8078,10 @@ class UnitComponent{
 	this.cursor=null;
 	
 }
-resumeLine(line,handleKey,event) {	      
-	   line.reset(event.x,event.y);
-	      //***do we need to reorder
-	   line.reverse(event.x,event.y);     
-	   this.eventMgr.setEventHandle(handleKey,line);
+resumeLine(line,handleKey,event) {	
+	console.log(this.lineBendingProcessor);
+	  line.resumeLine(event.x,event.y);
+	  this.eventMgr.setEventHandle(handleKey,line);
 } 
 getMode(){
 	return this.mode; 
@@ -11176,8 +11290,7 @@ module.exports = function(d2) {
             if (d2.utils.LE(this.pe.distanceTo(shape.pc), shape.r)) {
                 return true;
             }        
-          }
-          else if(shape instanceof d2.Segment){
+          }else if(shape instanceof d2.Segment){
               let x1=this.ps.x, y1=this.ps.y, x2=this.pe.x, y2=this.pe.y, x3=shape.ps.x, y3=shape.ps.y, x4=shape.pe.x, y4=shape.pe.y; 
               let denom = ((y4 - y3) * (x2 - x1)) - ((x4 - x3) * (y2 - y1));
               let numeA = ((x4 - x3) * (y1 - y3)) - ((y4 - y3) * (x1 - x3));
@@ -11185,7 +11298,7 @@ module.exports = function(d2) {
 
               if (denom == 0) {
                 if (numeA == 0 && numeB == 0) {
-                  return true;  //COLINEAR;
+                  return false;  //COLINEAR;
                 }
                 return false; //PARALLEL;
               }
@@ -11889,7 +12002,7 @@ mouseDown(event){
          }
     		
     	  var shape=this.getModel().getUnit().isControlRectClicked(scaledEvent.x, scaledEvent.y);
-		  if(shape!=null){
+    	  if(shape!=null){
                 if(shape instanceof Arc){
                      if(shape.isStartAnglePointClicked(scaledEvent.x , scaledEvent.y)){ 
                          this.getEventMgr().setEventHandle("arc.start.angle",shape);                    
@@ -11909,8 +12022,8 @@ mouseDown(event){
 		     shape = this.getModel().getUnit().getClickedShape(scaledEvent.x, scaledEvent.y, true);
 		     
 		     if(shape!=null){
-			   if (UnitMgr.getInstance().isBlockSelected(this.getModel().getUnit().shapes) && shape.isSelected()){
-                 this.getEventMgr().setEventHandle("block", null);						 
+		       if ((UnitMgr.getInstance().isBlockSelected(this.getModel().getUnit().shapes)&& shape.isSelected())||event.ctrlKey){			   
+                 this.getEventMgr().setEventHandle("block", shape);						 
 		       }else if ((!(shape instanceof FontLabel))&&(undefined !=shape['getTextureByTag'])&&shape.getClickedTexture(scaledEvent.x, scaledEvent.y)!=null){
 			     this.getEventMgr().setEventHandle("texture",shape);
                }else
@@ -12029,7 +12142,7 @@ class SymbolEventMgr{
 		  if(eventKey=='component'||eventKey=="origin"){
 			 this.component.getModel().fireUnitEvent({target:this.component.getModel().getUnit(),type:events.Event.SELECT_UNIT});
 		  }
-		  handle.Attach();
+		  handle.attach();
 		}
 		return handle;
 	 }
@@ -12047,7 +12160,7 @@ class SymbolEventMgr{
 		    //hide context menu
 		    this.component.popup.close();
 	        if (this.targetEventHandle != null) {
-	            this.targetEventHandle.Detach();
+	            this.targetEventHandle.detach();
 	        }
 	        this.targetEventHandle = null;                
 	    }
@@ -12218,20 +12331,7 @@ registerLinePopup(target,event){
 	    this.setContent(items,{target:target});	
 	    this.open(event);	  	
 }
-attachEventListeners(context){
-	  var placeholder=document.getElementById('menu-items');		  
-	  var rows=placeholder.getElementsByTagName("table")[0].rows;
-	  var self=this;
-	  for (var i = 0; i < rows.length; i++) {
-	      //closure		   
-	      (function(row) {
-	          row.addEventListener("click", function() {	    		          	    	  		        	 
-	        	  self.close();	        	  
-	        	  self.actionPerformed(row.id,context);
-	          });
-	      })(rows[i]);
-	  }
-}
+
 actionPerformed(id,context){ 	
 	
    super.actionPerformed(id,context);
@@ -12478,6 +12578,9 @@ class Arc extends Shape{
 		copy.thickness=this.thickness;
 		return copy;
 	}
+    alignResizingPointToGrid(point) {
+
+    }	
     getClickableOrder() {        
         return this.getBoundingShape().area;
     }	
@@ -12674,6 +12777,9 @@ class Ellipse extends Shape{
 		copy.fill=this.fill;
 		return copy;
 	}
+    alignResizingPointToGrid(point) {
+
+    }	
     getClickableOrder() {        
         return this.getBoundingShape().area;
     }	

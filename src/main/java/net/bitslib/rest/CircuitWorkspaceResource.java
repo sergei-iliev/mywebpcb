@@ -36,14 +36,15 @@ public class CircuitWorkspaceResource extends AbstractResource{
 	public ResponseEntity<String> getWorkspaces(){
 		return ResponseEntity.ok(circuitWorkspaceRepository.getWorkspacesToXML(null));
 	}
+	
 	@RequestMapping(value = "/workspaces/{workspaceName}", method = RequestMethod.GET,produces={MediaType.APPLICATION_XML_VALUE})
-	public ResponseEntity<String> getBoards(@PathVariable("workspaceName") String workspaceName){
+	public ResponseEntity<String> getBoards(@PathVariable("workspaceName") String workspaceName){		
 		CircuitWorkspace workspace = circuitWorkspaceRepository.getWorkspaceByName(workspaceName);
 		if (workspace == null) {
 			logger.log(Level.SEVERE, "Unable to find workspace with name: "+ workspaceName);
 			return ResponseEntity.badRequest().body("No such workspace");
 		}
-		return ResponseEntity.ok(circuitWorkspaceRepository.getBoardsToXML(workspace.getKey()));
+		return ResponseEntity.ok(circuitWorkspaceRepository.getCircuitsToXML(workspace.getKey()));
 	}	
 	
 	@RequestMapping(value = "/workspaces/{workspaceName}/{projectName}", method = RequestMethod.GET,produces={MediaType.APPLICATION_XML_VALUE},headers = "Accept=application/xml")

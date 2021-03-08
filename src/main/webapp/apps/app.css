@@ -35276,6 +35276,8 @@ border-color:#008a00; color: #fff; background-color:#008a00;
     color: white !important;
     background: black !important;
 }
+html, body {height: 100%;}
+
 .panel-body{
 	background:#efefef;
 	padding:8px;
