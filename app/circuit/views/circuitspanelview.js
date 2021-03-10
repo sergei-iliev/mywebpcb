@@ -577,8 +577,8 @@ var CircuitPanelBuilder=BaseBuilder.extend({
         'keypress #nameid' : 'onenter',
         'keypress #widthid':'onenter',
         'keypress #heightid':'onenter',
-        'keypress #originxid':'onenter',
-        'keypress #originyid':'onenter',
+        //'keypress #originxid':'onenter',
+        //'keypress #originyid':'onenter',
     },
 	onenter:function(event){
 		 if(event.keyCode != 13){
@@ -593,21 +593,21 @@ var CircuitPanelBuilder=BaseBuilder.extend({
 			 this.target.unitName=j$("#nameid").val(); 
 			 this.component.getModel().fireUnitEvent({target:this.target,type:events.Event.RENAME_UNIT});
 		 }
-		 if(event.target.id=='originxid'||event.target.id=='originyid'){           
-			    this.component.getModel().getUnit().getCoordinateSystem().reset(core.MM_TO_COORD(parseFloat(j$('#originxid').val())),core.MM_TO_COORD(parseFloat(j$('#originyid').val())));  
-			    this.component.componentResized();     
-			    this.component.repaint();
-		 }
+//		 if(event.target.id=='originxid'||event.target.id=='originyid'){           
+//			    this.component.getModel().getUnit().getCoordinateSystem().reset(core.MM_TO_COORD(parseFloat(j$('#originxid').val())),core.MM_TO_COORD(parseFloat(j$('#originyid').val())));  
+//			    this.component.componentResized();     
+//			    this.component.repaint();
+//		 }
 		 //mycanvas.focus();
 	},
 	updateui:function(){
 	   j$("#nameid").val(this.target.unitName);
 	   j$("#widthid").val(this.target.width);    
 	   j$("#heightid").val(this.target.height);	 
-	   if(this.component.getModel().getUnit().coordinateSystem!=null){
-		     j$("#originxid").val(utilities.roundFloat(this.component.getModel().getUnit().getCoordinateSystem().getX(),1));    
-		     j$("#originyid").val(utilities.roundFloat(this.component.getModel().getUnit().getCoordinateSystem().getY(),1));
-	   }	   
+//	   if(this.component.getModel().getUnit().coordinateSystem!=null){
+//		     j$("#originxid").val(utilities.roundFloat(this.component.getModel().getUnit().getCoordinateSystem().getX(),1));    
+//		     j$("#originyid").val(utilities.roundFloat(this.component.getModel().getUnit().getCoordinateSystem().getY(),1));
+//	   }	   
 	},
 	render:function(){
 		j$(this.el).empty();
@@ -616,8 +616,8 @@ var CircuitPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+					
 				"<tr><td style='padding:7px'>Width</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Height</td><td><input type='text' id='heightid' value='' class='form-control input-sm\'></td></tr>"+							
-				"<tr><td style='width:50%;padding:7px'>Origin X</td><td><input type='text' id='originxid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='width:50%;padding:7px'>Origin Y</td><td><input type='text' id='originyid' value='' class='form-control input-sm\'></td></tr>"+
+				//"<tr><td style='width:50%;padding:7px'>Origin X</td><td><input type='text' id='originxid' value='' class='form-control input-sm\'></td></tr>"+
+				//"<tr><td style='width:50%;padding:7px'>Origin Y</td><td><input type='text' id='originyid' value='' class='form-control input-sm\'></td></tr>"+
 
 		"</table>");
 			

@@ -501,8 +501,8 @@ var SymbolPanelBuilder=BaseBuilder.extend({
 	   
 	   
 	   if(this.component.getModel().getUnit().coordinateSystem!=null){
-	     j$("#originxid").val((this.component.getModel().getUnit().getCoordinateSystem().getX()));    
-	     j$("#originyid").val((this.component.getModel().getUnit().getCoordinateSystem().getY()));
+	     j$("#originxid").val(utilities.roundFloat((this.component.getModel().getUnit().getCoordinateSystem().getX()),1));    
+	     j$("#originyid").val(utilities.roundFloat((this.component.getModel().getUnit().getCoordinateSystem().getY()),1));
 	   }
 
 	   //reference

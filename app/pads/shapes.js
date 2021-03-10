@@ -1308,8 +1308,10 @@ isInRect(r) {
 	}
 setSelected (selection) {
 	super.setSelected(selection);
-	this.number.setSelected(selection);
-	this.netvalue.setSelected(selection);
+	if(this.isControlPointVisible){
+		this.number.setSelected(selection);
+		this.netvalue.setSelected(selection);
+	}
 }
 move(xoffset, yoffset){
 	   this.shape.move(xoffset, yoffset);
