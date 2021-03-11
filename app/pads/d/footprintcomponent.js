@@ -17,6 +17,7 @@ var GlyphLabel=require('pads/shapes').GlyphLabel;
 var Line=require('pads/shapes').Line;
 var LineEventHandle=require('core/events').LineEventHandle;
 var SolidRegionEventHandle=require('pads/events').SolidRegionEventHandle;
+var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').DefaultLineBendingProcessor;
 var FootprintContextMenu=require('pads/popup/footprintpopup').FootprintContextMenu;
 var GlyphManager=require('core/text/d2glyph').GlyphManager;
 var d2=require('d2/d2');
@@ -143,6 +144,7 @@ class FootprintComponent extends UnitComponent{
 	this.eventMgr=new FootprintEventMgr(this); 
 	this.model=new FootprintContainer();
 	this.popup=new FootprintContextMenu(this,popup);
+	this.lineBendingProcessor=new DefaultLineBendingProcessor();  
 	  
 }
 setMode(_mode){

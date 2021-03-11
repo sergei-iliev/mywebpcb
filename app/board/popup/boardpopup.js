@@ -79,15 +79,15 @@ registerBlockPopup(target,event){
 	    this.setContent(items,{target:target});	
 		this.open(event);		
 }
-//registerLinePopup(target,event){
-//	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
-//	    items+="<tr id='deletelastpointid' ><td style='padding: 0.4em;'>Delete Last Point</td></tr>";
-//	    items+="<tr id='deletelineid'><td style='padding: 0.4em;'>Delete Line</td></tr>";	  
-//	    items+="<tr id='cancelid'><td style='padding: 0.4em;'>Cancel</td></tr>";	    	    	
-//	    items+="</table></div>";
-//	    this.setContent(items,{target:target});	
-//	    this.open(event);	  	
-//}
+registerLinePopup(target,event){
+	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
+	    items+="<tr id='deletelastpointid' ><td style='padding: 0.4em;'>Delete Last Point</td></tr>";
+	    items+="<tr id='deletelineid'><td style='padding: 0.4em;'>Delete Line</td></tr>";	  
+	    items+="<tr id='cancelid'><td style='padding: 0.4em;'>Cancel</td></tr>";	    	    	
+	    items+="</table></div>";
+	    this.setContent(items,{target:target});	
+	    this.open(event);	  	
+}
 
 
 actionPerformed(id,context){
@@ -96,7 +96,7 @@ actionPerformed(id,context){
 	   this.component.repaint();
 	   return;
    }	
-   if (id=="resumeid") {
+   if (id=="resumeid") {	
         if(context.target instanceof PCBTrack){                
             this.component.getView().setButtonGroup(core.ModeEnum.TRACK_MODE);
             this.component.setMode(core.ModeEnum.TRACK_MODE);

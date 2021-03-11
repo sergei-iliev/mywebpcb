@@ -221,6 +221,18 @@ var ToggleButtonView=Backbone.View.extend({
      	     model.attributes.active=true;
     		 this.update();
          }
+         if(requestedMode==core.ModeEnum.WIRE_MODE){
+        	 var model=this.collection.get('wireid');
+        	 this.togglegroup(model.attributes.group);
+     	     model.attributes.active=true;
+    		 this.update();          
+         }
+         if(requestedMode==core.ModeEnum.BUS_MODE){
+        	 var model=this.collection.get('busid');
+        	 this.togglegroup(model.attributes.group);
+     	     model.attributes.active=true;
+    		 this.update();          
+         }
 
 }
 });

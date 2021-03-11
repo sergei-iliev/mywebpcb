@@ -979,14 +979,14 @@ getOrderWeight() {
 	return 2;
 }
 paint(g2, viewportWindow, scale,layersmask) {		
-    if((this.copper.getLayerMaskID()&layersmask)==0){
-        return;
-    }	
-		var rect = this.polyline.box;
-		rect.scale(scale.getScale());		
-		if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
-			return;
-		}
+       if((this.copper.getLayerMaskID()&layersmask)==0){
+         return;
+       }	
+	   var rect = this.polyline.box;
+	   rect.scale(scale.getScale());		
+	   if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
+		return;
+	   }
 				
 		g2.globalCompositeOperation = 'lighter';
 		g2.lineCap = 'round';
@@ -1002,18 +1002,20 @@ paint(g2, viewportWindow, scale,layersmask) {
 			g2.strokeStyle = this.copper.getColor();
 
 		let a=this.polyline.clone();
+		if (this.isFloating()) {                                                    
+            if(this.resumeState==ResumeState.ADD_AT_FRONT){                
+                let p = this.floatingEndPoint.clone();
+                a.points.unshift(p);               
+            }else{		                            
+                let p = this.floatingEndPoint.clone();
+                a.add(p);    
+            }
+		} 	
+		
 		a.scale(scale.getScale());
 		a.move( - viewportWindow.x, - viewportWindow.y);		
 		a.paint(g2);
 		
-		// draw floating point
-		if (this.isFloating()) {
-				let p = this.floatingEndPoint.clone();
-				p.scale(scale.getScale());
-				p.move( - viewportWindow.x, - viewportWindow.y);
-					g2.lineTo(p.x, p.y);									
-					g2.stroke();					
-		}
 		
 		g2.globalCompositeOperation = 'source-over';
 		if (this.selection&&this.isControlPointVisible) {

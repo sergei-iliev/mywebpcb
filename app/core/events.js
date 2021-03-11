@@ -1,4 +1,5 @@
 var core = require('core/core');
+var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').DefaultLineBendingProcessor;
 var d2=require('d2/d2');
 
 Event={
@@ -335,73 +336,10 @@ class CursorEventHandle extends EventHandle{
 class LineEventHandle extends EventHandle{
 	constructor(component) {
 			 super(component);
-//			 (function(that){
-//				   //private
-//				   var line=null;
-//				    /*
-//				     * Wiring rule-> discard point if overlaps with last line point
-//				     */
-//				    function isOverlappedPoint( line, pointToAdd){
-//				        if(line.polyline.points.length>0){
-//				          let lastPoint=line.polyline.points[line.polyline.points.length-1]; 
-//				            //***is this the same point as last one?   
-//				          if(pointToAdd.equals(lastPoint))
-//				            return true;    
-//				        }
-//				        return false;
-//				    }
-//				    /*
-//				     * Wiring rule -> if the point is on a line with previous,shift the previous the the new one,
-//				     *                 without adding the point
-//				     */
-//				   function isPointOnLine(line,pointToAdd){
-//				         if(line.polyline.points.length>=2){
-//				             let lastPoint=line.polyline.points[line.polyline.points.length-1];  
-//				             let lastlastPoint=line.polyline.points[line.polyline.points.length-2]; 
-//				            
-//				            //***check if point to add overlaps last last point
-//				            if(lastlastPoint.equals(pointToAdd)){
-//				              line.deleteLastPoint();
-//				              lastPoint.setLocation(pointToAdd);  
-//				              return true;
-//				            }
-//				            if((lastPoint.x==pointToAdd.x&&lastlastPoint.x==pointToAdd.x)||(lastPoint.y==pointToAdd.y&&lastlastPoint.y==pointToAdd.y)){                  
-//				                lastPoint.setLocation(pointToAdd);                           
-//				                return true;
-//				            }                    
-//				         }
-//				        return false;
-//				    };
-//			       that.lineBendingProcessor={
-//				  
-//			       Initialize:function(_line){
-//					  line=_line; 
-//				   },
-//				   addLinePoint:function(p){				  
-//					        let result=false;
-//					        if(!isOverlappedPoint(line,p)){
-//					            if(!isPointOnLine(line,p)){
-//					                line.polyline.add(p);   
-//					                result=true;
-//					            }               
-//					        }         
-//					        line.reset(p); 
-//					        return result;
-//				   },
-//				   Release:function(){
-//				          line.reset(); 
-//				          if(line.polyline.points.length<2){
-//				                line.owningUnit.remove(line.getUUID());                
-//				          }
-//				 
-//				   }
-//				   
-//				};
-//				
-//			 })(this);
-		 }
+    }
 	attach() {        
 	    super.attach();
+	    this.component.lineBendingProcessor=new DefaultLineBendingProcessor(); 
 	    this.component.lineBendingProcessor.initialize(this.target);
 	}	
 	mousePressed(event){
