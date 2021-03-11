@@ -335,135 +335,133 @@ class CursorEventHandle extends EventHandle{
 class LineEventHandle extends EventHandle{
 	constructor(component) {
 			 super(component);
-			 (function(that){
-				   //private
-				   var line=null;
-				    /*
-				     * Wiring rule-> discard point if overlaps with last line point
-				     */
-				    function isOverlappedPoint( line, pointToAdd){
-				        if(line.polyline.points.length>0){
-				          let lastPoint=line.polyline.points[line.polyline.points.length-1]; 
-				            //***is this the same point as last one?   
-				          if(pointToAdd.equals(lastPoint))
-				            return true;    
-				        }
-				        return false;
-				    }
-				    /*
-				     * Wiring rule -> if the point is on a line with previous,shift the previous the the new one,
-				     *                 without adding the point
-				     */
-				   function isPointOnLine(line,pointToAdd){
-				         if(line.polyline.points.length>=2){
-				             let lastPoint=line.polyline.points[line.polyline.points.length-1];  
-				             let lastlastPoint=line.polyline.points[line.polyline.points.length-2]; 
-				            
-				            //***check if point to add overlaps last last point
-				            if(lastlastPoint.equals(pointToAdd)){
-				              line.deleteLastPoint();
-				              lastPoint.setLocation(pointToAdd);  
-				              return true;
-				            }
-				            if((lastPoint.x==pointToAdd.x&&lastlastPoint.x==pointToAdd.x)||(lastPoint.y==pointToAdd.y&&lastlastPoint.y==pointToAdd.y)){                  
-				                lastPoint.setLocation(pointToAdd);                           
-				                return true;
-				            }                    
-				         }
-				        return false;
-				    };
-			       that.lineBendingProcessor={
-				  
-			       Initialize:function(_line){
-					  line=_line; 
-				   },
-				   addLinePoint:function(p){				  
-					        let result=false;
-					        if(!isOverlappedPoint(line,p)){
-					            if(!isPointOnLine(line,p)){
-					                line.polyline.add(p);   
-					                result=true;
-					            }               
-					        }         
-					        line.reset(p); 
-					        return result;
-				   },
-				   Release:function(){
-				          line.reset(); 
-				          if(line.polyline.points.length<2){
-				                line.owningUnit.remove(line.getUUID());                
-				          }
-				 
-				   }
-				   
-				};
-				
-			 })(this);
+//			 (function(that){
+//				   //private
+//				   var line=null;
+//				    /*
+//				     * Wiring rule-> discard point if overlaps with last line point
+//				     */
+//				    function isOverlappedPoint( line, pointToAdd){
+//				        if(line.polyline.points.length>0){
+//				          let lastPoint=line.polyline.points[line.polyline.points.length-1]; 
+//				            //***is this the same point as last one?   
+//				          if(pointToAdd.equals(lastPoint))
+//				            return true;    
+//				        }
+//				        return false;
+//				    }
+//				    /*
+//				     * Wiring rule -> if the point is on a line with previous,shift the previous the the new one,
+//				     *                 without adding the point
+//				     */
+//				   function isPointOnLine(line,pointToAdd){
+//				         if(line.polyline.points.length>=2){
+//				             let lastPoint=line.polyline.points[line.polyline.points.length-1];  
+//				             let lastlastPoint=line.polyline.points[line.polyline.points.length-2]; 
+//				            
+//				            //***check if point to add overlaps last last point
+//				            if(lastlastPoint.equals(pointToAdd)){
+//				              line.deleteLastPoint();
+//				              lastPoint.setLocation(pointToAdd);  
+//				              return true;
+//				            }
+//				            if((lastPoint.x==pointToAdd.x&&lastlastPoint.x==pointToAdd.x)||(lastPoint.y==pointToAdd.y&&lastlastPoint.y==pointToAdd.y)){                  
+//				                lastPoint.setLocation(pointToAdd);                           
+//				                return true;
+//				            }                    
+//				         }
+//				        return false;
+//				    };
+//			       that.lineBendingProcessor={
+//				  
+//			       Initialize:function(_line){
+//					  line=_line; 
+//				   },
+//				   addLinePoint:function(p){				  
+//					        let result=false;
+//					        if(!isOverlappedPoint(line,p)){
+//					            if(!isPointOnLine(line,p)){
+//					                line.polyline.add(p);   
+//					                result=true;
+//					            }               
+//					        }         
+//					        line.reset(p); 
+//					        return result;
+//				   },
+//				   Release:function(){
+//				          line.reset(); 
+//				          if(line.polyline.points.length<2){
+//				                line.owningUnit.remove(line.getUUID());                
+//				          }
+//				 
+//				   }
+//				   
+//				};
+//				
+//			 })(this);
 		 }
+	attach() {        
+	    super.attach();
+	    this.component.lineBendingProcessor.initialize(this.target);
+	}	
 	mousePressed(event){
 		this.component.popup.close();
 		
-		if(super.isRightMouseButton(event)){
-		  //if(this.target.points.length<2){		 
-		  //   this.component.getModel().getUnit().remove(this.target.getUUID());                
-		  //   this.target=null;
-		  //}		
-		  //this.component.setMode(core.ModeEnum.LINE_MODE);
-		  //this.component.repaint();	
+		if(super.isRightMouseButton(event)){	
 		   this.component.popup.registerLinePopup(this.target,event);
-		  	
-			
 		   return; 
 		}
 		
-		this.component.getModel().getUnit().setSelected(false);
-		this.lineBendingProcessor.Initialize(this.target);
+		this.component.getModel().getUnit().setSelected(false);		
 		this.target.setSelected(true);
 		
-	    this.target.setResizingPoint(new d2.Point(event.x,event.y));
-	    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
-		
-	    if(this.component.getParameter("snaptogrid")){
-	    	let p=this.component.getModel().getUnit().getGrid().positionOnGrid(event.x,event.y); 
-	    	this.lineBendingProcessor.addLinePoint(p);	
+	    let p;      
+	    if(this.component.getParameter("snaptogrid")){        
+	        p=this.component.getModel().getUnit().getGrid().positionOnGrid(event.x,event.y);  
+	        this.component.lineBendingProcessor.isGridAlignable=true;
 	    }else{
-	       this.lineBendingProcessor.addLinePoint(new d2.Point(event.x,event.y));
+	    	p=new d2.Point(event.x,event.y);
+	        this.component.lineBendingProcessor.isGridAlignable=false;
 	    }
-		this.component.repaint();	 
-	   }
-	 mouseReleased(event){
+	    
+	    //this.component.getModel().getUnit().fireShapeEvent(new ShapeEvent(this.target, ShapeEvent.PROPERTY_CHANGE)); 
+	    
+	    let justcreated=this.target.getLinePoints().length==1; 
+	        
+	    if(this.component.lineBendingProcessor.addLinePoint(p)){
+	        if(justcreated){
+	            //getComponent().getModel().getUnit().registerMemento(getTarget().getState(MementoType.CREATE_MEMENTO));   
+	            //getComponent().getModel().getUnit().registerMemento(getTarget().getState(MementoType.MOVE_MEMENTO));    
+	        }
+	        if(this.target.getLinePoints().length>=2){
+	           //this.component.getModel().getUnit().registerMemento(getTarget().getState(MementoType.MOVE_MEMENTO));    
+	        }            
+	    }
+	    this.component.repaint();  
+}
+mouseReleased(event){
 
 	   }
-	 mouseDragged(event){
+mouseDragged(event){
 	   }
-	 mouseMove(event){
-		 this.target.floatingEndPoint.set(event.x,event.y); 
-		 this.target.floatingMidPoint.set(event.x,event.y);
-		 this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
-		 this.component.repaint(); 
+mouseMove(event){
+	this.component.lineBendingProcessor.moveLinePoint(event.x,event.y);    
+	this.component.repaint();  
 	   }
-	 dblClick(){
-	     this.target.reset();  
-	     this.target.setSelected(false);
-	     this.component.getEventMgr().resetEventHandle();
-	     this.component.repaint();	 
-		 } 
-	// keyPressed(event){
-//		 if(event.keyCode==27){   //ESCAPE
-//	       console.log(33);      
-//				 //this.dblClick(null);
-//			   //this.component.getView().setButtonGroup(ModeEnum.COMPONENT_MODE);
-//		       //this.component.setMode(ModeEnum.COMPONENT_MODE);  
-//	     }   
-	// }
-	 detach(){
-		 if(this.target!=null){
-			 this.lineBendingProcessor.Release();
-		     this.target.reset();  
-		 }	     
-		 super.detach();
-	 }    
-	}
+dblClick(){
+	this.target.reset();
+    this.target.setSelected(false);
+    this.component.getEventMgr().resetEventHandle();
+    this.component.repaint();	 
+} 
+detach() {
+    this.target.reset(); 
+    if(this.target.getLinePoints().length<2){
+        this.target.owningUnit.remove(this.target.uuid);
+    }
+    super.detach();
+}   
+}
 class BlockEventHandle extends EventHandle{
 	 constructor(component) {
 		 super(component);

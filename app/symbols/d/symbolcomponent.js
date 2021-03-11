@@ -18,6 +18,7 @@ var SymbolContextMenu=require('symbols/popup/symbolpopup').SymbolContextMenu;
 var SymbolShapeFactory=require('symbols/shapes').SymbolShapeFactory;
 var SymbolEventMgr = require('symbols/events').SymbolEventMgr;
 var LineEventHandle=require('core/events').LineEventHandle;
+var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').DefaultLineBendingProcessor;
 var d2=require('d2/d2');
 var utilities=require('core/utilities');
 
@@ -198,6 +199,7 @@ class SymbolComponent extends UnitComponent{
 	this.model=new SymbolContainer();
 	this.popup=new SymbolContextMenu(this,popup);
 	this.backgroundColor='white';  
+	this.lineBendingProcessor=new DefaultLineBendingProcessor();  
 }
 setMode(_mode){
 	this.mode=_mode;

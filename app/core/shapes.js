@@ -304,16 +304,7 @@ reset(...args) {
 	this.floatingEndPoint.set(args[0]);
    }
 }
-//reset() {
-//	this.resetToPoint(this.floatingStartPoint);
-//}
-//reverse(x,y) {
-//    let p=this.isBendingPointClicked(x, y);
-//    if (this.polyline.points[0].x == p.x &&
-//        this.polyline.points[0].y == p.y) {
-//    	this.polyline.points.reverse(); 
-//    }       
-//}
+
 Resize(xoffset, yoffset, clickedPoint) {
 	clickedPoint.set(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);
@@ -403,18 +394,18 @@ removePoint(x, y) {
     }
 }
 deleteLastPoint() {
-	if (this.points.length == 0)
+	if (this.polyline.points.length == 0)
 		return;
 
     if(this.resumeState==ResumeState.ADD_AT_FRONT){
-        polyline.points.shift();
+        this.polyline.points.shift();
     }else{   
-        polyline.points.pop();
+        this.polyline.points.pop();
     }	
 	// ***reset floating start point
-	if (this.points.length > 0)
+	if (this.polyline.points.length > 0)
 					this.floatingStartPoint
-									.setLocation(this.points[this.points.length - 1]);    
+									.set(this.polyline.points[this.polyline.points.length - 1]);    
 }
 isEndPoint(x,y){
     if (this.polyline.points.length< 2) {

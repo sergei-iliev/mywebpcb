@@ -116,7 +116,7 @@ actionPerformed(id,context){
         let line=context.target;
         line.deleteLastPoint();
 
-        if (line.points.length == 1) {
+        if (line.polyline.points.length == 1) {
             //getUnitComponent().getModel().getUnit().registerMemento(getTarget().getState(MementoType.DELETE_MEMENTO));
             this.component.getEventMgr().resetEventHandle();
             this.component.getModel().getUnit().remove(line.uuid);

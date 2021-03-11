@@ -94,18 +94,22 @@ paint(g2, viewportWindow, scale,layersmask) {
 			g2.strokeStyle = this.fillColor;
 		
 		let a=this.polyline.clone();
+		if (this.isFloating()) {                                                    
+		            if(this.resumeState==ResumeState.ADD_AT_FRONT){                
+		                let p = this.floatingEndPoint.clone();
+		                a.points.unshift(p);               
+		            }else{		                            
+		                let p = this.floatingEndPoint.clone();
+		                a.add(p);    
+		            }
+	   } 		
+		
+		
+		
 		a.scale(scale.getScale());
 		a.move( - viewportWindow.x, - viewportWindow.y);		
 		a.paint(g2);
 		
-		// draw floating point
-		if (this.isFloating()) {
-				let p = this.floatingEndPoint.clone();
-				p.scale(scale.getScale());
-				p.move( - viewportWindow.x, - viewportWindow.y);
-					g2.lineTo(p.x, p.y);									
-					g2.stroke();					
-		}
 		
 		if (this.selection&&this.isControlPointVisible) {
 			this.drawControlPoints(g2, viewportWindow, scale);
