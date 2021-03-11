@@ -1117,15 +1117,15 @@ registerBlockPopup(target,event){
 	    this.setContent(items,{target:target});	
 		this.open(event);		
 }
-//registerLinePopup(target,event){
-//	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
-//	    items+="<tr id='deletelastpointid' ><td style='padding: 0.4em;'>Delete Last Point</td></tr>";
-//	    items+="<tr id='deletelineid'><td style='padding: 0.4em;'>Delete Line</td></tr>";	  
-//	    items+="<tr id='cancelid'><td style='padding: 0.4em;'>Cancel</td></tr>";	    	    	
-//	    items+="</table></div>";
-//	    this.setContent(items,{target:target});	
-//	    this.open(event);	  	
-//}
+registerLinePopup(target,event){
+	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
+	    items+="<tr id='deletelastpointid' ><td style='padding: 0.4em;'>Delete Last Point</td></tr>";
+	    items+="<tr id='deletelineid'><td style='padding: 0.4em;'>Delete Line</td></tr>";	  
+	    items+="<tr id='cancelid'><td style='padding: 0.4em;'>Cancel</td></tr>";	    	    	
+	    items+="</table></div>";
+	    this.setContent(items,{target:target});	
+	    this.open(event);	  	
+}
 
 
 actionPerformed(id,context){
@@ -1134,7 +1134,7 @@ actionPerformed(id,context){
 	   this.component.repaint();
 	   return;
    }	
-   if (id=="resumeid") {
+   if (id=="resumeid") {	
         if(context.target instanceof PCBTrack){                
             this.component.getView().setButtonGroup(core.ModeEnum.TRACK_MODE);
             this.component.setMode(core.ModeEnum.TRACK_MODE);
@@ -4252,6 +4252,19 @@ var ToggleButtonView=Backbone.View.extend({
      	     model.attributes.active=true;
     		 this.update();
          }
+         if(requestedMode==core.ModeEnum.LINE_MODE){
+        	 var model=this.collection.get('lineid');
+        	 this.togglegroup(model.attributes.group);
+     	     model.attributes.active=true;
+    		 this.update();          
+         }
+         if(requestedMode==core.ModeEnum.TRACK_MODE){
+        	 var model=this.collection.get('trackid');
+        	 this.togglegroup(model.attributes.group);
+     	     model.attributes.active=true;
+    		 this.update();          
+         }
+         
 
 }
 });
@@ -5164,6 +5177,7 @@ var font = require('core/text/d2font');
 
 require.register("core/events.js", function(exports, require, module) {
 var core = require('core/core');
+var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').DefaultLineBendingProcessor;
 var d2=require('d2/d2');
 
 Event={
@@ -5500,135 +5514,70 @@ class CursorEventHandle extends EventHandle{
 class LineEventHandle extends EventHandle{
 	constructor(component) {
 			 super(component);
-			 (function(that){
-				   //private
-				   var line=null;
-				    /*
-				     * Wiring rule-> discard point if overlaps with last line point
-				     */
-				    function isOverlappedPoint( line, pointToAdd){
-				        if(line.polyline.points.length>0){
-				          let lastPoint=line.polyline.points[line.polyline.points.length-1]; 
-				            //***is this the same point as last one?   
-				          if(pointToAdd.equals(lastPoint))
-				            return true;    
-				        }
-				        return false;
-				    }
-				    /*
-				     * Wiring rule -> if the point is on a line with previous,shift the previous the the new one,
-				     *                 without adding the point
-				     */
-				   function isPointOnLine(line,pointToAdd){
-				         if(line.polyline.points.length>=2){
-				             let lastPoint=line.polyline.points[line.polyline.points.length-1];  
-				             let lastlastPoint=line.polyline.points[line.polyline.points.length-2]; 
-				            
-				            //***check if point to add overlaps last last point
-				            if(lastlastPoint.equals(pointToAdd)){
-				              line.deleteLastPoint();
-				              lastPoint.setLocation(pointToAdd);  
-				              return true;
-				            }
-				            if((lastPoint.x==pointToAdd.x&&lastlastPoint.x==pointToAdd.x)||(lastPoint.y==pointToAdd.y&&lastlastPoint.y==pointToAdd.y)){                  
-				                lastPoint.setLocation(pointToAdd);                           
-				                return true;
-				            }                    
-				         }
-				        return false;
-				    };
-			       that.lineBendingProcessor={
-				  
-			       Initialize:function(_line){
-					  line=_line; 
-				   },
-				   addLinePoint:function(p){				  
-					        let result=false;
-					        if(!isOverlappedPoint(line,p)){
-					            if(!isPointOnLine(line,p)){
-					                line.polyline.add(p);   
-					                result=true;
-					            }               
-					        }         
-					        line.reset(p); 
-					        return result;
-				   },
-				   Release:function(){
-				          line.reset(); 
-				          if(line.polyline.points.length<2){
-				                line.owningUnit.remove(line.getUUID());                
-				          }
-				 
-				   }
-				   
-				};
-				
-			 })(this);
-		 }
+    }
+	attach() {        
+	    super.attach();
+	    this.component.lineBendingProcessor=new DefaultLineBendingProcessor(); 
+	    this.component.lineBendingProcessor.initialize(this.target);
+	}	
 	mousePressed(event){
 		this.component.popup.close();
 		
-		if(super.isRightMouseButton(event)){
-		  //if(this.target.points.length<2){		 
-		  //   this.component.getModel().getUnit().remove(this.target.getUUID());                
-		  //   this.target=null;
-		  //}		
-		  //this.component.setMode(core.ModeEnum.LINE_MODE);
-		  //this.component.repaint();	
+		if(super.isRightMouseButton(event)){	
 		   this.component.popup.registerLinePopup(this.target,event);
-		  	
-			
 		   return; 
 		}
 		
-		this.component.getModel().getUnit().setSelected(false);
-		this.lineBendingProcessor.Initialize(this.target);
+		this.component.getModel().getUnit().setSelected(false);		
 		this.target.setSelected(true);
 		
-	    this.target.setResizingPoint(new d2.Point(event.x,event.y));
-	    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
-		
-	    if(this.component.getParameter("snaptogrid")){
-	    	let p=this.component.getModel().getUnit().getGrid().positionOnGrid(event.x,event.y); 
-	    	this.lineBendingProcessor.addLinePoint(p);	
+	    let p;      
+	    if(this.component.getParameter("snaptogrid")){        
+	        p=this.component.getModel().getUnit().getGrid().positionOnGrid(event.x,event.y);  
+	        this.component.lineBendingProcessor.isGridAlignable=true;
 	    }else{
-	       this.lineBendingProcessor.addLinePoint(new d2.Point(event.x,event.y));
+	    	p=new d2.Point(event.x,event.y);
+	        this.component.lineBendingProcessor.isGridAlignable=false;
 	    }
-		this.component.repaint();	 
-	   }
-	 mouseReleased(event){
+	    
+	    //this.component.getModel().getUnit().fireShapeEvent(new ShapeEvent(this.target, ShapeEvent.PROPERTY_CHANGE)); 
+	    
+	    let justcreated=this.target.getLinePoints().length==1; 
+	        
+	    if(this.component.lineBendingProcessor.addLinePoint(p)){
+	        if(justcreated){
+	            //getComponent().getModel().getUnit().registerMemento(getTarget().getState(MementoType.CREATE_MEMENTO));   
+	            //getComponent().getModel().getUnit().registerMemento(getTarget().getState(MementoType.MOVE_MEMENTO));    
+	        }
+	        if(this.target.getLinePoints().length>=2){
+	           //this.component.getModel().getUnit().registerMemento(getTarget().getState(MementoType.MOVE_MEMENTO));    
+	        }            
+	    }
+	    this.component.repaint();  
+}
+mouseReleased(event){
 
 	   }
-	 mouseDragged(event){
+mouseDragged(event){
 	   }
-	 mouseMove(event){
-		 this.target.floatingEndPoint.set(event.x,event.y); 
-		 this.target.floatingMidPoint.set(event.x,event.y);
-		 this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
-		 this.component.repaint(); 
+mouseMove(event){
+	this.component.lineBendingProcessor.moveLinePoint(event.x,event.y);    
+	this.component.repaint();  
 	   }
-	 dblClick(){
-	     this.target.reset();  
-	     this.target.setSelected(false);
-	     this.component.getEventMgr().resetEventHandle();
-	     this.component.repaint();	 
-		 } 
-	// keyPressed(event){
-//		 if(event.keyCode==27){   //ESCAPE
-//	       console.log(33);      
-//				 //this.dblClick(null);
-//			   //this.component.getView().setButtonGroup(ModeEnum.COMPONENT_MODE);
-//		       //this.component.setMode(ModeEnum.COMPONENT_MODE);  
-//	     }   
-	// }
-	 detach(){
-		 if(this.target!=null){
-			 this.lineBendingProcessor.Release();
-		     this.target.reset();  
-		 }	     
-		 super.detach();
-	 }    
-	}
+dblClick(){
+	this.target.reset();
+    this.target.setSelected(false);
+    this.component.getEventMgr().resetEventHandle();
+    this.component.repaint();	 
+} 
+detach() {
+    this.target.reset(); 
+    if(this.target.getLinePoints().length<2){
+        this.target.owningUnit.remove(this.target.uuid);
+    }
+    super.detach();
+}   
+}
 class BlockEventHandle extends EventHandle{
 	 constructor(component) {
 		 super(component);
@@ -6327,7 +6276,7 @@ actionPerformed(id,context){
         let line=context.target;
         line.deleteLastPoint();
 
-        if (line.points.length == 1) {
+        if (line.polyline.points.length == 1) {
             //getUnitComponent().getModel().getUnit().registerMemento(getTarget().getState(MementoType.DELETE_MEMENTO));
             this.component.getEventMgr().resetEventHandle();
             this.component.getModel().getUnit().remove(line.uuid);
@@ -6754,16 +6703,7 @@ reset(...args) {
 	this.floatingEndPoint.set(args[0]);
    }
 }
-//reset() {
-//	this.resetToPoint(this.floatingStartPoint);
-//}
-//reverse(x,y) {
-//    let p=this.isBendingPointClicked(x, y);
-//    if (this.polyline.points[0].x == p.x &&
-//        this.polyline.points[0].y == p.y) {
-//    	this.polyline.points.reverse(); 
-//    }       
-//}
+
 Resize(xoffset, yoffset, clickedPoint) {
 	clickedPoint.set(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);
@@ -6853,18 +6793,18 @@ removePoint(x, y) {
     }
 }
 deleteLastPoint() {
-	if (this.points.length == 0)
+	if (this.polyline.points.length == 0)
 		return;
 
     if(this.resumeState==ResumeState.ADD_AT_FRONT){
-        polyline.points.shift();
+        this.polyline.points.shift();
     }else{   
-        polyline.points.pop();
+        this.polyline.points.pop();
     }	
 	// ***reset floating start point
-	if (this.points.length > 0)
+	if (this.polyline.points.length > 0)
 					this.floatingStartPoint
-									.setLocation(this.points[this.points.length - 1]);    
+									.set(this.polyline.points[this.polyline.points.length - 1]);    
 }
 isEndPoint(x,y){
     if (this.polyline.points.length< 2) {
@@ -12190,6 +12130,7 @@ var GlyphLabel=require('pads/shapes').GlyphLabel;
 var Line=require('pads/shapes').Line;
 var LineEventHandle=require('core/events').LineEventHandle;
 var SolidRegionEventHandle=require('pads/events').SolidRegionEventHandle;
+var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').DefaultLineBendingProcessor;
 var FootprintContextMenu=require('pads/popup/footprintpopup').FootprintContextMenu;
 var GlyphManager=require('core/text/d2glyph').GlyphManager;
 var d2=require('d2/d2');
@@ -12316,6 +12257,7 @@ class FootprintComponent extends UnitComponent{
 	this.eventMgr=new FootprintEventMgr(this); 
 	this.model=new FootprintContainer();
 	this.popup=new FootprintContextMenu(this,popup);
+	this.lineBendingProcessor=new DefaultLineBendingProcessor();  
 	  
 }
 setMode(_mode){
@@ -13834,14 +13776,14 @@ getOrderWeight() {
 	return 2;
 }
 paint(g2, viewportWindow, scale,layersmask) {		
-    if((this.copper.getLayerMaskID()&layersmask)==0){
-        return;
-    }	
-		var rect = this.polyline.box;
-		rect.scale(scale.getScale());		
-		if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
-			return;
-		}
+       if((this.copper.getLayerMaskID()&layersmask)==0){
+         return;
+       }	
+	   var rect = this.polyline.box;
+	   rect.scale(scale.getScale());		
+	   if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
+		return;
+	   }
 				
 		g2.globalCompositeOperation = 'lighter';
 		g2.lineCap = 'round';
@@ -13857,18 +13799,20 @@ paint(g2, viewportWindow, scale,layersmask) {
 			g2.strokeStyle = this.copper.getColor();
 
 		let a=this.polyline.clone();
+		if (this.isFloating()) {                                                    
+            if(this.resumeState==ResumeState.ADD_AT_FRONT){                
+                let p = this.floatingEndPoint.clone();
+                a.points.unshift(p);               
+            }else{		                            
+                let p = this.floatingEndPoint.clone();
+                a.add(p);    
+            }
+		} 	
+		
 		a.scale(scale.getScale());
 		a.move( - viewportWindow.x, - viewportWindow.y);		
 		a.paint(g2);
 		
-		// draw floating point
-		if (this.isFloating()) {
-				let p = this.floatingEndPoint.clone();
-				p.scale(scale.getScale());
-				p.move( - viewportWindow.x, - viewportWindow.y);
-					g2.lineTo(p.x, p.y);									
-					g2.stroke();					
-		}
 		
 		g2.globalCompositeOperation = 'source-over';
 		if (this.selection&&this.isControlPointVisible) {
