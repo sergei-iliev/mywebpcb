@@ -193,6 +193,7 @@ var CircuitComponent=require('circuit/d/circuitcomponent').CircuitComponent;
 			 new togglebutton.ToggleButtonModel({id:'loadsymbolid'}),
 			 new togglebutton.ToggleButtonModel({id:'connectorid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'noconnectorid',group:'lefttogglegroup'}),
+			 new togglebutton.ToggleButtonModel({id:'netlabelid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'wireid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'busid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'buspinid',group:'lefttogglegroup'}),
@@ -309,6 +310,7 @@ var SCHFontLabel=require('circuit/shapes').SCHFontLabel;
 var SCHJunction=require('circuit/shapes').SCHJunction;
 var SCHBusPin=require('circuit/shapes').SCHBusPin;
 var SCHConnector=require('circuit/shapes').SCHConnector;
+var SCHNetLabel=require('circuit/shapes').SCHNetLabel;
 var SCHNoConnector=require('circuit/shapes').SCHNoConnector;
 var CircuitShapeFactory=require('circuit/shapes').CircuitShapeFactory;
 var HorizontalToVerticalProcessor=require('core/line/linebendingprocessor').HorizontalToVerticalProcessor;
@@ -500,6 +502,13 @@ class Circuit extends Unit{
 	   			that.add(shape);
 	   		} 	   	   
 	   	   	  
+	   	});	
+	   	j$(data).find('netlabels').children().each(function(){
+	   		var shape=that.shapeFactory.createShape(this); 
+	   		if(shape!=null){
+	   			that.add(shape);
+	   		} 	   	   
+	   	   	  
 	   	});		   	
 	}	
 	
@@ -566,6 +575,11 @@ class CircuitComponent extends UnitComponent{
 	          this.setContainerCursor(shape);               
 	          this.getEventMgr().setEventHandle("cursor",shape); 
 	        break;
+	      case  core.ModeEnum.NETLABEL_MODE:
+	    	  shape=new SCHNetLabel();	          
+	          this.setContainerCursor(shape);               
+	          this.getEventMgr().setEventHandle("cursor",shape); 
+	        break;	        
 	      case  core.ModeEnum.CONNECTOR_MODE:
 	          shape=new SCHConnector();
 	          this.setContainerCursor(shape);               
@@ -1057,6 +1071,11 @@ class CircuitShapeFactory{
 				var symbol = new SCHConnector();
 				symbol.fromXML(data);
 				return symbol;
+			}	
+			if (data.tagName.toLowerCase() == 'netlabel') {
+				var symbol = new SCHNetLabel();
+				symbol.fromXML(data);
+				return symbol;
 			}			
 			return null;
 		}
@@ -1478,21 +1497,14 @@ class SCHBusPin extends AbstractLine{
 	move(xoffset,yoffset){
 		   super.move(xoffset,yoffset);
 		   this.texture.move(xoffset,yoffset);
-	}	
+	}
+	mirror(line){
+		super.mirror(line);
+		this.texture.setMirror(line);
+	}
 	rotate(rotation){
-		super.rotate(rotation);
-	 	let oldorientation=TextAlignment.getOrientation(this.texture.shape.alignment);	
-	 	this.texture.rotate(rotation);
-		   if(rotation.angle<0){  //clockwise		   
-			   if(oldorientation == TextOrientation.HORIZONTAL){
-				   this.texture.shape.anchorPoint.set(this.texture.shape.anchorPoint.x+(this.texture.shape.metrics.ascent-this.texture.shape.metrics.descent),this.texture.shape.anchorPoint.y);            
-			   }
-		   }else{		    
-			   if(oldorientation == TextOrientation.VERTICAL){
-				   this.texture.shape.anchorPoint.set(this.texture.shape.anchorPoint.x,this.texture.shape.anchorPoint.y+(this.texture.shape.metrics.ascent-this.texture.shape.metrics.descent));	           
-			   }
-		   }			
-		
+		super.rotate(rotation);	
+	 	this.texture.setRotation(rotation);				
 	}
 	Resize(xoffset, yoffset, clickedPoint) {
 		clickedPoint.set(clickedPoint.x + xoffset,
@@ -1687,7 +1699,7 @@ class SCHConnector extends Shape{
 	}	
 	mirror(line){
     	this.segment.mirror(line);
-    	this.texture.mirror(line);
+    	this.texture.setMirror(line);
     	this.shape.calculatePoints();
     }
 	move(xoff,yoff){
@@ -2089,6 +2101,85 @@ class CircleShape{
 				
 	}
 }
+const OFFSET=2;
+class SCHNetLabel extends Shape{
+	constructor(){
+		  super(0, 0, 0, 0, 1,core.Layer.LAYER_ALL);	
+		  this.displayName = "NetLabel";	
+		  this.selectionRectWidth=2;		      
+	      this.texture=new SymbolFontTexture("netLabel","name", -4, 2,0,8);
+	      this.point=new d2.Point(0,0);
+	      this.setTextLocation(); 
+		}
+clone(){
+		   	var copy = new SCHNetLabel();
+			copy.texture=this.texture.clone();
+			copy.point=this.point.clone();
+		    return copy;
+		}
+alignToGrid( isRequired) {        
+    let p=this.owningUnit.getGrid().positionOnGrid(this.point.x,this.point.y);
+    this.move(p.x - this.point.x,p.y - this.point.y);   
+    return null;
+}  
+calculateShape() {        
+    return this.texture.getBoundingShape();
+}
+move( xoffset, yoffset) {
+    this.point.move(xoffset,yoffset);        
+    this.texture.move(xoffset, yoffset);     
+}
+rotate( rotation) {
+    this.point.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+    this.texture.setRotation(rotation);        
+}
+mirror( line) {        
+    this.point.mirror(line);
+    this.texture.setMirror(line);                  
+}
+setAlignment(alignment){
+    this.texture.setAlignment(alignment);            
+    this.setTextLocation();
+}
+setTextLocation(){
+	let orientation=TextAlignment.getOrientation(this.texture.shape.alignment);	
+    if(orientation==TextOrientation.HORIZONTAL){      
+      this.texture.shape.anchorPoint.set(this.point.x+OFFSET,this.point.y-OFFSET);
+    }else{      
+      this.texture.shape.anchorPoint.set(this.point.x-OFFSET,this.point.y-OFFSET);  
+    }
+}
+paint( g2,viewportWindow,  scale, layersmask) {
+  
+              let rect = this.texture.getBoundingShape();
+              rect.scale(scale.getScale());
+              if (!rect.intersects(viewportWindow)) {
+                    return;
+              }
+              this.texture.fillColor=(this.selection?'blue':'black');        
+              this.texture.paint(g2, viewportWindow, scale,layersmask);   
+              
+              if(this.selection){
+            	  g2.fillStyle = "gray";            	  
+                  let c=new d2.Circle(this.point.clone(),this.selectionRectWidth);
+                  c.scale(scale.getScale());
+                  c.move(-viewportWindow.getX() ,- viewportWindow.getY());        
+                  g2._fill=true;
+                  c.paint(g2); 
+                  g2._fill=false;
+              }
+                
+                
+}
+toXML(){	
+    return "<netlabel x=\""+utilities.roundDouble(this.point.x,1)+"\" y=\""+utilities.roundDouble(this.point.y,1)+"\" >"+this.texture.toXML()+"</netlabel>\r\n"        
+}
+fromXML(data){		
+	this.point.set(parseFloat(j$(data).attr("x")),parseFloat(j$(data).attr("y")));
+	this.texture.fromXML(j$(data).textContent);
+	this.setTextLocation();
+}
+}
 class SCHJunction extends Shape{
 	constructor(){
 	  super(0, 0, 0, 0, 1,core.Layer.LAYER_ALL);	
@@ -2228,6 +2319,7 @@ fromXML(data){
 }
 module.exports ={
 		SCHSymbol,
+		SCHNetLabel,
 		SCHWire,
 		SCHBus,
 		SCHBusPin,
@@ -2571,6 +2663,7 @@ var SCHBusPin=require('circuit/shapes').SCHBusPin;
 var SCHWire=require('circuit/shapes').SCHWire;
 var SCHConnector=require('circuit/shapes').SCHConnector;
 var SCHNoConnector=require('circuit/shapes').SCHNoConnector;
+var SCHNetLabel=require('circuit/shapes').SCHNetLabel;
 
 var ComponentPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
@@ -2730,6 +2823,51 @@ var BusPinPanelBuilder=BaseBuilder.extend({
 		return this;
 	}
 });
+var NetLabelPanelBuilder=BaseBuilder.extend({
+	initialize:function(component){
+		NetLabelPanelBuilder.__super__.initialize(component);
+		this.id="netlabelpanelbuilder";  
+    },	
+    events: {               
+        'keypress #netlabelnameid' : 'onenter',
+        'change #alignmentid': 'onchange',        
+    },
+    onchange:function(event){
+        if(event.target.id=='alignmentid'){
+        	this.target.setAlignment(parseInt(j$("#alignmentid").val()));        	
+        }
+        this.component.repaint(); 
+      },    
+    onenter:function(event){
+		 if(event.keyCode != 13){
+				return; 
+		 }
+		 if(event.target.id=='netlabelnameid'){ 
+			 this.target.texture.setText(j$('#netlabelnameid').val()); 
+		 }		 	 
+		 this.component.repaint(); 		 
+    },
+
+	updateui:function(){
+		   var texture=this.target.texture;
+		   j$("#netlabelnameid").val(texture==null?"":texture.shape.text);
+		   j$('#alignmentid').val(this.target.texture.getAlignment()); 
+	},
+	render:function(){
+		j$(this.el).empty();
+		j$(this.el).append(
+				"<table width='100%'>"+			
+				"<tr><td style='padding:7px'>Bus Pin Name</td><td><input type='text' id='netlabelnameid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='width:50%;padding:7px'>Text Alignment</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"alignmentid\">"+
+				this.fillComboBox([{id:0,value:'RIGHT',selected:true},{id:1,value:'TOP',selected:true},{id:2,value:'LEFT',selected:true},{id:3,value:'BOTTOM'}])+
+			    "</select>" +
+				"</td></tr>"+											
+		"</table>");
+			
+		return this;
+	}
+});
 var ConnectorPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
 		ConnectorPanelBuilder.__super__.initialize(component);
@@ -2784,279 +2922,7 @@ var ConnectorPanelBuilder=BaseBuilder.extend({
 		return this;
 	}
 });
-//var RectPanelBuilder=BaseBuilder.extend({
-//	initialize:function(component){
-//		RectPanelBuilder.__super__.initialize(component);
-//		this.id="rectpanelbuilder";
-//		//app.bind('itemlinkimpl:oncklick', $.proxy(this.onitemclick,this));    
-//    },	
-//    events: {
-//        'keypress #xid' : 'onenter',	
-//        'keypress #yid' : 'onenter',
-//        'keypress #thicknessid' : 'onenter',
-//        'keypress #widthid' : 'onenter',
-//        'keypress #heightid' : 'onenter',
-//        'keypress #roundingid' : 'onenter',
-//        'change #fillid': 'onchange',
-//        'change #controllayerid': 'onchange',
-//    },
-//    onchange:function(event){
-//        if(event.target.id=='controllayerid'){
-//        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
-//        }
-//    	if(event.target.id=='fillid'){        
-//        	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
-//        }
-//        this.component.repaint(); 
-//      },    
-//    onenter:function(event){
-//		 if(event.keyCode != 13){
-//				return; 
-//		 }
-//		 if(event.target.id=='thicknessid'){
-//			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
-//		 } 
-//		 if(event.target.id=='xid'){			 
-//	         var x=this.fromUnitX(j$('#xid').val()); 
-//	         this.target.Resize(x-this.target.resizingPoint.x, 0, this.target.resizingPoint);			   
-//		 } 
-//	     if(event.target.id=='yid'){		
-//	         var y=this.fromUnitY(j$('#yid').val()); 
-//	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
-//		 } 	
-//		 if(event.target.id=='roundingid'){
-//			 this.target.setRounding(core.MM_TO_COORD(parseFloat(j$('#roundingid').val())));			 
-//		 }
-//		 this.component.repaint(); 		 
-//    },
-//	updateui:function(){
-//		j$('#controllayerid').val(this.target.copper.getName());
-//        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
-//        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
-//        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
-//        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
-//		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));	
-//		j$("#roundingid").val(core.COORD_TO_MM(this.target.roundRect.rounding));
-//		j$("#fillid").val(this.target.fill);
-//	},
-//	render:function(){
-//		j$(this.el).empty();
-//		j$(this.el).append(
-//				"<table width='100%'>"+
-//				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-//				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
-//				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
-//			    "</select>" +
-//				"</td></tr>"+				
-//				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
-//				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
-//				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
-//				"<tr><td style='padding:7px'>Fill</td><td>" +
-//				"<select class=\"form-control input-sm\" id=\"fillid\">"+
-//				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
-//			    "</select>" +
-//				"</td></tr>"+
-//				"<tr><td style='padding:7px'>Rounding</td><td><input type='text' id='roundingid' value='' class='form-control input-sm\'></td></tr>"+						        
-//		"</table>");
-//			
-//		return this;
-//	}
-//});
-//var SolidRegionPanelBuilder=BaseBuilder.extend({
-//	initialize:function(component){
-//		SolidRegionPanelBuilder.__super__.initialize(component);
-//		this.id="solidregionpanelbuilder";  
-//    },	
-//    events: {
-//        'change #controllayerid':'onchange'
-//    },
-//    onchange:function(event){
-//        if(event.target.id=='controllayerid'){
-//        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
-//        }              
-//        this.component.repaint(); 
-//    }, 
-//	updateui:function(){
-//		
-//	},
-//	render:function(){
-//		j$(this.el).empty();
-//		j$(this.el).append(
-//				"<table width='100%'>"+
-//				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-//				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
-//				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
-//			    "</select>" +
-//				"</td></tr>"+							
-//		"</table>");				
-//			
-//		return this;
-//	}
-//});
-//var ArcPanelBuilder=BaseBuilder.extend({
-//	initialize:function(component){
-//		ArcPanelBuilder.__super__.initialize(component);
-//		this.id="arcpanelbuilder";  
-//    },	
-//    events: {
-//        'keypress #xid' : 'onenter',	
-//        'keypress #yid' : 'onenter',
-//        'keypress #thicknessid' : 'onenter',
-//        'keypress #widthid' : 'onenter',
-//        'keypress #startangleid' : 'onenter',
-//        'keypress #extendangleid' : 'onenter',
-//        'change #fillid': 'onchange', 
-//        'change #controllayerid':'onchange',
-//    },
-//    onchange:function(event){
-//        if(event.target.id=='controllayerid'){
-//        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
-//        }
-//        if(event.target.id=='fillid'){        
-//        	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
-//        }
-//        this.component.repaint(); 
-//    }, 
-//    onenter:function(event){
-//		 if(event.keyCode != 13){
-//				return; 
-//		 }
-//		 if(event.target.id=='thicknessid'){
-//			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
-//		 } 
-//		 if(event.target.id=='widthid'){
-//			   this.target.setRadius(core.MM_TO_COORD(parseFloat(j$('#widthid').val())));			 
-//		 } 
-//		 if(event.target.id=='startangleid'){
-//			   this.target.setStartAngle(j$('#startangleid').val());			 
-//		 } 
-//		 if(event.target.id=='extendangleid'){
-//			   this.target.setExtendAngle(j$('#extendangleid').val());	
-//		 } 	
-//		 this.component.repaint(); 	
-//    },
-//	updateui:function(){
-//		j$('#controllayerid').val(this.target.copper.getName());
-//		j$("#startangleid").val(this.target.arc.startAngle);    
-//		j$("#extendangleid").val(this.target.arc.endAngle);		
-//        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
-//        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
-//        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:(this.target.resizingPoint.x)));
-//        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:(this.target.resizingPoint.y))); 
-//		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
-//		j$("#widthid").val(core.COORD_TO_MM(this.target.arc.r));
-//		j$("#fillid").val(this.target.fill);
-//	},
-//	render:function(){
-//						
-//		j$(this.el).empty();
-//		j$(this.el).append(
-//				"<table width='100%'>"+
-//				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-//				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
-//				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
-//			    "</select>" +
-//				"</td></tr>"+				
-//				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
-//				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
-//				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
-//				"<tr><td style='padding:7px'>Fill</td><td>" +
-//				"<select class=\"form-control input-sm\" id=\"fillid\">"+
-//				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
-//			    "</select>" +
-//				"</td></tr>"+
-//				"<tr><td style='padding:7px'>Radius</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+				
-//				"<tr><td style='padding:7px'>Start&deg</td><td><input type='text' id='startangleid' value='' class='form-control input-sm\'></td></tr>"+	
-//				"<tr><td style='padding:7px'>Extend&deg</td><td><input type='text' id='extendangleid' value='' class='form-control input-sm\'></td></tr>"+
-//		"</table>");
-//		return this;
-//	}
-//});
-//var CopperAreaPanelBuilder=BaseBuilder.extend({
-//	initialize:function(component){
-//		CopperAreaPanelBuilder.__super__.initialize(component);
-//		this.id="copperareapanelbuilder";  
-//    },	
-//    events: {
-//        'keypress #xid' : 'onenter',	
-//        'keypress #yid' : 'onenter',
-//        'keypress #clearanceid' : 'onenter',
-//        'keypress #netid' : 'onenter',
-//        'change #fillid': 'onchange', 
-//        'change #controllayerid':'onchange',
-//        'change #paddconnectionid': 'onchange',
-//    },
-//    onchange:function(event){
-//        if(event.target.id=='controllayerid'){
-//        	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
-//            this.component.getModel().getUnit().reorder();
-//        }
-//        if(event.target.id=='fillid'){        
-//        	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
-//        }
-//        this.component.repaint(); 
-//    }, 
-//    onenter:function(event){
-//		 if(event.keyCode != 13){
-//				return; 
-//		 }
-//		 if(event.target.id=='netid'){
-//			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
-//		 } 
-//		 if(event.target.id=='clearanceid'){
-//			   this.target.clearance=(core.MM_TO_COORD(parseFloat(j$('#clearanceid').val())));			 
-//		 } 
-//		 if(event.target.id=='xid'){			 
-//	         var x=this.fromUnitX(j$('#xid').val()); 
-//	         this.target.Resize(x-this.target.resizingPoint.x, 0, this.target.resizingPoint);			   
-//		 } 
-//	     if(event.target.id=='yid'){		
-//	         var y=this.fromUnitY(j$('#yid').val()); 
-//	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
-//		 } 
-//		 this.component.repaint(); 	
-//    },
-//	updateui:function(){
-//		j$('#controllayerid').val(this.target.copper.getName());
-//		//j$("#startangleid").val(this.target.startAngle);    
-//		//j$("#extendangleid").val(this.target.extendAngle);		
-//        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
-//        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
-//        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:(this.target.resizingPoint.x)));
-//        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:(this.target.resizingPoint.y))); 
-//		j$('#clearanceid').val(core.COORD_TO_MM(this.target.clearance));
-//		//j$("#widthid").val(core.COORD_TO_MM(this.target.getWidth()));
-//		j$("#fillid").val(this.target.fill);
-//	},
-//	render:function(){
-//						
-//		j$(this.el).empty();
-//		j$(this.el).append(
-//				"<table width='100%'>"+
-//				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
-//				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
-//				this.fillComboBox([{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'}])+
-//			    "</select>" +
-//				"</td></tr>"+				
-//				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
-//				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
-//				"<tr><td style='padding:7px'>Fill</td><td>" +
-//				"<select class=\"form-control input-sm\" id=\"fillid\">"+
-//				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
-//			    "</select>" +
-//				"</td></tr>"+
-//				"<tr><td style='padding:7px'>Clearance</td><td><input type='text' id='clearanceid' value='' class='form-control input-sm\'></td></tr>"+				
-//				"<tr><td style='padding:7px'>Pad Connect</td><td>" +
-//				"<select class=\"form-control input-sm\" id=\"paddconnectionid\">"+
-//				this.fillComboBox([{id:0,value:'DIRECT',selected:true},{id:1,value:'THERMAL'}])+
-//			    "</select>" +
-//				"</td></tr>"+				
-//				"<tr><td style='padding:7px'>Net</td><td><input type='text' id='netid' value='' class='form-control input-sm\'></td></tr>"+	
-//				
-//		"</table>");
-//		return this;
-//	}
-//});
+
 var SymbolPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
 	  SymbolPanelBuilder.__super__.initialize(component);
@@ -3336,6 +3202,7 @@ var CircuitsInspector=Backbone.View.extend({
 		                                         new SymbolPanelBuilder(this.circuitComponent),
 		                                         new ComponentPanelBuilder(this.circuitComponent),
 		                                         new BusPinPanelBuilder(this.circuitComponent),
+		                                         new NetLabelPanelBuilder(this.circuitComponent),
 		                                         new ConnectorPanelBuilder(this.circuitComponent),
 		                                         ]);
 		this.el= '#circuitsinspectorid';	
@@ -3471,14 +3338,14 @@ var CircuitsInspector=Backbone.View.extend({
 				this.render();
 			}
 		}	
-//		if((event.target instanceof PCBCopperArea)){
-//			if(this.panel.id!='copperareapanelbuilder'){
-//				this.panel.attributes.remove();
-//				this.panel=this.collection.get('copperareapanelbuilder');
-//				this.panel.attributes.delegateEvents();
-//				this.render();
-//			}
-//		}
+		if((event.target instanceof SCHNetLabel)){
+			if(this.panel.id!='netlabelpanelbuilder'){
+				this.panel.attributes.remove();
+				this.panel=this.collection.get('netlabelpanelbuilder');
+				this.panel.attributes.delegateEvents();
+				this.render();
+			}
+		}
 //		if(event.target instanceof PCBSolidRegion){
 //			if(this.panel.id!='solidregionpanelbuilder'){
 //				this.panel.attributes.remove();
@@ -3658,6 +3525,9 @@ var ToggleButtonView=Backbone.View.extend({
 		}
 		if(event.data.model.id=='noconnectorid'){
 		   this.circuitComponent.setMode(core.ModeEnum.NOCONNECTOR_MODE);
+		}
+		if(event.data.model.id=='netlabelid'){
+			  this.circuitComponent.setMode(core.ModeEnum.NETLABEL_MODE);
 		}		
 //		if(event.data.model.id=='anchorid'){
 //			event.data.model.setActive(!event.data.model.isActive());  
@@ -3886,6 +3756,7 @@ var ModeEnum=(function(){
 		   BUS_MODE:23,
 		   BUSPIN_MODE:24,
 		   NOCONNECTOR_MODE:25,
+		   NETLABEL_MODE:26,
 	}
 })();
 
@@ -5562,8 +5433,7 @@ class HorizontalToVerticalProcessor extends LineBendingProcessor{
      this.line.shiftFloatingPoints(); 
      return result;
   }	
-  moveLinePoint(x,y){
-		console.log(1);
+  moveLinePoint(x,y){		
 	    if(this.line.getLinePoints().length>1){
 	        //line is resumed if line end is not slope then go on from previous segment	    	
 	        let lastPoint,lastlastPoint;
@@ -6796,6 +6666,20 @@ class SymbolFontTexture{
         } else { //***top-botom mirroring
         	this.shape.alignment = TextAlignment.mirror(oldalignment,false);            
         }
+	}
+	setMirror(line){
+		let alignment = this.shape.alignment;       
+        this.mirror(line);      
+        if (line.isVertical) { //right-left mirroring
+            if (this.shape.alignment == alignment) { //same alignment
+                this.shape.anchorPoint.set(this.shape.anchorPoint.x +
+                                        (this.shape.metrics.ascent - this.shape.metrics.descent),this.shape.anchorPoint.y);
+            }
+        } else { //***top-botom mirroring          
+            if (this.shape.alignment == alignment) {
+                this.shape.anchorPoint.set(this.shape.anchorPoint.x,this.shape.anchorPoint.y +(this.shape.metrics.ascent - this.shape.metrics.descent));
+            }
+        } 		
 	}
 	move(xoffset, yoffset){
 		this.shape.move(xoffset, yoffset);  
@@ -13418,8 +13302,8 @@ constructor() {
         this.type = PinType.COMPLEX;
         this.style = Style.LINE;
 
- 	    this.name=new font.SymbolFontTexture("XXX","name",-8,0,0,8);
-	    this.number=new font.SymbolFontTexture("1","number",10,-4,0,8);
+ 	    this.name=new font.SymbolFontTexture("XXX","name",-8,2,0,8);
+	    this.number=new font.SymbolFontTexture("1","number",10,-1,0,8);
 	    this.init(Orientation.EAST);
 	}
 clone(){

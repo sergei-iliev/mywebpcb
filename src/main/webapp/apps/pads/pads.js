@@ -236,6 +236,7 @@ var ModeEnum=(function(){
 		   BUS_MODE:23,
 		   BUSPIN_MODE:24,
 		   NOCONNECTOR_MODE:25,
+		   NETLABEL_MODE:26,
 	}
 })();
 
@@ -1912,8 +1913,7 @@ class HorizontalToVerticalProcessor extends LineBendingProcessor{
      this.line.shiftFloatingPoints(); 
      return result;
   }	
-  moveLinePoint(x,y){
-		console.log(1);
+  moveLinePoint(x,y){		
 	    if(this.line.getLinePoints().length>1){
 	        //line is resumed if line end is not slope then go on from previous segment	    	
 	        let lastPoint,lastlastPoint;
@@ -3146,6 +3146,20 @@ class SymbolFontTexture{
         } else { //***top-botom mirroring
         	this.shape.alignment = TextAlignment.mirror(oldalignment,false);            
         }
+	}
+	setMirror(line){
+		let alignment = this.shape.alignment;       
+        this.mirror(line);      
+        if (line.isVertical) { //right-left mirroring
+            if (this.shape.alignment == alignment) { //same alignment
+                this.shape.anchorPoint.set(this.shape.anchorPoint.x +
+                                        (this.shape.metrics.ascent - this.shape.metrics.descent),this.shape.anchorPoint.y);
+            }
+        } else { //***top-botom mirroring          
+            if (this.shape.alignment == alignment) {
+                this.shape.anchorPoint.set(this.shape.anchorPoint.x,this.shape.anchorPoint.y +(this.shape.metrics.ascent - this.shape.metrics.descent));
+            }
+        } 		
 	}
 	move(xoffset, yoffset){
 		this.shape.move(xoffset, yoffset);  
