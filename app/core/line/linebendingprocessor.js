@@ -295,8 +295,7 @@ class HorizontalToVerticalProcessor extends LineBendingProcessor{
      this.line.shiftFloatingPoints(); 
      return result;
   }	
-  moveLinePoint(x,y){
-		console.log(1);
+  moveLinePoint(x,y){		
 	    if(this.line.getLinePoints().length>1){
 	        //line is resumed if line end is not slope then go on from previous segment	    	
 	        let lastPoint,lastlastPoint;

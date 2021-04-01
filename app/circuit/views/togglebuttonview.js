@@ -102,6 +102,9 @@ var ToggleButtonView=Backbone.View.extend({
 		}
 		if(event.data.model.id=='noconnectorid'){
 		   this.circuitComponent.setMode(core.ModeEnum.NOCONNECTOR_MODE);
+		}
+		if(event.data.model.id=='netlabelid'){
+			  this.circuitComponent.setMode(core.ModeEnum.NETLABEL_MODE);
 		}		
 //		if(event.data.model.id=='anchorid'){
 //			event.data.model.setActive(!event.data.model.isActive());  

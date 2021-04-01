@@ -314,6 +314,20 @@ class SymbolFontTexture{
         	this.shape.alignment = TextAlignment.mirror(oldalignment,false);            
         }
 	}
+	setMirror(line){
+		let alignment = this.shape.alignment;       
+        this.mirror(line);      
+        if (line.isVertical) { //right-left mirroring
+            if (this.shape.alignment == alignment) { //same alignment
+                this.shape.anchorPoint.set(this.shape.anchorPoint.x +
+                                        (this.shape.metrics.ascent - this.shape.metrics.descent),this.shape.anchorPoint.y);
+            }
+        } else { //***top-botom mirroring          
+            if (this.shape.alignment == alignment) {
+                this.shape.anchorPoint.set(this.shape.anchorPoint.x,this.shape.anchorPoint.y +(this.shape.metrics.ascent - this.shape.metrics.descent));
+            }
+        } 		
+	}
 	move(xoffset, yoffset){
 		this.shape.move(xoffset, yoffset);  
 	}

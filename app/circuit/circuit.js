@@ -43,6 +43,7 @@ var CircuitComponent=require('circuit/d/circuitcomponent').CircuitComponent;
 			 new togglebutton.ToggleButtonModel({id:'loadsymbolid'}),
 			 new togglebutton.ToggleButtonModel({id:'connectorid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'noconnectorid',group:'lefttogglegroup'}),
+			 new togglebutton.ToggleButtonModel({id:'netlabelid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'wireid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'busid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'buspinid',group:'lefttogglegroup'}),

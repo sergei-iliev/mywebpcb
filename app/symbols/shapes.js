@@ -1128,8 +1128,8 @@ constructor() {
         this.type = PinType.COMPLEX;
         this.style = Style.LINE;
 
- 	    this.name=new font.SymbolFontTexture("XXX","name",-8,0,0,8);
-	    this.number=new font.SymbolFontTexture("1","number",10,-4,0,8);
+ 	    this.name=new font.SymbolFontTexture("XXX","name",-8,2,0,8);
+	    this.number=new font.SymbolFontTexture("1","number",10,-1,0,8);
 	    this.init(Orientation.EAST);
 	}
 clone(){

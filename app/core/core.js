@@ -86,6 +86,7 @@ var ModeEnum=(function(){
 		   BUS_MODE:23,
 		   BUSPIN_MODE:24,
 		   NOCONNECTOR_MODE:25,
+		   NETLABEL_MODE:26,
 	}
 })();
 

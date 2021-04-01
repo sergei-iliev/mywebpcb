@@ -53,6 +53,11 @@ class CircuitShapeFactory{
 				var symbol = new SCHConnector();
 				symbol.fromXML(data);
 				return symbol;
+			}	
+			if (data.tagName.toLowerCase() == 'netlabel') {
+				var symbol = new SCHNetLabel();
+				symbol.fromXML(data);
+				return symbol;
 			}			
 			return null;
 		}
@@ -474,21 +479,14 @@ class SCHBusPin extends AbstractLine{
 	move(xoffset,yoffset){
 		   super.move(xoffset,yoffset);
 		   this.texture.move(xoffset,yoffset);
-	}	
+	}
+	mirror(line){
+		super.mirror(line);
+		this.texture.setMirror(line);
+	}
 	rotate(rotation){
-		super.rotate(rotation);
-	 	let oldorientation=TextAlignment.getOrientation(this.texture.shape.alignment);	
-	 	this.texture.rotate(rotation);
-		   if(rotation.angle<0){  //clockwise		   
-			   if(oldorientation == TextOrientation.HORIZONTAL){
-				   this.texture.shape.anchorPoint.set(this.texture.shape.anchorPoint.x+(this.texture.shape.metrics.ascent-this.texture.shape.metrics.descent),this.texture.shape.anchorPoint.y);            
-			   }
-		   }else{		    
-			   if(oldorientation == TextOrientation.VERTICAL){
-				   this.texture.shape.anchorPoint.set(this.texture.shape.anchorPoint.x,this.texture.shape.anchorPoint.y+(this.texture.shape.metrics.ascent-this.texture.shape.metrics.descent));	           
-			   }
-		   }			
-		
+		super.rotate(rotation);	
+	 	this.texture.setRotation(rotation);				
 	}
 	Resize(xoffset, yoffset, clickedPoint) {
 		clickedPoint.set(clickedPoint.x + xoffset,
@@ -683,7 +681,7 @@ class SCHConnector extends Shape{
 	}	
 	mirror(line){
     	this.segment.mirror(line);
-    	this.texture.mirror(line);
+    	this.texture.setMirror(line);
     	this.shape.calculatePoints();
     }
 	move(xoff,yoff){
@@ -1085,6 +1083,85 @@ class CircleShape{
 				
 	}
 }
+const OFFSET=2;
+class SCHNetLabel extends Shape{
+	constructor(){
+		  super(0, 0, 0, 0, 1,core.Layer.LAYER_ALL);	
+		  this.displayName = "NetLabel";	
+		  this.selectionRectWidth=2;		      
+	      this.texture=new SymbolFontTexture("netLabel","name", -4, 2,0,8);
+	      this.point=new d2.Point(0,0);
+	      this.setTextLocation(); 
+		}
+clone(){
+		   	var copy = new SCHNetLabel();
+			copy.texture=this.texture.clone();
+			copy.point=this.point.clone();
+		    return copy;
+		}
+alignToGrid( isRequired) {        
+    let p=this.owningUnit.getGrid().positionOnGrid(this.point.x,this.point.y);
+    this.move(p.x - this.point.x,p.y - this.point.y);   
+    return null;
+}  
+calculateShape() {        
+    return this.texture.getBoundingShape();
+}
+move( xoffset, yoffset) {
+    this.point.move(xoffset,yoffset);        
+    this.texture.move(xoffset, yoffset);     
+}
+rotate( rotation) {
+    this.point.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+    this.texture.setRotation(rotation);        
+}
+mirror( line) {        
+    this.point.mirror(line);
+    this.texture.setMirror(line);                  
+}
+setAlignment(alignment){
+    this.texture.setAlignment(alignment);            
+    this.setTextLocation();
+}
+setTextLocation(){
+	let orientation=TextAlignment.getOrientation(this.texture.shape.alignment);	
+    if(orientation==TextOrientation.HORIZONTAL){      
+      this.texture.shape.anchorPoint.set(this.point.x+OFFSET,this.point.y-OFFSET);
+    }else{      
+      this.texture.shape.anchorPoint.set(this.point.x-OFFSET,this.point.y-OFFSET);  
+    }
+}
+paint( g2,viewportWindow,  scale, layersmask) {
+  
+              let rect = this.texture.getBoundingShape();
+              rect.scale(scale.getScale());
+              if (!rect.intersects(viewportWindow)) {
+                    return;
+              }
+              this.texture.fillColor=(this.selection?'blue':'black');        
+              this.texture.paint(g2, viewportWindow, scale,layersmask);   
+              
+              if(this.selection){
+            	  g2.fillStyle = "gray";            	  
+                  let c=new d2.Circle(this.point.clone(),this.selectionRectWidth);
+                  c.scale(scale.getScale());
+                  c.move(-viewportWindow.getX() ,- viewportWindow.getY());        
+                  g2._fill=true;
+                  c.paint(g2); 
+                  g2._fill=false;
+              }
+                
+                
+}
+toXML(){	
+    return "<netlabel x=\""+utilities.roundDouble(this.point.x,1)+"\" y=\""+utilities.roundDouble(this.point.y,1)+"\" >"+this.texture.toXML()+"</netlabel>\r\n"        
+}
+fromXML(data){		
+	this.point.set(parseFloat(j$(data).attr("x")),parseFloat(j$(data).attr("y")));
+	this.texture.fromXML(j$(data).textContent);
+	this.setTextLocation();
+}
+}
 class SCHJunction extends Shape{
 	constructor(){
 	  super(0, 0, 0, 0, 1,core.Layer.LAYER_ALL);	
@@ -1224,6 +1301,7 @@ fromXML(data){
 }
 module.exports ={
 		SCHSymbol,
+		SCHNetLabel,
 		SCHWire,
 		SCHBus,
 		SCHBusPin,
