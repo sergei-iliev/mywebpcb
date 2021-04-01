@@ -160,7 +160,7 @@ var BusPinPanelBuilder=BaseBuilder.extend({
 		j$(this.el).empty();
 		j$(this.el).append(
 				"<table width='100%'>"+			
-				"<tr><td style='padding:7px'>Bus Pin Name</td><td><input type='text' id='buspinnameid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Name</td><td><input type='text' id='buspinnameid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='width:50%;padding:7px'>Text Alignment</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"alignmentid\">"+
 				this.fillComboBox([{id:0,value:'RIGHT',selected:true},{id:1,value:'TOP',selected:true},{id:2,value:'LEFT',selected:true},{id:3,value:'BOTTOM'}])+
@@ -205,7 +205,7 @@ var NetLabelPanelBuilder=BaseBuilder.extend({
 		j$(this.el).empty();
 		j$(this.el).append(
 				"<table width='100%'>"+			
-				"<tr><td style='padding:7px'>Bus Pin Name</td><td><input type='text' id='netlabelnameid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Name</td><td><input type='text' id='netlabelnameid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='width:50%;padding:7px'>Text Alignment</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"alignmentid\">"+
 				this.fillComboBox([{id:0,value:'RIGHT',selected:true},{id:1,value:'TOP',selected:true},{id:2,value:'LEFT',selected:true},{id:3,value:'BOTTOM'}])+
