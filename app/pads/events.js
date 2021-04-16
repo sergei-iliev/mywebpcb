@@ -19,9 +19,6 @@ mousePressed(event){
     this.target.setSelected(true);
 	this.mx=event.x;
 	this.my=event.y;
-        
-    this.targetPoint=this.target.isControlRectClicked(event.x,event.y);
-    this.target.setResizingPoint(this.targetPoint);
     
     this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
     

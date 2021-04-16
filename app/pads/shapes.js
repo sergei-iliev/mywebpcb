@@ -528,6 +528,7 @@ constructor(x,y,r,thickness,layermaskid){
 		this.rotation=0;
 		this.center=null;
 		this.temp=1;
+		this.tmpPt=null;
 }
 clone() {
 		var copy = new Arc(this.arc.center.x,this.arc.center.y, this.arc.r,this.thickness,this.copper.getLayerMaskID());		
@@ -591,6 +592,9 @@ isControlRectClicked(x,y) {
 	     return null;
 	}
 isClicked(x, y) {
+	if(this.arc.isPointOn(new d2.Point(x, y),this.thickness))
+		return true;
+	
 	if (this.arc.contains(new d2.Point(x, y)))
 		return true;
 	else
@@ -654,16 +658,20 @@ mirror(line) {
  * Resize through mouse position point
  */
 Resize(xoffset, yoffset,point) {    
-    let pt=this.calculateResizingMidPoint(point.x,point.y);    
+    /*
+	let pt=this.calculateResizingMidPoint(point.x,point.y);
+    this.tmpPt=pt;
     let r=this.arc.center.distanceTo(pt);
     this.arc.r=r;
-/*	
+    */
+    this.resizingPoint=this.calculateResizingMidPoint(point.x,point.y);
+    
 	//old middle point on arc
 	let a1=this.arc.middle;  
 	//mid point on line
 	let m=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
 	//new middle point on arc
-	let a2=this.calculateResizingMidPoint(point.x,point.y);  //new middle
+	let a2=this.resizingPoint;  //new middle
 	
 	//do they belong to the same plane in regard to m 
 	let vec = new d2.Vector(m, a2);
@@ -672,14 +680,13 @@ Resize(xoffset, yoffset,point) {
     
     
 //which plane
-	console.log(samePlane);
+    	
 	if(!samePlane){
-		this.temp*=-1;
-		//this.arc.endAngle*=-1;	
+      return;
 	}
-	if(this.temp>0){
-		let C=this.calculateResizingMidPoint(point.x,point.y);  //projection
-		let C1=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
+
+		let C=this.resizingPoint;  //projection
+		let C1=m;
     
 		let y=C1.distanceTo(C);
 		let x=C1.distanceTo(this.arc.start);
@@ -700,11 +707,17 @@ Resize(xoffset, yoffset,point) {
     
 		let r = center.distanceTo(this.arc.start);
 
-    //fix angles
-		let start = 360 - startAngle;
-		let end= (360-endAngle-start);
-		if(end<0){ 
-			end=360-Math.abs(end);
+		let start = 360 - startAngle;		
+		let end= (360-endAngle)-start;		
+		
+		if(this.arc.endAngle<0){  //negative extend
+			if(end>0){			  
+			  end=end-360;
+			}
+		}else{		//positive extend			
+			if(end<0){ 					   
+				end=360-Math.abs(end);
+			}			
 		}
 
 	
@@ -712,10 +725,8 @@ Resize(xoffset, yoffset,point) {
 		this.arc.r=r;
 		this.arc.startAngle=start;
 		this.arc.endAngle=end;
-	}else{
-		
-	}
-*/
+   
+	
 }
 move(xoffset,yoffset){
   this.arc.move(xoffset,yoffset);	
@@ -771,6 +782,9 @@ paint(g2, viewportWindow, scale,layersmask) {
 		}
 }
 drawControlPoints(g2, viewportWindow, scale) {
+	if(this.tmpPt!=null){
+		utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.tmpPt]);
+	}
 	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.arc.center,this.arc.start,this.arc.end,this.arc.middle]);	
 }
 setResizingPoint(pt){

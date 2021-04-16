@@ -48,44 +48,61 @@ module.exports = function(d2) {
         	return Math.abs(this.endAngle);
         }
         get box(){
-          let points=this.breakToFunctional();
-          points.push(this.start);
-          points.push(this.end);
-          return new d2.Box(points);
-            
-           //let func_arcs = this.breakToFunctional();
-           //let box = func_arcs.reduce((acc, arc) => acc.merge(arc.start.box), new d2.Box());
-           //box = box.merge(this.end.box);
-           //return box;
-            
-        }
-        /**
-         * Breaks arc in extreme point 0, pi/2, pi, 3*pi/2 and returns array of sub-arcs
-         * @returns {Arcs[]}
-         */
-        breakToFunctional() {
+        	let points = [];
             let p1=this.pc.clone();p1.translate(this.r, 0);
+            if (p1.on(this)) {
+                points.push(p1);
+            }            
             let p2=this.pc.clone();p2.translate(0,this.r);
+            if (p2.on(this)) {
+                points.push(p2);
+            }            
             let p3=this.pc.clone();p3.translate(-this.r,0);
-            let p4=this.pc.clone();p4.translate(0,-this.r);
-            let pts = [
-                p1,p2,p3,p4                
-            ];
-
-            // If arc contains extreme point,
-            // add it to result
-            let points = [];
-            for (let i = 0; i < 4; i++) {
-                if (pts[i].on(this)) {
-                    points.push(pts[i]);
-                }
+            if (p3.on(this)) {
+                points.push(p3);
             }
-
-            return points;
-          
-        }        
+            let p4=this.pc.clone();p4.translate(0,-this.r);
+            if (p4.on(this)) {
+                points.push(p4);
+            }
+        	
+            points.push(this.start);
+            points.push(this.end);
+            return new d2.Box(points);
+        }
+      
         get vertices() {
             return this.box.vertices;
+        }
+        
+        isPointOn(pt,diviation){
+    		let isInside=false;
+        	let clickedAngle =new d2.Vector(this.pc,pt).slope;    		            		
+    		let angle = 360 - clickedAngle;		
+    		//test angle		
+    	    if(this.endAngle>0){ //counter clockwise    	    	
+    	    	if(angle-this.startAngle>0){
+    	    	  angle=(angle-this.startAngle);
+    	    	}else{
+    	    	  angle=((360-this.startAngle)+angle);	
+    	    	}
+    	    	isInside=(angle<this.endAngle);
+    	    }else{ //clockwise    	    	
+    	    	if((angle-this.startAngle)>0){
+    	    	  angle=((angle-360)-this.startAngle);	
+    	    	}else{
+    	    	  angle=angle-this.startAngle;
+    	    	}
+    	    	isInside=(Math.abs(angle)<Math.abs(this.endAngle));
+    	    }    		
+    		if(!isInside){
+    			return false;
+    		}
+    		//test distance
+    		let dist=this.pc.distanceTo(pt);
+
+    		return ((this.r-diviation)<dist&&(this.r+diviation)>dist);
+    			    		
         }
         contains(pt){
         	//is on circle
