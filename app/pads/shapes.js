@@ -658,13 +658,8 @@ mirror(line) {
  * Resize through mouse position point
  */
 Resize(xoffset, yoffset,point) {    
-    /*
-	let pt=this.calculateResizingMidPoint(point.x,point.y);
-    this.tmpPt=pt;
-    let r=this.arc.center.distanceTo(pt);
-    this.arc.r=r;
-    */
-    this.resizingPoint=this.calculateResizingMidPoint(point.x,point.y);
+    
+    this.resizingPoint=this.calculateResizingMidPoint(point);
     
 	//old middle point on arc
 	let a1=this.arc.middle;  
@@ -700,12 +695,12 @@ Resize(xoffset, yoffset,point) {
 		let a=C1.x +lambda*norm.x;
 		let b=C1.y + lambda*norm.y;
 		let center=new d2.Point(a,b);
-    
-    
+        let r = center.distanceTo(this.arc.start);
+		
 		let startAngle =new d2.Vector(center,this.arc.start).slope;
 		let endAngle = new d2.Vector(center, this.arc.end).slope;
     
-		let r = center.distanceTo(this.arc.start);
+
 
 		let start = 360 - startAngle;		
 		let end= (360-endAngle)-start;		
@@ -777,14 +772,9 @@ paint(g2, viewportWindow, scale,layersmask) {
 		if (this.isSelected()&&this.isControlPointVisible) {
 			this.drawControlPoints(g2, viewportWindow, scale);
 		}
-		if (this.center!=null) {
-			utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.center]);	
-		}
+
 }
 drawControlPoints(g2, viewportWindow, scale) {
-	if(this.tmpPt!=null){
-		utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.tmpPt]);
-	}
 	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.arc.center,this.arc.start,this.arc.end,this.arc.middle]);	
 }
 setResizingPoint(pt){
@@ -793,17 +783,12 @@ setResizingPoint(pt){
 getResizingPoint() {
 	return this.resizingPoint;
 }
-calculateResizingMidPoint(x,y){
-	let line=new d2.Line(this.arc.center,this.arc.middle);
-	return line.projectionPoint(new d2.Point(x,y));	
+calculateResizingMidPoint(pt){
+	let middle=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
+	let line=new d2.Line(middle,this.arc.middle);
+	return line.projectionPoint(new d2.Point(pt.x,pt.y));	
 }
-//drawMousePoint(g2,viewportWindow,scale){
-//
-//	let point=this.calculateResizingMidPoint(this.resizingPoint.x,this.resizingPoint.y);
-//    
-//	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[point]);
-//    
-//}
+
 
 }
 class SolidRegion extends Shape{
