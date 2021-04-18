@@ -304,17 +304,17 @@ var ArcPanelBuilder=BaseBuilder.extend({
 		 } 	
 		 this.component.repaint(); 	
     },
-	updateui:function(){
-		j$('#controllayerid').val(this.target.copper.getName());
-		j$("#startangleid").val(this.target.arc.startAngle);    
-		j$("#extendangleid").val(this.target.arc.endAngle);		
+	updateui:function(){		
+		j$('#controllayerid').val(this.target.copper.getName());		
+		j$("#startangleid").val(utilities.roundDouble(this.target.arc.startAngle));    
+		j$("#extendangleid").val(utilities.roundDouble(this.target.arc.endAngle));		
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
         j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
-        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:(this.target.resizingPoint.x)));
-        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:(this.target.resizingPoint.y))); 
+        j$('#xid').val(utilities.roundDouble(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x)));
+        j$('#yid').val(utilities.roundDouble(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y))); 
 		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
-		j$("#widthid").val(core.COORD_TO_MM(this.target.arc.r));
-		j$("#fillid").val(this.target.fill);
+		j$("#widthid").val(utilities.roundDouble(core.COORD_TO_MM(this.target.arc.r)));
+		j$("#fillid").val(this.target.fill);		
 	},
 	render:function(){
 						
