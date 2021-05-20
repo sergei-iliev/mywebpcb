@@ -126,7 +126,11 @@ module.exports = function(d2) {
             n.multiply(d);
             return n;
         }
-        
+        isCollinearTo(v){
+        	let a=Math.abs(this.x/v.x);
+        	let b=Math.abs(this.y/v.y);
+        	return d2.utils.EQ(a,b);
+        }
         multiply(scalar) {
             this.x=scalar * this.x;
             this.y=scalar * this.y;
