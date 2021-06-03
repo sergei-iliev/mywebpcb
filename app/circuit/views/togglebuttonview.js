@@ -133,8 +133,9 @@ var ToggleButtonView=Backbone.View.extend({
 		}
 		if(event.data.model.id=='vccid'||event.data.model.id=='gndid'){		   
 		   let symbolContainer=new SymbolContainer();
+		   core.isEventEnabled=false;
 		   symbolContainer.parse(event.data.model.id=='vccid'?power:ground);  	
-		   		  		    			 
+		   core.isEventEnabled=true;		  		    			 
 		   let schsymbol=CircuitMgr.getInstance().createSCHSymbol(symbolContainer.getUnit());
 		  
            //            //***set chip cursor
