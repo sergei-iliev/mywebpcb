@@ -123,6 +123,14 @@ var degrees = function(radians) {
 //	    };
 //};
 
+/**
+a = line point 1; b = line point 2; c = point to check against.
+If the formula is equal to 0, the points are colinear.
+If the line is horizontal, then this returns true if the point is above the line.
+**/
+var isLeftPlane=function(a, b, c){
+   return ((c.x - a.x)*(b.y - a.y) - (c.y - a.y)*(b.x - a.x)) > 0;
+}	
 /*****
 *
 *   Intersect Line with Line
