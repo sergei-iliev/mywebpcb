@@ -3,6 +3,7 @@ var core=require('core/core');
 var shape=require('core/shapes');
 var events=require('core/events');
 var SymbolLoadView=require('symbols/views/symbolloadview');
+var SymbolContainer=require('symbols/d/symbolcomponent').SymbolContainer;
 var Circuit=require('circuit/d/circuitcomponent').Circuit;
 var CircuitMgr = require('circuit/d/circuitcomponent').CircuitMgr;
 var CircuitContainer = require('circuit/d/circuitcomponent').CircuitContainer;
@@ -10,7 +11,8 @@ var UnitMgr = require('core/unit').UnitMgr;
 var CircuitLoadView=require('circuit/views/circuitloadview');
 var CircuitSaveView=require('circuit/views/circuitsaveview');
 
-
+var power=require('circuit/power').power;
+var ground=require('circuit/ground').ground;
 
 var ToggleButtonView=Backbone.View.extend({
 
@@ -129,7 +131,20 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='loadsymbolid'){
 			 new SymbolLoadView({enabled:true}).render();			
 		}
-		
+		if(event.data.model.id=='vccid'||event.data.model.id=='gndid'){		   
+		   let symbolContainer=new SymbolContainer();
+		   symbolContainer.parse(event.data.model.id=='vccid'?power:ground);  	
+		   		  		    			 
+		   let schsymbol=CircuitMgr.getInstance().createSCHSymbol(symbolContainer.getUnit());
+		  
+           //            //***set chip cursor
+		   schsymbol.move(-1 * schsymbol.getBoundingShape().center.x,
+                         -1 * schsymbol.getBoundingShape().center.y);
+          
+           this.circuitComponent.setMode(core.ModeEnum.SYMBOL_MODE);
+           this.circuitComponent.setContainerCursor(schsymbol);
+           this.circuitComponent.getEventMgr().setEventHandle("cursor", schsymbol);
+		}
 		if(event.data.model.id=='originid'){			 
 			event.data.model.setActive(!event.data.model.isActive());
 			if(event.data.model.isActive()){
