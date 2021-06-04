@@ -8886,6 +8886,14 @@ var degrees = function(radians) {
 //	    };
 //};
 
+/**
+a = line point 1; b = line point 2; c = point to check against.
+If the formula is equal to 0, the points are colinear.
+If the line is horizontal, then this returns true if the point is above the line.
+**/
+var isLeftPlane=function(a, b, c){
+   return ((c.x - a.x)*(b.y - a.y) - (c.y - a.y)*(b.x - a.x)) > 0;
+}	
 /*****
 *
 *   Intersect Line with Line
@@ -11972,7 +11980,11 @@ module.exports = function(d2) {
             n.multiply(d);
             return n;
         }
-        
+        isCollinearTo(v){
+        	let a=Math.abs(this.x/v.x);
+        	let b=Math.abs(this.y/v.y);
+        	return d2.utils.EQ(a,b);
+        }
         multiply(scalar) {
             this.x=scalar * this.x;
             this.y=scalar * this.y;
@@ -13483,13 +13495,8 @@ mirror(line) {
  * Resize through mouse position point
  */
 Resize(xoffset, yoffset,point) {    
-    /*
-	let pt=this.calculateResizingMidPoint(point.x,point.y);
-    this.tmpPt=pt;
-    let r=this.arc.center.distanceTo(pt);
-    this.arc.r=r;
-    */
-    this.resizingPoint=this.calculateResizingMidPoint(point.x,point.y);
+    
+    this.resizingPoint=this.calculateResizingMidPoint(point);
     
 	//old middle point on arc
 	let a1=this.arc.middle;  
@@ -13507,9 +13514,8 @@ Resize(xoffset, yoffset,point) {
 //which plane
     	
 	if(!samePlane){
-      return;
+      //return;
 	}
-
 		let C=this.resizingPoint;  //projection
 		let C1=m;
     
@@ -13525,12 +13531,11 @@ Resize(xoffset, yoffset,point) {
 		let a=C1.x +lambda*norm.x;
 		let b=C1.y + lambda*norm.y;
 		let center=new d2.Point(a,b);
-    
-    
+        let r = center.distanceTo(this.arc.start);
+		
 		let startAngle =new d2.Vector(center,this.arc.start).slope;
 		let endAngle = new d2.Vector(center, this.arc.end).slope;
     
-		let r = center.distanceTo(this.arc.start);
 
 		let start = 360 - startAngle;		
 		let end= (360-endAngle)-start;		
@@ -13602,14 +13607,9 @@ paint(g2, viewportWindow, scale,layersmask) {
 		if (this.isSelected()&&this.isControlPointVisible) {
 			this.drawControlPoints(g2, viewportWindow, scale);
 		}
-		if (this.center!=null) {
-			utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.center]);	
-		}
+
 }
 drawControlPoints(g2, viewportWindow, scale) {
-	if(this.tmpPt!=null){
-		utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.tmpPt]);
-	}
 	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.arc.center,this.arc.start,this.arc.end,this.arc.middle]);	
 }
 setResizingPoint(pt){
@@ -13618,19 +13618,270 @@ setResizingPoint(pt){
 getResizingPoint() {
 	return this.resizingPoint;
 }
-calculateResizingMidPoint(x,y){
-	let line=new d2.Line(this.arc.center,this.arc.middle);
-	return line.projectionPoint(new d2.Point(x,y));	
+calculateResizingMidPoint(pt){
+	let middle=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
+	let line=new d2.Line(middle,this.arc.middle);
+	return line.projectionPoint(new d2.Point(pt.x,pt.y));	
 }
-//drawMousePoint(g2,viewportWindow,scale){
+}
+//class Arc extends Shape{
+//	constructor(x,y,r,thickness,layermaskid){	
+//	        super(0, 0, 0,0,thickness,layermaskid);  
+//			this.setDisplayName("Arc");
+//			this.selectionRectWidth=3000;
+//			this.resizingPoint=null;
+//			this.arc=new d2.Arc(new d2.Point(x,y),r,100,70);
+//			this.rotation=0;
+//			this.A=this.arc.start.clone();
+//			this.B=this.arc.end.clone();
+//			this.M=this.arc.middle.clone();
+//			this.O=this.M.clone();
+//			this.isLeftPlane=undefined;
+//	}
+//	clone() {
+//			var copy = new Arc(this.arc.center.x,this.arc.center.y, this.arc.r,this.thickness,this.copper.getLayerMaskID());			        
+//			return copy;
+//	}
+//	calculateShape() {
+//		return this.arc.box;	
+//	}
+//	getOrderWeight(){
+//		return this.arc.area; 
+//	}
+//	fromXML(data){
+//	        
+//	        this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));        
+//			let xx=parseInt(j$(data).attr("x"));
+//			let yy=parseInt(j$(data).attr("y"));
+//			
+//	 		if(j$(data).attr("width")!=undefined){
+//	 			let diameter=parseInt(parseInt(j$(data).attr("width")));
+//	 	        this.arc.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
+//	 	        this.arc.r=parseInt(diameter/2); 			
+//	 		}else{
+//	 			let radius=parseInt(parseInt(j$(data).attr("radius")));
+//	 	        this.arc.pc.set(xx,yy);
+//	 	        this.arc.r=radius; 			 		
+//	 		}        
+//			this.arc.startAngle = parseInt(j$(data).attr("start"));
+//	        this.arc.endAngle = parseInt(j$(data).attr("extend"));        
+//			this.thickness = (parseInt(j$(data).attr("thickness")));
+//			this.fill=parseInt(j$(data).attr("fill"));
+//	}
+//	toXML() {
+//	    return '<arc copper="'+this.copper.getName()+'"  x="'+utilities.roundFloat(this.arc.pc.x,4)+'" y="'+utilities.roundFloat(this.arc.pc.y,4)+'" radius="'+utilities.roundFloat(this.arc.r,4)+'"  thickness="'+this.thickness+'" start="'+utilities.roundFloat(this.arc.startAngle,2)+'" extend="'+utilities.roundFloat(this.arc.endAngle,2)+'" fill="'+this.fill+'" />';
+//	}
+//	setRadius(r){
+//		this.arc.r=r;	
+//	}
 //
-//	let point=this.calculateResizingMidPoint(this.resizingPoint.x,this.resizingPoint.y);
-//    
-//	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[point]);
-//    
+//	isControlRectClicked(x,y) {
+//		 if(this.isMidPointClicked(x,y)){
+//			    return this.arc.middle;	 
+//			 }
+//		     return null;
+//		}
+//	isClicked(x, y) {
+//		if(this.arc.isPointOn(new d2.Point(x, y),this.thickness))
+//			return true;
+//		
+//		if (this.arc.contains(new d2.Point(x, y)))
+//			return true;
+//		else
+//			return false;
+//		}
+//	isMidPointClicked(x,y){
+//	    let p=this.M;
+//	    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
+//	                 this.selectionRectWidth, this.selectionRectWidth);
+//	    if (box.contains({x,y})) {
+//	        return true;
+//	    }else{                   
+//	        return false;
+//		}	
+//	}
+//	isStartAnglePointClicked(x,y){	
+//      return false;
+//
 //}
+//isExtendAnglePointClicked(x,y){
+//      return false;
+//}	
+//rotate(rotation){
+//		//fix angle
+//	  let alpha=this.rotation+rotation.angle;
+//	  if(alpha>=360){
+//			alpha-=360
+//	  }
+//	  if(alpha<0){
+//		 alpha+=360; 
+//	  }	
+//	  this.rotation=alpha;	
+//	  this.arc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy)); 
+//	}
+//mirror(line) {
+//	  this.arc.mirror(line);
+//	}
+//	/*
+//	 * Resize through mouse position point
+//	 */
+//Resize(xoffset, yoffset,point) {  
+//		//previous mid pont
+//		let oldM=this.M.clone();		
+//	    this.M=this.calculateResizingMidPoint(point);
+//        
+//        
+//		//old middle point on arc
+//		let a1=this.M;  
+//		//mid point on line
+//		let m=new d2.Point((this.A.x+this.B.x)/2,(this.A.y+this.B.y)/2);
+//		//new middle point on arc
+//		let a2=this.resizingPoint;  //new middle
+//		
+//		//do they belong to the same plane in regard to m 
+//		//let vec = new d2.Vector(m, a2);
+//		//let linevec=new d2.Vector(m,a1);
+//	    //let samePlane = d2.utils.GT(vec.dot(linevec.normalize()), 0);
+//	    
+//	    
+//	//which plane
+//	    	
+//		//if(!samePlane){
+//	    //  return;
+//		//}
+//
+//			let C=this.M;  //projection
+//			let C1=m;
+//	    
+//			let y=C1.distanceTo(C);
+//			let x=C1.distanceTo(this.A);
+//	    
+//			let l=(x*x)/y;
+//			let lambda=(l-y)/2;
+//
+//			let v=new d2.Vector(C,C1);
+//			let norm=v.normalize();			  
+//		
+//			let a=C1.x +lambda*norm.x;
+//			let b=C1.y + lambda*norm.y;
+//			let center=new d2.Point(a,b);
+//	        let r = center.distanceTo(this.A);
+//			
+//	        this.O=center;
+//	        
+//	        //var startAngle = Math.atan2(this.A.y - this.O.y, this.A.x - this.O.x);
+//	        //var endAngle   = Math.atan2(this.B.y - this.O.y, this.B.x - this.O.x);
+//	        //console.log("start="+d2.utils.degrees(startAngle)+"::end="+d2.utils.degrees(endAngle));
+//
+//	        //check if M and oldM on the same plane	    
+//		    if(d2.utils.isLeftPlane(this.A,this.B,this.M)!=d2.utils.isLeftPlane(this.A,this.B,oldM)){
+//		     	console.log('changed');
+//		     	let rot=core.AffineTransform.createRotateInstance(center.x,center.y,180);		     			     	
+//		     	this.rotate(rot); 
+//		     	console.log(this.arc.startAngle+"::"+this.arc.endAngle);
+//				this.arc.pc.set(center.x,center.y);
+//				//this.arc.r=r;
+//				//this.arc.startAngle=shape.startAngle;
+//				//this.arc.endAngle=shape.endAngle;		
+//		    }else{
+//			let startAngle =new d2.Vector(center,this.arc.start).slope;
+//			let endAngle = new d2.Vector(center, this.arc.end).slope;
+//	    
+//
+//
+//			let start = 360 - startAngle;		
+//			let end= (360-endAngle)-start;		
+//			
+//			if(this.arc.endAngle<0){  //negative extend
+//				if(end>0){			  
+//				  end=end-360;
+//				}
+//			}else{		//positive extend			
+//				if(end<0){ 					   
+//					end=360-Math.abs(end);
+//				}			
+//			}
+//			this.arc.center.set(center.x,center.y);
+//			this.arc.r=r;
+//			this.arc.startAngle=start;
+//			this.arc.endAngle=end;			
+//		    }			   
+//		
+//	}
+//move(xoffset,yoffset){
+//	  this.arc.move(xoffset,yoffset);
+//	  this.A.move(xoffset,yoffset);
+//	  this.B.move(xoffset,yoffset);
+//	  this.M.move(xoffset,yoffset);
+//	}
+//paint(g2, viewportWindow, scale,layersmask) {
+//	    if((this.copper.getLayerMaskID()&layersmask)==0){
+//	        return;
+//	      }
+//			var rect = this.arc.box;
+//			rect.scale(scale.getScale());
+//			if (!rect.intersects(viewportWindow)) {
+//				return;
+//			}
+//
+//			g2.globalCompositeOperation = 'lighter';
+//			g2.beginPath(); // clear the canvas context
+//			g2.lineCap = 'round';
+//
+//							
+//			g2.lineWidth = this.thickness * scale.getScale();
+//	        		
+//			
+//			if (this.fill == core.Fill.EMPTY) {
+//				if (this.selection) {
+//						g2.strokeStyle = "gray";
+//				} else {
+//						g2.strokeStyle = this.copper.getColor();
+//				}
+//				g2._fill=false;
+//			} else {
+//				if (this.selection) {
+//					g2.fillStyle = "gray";
+//				} else {
+//					g2.fillStyle = this.copper.getColor();
+//				}
+//				g2._fill=true;
+//			}
+//
+//			let a=this.arc.clone();
+//			a.scale(scale.getScale());
+//			a.move( - viewportWindow.x, - viewportWindow.y);		
+//			a.paint(g2);
+//
+//			g2._fill=undefined;
+//			
+//			g2.globalCompositeOperation = 'source-over';
+//		
+//			
+//	    //if (this.isSelected()&&this.isControlPointVisible) {
+//			this.drawControlPoints(g2, viewportWindow, scale);
+//		//}
+//
+//	}
+//	drawControlPoints(g2, viewportWindow, scale) {
+//		//utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.A,this.B,this.M,this.O]);
+//		utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.arc.center,this.arc.start,this.arc.end,this.arc.middle]);
+//	}
+//	setResizingPoint(pt){
+//		this.resizingPoint=pt;
+//	}
+//	getResizingPoint() {
+//		return this.resizingPoint;
+//	}
+//	calculateResizingMidPoint(pt){
+//		let middle=new d2.Point((this.A.x+this.B.x)/2,(this.A.y+this.B.y)/2);
+//		let line=new d2.Line(middle,this.M);
+//		return line.projectionPoint(new d2.Point(pt.x,pt.y));	
+//	}
+//
+//
+//	}
 
-}
 class SolidRegion extends Shape{
 	constructor(layermaskId) {
         super( 0, 0, 0,0, 0, layermaskId);

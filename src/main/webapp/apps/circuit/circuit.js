@@ -191,6 +191,8 @@ var CircuitComponent=require('circuit/d/circuitcomponent').CircuitComponent;
 			 new togglebutton.ToggleButtonModel({id:'tocenterid'}),
 			 new togglebutton.ToggleButtonModel({active:true,id:'selectionid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'loadsymbolid'}),
+			 new togglebutton.ToggleButtonModel({id:'vccid',group:'lefttogglegroup'}),
+			 new togglebutton.ToggleButtonModel({id:'gndid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'connectorid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'noconnectorid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'netlabelid',group:'lefttogglegroup'}),
@@ -917,6 +919,42 @@ module.exports ={
 	}
 });
 
+;require.register("circuit/ground.js", function(exports, require, module) {
+const ground =`<?xml version="1.0" encoding="ISO-8859-1"?>
+<modules identity="Module" type="GROUND" version="3.0">
+<module width="489" height="512">
+<footprint library="" category=""  filename="" name=""/>
+<name>Ground</name>
+<unit><label color="-16777216">GND,248,252,LEFT,PLAIN,8</label>
+</unit>
+<elements>
+<line>233,264,247,264,3</line>
+<pin type="0" style="0">
+<a>240,264, + false + ,0,0</a>
+</pin>
+</elements>
+</module>
+<module width="489" height="512">
+<footprint library="" category=""  filename="" name=""/>
+<name>Analog Ground</name>
+<unit><label color="-16777216">AGND,240,253,LEFT,PLAIN,8</label>
+</unit>
+<elements>
+<line>227,267,237,267,1</line>
+<triangle>8,229,270,6,2,1,1</triangle>
+<line>225,264,239,264,3</line>
+<pin type="0" style="0">
+<a>232,264, + false + ,0,0</a>
+</pin>
+</elements>
+</module>
+</modules>`;
+ 
+module.exports ={
+		ground,
+		}
+});
+
 ;require.register("circuit/popup/circuitpopup.js", function(exports, require, module) {
 var ContextMenu = require('core/popup/contextmenu').ContextMenu;
 var core=require('core/core');
@@ -1012,6 +1050,46 @@ actionPerformed(id,context){
 
 module.exports ={
 		CircuitContextMenu
+		}
+});
+
+;require.register("circuit/power.js", function(exports, require, module) {
+const power =`<?xml version="1.0" encoding="ISO-8859-1"?>
+<modules identity="Module" type="POWER" version="8.0">
+<module width="500" height="500">
+<name>Vcc</name>
+<reference><label color="-16777216">Vcc,99.0,128.0,LEFT,PLAIN,8</label>
+</reference>
+<unit><label color="-16777216">5V,108.0,142.0,LEFT,PLAIN,8</label>
+</unit>
+<elements>
+<ellipse x="104.0" y="133.0" width="3.0" height="3.0" thickness="1" fill="1"/>
+<pin type="0"  style="0"   x="104.0" y="136.0" orientation="1">
+</pin>
+</elements>
+</module>
+<module width="500" height="500">
+<name>Vcc</name>
+<reference><label color="-16777216">J,192.0,243.0,LEFT,PLAIN,8</label>
+</reference>
+<unit><label color="-16777216">9-12V,192.0,290.0,LEFT,PLAIN,8</label>
+</unit>
+<elements>
+<rectangle>192.0,245.0,24.0,38.0,1,1,5</rectangle>
+<ellipse x="204.0" y="272.0" width="5.0" height="5.0" thickness="1" fill="1"/>
+<line  thickness="1">206.0,270.0,202.0,274.0,</line>
+<line  thickness="1">206.0,254.0,202.0,258.0,</line>
+<ellipse x="204.0" y="256.0" width="5.0" height="5.0" thickness="1" fill="1"/>
+<pin type="0"  style="0"   x="216.0" y="272.0" orientation="3">
+</pin>
+<pin type="0"  style="0"   x="216.0" y="256.0" orientation="3">
+</pin>
+</elements>
+</module>
+</modules`;
+ 
+module.exports ={
+		power,
 		}
 });
 
@@ -3426,6 +3504,7 @@ var core=require('core/core');
 var shape=require('core/shapes');
 var events=require('core/events');
 var SymbolLoadView=require('symbols/views/symbolloadview');
+var SymbolContainer=require('symbols/d/symbolcomponent').SymbolContainer;
 var Circuit=require('circuit/d/circuitcomponent').Circuit;
 var CircuitMgr = require('circuit/d/circuitcomponent').CircuitMgr;
 var CircuitContainer = require('circuit/d/circuitcomponent').CircuitContainer;
@@ -3433,7 +3512,8 @@ var UnitMgr = require('core/unit').UnitMgr;
 var CircuitLoadView=require('circuit/views/circuitloadview');
 var CircuitSaveView=require('circuit/views/circuitsaveview');
 
-
+var power=require('circuit/power').power;
+var ground=require('circuit/ground').ground;
 
 var ToggleButtonView=Backbone.View.extend({
 
@@ -3552,7 +3632,21 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='loadsymbolid'){
 			 new SymbolLoadView({enabled:true}).render();			
 		}
-		
+		if(event.data.model.id=='vccid'||event.data.model.id=='gndid'){		   
+		   let symbolContainer=new SymbolContainer();
+		   core.isEventEnabled=false;
+		   symbolContainer.parse(event.data.model.id=='vccid'?power:ground);  	
+		   core.isEventEnabled=true;		  		    			 
+		   let schsymbol=CircuitMgr.getInstance().createSCHSymbol(symbolContainer.getUnit());
+		  
+           //            //***set chip cursor
+		   schsymbol.move(-1 * schsymbol.getBoundingShape().center.x,
+                         -1 * schsymbol.getBoundingShape().center.y);
+          
+           this.circuitComponent.setMode(core.ModeEnum.SYMBOL_MODE);
+           this.circuitComponent.setContainerCursor(schsymbol);
+           this.circuitComponent.getEventMgr().setEventHandle("cursor", schsymbol);
+		}
 		if(event.data.model.id=='originid'){			 
 			event.data.model.setActive(!event.data.model.isActive());
 			if(event.data.model.isActive()){
@@ -8280,6 +8374,14 @@ var degrees = function(radians) {
 //	    };
 //};
 
+/**
+a = line point 1; b = line point 2; c = point to check against.
+If the formula is equal to 0, the points are colinear.
+If the line is horizontal, then this returns true if the point is above the line.
+**/
+var isLeftPlane=function(a, b, c){
+   return ((c.x - a.x)*(b.y - a.y) - (c.y - a.y)*(b.x - a.x)) > 0;
+}	
 /*****
 *
 *   Intersect Line with Line
@@ -11366,7 +11468,11 @@ module.exports = function(d2) {
             n.multiply(d);
             return n;
         }
-        
+        isCollinearTo(v){
+        	let a=Math.abs(this.x/v.x);
+        	let b=Math.abs(this.y/v.y);
+        	return d2.utils.EQ(a,b);
+        }
         multiply(scalar) {
             this.x=scalar * this.x;
             this.y=scalar * this.y;
