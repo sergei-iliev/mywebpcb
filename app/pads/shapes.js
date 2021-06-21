@@ -787,6 +787,9 @@ calculateResizingMidPoint(pt){
 	return line.projectionPoint(new d2.Point(pt.x,pt.y));	
 }
 }
+/*
+ * Works with points but can not calculate start and end angle
+ */
 //class Arc extends Shape{
 //	constructor(x,y,r,thickness,layermaskid){	
 //	        super(0, 0, 0,0,thickness,layermaskid);  

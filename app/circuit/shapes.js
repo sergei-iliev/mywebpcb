@@ -318,6 +318,14 @@ class SCHWire extends AbstractLine{
 		copy.polyline=this.polyline.clone();
 		return copy;
 	}
+    alignToGrid(isRequired) {
+        for (let wirePoint of this.polyline.points) {
+            
+        	let point =this.owningUnit.getGrid().positionOnGrid(wirePoint.x, wirePoint.y);
+            wirePoint.set(point);
+        }
+        return null;
+    } 
 	paint(g2, viewportWindow, scale,layersmask) {		
 		var rect = this.polyline.box;
 		rect.scale(scale.getScale());		
@@ -400,7 +408,7 @@ class SCHBus extends SCHWire{
 		var copy = new SCHBus();		
 		copy.polyline=this.polyline.clone();
 		return copy;
-	}
+	}	
 	toXML(){		
 		let xml="<bus thickness=\""+this.thickness+"\">";
 		xml+="<wirepoints>";		

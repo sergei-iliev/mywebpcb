@@ -224,7 +224,7 @@ class Circuit extends Unit{
 class CircuitContainer extends UnitContainer{
 	constructor() {
 	  super();
-	  this.formatedFileName="Circuit";
+	  this.formatedFileName="Circuits";
 	}
 	parse(data){
 		//this.unitName=j$(data).find("name").first().text();
