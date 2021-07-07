@@ -255,33 +255,7 @@ getClickableOrder(){
 	return 2;
 }
 isClicked(x, y) {
-	  var result = false;
-		// build testing rect
-	  var width=this.thickness<4?4:this.thickness;
-	  var rect = d2.Box.fromRect(x
-								- (width / 2), y
-								- (width / 2), width,
-								width);
-	  var r1 = rect.min;
-	  var r2 = rect.max;
-
-	  // ***make lines and iterate one by one
-	  var prevPoint = this.polyline.points[0];
-
-	  this.polyline.points.some(function(wirePoint) {
-							// skip first point
-							{
-								if (utilities.intersectLineRectangle(
-										prevPoint, wirePoint, r1, r2)) {
-									result = true;
-									return true;
-								}
-								prevPoint = wirePoint;
-							}
-
-						});
-
-	return result;
+	 return this.polyline.isPointOn({"x":x,"y":y},this.thickness<4?4:this.thickness);
 }
 add(x,y){
     if(this.resumeState==ResumeState.ADD_AT_FRONT)

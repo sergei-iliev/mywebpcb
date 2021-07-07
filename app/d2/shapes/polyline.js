@@ -46,6 +46,36 @@ module.exports = function(d2) {
            	point.rotate(angle,center);
            });
        }
+       isPointOn(pt,diviation){
+    		  var result = false;
+    			// build testing rect
+    		  
+    		  var rect = d2.Box.fromRect(pt.x
+    									- (diviation / 2), pt.y
+    									- (diviation / 2), diviation,
+    									diviation);
+    		  var r1 = rect.min;
+    		  var r2 = rect.max;
+
+    		  // ***make lines and iterate one by one
+    		  var prevPoint = this.points[0];
+
+    		  this.points.some(function(wirePoint) {
+    								// skip first point
+    								{
+    									if (d2.utils.intersectLineRectangle(
+    											prevPoint, wirePoint, r1, r2)) {
+    										result = true;
+    										return true;
+    									}
+    									prevPoint = wirePoint;
+    								}
+
+    							});
+
+    		return result;
+    	   
+       }
        intersect(shape){
     	   let segment=new d2.Segment(0,0,0,0);
     	   if(shape instanceof d2.Circle){
