@@ -604,10 +604,7 @@ class RoundRect extends Shape{
 	        }
 	}	
 	isClicked(x, y) {
-		if (this.roundRect.contains(new d2.Point(x, y)))
-			return true;
-		else
-			return false;
+		return this.roundRect.isPointOn(new d2.Point(x, y),this.thickness);				
 	}
 	isControlRectClicked(x,y){
 	   	let pt=new d2.Point(x,y);

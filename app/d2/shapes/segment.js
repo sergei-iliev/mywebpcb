@@ -48,6 +48,20 @@ module.exports = function(d2) {
         contains(pt){
       	   return false;    	   
         }
+        isPointOn(pt,diviation){  		 
+		  var rect = d2.Box.fromRect(pt.x
+									- (diviation / 2), pt.y
+									- (diviation / 2), diviation,
+									diviation);
+		 var r1 = rect.min;
+		 var r2 = rect.max;
+
+		 if (d2.utils.intersectLineRectangle(this.ps,this.pe, r1, r2)) {				
+				return true;
+		 }
+
+		 return false;        	
+        }
         projectionPoint(pt) {
             let v1 = new d2.Vector(this.ps, pt);
             let v2 = new d2.Vector(this.ps, this.pe);

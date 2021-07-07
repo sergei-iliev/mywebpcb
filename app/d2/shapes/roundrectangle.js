@@ -87,6 +87,28 @@ module.exports = function(d2) {
 			   return [C,A,B];
 			   			
 		}
+		isPointOn(pt,diviation){
+			if (this.rounding == 0) {
+				for(const seg of this.segments){
+				 	if(seg.isPointOn(pt,diviation)){				 		
+				 		return true;
+				 	}										
+				}
+			}else{
+				for(const seg of this.segments){
+				 	if(seg.isPointOn(pt,diviation)){
+				 		return true;
+				 	}										
+				}
+				for(const arc of this.arcs){
+				 	if(arc.isPointOn(pt,diviation/2)){
+				 		return true;
+				 	}										
+				}
+
+			}			
+			return false;
+		}
     	reset(){
             if (this.rounding == 0) {
             	 

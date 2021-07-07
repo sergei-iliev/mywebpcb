@@ -592,12 +592,12 @@ isControlRectClicked(x,y) {
 	     return null;
 	}
 isClicked(x, y) {
-	if(this.arc.isPointOn(new d2.Point(x, y),this.thickness))
+	if(this.arc.isPointOn(new d2.Point(x, y),this.thickness/2)){
 		return true;
-	
-	if (this.arc.contains(new d2.Point(x, y)))
-		return true;
-	else
+	}
+	//if (this.arc.contains(new d2.Point(x, y)))
+	//	return true;
+	//else
 		return false;
 	}
 isMidPointClicked(x,y){
