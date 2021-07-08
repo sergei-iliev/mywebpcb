@@ -29,7 +29,7 @@ module.exports = function(d2) {
      	   this.w*=alpha;
      	   this.h*=alpha;
         }
-        contains(pt,g) {
+        contains(pt) {
         	let x=pt.x;
         	let y=pt.y;
         	let alpha=this.convert(this.rotation);
