@@ -29,6 +29,44 @@ module.exports = function(d2) {
      	   this.w*=alpha;
      	   this.h*=alpha;
         }
+        isPointOn(pt,diviation){
+        	//find where the point is    
+        	let x=pt.x;
+        	let y=pt.y;
+        	let alpha=this.convert(this.rotation);
+            var cos = Math.cos(alpha),
+                sin = Math.sin(alpha);
+            var dx  = (x - this.pc.x),
+                dy  = (y - this.pc.y);
+            var tdx = cos * dx + sin * dy,
+                tdy = sin * dx - cos * dy;
+
+            let pos=(tdx * tdx) / (this.w * this.w) + (tdy * tdy) / (this.h * this.h);
+            //is pt on shape
+            if(d2.utils.EQ(pos,1)){
+            	return true;
+            }
+            let v=new d2.Vector(this.pc,pt);
+		    let norm=v.normalize();			  
+			//1.in
+		    if(pos<1){
+			    let xx=pt.x +diviation*norm.x;
+				let yy=pt.y +diviation*norm.y;
+				//check if new point is out
+				if(!this.contains(new d2.Point(xx,yy))){
+					return true;
+				}
+		    }else{  //2.out
+			    let xx=pt.x - diviation*norm.x;
+				let yy=pt.y - diviation*norm.y;
+				//check if new point is in
+				if(this.contains(new d2.Point(xx,yy))){
+					return true;
+				}		    	
+		    }
+
+          	return false;
+        }        
         contains(pt) {
         	let x=pt.x;
         	let y=pt.y;
@@ -42,6 +80,7 @@ module.exports = function(d2) {
 
             return (tdx * tdx) / (this.w * this.w) + (tdy * tdy) / (this.h * this.h) <= 1;
         }
+
 		resize(offX,offY,pt){
 		  if(pt.equals(this.vert[0])){
 				let point=this.vert[0];

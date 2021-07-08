@@ -422,6 +422,7 @@ class Ellipse extends Shape{
 		super(0,0, w, h, 1,core.Layer.LAYER_ALL);
 		this.setDisplayName("Ellipse");		
 		this.ellipse=new d2.Ellipse(new d2.Point(0,0),w,h);
+		//this.ellipse.rotate(60);
 		this.selectionRectWidth=4;
 		this.fillColor='#000000';	
 	}
@@ -445,10 +446,7 @@ class Ellipse extends Shape{
 	    return this.ellipse.pc;
 	}
 	isClicked(x, y) {
-		if (this.ellipse.contains(new d2.Point(x, y)))
-			return true;
-		else
-			return false;
+		return this.ellipse.isPointOn(new d2.Point(x, y),this.thickness);
 	}
 	setSelected (selection) {
 		super.setSelected(selection);
