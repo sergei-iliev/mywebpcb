@@ -55,6 +55,17 @@ module.exports = function(d2) {
             this.vert[5].set(e.x,e.y);   
             return this.vert;
         }
+        isPointOn(pt,diviation){
+        	let result=super.isPointOn(pt,diviation);
+        	let clickedAngle =new d2.Vector(this.pc,pt).slope;   
+        	let angle = 360 - clickedAngle;
+        	
+        	console.log(this._convert(clickedAngle,0));
+        	
+        	//console.log(clickedAngle +"::"+angle);
+        	
+        	return false;
+        }
         _convert(start,extend){
     		
     		let s = 360 - start;
@@ -91,7 +102,7 @@ module.exports = function(d2) {
         	
            	let alpha=this.convert(this.rotation);           	
            	let angles=this._convert(this.startAngle,this.endAngle);
-           	
+           
            	
            	g2.beginPath();
            	g2.ellipse(this.pc.x,this.pc.y,this.w, this.h,alpha,d2.utils.radians(angles[0]), d2.utils.radians(angles[1]),this.endAngle>0);

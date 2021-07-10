@@ -256,6 +256,7 @@ class Arc extends Shape{
 	   	return result;
 	}	
 	isClicked(x, y) {
+		this.arc.isPointOn(new d2.Point(x,y),this.thickness);
 		if (this.arc.contains(new d2.Point(x, y)))
 			return true;
 		else
