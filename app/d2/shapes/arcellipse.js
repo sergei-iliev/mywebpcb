@@ -55,16 +55,29 @@ module.exports = function(d2) {
             this.vert[5].set(e.x,e.y);   
             return this.vert;
         }
+        
         isPointOn(pt,diviation){
         	let result=super.isPointOn(pt,diviation);
-        	let clickedAngle =new d2.Vector(this.pc,pt).slope;   
-        	let angle = 360 - clickedAngle;
+        	if(!result){
+        		return false;
+        	}
+        	let start=new d2.Vector(this.pc,this.start).slope;
+        	let end=new d2.Vector(this.pc,this.end).slope;        	        	        	        	
+        	let clickedAngle =new d2.Vector(this.pc,pt).slope;
         	
-        	console.log(this._convert(clickedAngle,0));
-        	
-        	//console.log(clickedAngle +"::"+angle);
-        	
-        	return false;
+        	if(this.endAngle>0){
+        	  if(start>end){
+        		  return (start>=clickedAngle)&&(clickedAngle>=end);	
+        	  }else{
+        		  return !((start<=clickedAngle)&&(clickedAngle<=end));        		  
+        	  }
+        	}else{
+        	 if(start>end){
+    			return !((start>=clickedAngle)&&(clickedAngle>=end));
+    		 }else{        			
+    			return (start<=clickedAngle)&&(clickedAngle<=end);
+    		 }        		
+        	}      	        	        	        	
         }
         _convert(start,extend){
     		
