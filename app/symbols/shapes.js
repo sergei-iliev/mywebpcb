@@ -918,7 +918,8 @@ getCenter(){
 	return this.shape.box.center;
 }
 isClicked(x, y) {
-  return this.shape.contains(new d2.Point(x, y));	
+  //return this.shape.contains(new d2.Point(x, y));
+	return this.shape.isPointOn({"x":x,"y":y},this.thickness<4?4:this.thickness);
 }
 isControlRectClicked(x, y) {
 	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
