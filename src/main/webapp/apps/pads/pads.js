@@ -9338,7 +9338,6 @@ class RoundRect extends Shape{
 				+ "\"></rectangle>";
 	}
 	fromXML(data) {
-
 		if(j$(data)[0].hasAttribute("copper")){
 		  this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
 		}

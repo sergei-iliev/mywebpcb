@@ -480,7 +480,7 @@ parse(data){
 	this.grid.setGridUnits(j$(data).find("units").first().attr("raster"),core.Units.MM);
 	var that=this;
 	
-   	j$(data).find('symbols').children().each(function(){
+   	j$(data).find('symbols').children().each(function(){   	  
    	   var shape=that.shapeFactory.createShape(this);   	   
        if(shape!=null){    
          that.add(shape);
@@ -1211,6 +1211,11 @@ class BoardShapeFactory{
 			var arc = new PCBArc(0, 0, 0, 0, 0);
 			arc.fromXML(data);
 			return arc;
+		}
+		if (data.tagName.toLowerCase() == 'rectangle') {
+			var roundRect = new PCBRoundRect(0, 0, 0, 0, 0,0, core.Layer.SILKSCREEN_LAYER_FRONT);
+			roundRect.fromXML(data);
+			return roundRect;
 		}
 		if (data.tagName.toLowerCase() == 'line') {
 			var line = new PCBLine( 0, 0, 0, 0, 0);
@@ -2830,7 +2835,7 @@ var CirclePanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Fill</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"fillid\">"+
-				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+				this.fillComboBox([{id:1,value:'EMPTY',selected:true},{id:2,value:'FILLED'}])+
 			    "</select>" +
 				"</td></tr>"+				
 				"<tr><td style='padding:7px'>Radius</td><td><input type='text' id='radiusid' value='' class='form-control input-sm\'></td></tr>"+
@@ -2909,7 +2914,7 @@ var RectPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Fill</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"fillid\">"+
-				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+				this.fillComboBox([{id:1,value:'EMPTY',selected:true},{id:2,value:'FILLED'}])+
 			    "</select>" +
 				"</td></tr>"+
 				"<tr><td style='padding:7px'>Rounding</td><td><input type='text' id='roundingid' value='' class='form-control input-sm\'></td></tr>"+						        
@@ -3040,7 +3045,7 @@ var ArcPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Fill</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"fillid\">"+
-				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+				this.fillComboBox([{id:1,value:'EMPTY',selected:true},{id:2,value:'FILLED'}])+
 			    "</select>" +
 				"</td></tr>"+
 				"<tr><td style='padding:7px'>Radius</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+				
@@ -3120,7 +3125,7 @@ var CopperAreaPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Fill</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"fillid\">"+
-				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+				this.fillComboBox([{id:1,value:'EMPTY',selected:true},{id:2,value:'FILLED'}])+
 			    "</select>" +
 				"</td></tr>"+
 				"<tr><td style='padding:7px'>Clearance</td><td><input type='text' id='clearanceid' value='' class='form-control input-sm\'></td></tr>"+				
@@ -13333,7 +13338,6 @@ class RoundRect extends Shape{
 				+ "\"></rectangle>";
 	}
 	fromXML(data) {
-
 		if(j$(data)[0].hasAttribute("copper")){
 		  this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));
 		}
