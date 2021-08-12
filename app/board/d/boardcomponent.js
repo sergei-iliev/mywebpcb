@@ -191,7 +191,7 @@ parse(data){
 	this.grid.setGridUnits(j$(data).find("units").first().attr("raster"),core.Units.MM);
 	var that=this;
 	
-   	j$(data).find('symbols').children().each(function(){
+   	j$(data).find('symbols').children().each(function(){   	  
    	   var shape=that.shapeFactory.createShape(this);   	   
        if(shape!=null){    
          that.add(shape);

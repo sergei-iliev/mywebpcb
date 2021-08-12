@@ -39,6 +39,11 @@ class BoardShapeFactory{
 			arc.fromXML(data);
 			return arc;
 		}
+		if (data.tagName.toLowerCase() == 'rectangle') {
+			var roundRect = new PCBRoundRect(0, 0, 0, 0, 0,0, core.Layer.SILKSCREEN_LAYER_FRONT);
+			roundRect.fromXML(data);
+			return roundRect;
+		}
 		if (data.tagName.toLowerCase() == 'line') {
 			var line = new PCBLine( 0, 0, 0, 0, 0);
 			line.fromXML(data);
