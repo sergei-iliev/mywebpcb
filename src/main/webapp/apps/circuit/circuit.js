@@ -518,7 +518,7 @@ class Circuit extends Unit{
 class CircuitContainer extends UnitContainer{
 	constructor() {
 	  super();
-	  this.formatedFileName="Circuit";
+	  this.formatedFileName="Circuits";
 	}
 	parse(data){
 		//this.unitName=j$(data).find("name").first().text();
@@ -1414,6 +1414,14 @@ class SCHWire extends AbstractLine{
 		copy.polyline=this.polyline.clone();
 		return copy;
 	}
+    alignToGrid(isRequired) {
+        for (let wirePoint of this.polyline.points) {
+            
+        	let point =this.owningUnit.getGrid().positionOnGrid(wirePoint.x, wirePoint.y);
+            wirePoint.set(point);
+        }
+        return null;
+    } 
 	paint(g2, viewportWindow, scale,layersmask) {		
 		var rect = this.polyline.box;
 		rect.scale(scale.getScale());		
@@ -1496,7 +1504,7 @@ class SCHBus extends SCHWire{
 		var copy = new SCHBus();		
 		copy.polyline=this.polyline.clone();
 		return copy;
-	}
+	}	
 	toXML(){		
 		let xml="<bus thickness=\""+this.thickness+"\">";
 		xml+="<wirepoints>";		
@@ -3780,6 +3788,10 @@ ResumeState={
 		 ADD_AT_FRONT:0,
 		 ADD_AT_END:1		
 };
+ArcType={
+		 TWO_POINT_ARC:0,
+		 CENTER_POINT_ARC:1		
+};
 Fill = {
 		EMPTY : 1,
 		FILLED : 2,
@@ -3804,6 +3816,7 @@ var Units=(function(){
         PIXEL:2		
 	}
 })();
+
 SymbolType={
 		SYMBOL:0,
 		GROUND:1,
@@ -4657,6 +4670,7 @@ module.exports ={
 	SymbolType,
 	Queue,
 	ResumeState,
+	ArcType,
 }
 
 var events=require('core/events');
@@ -6142,33 +6156,7 @@ getClickableOrder(){
 	return 2;
 }
 isClicked(x, y) {
-	  var result = false;
-		// build testing rect
-	  var width=this.thickness<4?4:this.thickness;
-	  var rect = d2.Box.fromRect(x
-								- (width / 2), y
-								- (width / 2), width,
-								width);
-	  var r1 = rect.min;
-	  var r2 = rect.max;
-
-	  // ***make lines and iterate one by one
-	  var prevPoint = this.polyline.points[0];
-
-	  this.polyline.points.some(function(wirePoint) {
-							// skip first point
-							{
-								if (utilities.intersectLineRectangle(
-										prevPoint, wirePoint, r1, r2)) {
-									result = true;
-									return true;
-								}
-								prevPoint = wirePoint;
-							}
-
-						});
-
-	return result;
+	 return this.polyline.isPointOn({"x":x,"y":y},this.thickness<4?4:this.thickness);
 }
 add(x,y){
     if(this.resumeState==ResumeState.ADD_AT_FRONT)
@@ -8843,6 +8831,30 @@ module.exports = function(d2) {
             this.vert[5].set(e.x,e.y);   
             return this.vert;
         }
+        
+        isPointOn(pt,diviation){
+        	let result=super.isPointOn(pt,diviation);
+        	if(!result){
+        		return false;
+        	}
+        	let start=new d2.Vector(this.pc,this.start).slope;
+        	let end=new d2.Vector(this.pc,this.end).slope;        	        	        	        	
+        	let clickedAngle =new d2.Vector(this.pc,pt).slope;
+        	
+        	if(this.endAngle>0){
+        	  if(start>end){
+        		  return (start>=clickedAngle)&&(clickedAngle>=end);	
+        	  }else{
+        		  return !((start<=clickedAngle)&&(clickedAngle<=end));        		  
+        	  }
+        	}else{
+        	 if(start>end){
+    			return !((start>=clickedAngle)&&(clickedAngle>=end));
+    		 }else{        			
+    			return (start<=clickedAngle)&&(clickedAngle<=end);
+    		 }        		
+        	}      	        	        	        	
+        }
         _convert(start,extend){
     		
     		let s = 360 - start;
@@ -8879,7 +8891,7 @@ module.exports = function(d2) {
         	
            	let alpha=this.convert(this.rotation);           	
            	let angles=this._convert(this.startAngle,this.endAngle);
-           	
+           
            	
            	g2.beginPath();
            	g2.ellipse(this.pc.x,this.pc.y,this.w, this.h,alpha,d2.utils.radians(angles[0]), d2.utils.radians(angles[1]),this.endAngle>0);
@@ -9126,7 +9138,45 @@ module.exports = function(d2) {
      	   this.w*=alpha;
      	   this.h*=alpha;
         }
-        contains(pt,g) {
+        isPointOn(pt,diviation){
+        	//find where the point is    
+        	let x=pt.x;
+        	let y=pt.y;
+        	let alpha=this.convert(this.rotation);
+            var cos = Math.cos(alpha),
+                sin = Math.sin(alpha);
+            var dx  = (x - this.pc.x),
+                dy  = (y - this.pc.y);
+            var tdx = cos * dx + sin * dy,
+                tdy = sin * dx - cos * dy;
+
+            let pos=(tdx * tdx) / (this.w * this.w) + (tdy * tdy) / (this.h * this.h);
+            //is pt on shape
+            if(d2.utils.EQ(pos,1)){
+            	return true;
+            }
+            let v=new d2.Vector(this.pc,pt);
+		    let norm=v.normalize();			  
+			//1.in
+		    if(pos<1){
+			    let xx=pt.x +diviation*norm.x;
+				let yy=pt.y +diviation*norm.y;
+				//check if new point is out
+				if(!this.contains(new d2.Point(xx,yy))){
+					return true;
+				}
+		    }else{  //2.out
+			    let xx=pt.x - diviation*norm.x;
+				let yy=pt.y - diviation*norm.y;
+				//check if new point is in
+				if(this.contains(new d2.Point(xx,yy))){
+					return true;
+				}		    	
+		    }
+
+          	return false;
+        }        
+        contains(pt) {
         	let x=pt.x;
         	let y=pt.y;
         	let alpha=this.convert(this.rotation);
@@ -9139,6 +9189,7 @@ module.exports = function(d2) {
 
             return (tdx * tdx) / (this.w * this.w) + (tdy * tdy) / (this.h * this.h) <= 1;
         }
+
 		resize(offX,offY,pt){
 		  if(pt.equals(this.vert[0])){
 				let point=this.vert[0];
@@ -10343,9 +10394,34 @@ module.exports = function(d2) {
         get box(){
           return new d2.Box(this.points);	
         }
+        /*
+         * suppose a closed polygon
+         */
 		get vertices() {
 		    return this.points;	
-		}        
+		}       
+        isPointOn(pt,diviation){    	       
+        	  let segment=new d2.Segment(0,0,0,0);	   
+	          let prevPoint = this.points[0];        
+	          for(let point of this.points){    	        	  
+	              if(prevPoint.equals(point)){    	            	  
+	            	  prevPoint = point;
+	                  continue;
+	              }    	              
+	              segment.set(prevPoint.x,prevPoint.y,point.x,point.y);
+	              if(segment.isPointOn(pt,diviation)){
+	                  return true;
+	              }
+	              prevPoint = point;
+	          }		
+	          //close polygon	
+	          segment.set(prevPoint.x,prevPoint.y,this.points[0].x,this.points[0].y);
+              if(segment.isPointOn(pt,diviation)){
+                  return true;
+              }
+	          
+	          return false;
+        } 		
         paint(g2){
 	    	g2.beginPath();
 	    	g2.moveTo(this.points[0].x,this.points[0].y);
@@ -10411,6 +10487,36 @@ module.exports = function(d2) {
            this.points.forEach(point=>{
            	point.rotate(angle,center);
            });
+       }
+       isPointOn(pt,diviation){
+    		  var result = false;
+    			// build testing rect
+    		  
+    		  var rect = d2.Box.fromRect(pt.x
+    									- (diviation / 2), pt.y
+    									- (diviation / 2), diviation,
+    									diviation);
+    		  var r1 = rect.min;
+    		  var r2 = rect.max;
+
+    		  // ***make lines and iterate one by one
+    		  var prevPoint = this.points[0];
+
+    		  this.points.some(function(wirePoint) {
+    								// skip first point
+    								{
+    									if (d2.utils.intersectLineRectangle(
+    											prevPoint, wirePoint, r1, r2)) {
+    										result = true;
+    										return true;
+    									}
+    									prevPoint = wirePoint;
+    								}
+
+    							});
+
+    		return result;
+    	   
        }
        intersect(shape){
     	   let segment=new d2.Segment(0,0,0,0);
@@ -11008,6 +11114,28 @@ module.exports = function(d2) {
 			   return [C,A,B];
 			   			
 		}
+		isPointOn(pt,diviation){
+			if (this.rounding == 0) {
+				for(const seg of this.segments){
+				 	if(seg.isPointOn(pt,diviation)){				 		
+				 		return true;
+				 	}										
+				}
+			}else{
+				for(const seg of this.segments){
+				 	if(seg.isPointOn(pt,diviation)){
+				 		return true;
+				 	}										
+				}
+				for(const arc of this.arcs){
+				 	if(arc.isPointOn(pt,diviation/2)){
+				 		return true;
+				 	}										
+				}
+
+			}			
+			return false;
+		}
     	reset(){
             if (this.rounding == 0) {
             	 
@@ -11200,6 +11328,20 @@ module.exports = function(d2) {
         contains(pt){
       	   return false;    	   
         }
+        isPointOn(pt,diviation){  		 
+		  var rect = d2.Box.fromRect(pt.x
+									- (diviation / 2), pt.y
+									- (diviation / 2), diviation,
+									diviation);
+		 var r1 = rect.min;
+		 var r2 = rect.max;
+
+		 if (d2.utils.intersectLineRectangle(this.ps,this.pe, r1, r2)) {				
+				return true;
+		 }
+
+		 return false;        	
+        }
         projectionPoint(pt) {
             let v1 = new d2.Vector(this.ps, pt);
             let v2 = new d2.Vector(this.ps, this.pe);
@@ -11307,7 +11449,54 @@ module.exports = function(d2) {
 					line.paint(g2);
 		        });	
 	   	 },
-	
+	   	/*****
+	   	*
+	   	*   Intersect Line with Line
+	   	*
+	   	*****/
+	   	 intersectLineLine : function(a1, a2, b1, b2) {
+	   	    var result=false;
+	   	    
+	   	    var ua_t = (b2.x - b1.x) * (a1.y - b1.y) - (b2.y - b1.y) * (a1.x - b1.x);
+	   	    var ub_t = (a2.x - a1.x) * (a1.y - b1.y) - (a2.y - a1.y) * (a1.x - b1.x);
+	   	    var u_b  = (b2.y - b1.y) * (a2.x - a1.x) - (b2.x - b1.x) * (a2.y - a1.y);
+
+	   	    if ( u_b != 0 ) {
+	   	        var ua = ua_t / u_b;
+	   	        var ub = ub_t / u_b;
+
+	   	        if ( 0 <= ua && ua <= 1 && 0 <= ub && ub <= 1 ) {
+	   	            result = true;
+	   	        } else {
+	   	            result = false;
+	   	        }
+	   	    }
+	   	    return result;
+	   	},	   	 
+	   	/*****
+	   	*
+	   	*   Intersect Line with Rectangle
+	   	*
+	   	*****/
+	   	intersectLineRectangle: function(a1, a2, r1, r2) {
+	   	    var min        = this.min(r1,r2);
+	   	    var max        = this.max(r1,r2);
+	   	    var topRight   = new d2.Point( max.x, min.y );
+	   	    var bottomLeft = new d2.Point( min.x, max.y );
+	   	    
+	   	    var inter1 = this.intersectLineLine(min, topRight, a1, a2);
+	   	    var inter2 = this.intersectLineLine(topRight, max, a1, a2);
+	   	    var inter3 = this.intersectLineLine(max, bottomLeft, a1, a2);
+	   	    var inter4 = this.intersectLineLine(bottomLeft, min, a1, a2);
+	   	    
+	   	    return inter1||inter2||inter3||inter4;
+	   	},
+	   	min:function(p1,p2){
+	   		return new d2.Point(Math.min(p1.x,p2.x),Math.min(p1.y,p2.y));	
+	   	},
+	   	max:function(p1,p2){
+	   	    return new d2.Point(Math.max(p1.x,p2.x),Math.max(p1.y,p2.y));	
+	   	},	   	
 	   radians:function(degrees) {
 			  return degrees * Math.PI / 180;
 	   },
@@ -12553,10 +12742,11 @@ class Arc extends Shape{
 	   	return result;
 	}	
 	isClicked(x, y) {
-		if (this.arc.contains(new d2.Point(x, y)))
-			return true;
-		else
-			return false;
+		return (this.arc.isPointOn(new d2.Point(x,y),this.thickness));
+//		if (this.arc.contains(new d2.Point(x, y)))
+//			return true;
+//		else
+//			return false;
 	}
 	isStartAnglePointClicked(x,y){	
 	    let p=this.arc.start;
@@ -12719,6 +12909,7 @@ class Ellipse extends Shape{
 		super(0,0, w, h, 1,core.Layer.LAYER_ALL);
 		this.setDisplayName("Ellipse");		
 		this.ellipse=new d2.Ellipse(new d2.Point(0,0),w,h);
+		//this.ellipse.rotate(60);
 		this.selectionRectWidth=4;
 		this.fillColor='#000000';	
 	}
@@ -12742,10 +12933,7 @@ class Ellipse extends Shape{
 	    return this.ellipse.pc;
 	}
 	isClicked(x, y) {
-		if (this.ellipse.contains(new d2.Point(x, y)))
-			return true;
-		else
-			return false;
+		return this.ellipse.isPointOn(new d2.Point(x, y),this.thickness);
 	}
 	setSelected (selection) {
 		super.setSelected(selection);
@@ -12901,10 +13089,7 @@ class RoundRect extends Shape{
 	        }
 	}	
 	isClicked(x, y) {
-		if (this.roundRect.contains(new d2.Point(x, y)))
-			return true;
-		else
-			return false;
+		return this.roundRect.isPointOn(new d2.Point(x, y),this.thickness);				
 	}
 	isControlRectClicked(x,y){
 	   	let pt=new d2.Point(x,y);
@@ -13219,7 +13404,8 @@ getCenter(){
 	return this.shape.box.center;
 }
 isClicked(x, y) {
-  return this.shape.contains(new d2.Point(x, y));	
+  //return this.shape.contains(new d2.Point(x, y));
+	return this.shape.isPointOn({"x":x,"y":y},this.thickness<4?4:this.thickness);
 }
 isControlRectClicked(x, y) {
 	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
