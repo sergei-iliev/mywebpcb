@@ -16,6 +16,10 @@ ResumeState={
 		 ADD_AT_FRONT:0,
 		 ADD_AT_END:1		
 };
+ArcType={
+		 TWO_POINT_ARC:0,
+		 CENTER_POINT_ARC:1		
+};
 Fill = {
 		EMPTY : 1,
 		FILLED : 2,
@@ -40,6 +44,7 @@ var Units=(function(){
         PIXEL:2		
 	}
 })();
+
 SymbolType={
 		SYMBOL:0,
 		GROUND:1,
@@ -893,6 +898,7 @@ module.exports ={
 	SymbolType,
 	Queue,
 	ResumeState,
+	ArcType,
 }
 
 var events=require('core/events');

@@ -517,217 +517,287 @@ setResizingPoint(point) {
 }
 
 }
-
 class Arc extends Shape{
-constructor(x,y,r,thickness,layermaskid){	
-        super(0, 0, 0,0,thickness,layermaskid);  
-		this.setDisplayName("Arc");
-		this.selectionRectWidth=3000;
-		this.resizingPoint=null;
-		this.arc=new d2.Arc(new d2.Point(x,y),r,50,70);
-		this.rotation=0;
-		this.center=null;
-		this.temp=1;
-		this.tmpPt=null;
-}
-clone() {
-		var copy = new Arc(this.arc.center.x,this.arc.center.y, this.arc.r,this.thickness,this.copper.getLayerMaskID());		
-        copy.arc.startAngle = this.arc.startAngle;
-        copy.arc.endAngle = this.arc.endAngle; 
-        copy.rotation=this.rotation;
-		copy.fill = this.fill;
-		return copy;
-}
-calculateShape() {
-	return this.arc.box;	
-}
-getOrderWeight(){
-	return this.arc.area; 
-}
-fromXML(data){
-        
-        this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));        
-		let xx=parseInt(j$(data).attr("x"));
-		let yy=parseInt(j$(data).attr("y"));
-		
- 		if(j$(data).attr("width")!=undefined){
- 			let diameter=parseInt(parseInt(j$(data).attr("width")));
- 	        this.arc.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
- 	        this.arc.r=parseInt(diameter/2); 			
- 		}else{
- 			let radius=parseInt(parseInt(j$(data).attr("radius")));
- 	        this.arc.pc.set(xx,yy);
- 	        this.arc.r=radius; 			 		
- 		}        
-		this.arc.startAngle = parseInt(j$(data).attr("start"));
-        this.arc.endAngle = parseInt(j$(data).attr("extend"));        
-		this.thickness = (parseInt(j$(data).attr("thickness")));
-		this.fill=parseInt(j$(data).attr("fill"));
-}
-toXML() {
-    return '<arc copper="'+this.copper.getName()+'"  x="'+utilities.roundFloat(this.arc.pc.x,4)+'" y="'+utilities.roundFloat(this.arc.pc.y,4)+'" radius="'+utilities.roundFloat(this.arc.r,4)+'"  thickness="'+this.thickness+'" start="'+utilities.roundFloat(this.arc.startAngle,2)+'" extend="'+utilities.roundFloat(this.arc.endAngle,2)+'" fill="'+this.fill+'" />';
-}
-setRadius(r){
-	this.arc.r=r;	
-}
-setExtendAngle(extendAngle){
-    this.arc.endAngle=utilities.round(extendAngle);
-}
-setStartAngle(startAngle){        
-    this.arc.startAngle=utilities.round(startAngle);
-}
-get vertices(){
-	  return this.arc.vertices;	
+	constructor(x,y,r,thickness,layermaskid){	
+	        super(0, 0, 0,0,thickness,layermaskid);  
+			this.setDisplayName("Arc");
+			this.selectionRectWidth=3000;
+			this.resizingPoint=null;
+			this.arc=new d2.Arc(new d2.Point(x,y),r,50,170);
+			this.rotation=0;
+			this.arcType=core.ArcType.CENTER_POINT_ARC;
 	}
-isControlRectClicked(x,y) {
-	 if(this.isStartAnglePointClicked(x,y)){
-		    return this.arc.start;
-		 }
-	 if(this.isExtendAnglePointClicked(x,y)){
-		    return this.arc.end;
-		 }
-	 if(this.isMidPointClicked(x,y)){
-		    return this.arc.middle;	 
-		 }
-	     return null;
+	clone() {
+			var copy = new Arc(this.arc.center.x,this.arc.center.y, this.arc.r,this.thickness,this.copper.getLayerMaskID());		
+	        copy.arc.startAngle = this.arc.startAngle;
+	        copy.arc.endAngle = this.arc.endAngle; 
+	        copy.rotation=this.rotation;
+			copy.fill = this.fill;
+			return copy;
 	}
-isClicked(x, y) {
-	if(this.arc.isPointOn(new d2.Point(x, y),this.thickness/2)){
-		return true;
+	calculateShape() {
+		return this.arc.box;	
 	}
-	//if (this.arc.contains(new d2.Point(x, y)))
-	//	return true;
-	//else
-		return false;
+	getOrderWeight(){
+		return this.arc.area; 
 	}
-isMidPointClicked(x,y){
-    let p=this.arc.middle;
-    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
-                 this.selectionRectWidth, this.selectionRectWidth);
-    if (box.contains({x,y})) {
-        return true;
-    }else{                   
-        return false;
-	}	
-}
-isStartAnglePointClicked(x,y){	
-    let p=this.arc.start;
-    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
-                 this.selectionRectWidth, this.selectionRectWidth);
-    if (box.contains({x,y})) {
-        return true;
-    }else{                   
-        return false;
+	fromXML(data){
+	        
+	        this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));        
+			let xx=parseInt(j$(data).attr("x"));
+			let yy=parseInt(j$(data).attr("y"));
+			
+	 		if(j$(data).attr("width")!=undefined){
+	 			let diameter=parseInt(parseInt(j$(data).attr("width")));
+	 	        this.arc.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
+	 	        this.arc.r=parseInt(diameter/2); 			
+	 		}else{
+	 			let radius=parseInt(parseInt(j$(data).attr("radius")));
+	 	        this.arc.pc.set(xx,yy);
+	 	        this.arc.r=radius; 			 		
+	 		}        
+			this.arc.startAngle = parseInt(j$(data).attr("start"));
+	        this.arc.endAngle = parseInt(j$(data).attr("extend"));        
+			this.thickness = (parseInt(j$(data).attr("thickness")));
+			this.fill=parseInt(j$(data).attr("fill"));
 	}
-}
-isExtendAnglePointClicked(x,y){
-    let p=this.arc.end;
-    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
-                 this.selectionRectWidth, this.selectionRectWidth);
-    if (box.contains({x,y})) {
-        return true;
-    }else{                   
-        return false;
+	toXML() {
+	    return '<arc copper="'+this.copper.getName()+'"  x="'+utilities.roundFloat(this.arc.pc.x,4)+'" y="'+utilities.roundFloat(this.arc.pc.y,4)+'" radius="'+utilities.roundFloat(this.arc.r,4)+'"  thickness="'+this.thickness+'" start="'+utilities.roundFloat(this.arc.startAngle,2)+'" extend="'+utilities.roundFloat(this.arc.endAngle,2)+'" fill="'+this.fill+'" />';
 	}
-}	
-setRotation(rotate,center){
-	let alpha=rotate-this.rotation;
-	if(center==undefined){
-		this.arc.rotate(alpha,this.arc.center);
-	}else{
-		this.arc.rotate(alpha,center);	 	
+	setRadius(r){
+		this.arc.r=r;	
 	}
-	this.rotation=rotate;
-}
-rotate(rotation){
-	//fix angle
-  let alpha=this.rotation+rotation.angle;
-  if(alpha>=360){
-		alpha-=360
-  }
-  if(alpha<0){
-	 alpha+=360; 
-  }	
-  this.rotation=alpha;	
-  this.arc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy)); 
-}
-mirror(line) {
-  this.arc.mirror(line);
-}
-/*
- * Resize through mouse position point
- */
-Resize(xoffset, yoffset,point) {    
-    
-    this.resizingPoint=this.calculateResizingMidPoint(point);
-    
-	//old middle point on arc
-	let a1=this.arc.middle;  
-	//mid point on line
-	let m=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
-	//new middle point on arc
-	let a2=this.resizingPoint;  //new middle
-	
-	//do they belong to the same plane in regard to m 
-	let vec = new d2.Vector(m, a2);
-	let linevec=new d2.Vector(m,a1);
-    let samePlane = d2.utils.GT(vec.dot(linevec.normalize()), 0);
-    
-    
-//which plane
-    	
-	if(!samePlane){
-      //return;
+	setExtendAngle(extendAngle){
+	    this.arc.endAngle=utilities.round(extendAngle);
 	}
-		let C=this.resizingPoint;  //projection
-		let C1=m;
-    
-		let y=C1.distanceTo(C);
-		let x=C1.distanceTo(this.arc.start);
-    
-		let l=(x*x)/y;
-		let lambda=(l-y)/2;
-
-		let v=new d2.Vector(C,C1);
-		let norm=v.normalize();			  
-	
-		let a=C1.x +lambda*norm.x;
-		let b=C1.y + lambda*norm.y;
-		let center=new d2.Point(a,b);
-        let r = center.distanceTo(this.arc.start);
-		
-		let startAngle =new d2.Vector(center,this.arc.start).slope;
-		let endAngle = new d2.Vector(center, this.arc.end).slope;
-    
-
-		let start = 360 - startAngle;		
-		let end= (360-endAngle)-start;		
-		
-		if(this.arc.endAngle<0){  //negative extend
-			if(end>0){			  
-			  end=end-360;
-			}
-		}else{		//positive extend			
-			if(end<0){ 					   
-				end=360-Math.abs(end);
-			}			
+	setStartAngle(startAngle){        
+	    this.arc.startAngle=utilities.round(startAngle);
+	}
+	get vertices(){
+		  return this.arc.vertices;	
 		}
+	isControlRectClicked(x,y) {
+		 if(this.isStartAnglePointClicked(x,y)){
+			    return this.arc.start;
+			 }
+		 if(this.isExtendAnglePointClicked(x,y)){
+			    return this.arc.end;
+			 }
+		 if(this.isMidPointClicked(x,y)){
+			    return this.arc.middle;	 
+			 }
+		     return null;
+		}
+	isClicked(x, y) {
+		if(this.arc.isPointOn(new d2.Point(x, y),this.thickness/2)){
+			return true;
+		}
+		//if (this.arc.contains(new d2.Point(x, y)))
+		//	return true;
+		//else
+			return false;
+		}
+	isMidPointClicked(x,y){
+	    let p=this.arc.middle;
+	    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
+	                 this.selectionRectWidth, this.selectionRectWidth);
+	    if (box.contains({x,y})) {
+	        return true;
+	    }else{                   
+	        return false;
+		}	
+	}
+	isStartAnglePointClicked(x,y){	
+	    let p=this.arc.start;
+	    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
+	                 this.selectionRectWidth, this.selectionRectWidth);
+	    if (box.contains({x,y})) {
+	        return true;
+	    }else{                   
+	        return false;
+		}
+	}
+	isExtendAnglePointClicked(x,y){
+	    let p=this.arc.end;
+	    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
+	                 this.selectionRectWidth, this.selectionRectWidth);
+	    if (box.contains({x,y})) {
+	        return true;
+	    }else{                   
+	        return false;
+		}
+	}	
+	setRotation(rotate,center){
+		let alpha=rotate-this.rotation;
+		if(center==undefined){
+			this.arc.rotate(alpha,this.arc.center);
+		}else{
+			this.arc.rotate(alpha,center);	 	
+		}
+		this.rotation=rotate;
+	}
+	rotate(rotation){
+		//fix angle
+	  let alpha=this.rotation+rotation.angle;
+	  if(alpha>=360){
+			alpha-=360
+	  }
+	  if(alpha<0){
+		 alpha+=360; 
+	  }	
+	  this.rotation=alpha;	
+	  this.arc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy)); 
+	}
+	mirror(line) {
+	  this.arc.mirror(line);
+	}
+	resizeStartEndPoint(xoffset,yoffset,isStartPoint){
+		let A=this.arc.start.clone(),B=this.arc.end.clone(),M=this.arc.middle.clone(),O=new d2.Point();
+		let middleSegment=new d2.Segment(A,B);
+		let middlePoint=middleSegment.middle();
+		
+		let delta=M.distanceTo(middlePoint);
+	    if(isStartPoint){  //start point click	    		    	
+	    	A.move(xoffset,yoffset);	    	
+	    }else{	    	
+	    	B.move(xoffset,yoffset);
+	    }
+	    	middleSegment.set(A.x,A.y,B.x,B.y);
+	    	middlePoint=middleSegment.middle();
+	    	O.set(middlePoint);
+	    	M.set(middlePoint);
+	    	
+	    	let v=new d2.Vector(middlePoint,A);
+	    	if(this.arc.endAngle>0){
+	    	  v.rotate90CW();
+	    	}else{
+	    	  v.rotate90CCW();	
+	    	}
+	    	let norm=v.normalize();
+			let x=M.x +delta*norm.x;
+			let y=M.y +delta*norm.y;
+			M.set(x,y);	//new position of mid point
+	    	//same calculation - arc on 3 points
+			let C=M;  
+			let C1=O;
+	    
+			x=C1.distanceTo(A);
+			y=C1.distanceTo(C);
 
-	
-		this.arc.center.set(center.x,center.y);
-		this.arc.r=r;
-		this.arc.startAngle=start;
-		this.arc.endAngle=end;
-   
-	
+
+			let l=(x*x)/y;
+			let lambda=(l-y)/2;
+
+			v=new d2.Vector(C,C1);
+			norm=v.normalize();			  
+		
+			let a=C1.x +lambda*norm.x;
+			let b=C1.y + lambda*norm.y;
+			let center=new d2.Point(a,b);
+	        let r = center.distanceTo(A);
+			
+			let startAngle =new d2.Vector(center,A).slope;
+			let endAngle = new d2.Vector(center, B).slope;
+	    
+
+			let start = 360 - startAngle;		
+			let end= (360-endAngle)-start;		
+			
+			if(this.arc.endAngle<0){  //negative extend
+				if(end>0){			  
+				  end=end-360;
+				}
+			}else{		//positive extend			
+				if(end<0){ 					   
+					end=360-Math.abs(end);
+				}			
+			}
+
+		
+			this.arc.center.set(center.x,center.y);
+			this.arc.r=r;
+			this.arc.startAngle=start;
+			this.arc.endAngle=end;		
+			
+			if(isStartPoint){
+				this.resizingPoint=this.arc.start;
+			}else{
+				this.resizingPoint=this.arc.end;
+			}
+	}
+	/*
+	 * Resize through mouse position point
+	 */
+	Resize(xoffset, yoffset,point) {
+	    	
+	    this.resizingPoint=this.calculateResizingMidPoint(point);
+	    
+		//old middle point on arc
+		let a1=this.arc.middle;  
+		//mid point on line
+		let m=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
+		//new middle point on arc
+		let a2=this.resizingPoint;  //new middle
+		
+		//do they belong to the same plane in regard to m 
+		let vec = new d2.Vector(m, a2);
+		let linevec=new d2.Vector(m,a1);
+	    let samePlane = d2.utils.GT(vec.dot(linevec.normalize()), 0);
+	    
+	    
+	//which plane
+	    	
+		if(!samePlane){
+	      //return;
+		}
+			let C=this.resizingPoint;  //projection
+			let C1=m;
+	    
+			let y=C1.distanceTo(C);
+			let x=C1.distanceTo(this.arc.start);
+	    
+			let l=(x*x)/y;
+			let lambda=(l-y)/2;
+
+			let v=new d2.Vector(C,C1);
+			let norm=v.normalize();			  
+		
+			let a=C1.x +lambda*norm.x;
+			let b=C1.y + lambda*norm.y;
+			let center=new d2.Point(a,b);
+	        let r = center.distanceTo(this.arc.start);
+			
+			let startAngle =new d2.Vector(center,this.arc.start).slope;
+			let endAngle = new d2.Vector(center, this.arc.end).slope;
+	    
+
+			let start = 360 - startAngle;		
+			let end= (360-endAngle)-start;		
+			
+			if(this.arc.endAngle<0){  //negative extend
+				if(end>0){			  
+				  end=end-360;
+				}
+			}else{		//positive extend			
+				if(end<0){ 					   
+					end=360-Math.abs(end);
+				}			
+			}
+
+		
+			this.arc.center.set(center.x,center.y);
+			this.arc.r=r;
+			this.arc.startAngle=start;
+			this.arc.endAngle=end;  
+		
 }
-move(xoffset,yoffset){
-  this.arc.move(xoffset,yoffset);	
-}
-paint(g2, viewportWindow, scale,layersmask) {
-    if((this.copper.getLayerMaskID()&layersmask)==0){
-        return;
-      }
+	move(xoffset,yoffset){
+	  this.arc.move(xoffset,yoffset);	
+	}
+	paint(g2, viewportWindow, scale,layersmask) {
+	    if((this.copper.getLayerMaskID()&layersmask)==0){
+	    	return;
+	    }
 		var rect = this.arc.box;
 		rect.scale(scale.getScale());
 		if (!rect.intersects(viewportWindow)) {
@@ -766,27 +836,29 @@ paint(g2, viewportWindow, scale,layersmask) {
 		g2._fill=undefined;
 		
 		g2.globalCompositeOperation = 'source-over';
+	
+		
+    if (this.isSelected()&&this.isControlPointVisible) {
+		this.drawControlPoints(g2, viewportWindow, scale);
+	}
 
-		if (this.isSelected()&&this.isControlPointVisible) {
-			this.drawControlPoints(g2, viewportWindow, scale);
-		}
+	}
+	drawControlPoints(g2, viewportWindow, scale) {
+		utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,[this.arc.center,this.arc.start,this.arc.end,this.arc.middle]);	
+	}
+	setResizingPoint(pt){
+		this.resizingPoint=pt;
+	}
+	getResizingPoint() {
+		return this.resizingPoint;
+	}
+	calculateResizingMidPoint(pt){
+		let middle=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
+		let line=new d2.Line(middle,this.arc.middle);
+		return line.projectionPoint(new d2.Point(pt.x,pt.y));	
+	}
+	}
 
-}
-drawControlPoints(g2, viewportWindow, scale) {
-	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.arc.center,this.arc.start,this.arc.end,this.arc.middle]);	
-}
-setResizingPoint(pt){
-	this.resizingPoint=pt;
-}
-getResizingPoint() {
-	return this.resizingPoint;
-}
-calculateResizingMidPoint(pt){
-	let middle=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
-	let line=new d2.Line(middle,this.arc.middle);
-	return line.projectionPoint(new d2.Point(pt.x,pt.y));	
-}
-}
 /*
  * Works with points but can not calculate start and end angle
  */

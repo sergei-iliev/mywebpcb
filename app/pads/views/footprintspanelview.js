@@ -444,7 +444,7 @@ var RectPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Fill</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"fillid\">"+
-				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+				this.fillComboBox([{id:1,value:'EMPTY',selected:true},{id:2,value:'FILLED'}])+
 			    "</select>" +
 				"</td></tr>"+
 				//"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+
@@ -468,10 +468,15 @@ var ArcPanelBuilder=BaseBuilder.extend({
         'keypress #extendangleid' : 'onenter',
         'change #fillid': 'onchange', 
         'change #layerid':'onchange',
+        'change #arctypeid':'onchange',
+        
     },
     onchange:function(event){
         if(event.target.id=='layerid'){
         	this.target.copper= core.Layer.Copper.valueOf(j$('#layerid').val());
+        }
+        if(event.target.id=='arctypeid'){
+        	this.target.arcType= (j$('#arctypeid').val());
         }
         if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
@@ -498,6 +503,7 @@ var ArcPanelBuilder=BaseBuilder.extend({
     },
 	updateui:function(){		
 		j$('#layerid').val(this.target.copper.getName());		
+		j$('#arctypeid').val(this.target.arcType);	
 		j$("#startangleid").val(utilities.roundDouble(this.target.arc.startAngle));    
 		j$("#extendangleid").val(utilities.roundDouble(this.target.arc.endAngle));		
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
@@ -520,12 +526,17 @@ var ArcPanelBuilder=BaseBuilder.extend({
 				"</td></tr>"+				
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+			
+				"<tr><td style='width:50%;padding:7px'>Arc Type</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"arctypeid\">"+
+				this.fillComboBox([{id:0,value:'TWO POINT ARC',selected:true},{id:1,value:'CENTER POINT ARC'}])+
+			    "</select>" +
+				"</td></tr>"+
+				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+							
 				"<tr><td style='padding:7px'>Fill</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"fillid\">"+
-				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+				this.fillComboBox([{id:1,value:'EMPTY',selected:true},{id:2,value:'FILLED'}])+
 			    "</select>" +
-				"</td></tr>"+				
+				"</td></tr>"+								
 				"<tr><td style='padding:7px'>Radius</td><td><input type='text' id='widthid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Start&deg</td><td><input type='text' id='startangleid' value='' class='form-control input-sm\'></td></tr>"+	
 				"<tr><td style='padding:7px'>Extend&deg</td><td><input type='text' id='extendangleid' value='' class='form-control input-sm\'></td></tr>"+
@@ -631,7 +642,7 @@ var CirclePanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Fill</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"fillid\">"+
-				this.fillComboBox([{id:0,value:'EMPTY',selected:true},{id:1,value:'FILLED'}])+
+				this.fillComboBox([{id:1,value:'EMPTY',selected:true},{id:2,value:'FILLED'}])+
 			    "</select>" +
 				"</td></tr>"+				
 				"<tr><td style='padding:7px'>Radius</td><td><input type='text' id='radiusid' value='' class='form-control input-sm\'></td></tr>"+

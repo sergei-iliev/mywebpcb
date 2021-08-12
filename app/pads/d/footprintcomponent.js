@@ -244,18 +244,24 @@ mouseDown(event){
     	  var shape=this.getModel().getUnit().isControlRectClicked(scaledEvent.x, scaledEvent.y);
 		  if(shape!=null){
                 if(shape instanceof Arc){
+                	if(shape.arcType==core.ArcType.CENTER_POINT_ARC){
                      if(shape.isStartAnglePointClicked(scaledEvent.x , scaledEvent.y)){ 
                          this.getEventMgr().setEventHandle("arc.start.angle",shape);                    
                      }else if(shape.isExtendAnglePointClicked(scaledEvent.x , scaledEvent.y)){
                          this.getEventMgr().setEventHandle("arc.extend.angle",shape);                      
                      }else if(shape.isMidPointClicked(scaledEvent.x , scaledEvent.y)){
                     	  this.getEventMgr().setEventHandle("arc.mid.point",shape);
-                     }else{
-                          this.getEventMgr().setEventHandle("resize",shape);    
                      }
-                    }else{
+                	}else{    
+                  	  if(shape.isMidPointClicked(scaledEvent.x , scaledEvent.y)){
+                      	  this.getEventMgr().setEventHandle("arc.mid.point",shape);
+                        }else{
+                      	  this.getEventMgr().setEventHandle("arc.resize",shape);
+                        }
+                	}
+                  }else{
 						this.getEventMgr().setEventHandle("resize",shape); 
-                    }
+                  }
 			
  
 		  }else{

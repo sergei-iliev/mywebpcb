@@ -137,6 +137,50 @@ mouseMove(event){
 }
 
 }
+/*
+ * resizing of arcs start and end points
+ * Arc type - Two point arc 
+ */
+class ResizeEventHandle extends EventHandle{
+	 constructor(component) {
+		 super(component);	 
+		 this.isStartPoint;
+	 }
+	 mousePressed(event){	     
+	    this.component.getModel().getUnit().setSelected(false);
+	    this.target.setSelected(true);
+		this.mx=event.x;
+		this.my=event.y;	        
+	    
+	    this.isStartPoint=this.target.isStartAnglePointClicked(event.x,event.y);
+	    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
+	    
+		this.component.repaint();
+	 }
+	 mouseReleased(event){
+//		    if(this.component.getParameter("snaptogrid")){
+//	         this.target.alignResizingPointToGrid(this.targetPoint);
+//		     this.component.repaint();	 
+//			}
+			
+	 }
+	 mouseDragged(event){
+	 	let new_mx = event.x;
+	    let new_my = event.y;
+
+	    this.target.resizeStartEndPoint(new_mx - this.mx, new_my - this.my,this.isStartPoint);
+
+	    
+	    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
+	    this.mx = new_mx;
+	    this.my = new_my;
+		this.component.repaint();
+	 }
+	 mouseMove(event){
+	 
+	 }
+	 
+}
 class SolidRegionEventHandle extends EventHandle{
 	constructor(component) {
 		 super(component);
@@ -205,7 +249,8 @@ class FootprintEventMgr{
 	this.hash.set("arc.extend.angle",new ArcExtendAngleEventHandler(component));
 	this.hash.set("move",new events.MoveEventHandle(component));
 	this.hash.set("resize",new events.ResizeEventHandle(component));
-    this.hash.set("component",new events.UnitEventHandle(component));
+	this.hash.set("arc.resize",new ResizeEventHandle(component));
+	this.hash.set("component",new events.UnitEventHandle(component));
 	this.hash.set("block",new events.BlockEventHandle(component));
 	this.hash.set("line",new events.LineEventHandle(component));
 	this.hash.set("cursor",new events.CursorEventHandle(component));
@@ -256,5 +301,6 @@ module.exports ={
 	  ArcExtendAngleEventHandler,
 	  ArcStartAngleEventHandle,
 	  ArcMidPointEventHandle,
+	  ResizeEventHandle,
 	  SolidRegionEventHandle
 }
