@@ -627,21 +627,26 @@ mouseDown(event){
            }  
     	  }
     	  var shape=this.getModel().getUnit().isControlRectClicked(scaledEvent.x, scaledEvent.y);
-		  if(shape!=null){
-              if(shape instanceof PCBArc){
-                  if(shape.isStartAnglePointClicked(scaledEvent.x , scaledEvent.y)){ 
-                      this.getEventMgr().setEventHandle("arc.start.angle",shape);                    
-                  }else if(shape.isExtendAnglePointClicked(scaledEvent.x , scaledEvent.y)){
-                      this.getEventMgr().setEventHandle("arc.extend.angle",shape);                      
-                  }else if(shape.isMidPointClicked(scaledEvent.x , scaledEvent.y)){
-                 	  this.getEventMgr().setEventHandle("arc.mid.point",shape);
+		  if(shape!=null){                                    
+                if(shape instanceof PCBArc){
+                	if(shape.arcType==core.ArcType.CENTER_POINT_ARC){
+                     if(shape.isStartAnglePointClicked(scaledEvent.x , scaledEvent.y)){ 
+                         this.getEventMgr().setEventHandle("arc.start.angle",shape);                    
+                     }else if(shape.isExtendAnglePointClicked(scaledEvent.x , scaledEvent.y)){
+                         this.getEventMgr().setEventHandle("arc.extend.angle",shape);                      
+                     }else if(shape.isMidPointClicked(scaledEvent.x , scaledEvent.y)){
+                    	  this.getEventMgr().setEventHandle("arc.mid.point",shape);
+                     }
+                	}else{    
+                  	  if(shape.isMidPointClicked(scaledEvent.x , scaledEvent.y)){
+                      	  this.getEventMgr().setEventHandle("arc.mid.point",shape);
+                        }else{
+                      	  this.getEventMgr().setEventHandle("arc.resize",shape);
+                        }
+                	}
                   }else{
-                       this.getEventMgr().setEventHandle("resize",shape);    
-                  }
-                 }else{
 						this.getEventMgr().setEventHandle("resize",shape); 
-                 }                            
-              
+                  }              
 		  }else{
 		     shape = this.getModel().getUnit().getClickedShape(scaledEvent.x, scaledEvent.y, true);
 		     
@@ -950,6 +955,7 @@ class BoardEventMgr{
 		this.hash.set("arc.mid.point",new pad_events.ArcMidPointEventHandle(component));
 		this.hash.set("arc.start.angle",new pad_events.ArcStartAngleEventHandle(component));
 		this.hash.set("arc.extend.angle",new pad_events.ArcExtendAngleEventHandler(component));
+		this.hash.set("arc.resize",new pad_events.ResizeEventHandle(component));
 		this.hash.set("move",new events.MoveEventHandle(component));
 		this.hash.set("resize",new events.ResizeEventHandle(component));
 	    this.hash.set("component",new events.UnitEventHandle(component));
@@ -2990,10 +2996,14 @@ var ArcPanelBuilder=BaseBuilder.extend({
         'keypress #extendangleid' : 'onenter',
         'change #fillid': 'onchange', 
         'change #controllayerid':'onchange',
+        'change #arctypeid':'onchange',
     },
     onchange:function(event){
         if(event.target.id=='controllayerid'){
         	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
+        }
+        if(event.target.id=='arctypeid'){
+        	this.target.arcType= (j$('#arctypeid').val());
         }
         if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
@@ -3019,7 +3029,8 @@ var ArcPanelBuilder=BaseBuilder.extend({
 		 this.component.repaint(); 	
     },
 	updateui:function(){		
-		j$('#controllayerid').val(this.target.copper.getName());		
+		j$('#controllayerid').val(this.target.copper.getName());	
+		j$('#arctypeid').val(this.target.arcType);
 		j$("#startangleid").val(utilities.roundDouble(this.target.arc.startAngle));    
 		j$("#extendangleid").val(utilities.roundDouble(this.target.arc.endAngle));		
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
@@ -3042,6 +3053,11 @@ var ArcPanelBuilder=BaseBuilder.extend({
 				"</td></tr>"+				
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='width:50%;padding:7px'>Arc Type</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"arctypeid\">"+
+				this.fillComboBox([{id:0,value:'TWO POINT ARC',selected:true},{id:1,value:'CENTER POINT ARC'}])+
+			    "</select>" +
+				"</td></tr>"+				
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Fill</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"fillid\">"+
@@ -9297,8 +9313,7 @@ module.exports = function(d2) {
       	    super(pc,w,h);    	
             this.startAngle = 20;
             this.rotation=0;
-            this.endAngle = 90;
-            this.vert=[new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0)]; 
+            this.endAngle = 190;           
         }
         clone(){
         	let copy=new d2.Arcellipse(this.pc.clone(),this.w,this.h);
@@ -9319,7 +9334,19 @@ module.exports = function(d2) {
             p.rotate(this.rotation,this.pc);
             return  p;
         }
+        get sweep(){        
+        	return Math.abs(this.endAngle);
+		}
+        get middle() {
+            let angle = this.endAngle>0 ? this.startAngle + this.sweep/2 : this.startAngle - this.sweep/2;
         
+			let x=this.pc.x+(this.w*Math.cos(-1*d2.utils.radians(angle)));
+			let y=this.pc.y+(this.h*Math.sin(-1*d2.utils.radians(angle)));
+        
+			let p=new d2.Point(x,y);
+			p.rotate(this.rotation,this.pc);
+			return  p;       
+		}		
         get end() {
         	let angles=this._convert(this.startAngle,this.endAngle);
             let x=this.pc.x+(this.w*Math.cos(d2.utils.radians(angles[1])));
@@ -9340,12 +9367,51 @@ module.exports = function(d2) {
             this.vert[5].set(e.x,e.y);   
             return this.vert;
         }
+        contains( x,  y) {    
+    		var c=super.contains(x, y);
+    		if(!c) {
+    			return c;
+    		}
+    	
+        	let l=new d2.Line(this.start,this.end);
+        	let result=l.isLeftOrTop(this.middle);
+        	//are they on the same line side?
+        	return (l.isLeftOrTop(new d2.Point(x,y))==result);    	    	
+        }
         
         isPointOn(pt,diviation){
-        	let result=super.isPointOn(pt,diviation);
-        	if(!result){
-        		return false;
-        	}
+    	//same as ellipse
+        let alpha=-1*d2.utils.radians(this.rotation);
+        let cos = Math.cos(alpha),
+        sin = Math.sin(alpha);
+        let dx  = (pt.x - this.pc.x),
+        dy  = (pt.y - this.pc.y);
+        let tdx = cos * dx + sin * dy,
+        tdy = sin * dx - cos * dy;
+
+       
+        let pos= (tdx * tdx) / (this.w * this.w) + (tdy * tdy) / (this.h * this.h);
+        
+        
+        let v=new d2.Vector(this.pc,pt);
+	    let norm=v.normalize();			  
+		//1.in
+	    if(pos<1){
+		    let xx=pt.x +diviation*norm.x;
+			let yy=pt.y +diviation*norm.y;
+			//check if new point is out
+			if(super.contains(xx,yy)){
+				return false;
+			}
+	    }else{  //2.out
+		    let xx=pt.x - diviation*norm.x;
+			let yy=pt.y - diviation*norm.y;
+			//check if new point is in
+			if(!this.contains(xx,yy)){
+				return false;
+			}		    	
+	    }    	
+        //narrow down to start and end point/angle
         	let start=new d2.Vector(this.pc,this.start).slope;
         	let end=new d2.Vector(this.pc,this.end).slope;        	        	        	        	
         	let clickedAngle =new d2.Vector(this.pc,pt).slope;
@@ -9362,7 +9428,7 @@ module.exports = function(d2) {
     		 }else{        			
     			return (start<=clickedAngle)&&(clickedAngle<=end);
     		 }        		
-        	}      	        	        	        	
+        	}       	        	        	        	
         }
         _convert(start,extend){
     		
@@ -9585,6 +9651,11 @@ module.exports = function(d2) {
        contains(pt){
     	   return d2.utils.LE(pt.distanceTo(this), this.r);    	   
        }
+       isPointOn(pt,diviation){
+		  //test distance
+		  let dist=this.pc.distanceTo(pt);
+		  return ((this.r-diviation)<dist&&(this.r+diviation)>dist);
+	   }
        rotate(angle,center = {x:this.pc.x, y:this.pc.y}){
     	  this.pc.rotate(angle,center);    	  
        }
@@ -9623,7 +9694,7 @@ module.exports = function(d2) {
             this.pc = pc;
             this.w = w;
             this.h=h;
-        	this.vert=[new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0)];        	        	
+        	this.vert=[new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0)];        	        	
             this.rotation=0;
         }
         clone(){
@@ -9685,9 +9756,15 @@ module.exports = function(d2) {
 
           	return false;
         }        
-        contains(pt) {
-        	let x=pt.x;
-        	let y=pt.y;
+        contains(...args) {
+	       let x,y;
+	       if(args.length==1){
+        	  x=args[0].x;
+        	  y=args[0].y;		
+	       }else{
+        	  x=args[0];
+        	  y=args[1];				
+		   }
         	let alpha=this.convert(this.rotation);
             var cos = Math.cos(alpha),
                 sin = Math.sin(alpha);
@@ -10261,6 +10338,12 @@ module.exports = function(d2) {
 			this.p1=p1;
 			this.p2=p2;
 		}
+    /*
+     * Find position of point in regard to line
+     */
+        isLeftOrTop(pt){
+          return ((this.p2.x - this.p1.x)*(pt.y - this.p1.y) - (this.p2.y - this.p1.y)*(pt.x - this.p1.x)) > 0;
+        }		
 	    /*
 	     * Find point belonging to line, which the pt projects on.
 	     */
@@ -11697,18 +11780,22 @@ module.exports = function(d2) {
     	   this.reset();
     	}
         contains(pt){
-      	   if(!super.contains(pt)){
-      		   return false;
-      	   }    	   
-      	   
-      	   //constrauct polygon
-      	   let pol=new d2.Polygon();
-      	   this.segments.forEach(segment=>{
-      		 pol.add(segment.ps);
-      		 pol.add(segment.pe);
-      	   });
-      	   
-      	   return pol.contains(pt);
+  	 		var pol=new d2.Polygon();
+  	 		this.segments.forEach(segment=>{
+  		 		pol.add(segment.ps);
+  		 		pol.add(segment.pe);
+  	 		});
+  	   
+  	 		if(pol.contains(pt)) {
+  		 		return true;
+  	 		}
+  	        var result=false;
+	   		this.arcs.forEach(arc=>{
+		 		if(arc.contains(pt)){
+					result=true;
+		 		}										
+	   		});			
+	 	  return result;
          }
 		scale(alpha){
 			super.scale(alpha);
@@ -12931,9 +13018,9 @@ class FootprintEventMgr{
 	this.hash.set("arc.mid.point",new ArcMidPointEventHandle(component));
 	this.hash.set("arc.start.angle",new ArcStartAngleEventHandle(component));
 	this.hash.set("arc.extend.angle",new ArcExtendAngleEventHandler(component));
+	this.hash.set("arc.resize",new ResizeEventHandle(component));
 	this.hash.set("move",new events.MoveEventHandle(component));
 	this.hash.set("resize",new events.ResizeEventHandle(component));
-	this.hash.set("arc.resize",new ResizeEventHandle(component));
 	this.hash.set("component",new events.UnitEventHandle(component));
 	this.hash.set("block",new events.BlockEventHandle(component));
 	this.hash.set("line",new events.LineEventHandle(component));
@@ -13264,11 +13351,12 @@ class RoundRect extends Shape{
 	get vertices(){
 	  return this.roundRect.vertices;	
 	}
-	isClicked(x, y) {
-		if (this.roundRect.contains(new d2.Point(x, y)))
-			return true;
-		else
-			return false;
+	isClicked(x, y) {		
+	  if(this.fill==core.Fill.EMPTY) {
+    		return this.roundRect.isPointOn(new d2.Point(x, y),this.thickness);
+      }else {    		
+      	    return this.roundRect.contains(new d2.Point(x, y));	
+      } 			
 	}
 	isControlRectClicked(x,y){
 	   	let pt=new d2.Point(x,y);
@@ -13443,11 +13531,12 @@ alignResizingPointToGrid(targetPoint) {
 get vertices(){
 	  return this.circle.vertices;	
 	}
-isClicked(x, y) {
-	if (this.circle.contains(new d2.Point(x, y)))
-		return true;
-	else
-		return false;
+isClicked(x, y) {	
+	if(this.fill==core.Fill.EMPTY) {
+        	  return (this.circle.isPointOn(new d2.Point(x,y),this.thickness/2));
+        }else {    		
+        	  return this.circle.contains(new d2.Point(x, y));	
+        }
 	}
 isControlRectClicked(x,y) {
    	let pt=new d2.Point(x,y);
@@ -13662,15 +13751,13 @@ class Arc extends Shape{
 			 }
 		     return null;
 		}
-	isClicked(x, y) {
-		if(this.arc.isPointOn(new d2.Point(x, y),this.thickness/2)){
-			return true;
-		}
-		//if (this.arc.contains(new d2.Point(x, y)))
-		//	return true;
-		//else
-			return false;
-		}
+	isClicked(x, y) {		
+    	if(this.fill==core.Fill.EMPTY) {
+      	  return (this.arc.isPointOn(new d2.Point(x,y),this.thickness/2));
+      	}else {    		
+      	  return this.arc.contains(new d2.Point(x, y));	
+      	}
+	}
 	isMidPointClicked(x,y){
 	    let p=this.arc.middle;
 	    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
