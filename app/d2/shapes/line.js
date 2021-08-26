@@ -5,6 +5,12 @@ module.exports = function(d2) {
 			this.p1=p1;
 			this.p2=p2;
 		}
+    /*
+     * Find position of point in regard to line
+     */
+        isLeftOrTop(pt){
+          return ((this.p2.x - this.p1.x)*(pt.y - this.p1.y) - (this.p2.y - this.p1.y)*(pt.x - this.p1.x)) > 0;
+        }		
 	    /*
 	     * Find point belonging to line, which the pt projects on.
 	     */

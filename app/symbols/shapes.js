@@ -256,11 +256,11 @@ class Arc extends Shape{
 	   	return result;
 	}	
 	isClicked(x, y) {
-		return (this.arc.isPointOn(new d2.Point(x,y),this.thickness));
-//		if (this.arc.contains(new d2.Point(x, y)))
-//			return true;
-//		else
-//			return false;
+    	if(this.fill==core.Fill.EMPTY) {
+    	  return (this.arc.isPointOn(new d2.Point(x,y),this.thickness));
+    	}else {    		
+    	  return this.arc.contains(x, y);	
+    	}		
 	}
 	isStartAnglePointClicked(x,y){	
 	    let p=this.arc.start;
@@ -446,8 +446,12 @@ class Ellipse extends Shape{
 	getCenter() {
 	    return this.ellipse.pc;
 	}
-	isClicked(x, y) {
-		return this.ellipse.isPointOn(new d2.Point(x, y),this.thickness);
+	isClicked(x, y) {		
+		if(this.fill==core.Fill.EMPTY) {    	  
+		  return this.ellipse.isPointOn(new d2.Point(x, y),this.thickness);
+    	}else {    		
+    	  return this.ellipse.contains(x, y);	
+    	}
 	}
 	setSelected (selection) {
 		super.setSelected(selection);
@@ -603,7 +607,11 @@ class RoundRect extends Shape{
 	        }
 	}	
 	isClicked(x, y) {
-		return this.roundRect.isPointOn(new d2.Point(x, y),this.thickness);				
+		if(this.fill==core.Fill.EMPTY) { 		
+		 return this.roundRect.isPointOn(new d2.Point(x, y),this.thickness);
+		}else{
+		 return this.roundRect.contains(new d2.Point(x, y));	
+		}				
 	}
 	isControlRectClicked(x,y){
 	   	let pt=new d2.Point(x,y);
@@ -918,8 +926,11 @@ getCenter(){
 	return this.shape.box.center;
 }
 isClicked(x, y) {
-  //return this.shape.contains(new d2.Point(x, y));
+  if(this.fill==core.Fill.EMPTY) { 
 	return this.shape.isPointOn({"x":x,"y":y},this.thickness<4?4:this.thickness);
+  }else{
+	return this.shape.contains({"x":x,"y":y});
+  }	
 }
 isControlRectClicked(x, y) {
 	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);

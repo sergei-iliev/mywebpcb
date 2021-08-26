@@ -12,8 +12,7 @@ module.exports = function(d2) {
       	    super(pc,w,h);    	
             this.startAngle = 20;
             this.rotation=0;
-            this.endAngle = 90;
-            this.vert=[new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0)]; 
+            this.endAngle = 190;           
         }
         clone(){
         	let copy=new d2.Arcellipse(this.pc.clone(),this.w,this.h);
@@ -34,7 +33,19 @@ module.exports = function(d2) {
             p.rotate(this.rotation,this.pc);
             return  p;
         }
+        get sweep(){        
+        	return Math.abs(this.endAngle);
+		}
+        get middle() {
+            let angle = this.endAngle>0 ? this.startAngle + this.sweep/2 : this.startAngle - this.sweep/2;
         
+			let x=this.pc.x+(this.w*Math.cos(-1*d2.utils.radians(angle)));
+			let y=this.pc.y+(this.h*Math.sin(-1*d2.utils.radians(angle)));
+        
+			let p=new d2.Point(x,y);
+			p.rotate(this.rotation,this.pc);
+			return  p;       
+		}		
         get end() {
         	let angles=this._convert(this.startAngle,this.endAngle);
             let x=this.pc.x+(this.w*Math.cos(d2.utils.radians(angles[1])));
@@ -55,12 +66,52 @@ module.exports = function(d2) {
             this.vert[5].set(e.x,e.y);   
             return this.vert;
         }
+        contains( x,  y) {    
+    		var c=super.contains(x, y);
+    		if(!c) {
+    			return c;
+    		}
+    	
+        	let l=new d2.Line(this.start,this.end);
+        	let result=l.isLeftOrTop(this.middle);
+        	//are they on the same line side?
+        	return (l.isLeftOrTop(new d2.Point(x,y))==result);    	    	
+        }
         
         isPointOn(pt,diviation){
-        	let result=super.isPointOn(pt,diviation);
-        	if(!result){
-        		return false;
-        	}
+	console.log(222);
+    	//same as ellipse
+        let alpha=-1*d2.utils.radians(this.rotation);
+        let cos = Math.cos(alpha),
+        sin = Math.sin(alpha);
+        let dx  = (pt.x - this.pc.x),
+        dy  = (pt.y - this.pc.y);
+        let tdx = cos * dx + sin * dy,
+        tdy = sin * dx - cos * dy;
+
+       
+        let pos= (tdx * tdx) / (this.w * this.w) + (tdy * tdy) / (this.h * this.h);
+        
+        
+        let v=new d2.Vector(this.pc,pt);
+	    let norm=v.normalize();			  
+		//1.in
+	    if(pos<1){
+		    let xx=pt.x +diviation*norm.x;
+			let yy=pt.y +diviation*norm.y;
+			//check if new point is out
+			if(super.contains(xx,yy)){
+				return false;
+			}
+	    }else{  //2.out
+		    let xx=pt.x - diviation*norm.x;
+			let yy=pt.y - diviation*norm.y;
+			//check if new point is in
+			if(!this.contains(xx,yy)){
+				return false;
+			}		    	
+	    }    	
+        //narrow down to start and end point/angle
         	let start=new d2.Vector(this.pc,this.start).slope;
         	let end=new d2.Vector(this.pc,this.end).slope;        	        	        	        	
         	let clickedAngle =new d2.Vector(this.pc,pt).slope;
@@ -77,7 +128,7 @@ module.exports = function(d2) {
     		 }else{        			
     			return (start<=clickedAngle)&&(clickedAngle<=end);
     		 }        		
-        	}      	        	        	        	
+        	}       	        	        	        	
         }
         _convert(start,extend){
     		

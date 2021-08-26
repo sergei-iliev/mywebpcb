@@ -224,7 +224,7 @@ setMode(_mode){
 	            this.getEventMgr().setEventHandle("cursor",shape);  
 	          break;
 	        case  core.ModeEnum.RECT_MODE:
-	            shape=new RoundRect(0,0,15,15,0,1);	            
+	            shape=new RoundRect(0,0,50,25,10,1);	            
 	            this.setContainerCursor(shape);               
 	            this.getEventMgr().setEventHandle("cursor",shape); 
 	          break;

@@ -5,7 +5,7 @@ module.exports = function(d2) {
             this.pc = pc;
             this.w = w;
             this.h=h;
-        	this.vert=[new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0)];        	        	
+        	this.vert=[new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0)];        	        	
             this.rotation=0;
         }
         clone(){
@@ -67,9 +67,15 @@ module.exports = function(d2) {
 
           	return false;
         }        
-        contains(pt) {
-        	let x=pt.x;
-        	let y=pt.y;
+        contains(...args) {
+	       let x,y;
+	       if(args.length==1){
+        	  x=args[0].x;
+        	  y=args[0].y;		
+	       }else{
+        	  x=args[0];
+        	  y=args[1];				
+		   }
         	let alpha=this.convert(this.rotation);
             var cos = Math.cos(alpha),
                 sin = Math.sin(alpha);
