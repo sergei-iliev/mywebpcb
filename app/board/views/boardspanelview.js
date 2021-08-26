@@ -276,10 +276,14 @@ var ArcPanelBuilder=BaseBuilder.extend({
         'keypress #extendangleid' : 'onenter',
         'change #fillid': 'onchange', 
         'change #controllayerid':'onchange',
+        'change #arctypeid':'onchange',
     },
     onchange:function(event){
         if(event.target.id=='controllayerid'){
         	this.target.copper= core.Layer.Copper.valueOf(j$('#controllayerid').val());
+        }
+        if(event.target.id=='arctypeid'){
+        	this.target.arcType= (j$('#arctypeid').val());
         }
         if(event.target.id=='fillid'){        
         	this.target.fill=parseInt(j$('#fillid').find('option:selected').val());        
@@ -305,7 +309,8 @@ var ArcPanelBuilder=BaseBuilder.extend({
 		 this.component.repaint(); 	
     },
 	updateui:function(){		
-		j$('#controllayerid').val(this.target.copper.getName());		
+		j$('#controllayerid').val(this.target.copper.getName());	
+		j$('#arctypeid').val(this.target.arcType);
 		j$("#startangleid").val(utilities.roundDouble(this.target.arc.startAngle));    
 		j$("#extendangleid").val(utilities.roundDouble(this.target.arc.endAngle));		
         j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
@@ -328,6 +333,11 @@ var ArcPanelBuilder=BaseBuilder.extend({
 				"</td></tr>"+				
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='width:50%;padding:7px'>Arc Type</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"arctypeid\">"+
+				this.fillComboBox([{id:0,value:'TWO POINT ARC',selected:true},{id:1,value:'CENTER POINT ARC'}])+
+			    "</select>" +
+				"</td></tr>"+				
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Fill</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"fillid\">"+

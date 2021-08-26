@@ -194,6 +194,7 @@ class BoardEventMgr{
 		this.hash.set("arc.mid.point",new pad_events.ArcMidPointEventHandle(component));
 		this.hash.set("arc.start.angle",new pad_events.ArcStartAngleEventHandle(component));
 		this.hash.set("arc.extend.angle",new pad_events.ArcExtendAngleEventHandler(component));
+		this.hash.set("arc.resize",new pad_events.ResizeEventHandle(component));
 		this.hash.set("move",new events.MoveEventHandle(component));
 		this.hash.set("resize",new events.ResizeEventHandle(component));
 	    this.hash.set("component",new events.UnitEventHandle(component));

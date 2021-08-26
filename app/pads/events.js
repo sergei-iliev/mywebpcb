@@ -247,9 +247,9 @@ class FootprintEventMgr{
 	this.hash.set("arc.mid.point",new ArcMidPointEventHandle(component));
 	this.hash.set("arc.start.angle",new ArcStartAngleEventHandle(component));
 	this.hash.set("arc.extend.angle",new ArcExtendAngleEventHandler(component));
+	this.hash.set("arc.resize",new ResizeEventHandle(component));
 	this.hash.set("move",new events.MoveEventHandle(component));
 	this.hash.set("resize",new events.ResizeEventHandle(component));
-	this.hash.set("arc.resize",new ResizeEventHandle(component));
 	this.hash.set("component",new events.UnitEventHandle(component));
 	this.hash.set("block",new events.BlockEventHandle(component));
 	this.hash.set("line",new events.LineEventHandle(component));
