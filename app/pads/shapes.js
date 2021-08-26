@@ -1774,6 +1774,7 @@ drawClearence(g2,viewportWindow,scale,source){
 	this.shape.drawClearence(g2,viewportWindow,scale,source);
 }
 paint(g2,viewportWindow,scale,layersmask){
+	if((this.copper.getLayerMaskID()&layersmask)!=0) {
 	switch(this.type){
 	    case PadType.THROUGH_HOLE:
 	        if(this.shape.paint(g2, viewportWindow, scale)){
@@ -1790,7 +1791,7 @@ paint(g2,viewportWindow,scale,layersmask){
 	    this.number.paint(g2, viewportWindow, scale);
 	    this.netvalue.paint(g2, viewportWindow, scale);
 	 }
-
+	}
 }
 	//----------CircularShape-------------------
 class CircularShape{

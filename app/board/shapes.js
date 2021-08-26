@@ -344,13 +344,14 @@ paint(g2, viewportWindow, scale,layersmask) {
 	for(i=0;i<len;i++){
 		  this.shapes[i].paint(g2,viewportWindow,scale,layersmask);  
 	}    
-	
-    this.value.fillColor=core.Layer.Copper.resolve(this.value.layermaskId).getColor();
-    this.value.paint(g2, viewportWindow, scale, layersmask);
-
-	
-    this.reference.fillColor=core.Layer.Copper.resolve(this.reference.layermaskId).getColor();
-    this.reference.paint(g2, viewportWindow, scale, layersmask);
+	if((this.value.layermaskId&layersmask)!=0) {
+    	this.value.fillColor=core.Layer.Copper.resolve(this.value.layermaskId).getColor();
+    	this.value.paint(g2, viewportWindow, scale, layersmask);
+	}
+	if((this.reference.layermaskId&layersmask)!=0) {
+    	this.reference.fillColor=core.Layer.Copper.resolve(this.reference.layermaskId).getColor();
+    	this.reference.paint(g2, viewportWindow, scale, layersmask);
+	}
  }    
 fromXML(data){
 	 this.copper=core.Layer.Copper.valueOf(j$(data).attr("layer"));
@@ -850,7 +851,7 @@ fromXML(data) {
 }
 class PCBVia extends Shape{
 constructor() {
-		super(0, 0, 0, 0,core.MM_TO_COORD(0.3),core.Layer.LAYER_ALL);		
+		super(0, 0, 0, 0,core.MM_TO_COORD(0.3),core.Layer.LAYER_BACK|core.Layer.LAYER_FRONT);		
 		this.outer=new d2.Circle(new d2.Point(0,0),core.MM_TO_COORD(0.8));
 		this.inner=new d2.Circle(new d2.Point(0,0),core.MM_TO_COORD(0.4));
         this.selectionRectWidth = 3000;
@@ -923,8 +924,10 @@ drawClearence(g2, viewportWindow,scale, source) {
 	
     g2._fill=false;
 }
-paint(g2, viewportWindow, scale,layersmask) {
-	
+paint(g2, viewportWindow, scale,layersmask) {   
+    if((this.copper.getLayerMaskID()&layersmask)==0){
+            return;
+    }	
 	var rect = this.calculateShape();
 	rect.scale(scale.getScale());
 	if (!rect.intersects(viewportWindow)) {
