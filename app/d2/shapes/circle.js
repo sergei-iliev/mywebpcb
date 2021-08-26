@@ -36,6 +36,11 @@ module.exports = function(d2) {
        contains(pt){
     	   return d2.utils.LE(pt.distanceTo(this), this.r);    	   
        }
+       isPointOn(pt,diviation){
+		  //test distance
+		  let dist=this.pc.distanceTo(pt);
+		  return ((this.r-diviation)<dist&&(this.r+diviation)>dist);
+	   }
        rotate(angle,center = {x:this.pc.x, y:this.pc.y}){
     	  this.pc.rotate(angle,center);    	  
        }

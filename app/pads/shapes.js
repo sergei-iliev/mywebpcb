@@ -189,11 +189,12 @@ class RoundRect extends Shape{
 	get vertices(){
 	  return this.roundRect.vertices;	
 	}
-	isClicked(x, y) {
-		if (this.roundRect.contains(new d2.Point(x, y)))
-			return true;
-		else
-			return false;
+	isClicked(x, y) {		
+	  if(this.fill==core.Fill.EMPTY) {
+    		return this.roundRect.isPointOn(new d2.Point(x, y),this.thickness);
+      }else {    		
+      	    return this.roundRect.contains(new d2.Point(x, y));	
+      } 			
 	}
 	isControlRectClicked(x,y){
 	   	let pt=new d2.Point(x,y);
@@ -368,11 +369,12 @@ alignResizingPointToGrid(targetPoint) {
 get vertices(){
 	  return this.circle.vertices;	
 	}
-isClicked(x, y) {
-	if (this.circle.contains(new d2.Point(x, y)))
-		return true;
-	else
-		return false;
+isClicked(x, y) {	
+	if(this.fill==core.Fill.EMPTY) {
+        	  return (this.circle.isPointOn(new d2.Point(x,y),this.thickness/2));
+        }else {    		
+        	  return this.circle.contains(new d2.Point(x, y));	
+        }
 	}
 isControlRectClicked(x,y) {
    	let pt=new d2.Point(x,y);
@@ -587,15 +589,13 @@ class Arc extends Shape{
 			 }
 		     return null;
 		}
-	isClicked(x, y) {
-		if(this.arc.isPointOn(new d2.Point(x, y),this.thickness/2)){
-			return true;
-		}
-		//if (this.arc.contains(new d2.Point(x, y)))
-		//	return true;
-		//else
-			return false;
-		}
+	isClicked(x, y) {		
+    	if(this.fill==core.Fill.EMPTY) {
+      	  return (this.arc.isPointOn(new d2.Point(x,y),this.thickness/2));
+      	}else {    		
+      	  return this.arc.contains(new d2.Point(x, y));	
+      	}
+	}
 	isMidPointClicked(x,y){
 	    let p=this.arc.middle;
 	    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,

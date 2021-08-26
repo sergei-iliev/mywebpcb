@@ -79,7 +79,6 @@ module.exports = function(d2) {
         }
         
         isPointOn(pt,diviation){
-	console.log(222);
     	//same as ellipse
         let alpha=-1*d2.utils.radians(this.rotation);
         let cos = Math.cos(alpha),
