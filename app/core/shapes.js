@@ -5,7 +5,7 @@ var font = require('core/text/d2font');
 
 class Shape{
 	constructor(x, y, width, height, thickness,
-			layermask) {
+			layermaskId) {
 		this.owningUnit=null;
 		this.uuid = core.UUID();
 		this.x = x;
@@ -18,7 +18,7 @@ class Shape{
 		this.fill = Fill.EMPTY;
 		this.fillColor;		 
 		this.isControlPointVisible=true;
-		this.copper = core.Layer.Copper.resolve(layermask);
+		this.copper = core.Layer.Copper.resolve(layermaskId);
 	}
 getCenter(){
 	return new d2.Point(this.x,this.y);

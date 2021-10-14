@@ -5,6 +5,7 @@ var events=require('core/events');
 var FootprintLoadView=require('pads/views/footprintloadview');
 var Board=require('board/d/boardcomponent').Board;
 var BoardMgr = require('board/d/boardcomponent').BoardMgr;
+var BoardOutlineShapeFactory = require('board/shapes').BoardOutlineShapeFactory;
 var BoardContainer = require('board/d/boardcomponent').BoardContainer;
 var UnitMgr = require('core/unit').UnitMgr;
 var BoardLoadView=require('board/views/boardloadview');
@@ -77,6 +78,18 @@ var ToggleButtonView=Backbone.View.extend({
             this.boardComponent.componentResized(); 
             this.boardComponent.repaint();
             this.boardComponent.getModel().fireUnitEvent({target:this.boardComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 	
+		}
+		if(event.data.model.id=='boardoutlineroundrectid'){
+			BoardOutlineShapeFactory.createRoundRect(this.boardComponent.getModel().getUnit());
+			this.boardComponent.repaint();
+		}
+		if(event.data.model.id=='boardoutlinerectid'){
+			BoardOutlineShapeFactory.createRect(this.boardComponent.getModel().getUnit());
+			this.boardComponent.repaint();
+		}
+		if(event.data.model.id=='boardoutlinecircleid'){
+			BoardOutlineShapeFactory.createCircle(this.boardComponent.getModel().getUnit());
+			this.boardComponent.repaint();
 		}
 		if(event.data.model.id=='saveid'){
 			new BoardSaveView({model:this.boardComponent.model}).render();			

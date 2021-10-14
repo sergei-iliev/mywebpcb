@@ -24,16 +24,17 @@
   		        <!-- TOP -->
          <div class="row">
            <div class="col-md-12">
-			
-		    <button class="btn btn-default dropdown-toggle" type="button" id="mainmenuid" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <img src="images/new.png" border="0"/>
-            </button>
-			<div class="dropdown-menu" aria-labelledby="mainmenuid">
-      			<a  id='createbundleid' class="dropdown-item" href="#">Create Boards bundle</a>
-      			<a  id='addunitid' class="dropdown-item" href="#">Add Board to bundle</a>
-      			<a  id='importfromclipboardid' class="dropdown-item" href="#">Import from Clipboard</a>
-      			<a  id='exporttoclipboardid' class="dropdown-item" href="#">Export to Clipboard</a>
-  			</div>
+			<div class="btn-group">
+  				<button id="mainmenuid" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+    				<img src="images/new.png" border="0"/>
+  				</button>
+  				<ul class="dropdown-menu" role="menu">
+      				<a  id='createbundleid' class="dropdown-item" href="#">Create Boards bundle</a>
+      				<a  id='addunitid' class="dropdown-item" href="#">Add Board to bundle</a>
+      				<a  id='importfromclipboardid' class="dropdown-item" href="#">Import from Clipboard</a>
+      				<a  id='exporttoclipboardid' class="dropdown-item" href="#">Export to Clipboard</a>
+  				</ul>
+			</div>
 			<button class="btn btn-default" id="printboardid" data-toggle="tooltip" data-trigger="hover" data-placement="bottom" title="Print footprint"><img src="images/print.png" border="0"/></button>
 			<button class="btn btn-default" id="saveid" data-toggle="tooltip" data-trigger="hover" data-placement="bottom" title="Save"><img src="images/save.png" border="0"/></button>
 			<button class="btn btn-default" id="loadid" data-toggle="tooltip" data-trigger="hover" data-placement="bottom" title="Load"><img src="images/folder.png" border="0"/></button>
@@ -45,6 +46,16 @@
 			<button class="btn btn-default" id="tocenterid" data-toggle="tooltip" data-trigger="hover" data-placement="bottom" title="Position viewport to center"><img src="images/tocenter.png" border="0"/></button>
 			<button class="btn btn-default" id="layerid" data-toggle="tooltip" data-trigger="hover" data-placement="bottom" title="Layer visibility"><img src="images/layers.png" border="0"/></button>			
 						
+  			<div class="btn-group">
+  				<button id="boardoutlineid" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+    				<img src="images/board_outline.png" border="0"/>
+  				</button>
+  				<ul class="dropdown-menu" role="menu">
+      			<a  id='boardoutlinerectid' class="dropdown-item" href="#">Rectangle Outline</a>
+      			<a  id='boardoutlineroundrectid' class="dropdown-item" href="#">Round Rectangle Outline</a>
+      			<a  id='boardoutlinecircleid' class="dropdown-item" href="#">Circle Outline</a>
+  				</ul>
+			</div>
            </div>
          </div>	
          <div class="row voffset2">

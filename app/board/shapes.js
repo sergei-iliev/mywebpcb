@@ -1211,7 +1211,55 @@ toXML() {
 	return result;
 }
 }
+class BoardOutlineShapeFactory{
+	static createRect(board){
+		//create 4 lines connected
+		let line=new PCBLine(core.MM_TO_COORD(0.5),core.Layer.BOARD_OUTLINE_LAYER);
+		line.add(0,0);
+		line.add(board.width,0);
+		board.add(line);
 
+		line=new PCBLine(core.MM_TO_COORD(0.5),core.Layer.BOARD_OUTLINE_LAYER);		
+		line.add(board.width,0);
+		line.add(board.width,board.height);
+		board.add(line);
+		
+		line=new PCBLine(core.MM_TO_COORD(0.5),core.Layer.BOARD_OUTLINE_LAYER);		
+		line.add(board.width,board.height);
+		line.add(0,board.height);
+		board.add(line);
+
+		line=new PCBLine(core.MM_TO_COORD(0.5),core.Layer.BOARD_OUTLINE_LAYER);		
+		line.add(0,board.height);
+		line.add(0,0);
+		board.add(line);		
+	}
+	static createRoundRect(board){
+	  let rect=new RoundRect(0,0,board.width,board.height,core.MM_TO_COORD(5));
+	  for(const a of rect.roundRect.arcs){
+		let arc=new PCBArc(a.pc.x ,a.pc.y,a.r,core.MM_TO_COORD(0.5),core.Layer.BOARD_OUTLINE_LAYER);
+		arc.setExtendAngle(a.endAngle);		    		
+		arc.setStartAngle(a.startAngle);       
+		board.add(arc);    		 
+	  }
+	  for(const s of rect.roundRect.segments){
+		let line=new PCBLine(core.MM_TO_COORD(0.5),core.Layer.BOARD_OUTLINE_LAYER);		
+		line.add(s.ps.x,s.ps.y);
+		line.add(s.pe.x,s.pe.y);
+		board.add(line);				 
+	  }
+	}
+	
+	static createCircle(board){
+		let d=Math.min(board.width,board.height);
+		let x=board.width/2;
+		let y=board.height/2;
+		
+		let circle=new PCBCircle(x,y,d/2,core.MM_TO_COORD(0.5),core.Layer.BOARD_OUTLINE_LAYER);
+		board.add(circle);
+	}
+	
+}
 module.exports ={
 		PCBCopperArea,
 		PCBFootprint,
@@ -1224,6 +1272,7 @@ module.exports ={
 		PCBTrack,
 		PCBLine,
 		PCBSolidRegion,
-		BoardShapeFactory
+		BoardShapeFactory,
+		BoardOutlineShapeFactory
 		
 }

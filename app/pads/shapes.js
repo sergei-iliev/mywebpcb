@@ -298,26 +298,32 @@ class RoundRect extends Shape{
 		if (!rect.intersects(viewportWindow)) {
 			return;
 		}
-		
+		if(this.copper.getLayerMaskID()==core.Layer.BOARD_OUTLINE_LAYER){
+		  g2.globalCompositeOperation = 'source-atop';	
+		}else{
+		  g2.globalCompositeOperation = 'lighter';
+		}
 		g2.lineWidth = this.thickness * scale.getScale();
 		g2.lineCap = 'round';
 		g2.lineJoin = 'round';
-		if (this.fill == core.Fill.EMPTY) {
-			g2.globalCompositeOperation = 'lighter';
+
+		if (this.fill == core.Fill.EMPTY) {		
 			if (this.selection) {
+				g2.globalCompositeOperation = 'source-over';
 				g2.strokeStyle = "gray";
 			} else {
 				g2.strokeStyle = this.copper.getColor();
-			}
-			g2.globalCompositeOperation = 'source-over';
+			}			
 		} else {
 			g2._fill=true;
 			if (this.selection) {
+				g2.globalCompositeOperation = 'source-over';
 				g2.fillStyle = "gray";
 			} else {
 				g2.fillStyle = this.copper.getColor();
 			}			
 		}
+
 		let r=this.roundRect.clone();	
 		r.scale(scale.getScale());
         r.move(-viewportWindow.x,- viewportWindow.y);
@@ -325,7 +331,7 @@ class RoundRect extends Shape{
 		
 		g2._fill=false;
 		
-		
+		g2.globalCompositeOperation = 'source-over';
 
 		if (this.isSelected()&&this.isControlPointVisible) {
 			this.drawControlPoints(g2, viewportWindow, scale);
@@ -473,7 +479,11 @@ fromXML(data) {
 		}
 
 		// ****3 http://scienceprimer.com/draw-oval-html5-canvas
-		g2.globalCompositeOperation = 'lighter';
+		if(this.copper.getLayerMaskID()==core.Layer.BOARD_OUTLINE_LAYER){
+		  g2.globalCompositeOperation = 'source-atop';	
+		}else{
+		  g2.globalCompositeOperation = 'lighter';
+		}
 		g2.lineWidth = this.thickness * scale.getScale();
 
 		if (this.fill == core.Fill.EMPTY) {
@@ -529,6 +539,7 @@ class Arc extends Shape{
 			this.arcType=core.ArcType.CENTER_POINT_ARC;
 	}
 	clone() {
+
 			var copy = new Arc(this.arc.center.x,this.arc.center.y, this.arc.r,this.thickness,this.copper.getLayerMaskID());		
 	        copy.arc.startAngle = this.arc.startAngle;
 	        copy.arc.endAngle = this.arc.endAngle; 
@@ -538,6 +549,18 @@ class Arc extends Shape{
 	}
 	calculateShape() {
 		return this.arc.box;	
+	}
+	alignResizingPointToGrid(isStartPoint) {
+		let A=this.arc.start.clone(),B=this.arc.end.clone();				
+	    let targetPoint;
+
+		if(isStartPoint){  //start point click	    		    	
+	    	 targetPoint=this.owningUnit.grid.positionOnGrid(A.x,A.y);
+	    	 this.resizeStartEndPoint((targetPoint.x-A.x),(targetPoint.y-A.y),isStartPoint);
+	    }else{	    	
+	    	targetPoint=this.owningUnit.grid.positionOnGrid(B.x,B.y);
+	    	this.resizeStartEndPoint((targetPoint.x-B.x),(targetPoint.y-B.y),isStartPoint);
+	    }			        
 	}
 	getOrderWeight(){
 		return this.arc.area; 
@@ -803,14 +826,17 @@ class Arc extends Shape{
 			return;
 		}
 
-		g2.globalCompositeOperation = 'lighter';
+		
 		g2.beginPath(); // clear the canvas context
 		g2.lineCap = 'round';
 
 						
 		g2.lineWidth = this.thickness * scale.getScale();
-        		
-		
+		if(this.copper.getLayerMaskID()==core.Layer.BOARD_OUTLINE_LAYER){
+			  g2.globalCompositeOperation = 'source-atop';	
+		}else{
+			  g2.globalCompositeOperation = 'lighter';
+		}				
 		if (this.fill == core.Fill.EMPTY) {
 			if (this.selection) {
 					g2.strokeStyle = "gray";
@@ -1315,14 +1341,16 @@ paint(g2, viewportWindow, scale,layersmask) {
 		return;
 	   }
 				
-		g2.globalCompositeOperation = 'lighter';
 		g2.lineCap = 'round';
 		g2.lineJoin = 'round';
 		
 
 		g2.lineWidth = this.thickness * scale.getScale();
-
-
+		if(this.copper.getLayerMaskID()==core.Layer.BOARD_OUTLINE_LAYER){
+			  g2.globalCompositeOperation = 'source-atop';	
+		}else{
+			  g2.globalCompositeOperation = 'lighter';
+		}
 		if (this.selection)
 			g2.strokeStyle = "gray";
 		else

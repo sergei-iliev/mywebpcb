@@ -97,6 +97,7 @@ var ModeEnum=(function(){
 
 var BOARD_LAYERS=[{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'},{id:'BSilkS',value:'BSilkS'},{id:'FSilkS',value:'FSilkS'},{id:'All',value:'All'},{id:'None',value:'None'}];
 var PCB_SYMBOL_LAYERS=[{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'},{id:'BSilkS',value:'BSilkS'},{id:'FSilkS',value:'FSilkS'}];
+var PCB_SYMBOL_OUTLINE_LAYERS=[{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'},{id:'BSilkS',value:'BSilkS'},{id:'FSilkS',value:'FSilkS'},{id:'BOutln',value:'BOutln'}];
 
 var Layer=(function(){
 	return{
@@ -170,9 +171,9 @@ var Layer=(function(){
 	      COMMENT_LAYER          : (1 << 26),
 	      ECO1_LAYER             : (1 << 27),
 	      ECO2_LAYER             : (1 << 28),
-	      EDGE_LAYER             : (1 << 29),
+	      BOARD_OUTLINE_LAYER    : (1 << 29),
 	      
-	      LAYER_ALL :0xFFFFFF,
+	      LAYER_ALL :0xFFFFFFFF,
 	          
 	      BOARD_COLOR_FRONT:'rgb(56,0,0)',
 	      BOARD_COLOR_BACK:'rgb(0,0,56)',
@@ -205,7 +206,9 @@ var Layer=(function(){
                 return Layer.Side.BOTTOM;
             } else if (layermaskId == Layer.SOLDERMASK_LAYER_BACK) {
                 return Layer.Side.BOTTOM;
-            }
+            }else if(layermaskId == Layer.SOLDERMASK_LAYER_BACK) {
+				throw new Error('Unknown layer');
+			}
             return Layer.Side.TOP;
            }
 		},			
@@ -223,9 +226,9 @@ var Layer=(function(){
 		          getColor:function(){
 		              return 'red';
 		          },
-		          getBoardColor:function(){
-		              return Layer.BOARD_COLOR_FRONT;
-		          }				
+//		          getBoardColor:function(){
+//		              return Layer.BOARD_COLOR_FRONT;
+//		          }				
 			},
 			BCu:{
 	            toString:function(){
@@ -240,9 +243,9 @@ var Layer=(function(){
 	            getColor:function(){
 	                return 'green';
 	            },
-	            getBoardColor:function(){
-	                  return Layer.BOARD_COLOR_BACK;
-	            },				
+//	            getBoardColor:function(){
+//	                  return Layer.BOARD_COLOR_BACK;
+//	            },				
 			},
 			Cu:{
 	            toString:function(){
@@ -257,9 +260,9 @@ var Layer=(function(){
 	            getColor:function(){
 	            	return 'rgb(128,128,0)';
 	            },
-	            getBoardColor:function(){
-	                  return Layer.BOARD_COLOR_BACK;
-	            },				
+//	            getBoardColor:function(){
+//	                  return Layer.BOARD_COLOR_BACK;
+//	            },				
 			},			
 	        FSilkS:{
 		          toString:function(){
@@ -274,9 +277,9 @@ var Layer=(function(){
 		          getColor:function(){
 		              return 'cyan';
 		          },
-		          getBoardColor:function(){
-		                return Layer.BOARD_COLOR_FRONT;
-		          }
+//		          getBoardColor:function(){
+//		                return Layer.BOARD_COLOR_FRONT;
+//		          }
 		        },
 		    BSilkS:{
 		          toString:function(){
@@ -291,10 +294,27 @@ var Layer=(function(){
 		          getColor:function(){
 		              return 'magenta';
 		          },
-		          getBoardColor:function(){
-		                return Layer.BOARD_COLOR_BACK;
-		          }
-		        }, 			
+//		          getBoardColor:function(){
+//		                return Layer.BOARD_COLOR_BACK;
+//		          }
+		        }, 
+			BOutln:{
+			          toString:function(){
+			              return "B.Outline";
+			          },
+			          getName:function(){
+			              return "BOutln";
+			          },
+			          getLayerMaskID:function(){
+			              return Layer.BOARD_OUTLINE_LAYER;
+			          },
+			          getColor:function(){
+			              return 'yellow';
+			          },
+//			          getBoardColor:function(){
+//			                return Layer.BOARD_COLOR_BACK;
+//			          }
+			        }, 		        
 			All:{
 	            toString:function(){
 	                return "All";
@@ -308,9 +328,9 @@ var Layer=(function(){
 	            getColor:function(){
 	                return 'rgb(128,128,0)';
 	            },
-	            getBoardColor:function(){
-	                  return 'black';
-	            }
+//	            getBoardColor:function(){
+//	                  return 'black';
+//	            }
 			},
 			None:{
 	            toString:function(){
@@ -325,9 +345,9 @@ var Layer=(function(){
 	            getColor:function(){
 	                return 'gray';
 	            },
-	            getBoardColor:function(){
-	                  return 'black';
-	            }				
+//	            getBoardColor:function(){
+//	                  return 'black';
+//	            }				
 			},
 	        resolve:function(layermask){
 	            if(layermask==Layer.LAYER_FRONT){
@@ -341,7 +361,10 @@ var Layer=(function(){
 	            }
 	            if(layermask==Layer.SILKSCREEN_LAYER_BACK){
 	                return Layer.Copper.BSilkS;
-	            }	            
+	            }
+	            if(layermask==Layer.BOARD_OUTLINE_LAYER){
+	                return Layer.Copper.BOutln;
+	            }
 	            if(layermask==(Layer.LAYER_BACK|Layer.LAYER_FRONT)){
 	                return Layer.Copper.Cu;
 	            } 
@@ -358,6 +381,7 @@ var Layer=(function(){
 				case 'Cu': return this.Cu;
 				case 'FSilkS':return this.FSilkS;
 				case 'BSilkS':return this.BSilkS;
+				case 'BOutln':return this.BOutln;
 				case 'All': return this.All;
 				case 'None': return this.None;
 					default:
@@ -883,7 +907,7 @@ module.exports ={
 	Fill,
 	Units,
 	ModeEnum,
-	BOARD_LAYERS,PCB_SYMBOL_LAYERS,
+	BOARD_LAYERS,PCB_SYMBOL_LAYERS,PCB_SYMBOL_OUTLINE_LAYERS,
 	Layer,
 	ScalableTransformation,
 	ViewportWindow,

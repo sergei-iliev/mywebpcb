@@ -226,7 +226,7 @@ parse(xml){
 	  var that=this;
 	  
       j$(xml).find("board").each(j$.proxy(function(){
-    	var board=new Board(j$(this).attr("width"),j$(this).attr("height"));
+    	var board=new Board(Number.parseInt(j$(this).attr("width")),Number.parseInt(j$(this).attr("height")));
     	//need to have a current unit 
         that.add(board);
         board.parse(this);

@@ -113,7 +113,7 @@ var CirclePanelBuilder=BaseBuilder.extend({
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
-				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+				this.fillComboBox(core.PCB_SYMBOL_OUTLINE_LAYERS)+
 			    "</select>" +
 				"</td></tr>"+				
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
@@ -192,7 +192,7 @@ var RectPanelBuilder=BaseBuilder.extend({
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
-				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+				this.fillComboBox(core.PCB_SYMBOL_OUTLINE_LAYERS)+
 			    "</select>" +
 				"</td></tr>"+				
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
@@ -328,7 +328,7 @@ var ArcPanelBuilder=BaseBuilder.extend({
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
-				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+				this.fillComboBox(core.PCB_SYMBOL_OUTLINE_LAYERS)+
 			    "</select>" +
 				"</td></tr>"+				
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
@@ -733,7 +733,7 @@ var LinePanelBuilder=BaseBuilder.extend({
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
-				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+				this.fillComboBox(core.PCB_SYMBOL_OUTLINE_LAYERS)+
 			    "</select>" +
 				"</td></tr>"+				
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
