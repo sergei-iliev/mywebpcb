@@ -179,6 +179,9 @@ var Board=require('board/d/boardcomponent').Board;
 			 new togglebutton.ToggleButtonModel({id:'importfromclipboardid'}),
 			 new togglebutton.ToggleButtonModel({id:'addunitid'}),
 			 new togglebutton.ToggleButtonModel({id:'newboardid'}),
+			 new togglebutton.ToggleButtonModel({id:'boardoutlinerectid'}),
+			 new togglebutton.ToggleButtonModel({id:'boardoutlineroundrectid'}),
+			 new togglebutton.ToggleButtonModel({id:'boardoutlinecircleid'}),
 			 new togglebutton.ToggleButtonModel({id:'printfootrpintid'}),
 			 new togglebutton.ToggleButtonModel({id:'saveid'}),
 			 new togglebutton.ToggleButtonModel({id:'loadid'}),
@@ -324,6 +327,18 @@ var BoardMgr=(function(){
 	var instance=null;
 
 class manager{
+	deleteBoardOutlineShapes(board){
+	  	let uuids=[];
+	  	for(let shape of board.shapes){	  		
+	  		if((shape.copper.getLayerMaskID()&core.Layer.BOARD_OUTLINE_LAYER)!=0){
+	  		  uuids.push(shape.uuid);
+	  		}
+	  	}
+	  	for(let uuid of uuids){
+	  	   board.remove(uuid);
+	  	} 
+	  	
+	}
 	createPCBFootprint(footprint,activeSide) {
         var pcbfootprint = new PCBFootprint(core.Layer.LAYER_FRONT);
         var len=footprint.shapes.length;
@@ -515,7 +530,7 @@ parse(xml){
 	  var that=this;
 	  
       j$(xml).find("board").each(j$.proxy(function(){
-    	var board=new Board(j$(this).attr("width"),j$(this).attr("height"));
+    	var board=new Board(Number.parseInt(j$(this).attr("width")),Number.parseInt(j$(this).attr("height")));
     	//need to have a current unit 
         that.add(board);
         board.parse(this);
@@ -1523,13 +1538,14 @@ paint(g2, viewportWindow, scale,layersmask) {
 	for(i=0;i<len;i++){
 		  this.shapes[i].paint(g2,viewportWindow,scale,layersmask);  
 	}    
-	
-    this.value.fillColor=core.Layer.Copper.resolve(this.value.layermaskId).getColor();
-    this.value.paint(g2, viewportWindow, scale, layersmask);
-
-	
-    this.reference.fillColor=core.Layer.Copper.resolve(this.reference.layermaskId).getColor();
-    this.reference.paint(g2, viewportWindow, scale, layersmask);
+	if((this.value.layermaskId&layersmask)!=0) {
+    	this.value.fillColor=core.Layer.Copper.resolve(this.value.layermaskId).getColor();
+    	this.value.paint(g2, viewportWindow, scale, layersmask);
+	}
+	if((this.reference.layermaskId&layersmask)!=0) {
+    	this.reference.fillColor=core.Layer.Copper.resolve(this.reference.layermaskId).getColor();
+    	this.reference.paint(g2, viewportWindow, scale, layersmask);
+	}
  }    
 fromXML(data){
 	 this.copper=core.Layer.Copper.valueOf(j$(data).attr("layer"));
@@ -2029,7 +2045,7 @@ fromXML(data) {
 }
 class PCBVia extends Shape{
 constructor() {
-		super(0, 0, 0, 0,core.MM_TO_COORD(0.3),core.Layer.LAYER_ALL);		
+		super(0, 0, 0, 0,core.MM_TO_COORD(0.3),core.Layer.LAYER_BACK|core.Layer.LAYER_FRONT);		
 		this.outer=new d2.Circle(new d2.Point(0,0),core.MM_TO_COORD(0.8));
 		this.inner=new d2.Circle(new d2.Point(0,0),core.MM_TO_COORD(0.4));
         this.selectionRectWidth = 3000;
@@ -2102,8 +2118,10 @@ drawClearence(g2, viewportWindow,scale, source) {
 	
     g2._fill=false;
 }
-paint(g2, viewportWindow, scale,layersmask) {
-	
+paint(g2, viewportWindow, scale,layersmask) {   
+    if((this.copper.getLayerMaskID()&layersmask)==0){
+            return;
+    }	
 	var rect = this.calculateShape();
 	rect.scale(scale.getScale());
 	if (!rect.intersects(viewportWindow)) {
@@ -2387,7 +2405,55 @@ toXML() {
 	return result;
 }
 }
+class BoardOutlineShapeFactory{
+	static createRect(board){
+		//create 4 lines connected
+		let line=new PCBLine(core.MM_TO_COORD(0.5),core.Layer.BOARD_OUTLINE_LAYER);
+		line.add(0,0);
+		line.add(board.width,0);
+		board.add(line);
 
+		line=new PCBLine(core.MM_TO_COORD(0.5),core.Layer.BOARD_OUTLINE_LAYER);		
+		line.add(board.width,0);
+		line.add(board.width,board.height);
+		board.add(line);
+		
+		line=new PCBLine(core.MM_TO_COORD(0.5),core.Layer.BOARD_OUTLINE_LAYER);		
+		line.add(board.width,board.height);
+		line.add(0,board.height);
+		board.add(line);
+
+		line=new PCBLine(core.MM_TO_COORD(0.5),core.Layer.BOARD_OUTLINE_LAYER);		
+		line.add(0,board.height);
+		line.add(0,0);
+		board.add(line);		
+	}
+	static createRoundRect(board){
+	  let rect=new RoundRect(0,0,board.width,board.height,core.MM_TO_COORD(5));
+	  for(const a of rect.roundRect.arcs){
+		let arc=new PCBArc(a.pc.x ,a.pc.y,a.r,core.MM_TO_COORD(0.5),core.Layer.BOARD_OUTLINE_LAYER);
+		arc.setExtendAngle(a.endAngle);		    		
+		arc.setStartAngle(a.startAngle);       
+		board.add(arc);    		 
+	  }
+	  for(const s of rect.roundRect.segments){
+		let line=new PCBLine(core.MM_TO_COORD(0.5),core.Layer.BOARD_OUTLINE_LAYER);		
+		line.add(s.ps.x,s.ps.y);
+		line.add(s.pe.x,s.pe.y);
+		board.add(line);				 
+	  }
+	}
+	
+	static createCircle(board){
+		let d=Math.min(board.width,board.height);
+		let x=board.width/2;
+		let y=board.height/2;
+		
+		let circle=new PCBCircle(x,y,d/2,core.MM_TO_COORD(0.5),core.Layer.BOARD_OUTLINE_LAYER);
+		board.add(circle);
+	}
+	
+}
 module.exports ={
 		PCBCopperArea,
 		PCBFootprint,
@@ -2400,7 +2466,8 @@ module.exports ={
 		PCBTrack,
 		PCBLine,
 		PCBSolidRegion,
-		BoardShapeFactory
+		BoardShapeFactory,
+		BoardOutlineShapeFactory
 		
 }
 });
@@ -2833,7 +2900,7 @@ var CirclePanelBuilder=BaseBuilder.extend({
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
-				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+				this.fillComboBox(core.PCB_SYMBOL_OUTLINE_LAYERS)+
 			    "</select>" +
 				"</td></tr>"+				
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
@@ -2912,7 +2979,7 @@ var RectPanelBuilder=BaseBuilder.extend({
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
-				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+				this.fillComboBox(core.PCB_SYMBOL_OUTLINE_LAYERS)+
 			    "</select>" +
 				"</td></tr>"+				
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
@@ -3048,7 +3115,7 @@ var ArcPanelBuilder=BaseBuilder.extend({
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
-				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+				this.fillComboBox(core.PCB_SYMBOL_OUTLINE_LAYERS)+
 			    "</select>" +
 				"</td></tr>"+				
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
@@ -3453,7 +3520,7 @@ var LinePanelBuilder=BaseBuilder.extend({
 				"<table width='100%'>"+
 				"<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"controllayerid\">"+
-				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
+				this.fillComboBox(core.PCB_SYMBOL_OUTLINE_LAYERS)+
 			    "</select>" +
 				"</td></tr>"+				
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
@@ -4020,7 +4087,8 @@ var LayersPanelView=Backbone.View.extend({
                                          new LayerModel({ name: 'Top Layer',value:Layer.LAYER_FRONT,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.LAYER_FRONT)}),
                                          new LayerModel({ name: 'Bottom Layer',value:Layer.LAYER_BACK,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.LAYER_BACK)}),
                                          new LayerModel({ name: 'Top Silk Layer',value:Layer.SILKSCREEN_LAYER_FRONT,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.SILKSCREEN_LAYER_FRONT)}),
-                                         new LayerModel({ name: 'Bottom Silk Layer',value:Layer.SILKSCREEN_LAYER_BACK,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.SILKSCREEN_LAYER_BACK)})
+                                         new LayerModel({ name: 'Bottom Silk Layer',value:Layer.SILKSCREEN_LAYER_BACK,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.SILKSCREEN_LAYER_BACK)}),
+                                         new LayerModel({ name: 'Board Outline',value:Layer.BOARD_OUTLINE_LAYER,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.BOARD_OUTLINE_LAYER)})
                                      ]);
     	this.list = j$('#layer-panel-view-id');
     	this.collection.forEach(function(item){
@@ -4047,6 +4115,7 @@ var events=require('core/events');
 var FootprintLoadView=require('pads/views/footprintloadview');
 var Board=require('board/d/boardcomponent').Board;
 var BoardMgr = require('board/d/boardcomponent').BoardMgr;
+var BoardOutlineShapeFactory = require('board/shapes').BoardOutlineShapeFactory;
 var BoardContainer = require('board/d/boardcomponent').BoardContainer;
 var UnitMgr = require('core/unit').UnitMgr;
 var BoardLoadView=require('board/views/boardloadview');
@@ -4119,6 +4188,21 @@ var ToggleButtonView=Backbone.View.extend({
             this.boardComponent.componentResized(); 
             this.boardComponent.repaint();
             this.boardComponent.getModel().fireUnitEvent({target:this.boardComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 	
+		}
+		if(event.data.model.id=='boardoutlineroundrectid'){
+			BoardMgr.getInstance().deleteBoardOutlineShapes(this.boardComponent.getModel().getUnit());
+			BoardOutlineShapeFactory.createRoundRect(this.boardComponent.getModel().getUnit());
+			this.boardComponent.repaint();
+		}
+		if(event.data.model.id=='boardoutlinerectid'){
+			BoardMgr.getInstance().deleteBoardOutlineShapes(this.boardComponent.getModel().getUnit());
+			BoardOutlineShapeFactory.createRect(this.boardComponent.getModel().getUnit());
+			this.boardComponent.repaint();
+		}
+		if(event.data.model.id=='boardoutlinecircleid'){
+			BoardMgr.getInstance().deleteBoardOutlineShapes(this.boardComponent.getModel().getUnit());
+			BoardOutlineShapeFactory.createCircle(this.boardComponent.getModel().getUnit());
+			this.boardComponent.repaint();
 		}
 		if(event.data.model.id=='saveid'){
 			new BoardSaveView({model:this.boardComponent.model}).render();			
@@ -4394,6 +4478,7 @@ var ModeEnum=(function(){
 
 var BOARD_LAYERS=[{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'},{id:'BSilkS',value:'BSilkS'},{id:'FSilkS',value:'FSilkS'},{id:'All',value:'All'},{id:'None',value:'None'}];
 var PCB_SYMBOL_LAYERS=[{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'},{id:'BSilkS',value:'BSilkS'},{id:'FSilkS',value:'FSilkS'}];
+var PCB_SYMBOL_OUTLINE_LAYERS=[{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'},{id:'BSilkS',value:'BSilkS'},{id:'FSilkS',value:'FSilkS'},{id:'BOutln',value:'BOutln'}];
 
 var Layer=(function(){
 	return{
@@ -4467,9 +4552,9 @@ var Layer=(function(){
 	      COMMENT_LAYER          : (1 << 26),
 	      ECO1_LAYER             : (1 << 27),
 	      ECO2_LAYER             : (1 << 28),
-	      EDGE_LAYER             : (1 << 29),
+	      BOARD_OUTLINE_LAYER    : (1 << 29),
 	      
-	      LAYER_ALL :0xFFFFFF,
+	      LAYER_ALL :0xFFFFFFFF,
 	          
 	      BOARD_COLOR_FRONT:'rgb(56,0,0)',
 	      BOARD_COLOR_BACK:'rgb(0,0,56)',
@@ -4502,7 +4587,9 @@ var Layer=(function(){
                 return Layer.Side.BOTTOM;
             } else if (layermaskId == Layer.SOLDERMASK_LAYER_BACK) {
                 return Layer.Side.BOTTOM;
-            }
+            }else if(layermaskId == Layer.SOLDERMASK_LAYER_BACK) {
+				throw new Error('Unknown layer');
+			}
             return Layer.Side.TOP;
            }
 		},			
@@ -4520,9 +4607,9 @@ var Layer=(function(){
 		          getColor:function(){
 		              return 'red';
 		          },
-		          getBoardColor:function(){
-		              return Layer.BOARD_COLOR_FRONT;
-		          }				
+//		          getBoardColor:function(){
+//		              return Layer.BOARD_COLOR_FRONT;
+//		          }				
 			},
 			BCu:{
 	            toString:function(){
@@ -4537,9 +4624,9 @@ var Layer=(function(){
 	            getColor:function(){
 	                return 'green';
 	            },
-	            getBoardColor:function(){
-	                  return Layer.BOARD_COLOR_BACK;
-	            },				
+//	            getBoardColor:function(){
+//	                  return Layer.BOARD_COLOR_BACK;
+//	            },				
 			},
 			Cu:{
 	            toString:function(){
@@ -4554,9 +4641,9 @@ var Layer=(function(){
 	            getColor:function(){
 	            	return 'rgb(128,128,0)';
 	            },
-	            getBoardColor:function(){
-	                  return Layer.BOARD_COLOR_BACK;
-	            },				
+//	            getBoardColor:function(){
+//	                  return Layer.BOARD_COLOR_BACK;
+//	            },				
 			},			
 	        FSilkS:{
 		          toString:function(){
@@ -4571,9 +4658,9 @@ var Layer=(function(){
 		          getColor:function(){
 		              return 'cyan';
 		          },
-		          getBoardColor:function(){
-		                return Layer.BOARD_COLOR_FRONT;
-		          }
+//		          getBoardColor:function(){
+//		                return Layer.BOARD_COLOR_FRONT;
+//		          }
 		        },
 		    BSilkS:{
 		          toString:function(){
@@ -4588,10 +4675,27 @@ var Layer=(function(){
 		          getColor:function(){
 		              return 'magenta';
 		          },
-		          getBoardColor:function(){
-		                return Layer.BOARD_COLOR_BACK;
-		          }
-		        }, 			
+//		          getBoardColor:function(){
+//		                return Layer.BOARD_COLOR_BACK;
+//		          }
+		        }, 
+			BOutln:{
+			          toString:function(){
+			              return "B.Outline";
+			          },
+			          getName:function(){
+			              return "BOutln";
+			          },
+			          getLayerMaskID:function(){
+			              return Layer.BOARD_OUTLINE_LAYER;
+			          },
+			          getColor:function(){
+			              return 'yellow';
+			          },
+//			          getBoardColor:function(){
+//			                return Layer.BOARD_COLOR_BACK;
+//			          }
+			        }, 		        
 			All:{
 	            toString:function(){
 	                return "All";
@@ -4605,9 +4709,9 @@ var Layer=(function(){
 	            getColor:function(){
 	                return 'rgb(128,128,0)';
 	            },
-	            getBoardColor:function(){
-	                  return 'black';
-	            }
+//	            getBoardColor:function(){
+//	                  return 'black';
+//	            }
 			},
 			None:{
 	            toString:function(){
@@ -4622,9 +4726,9 @@ var Layer=(function(){
 	            getColor:function(){
 	                return 'gray';
 	            },
-	            getBoardColor:function(){
-	                  return 'black';
-	            }				
+//	            getBoardColor:function(){
+//	                  return 'black';
+//	            }				
 			},
 	        resolve:function(layermask){
 	            if(layermask==Layer.LAYER_FRONT){
@@ -4638,7 +4742,10 @@ var Layer=(function(){
 	            }
 	            if(layermask==Layer.SILKSCREEN_LAYER_BACK){
 	                return Layer.Copper.BSilkS;
-	            }	            
+	            }
+	            if(layermask==Layer.BOARD_OUTLINE_LAYER){
+	                return Layer.Copper.BOutln;
+	            }
 	            if(layermask==(Layer.LAYER_BACK|Layer.LAYER_FRONT)){
 	                return Layer.Copper.Cu;
 	            } 
@@ -4655,6 +4762,7 @@ var Layer=(function(){
 				case 'Cu': return this.Cu;
 				case 'FSilkS':return this.FSilkS;
 				case 'BSilkS':return this.BSilkS;
+				case 'BOutln':return this.BOutln;
 				case 'All': return this.All;
 				case 'None': return this.None;
 					default:
@@ -5180,7 +5288,7 @@ module.exports ={
 	Fill,
 	Units,
 	ModeEnum,
-	BOARD_LAYERS,PCB_SYMBOL_LAYERS,
+	BOARD_LAYERS,PCB_SYMBOL_LAYERS,PCB_SYMBOL_OUTLINE_LAYERS,
 	Layer,
 	ScalableTransformation,
 	ViewportWindow,
@@ -6431,7 +6539,7 @@ var font = require('core/text/d2font');
 
 class Shape{
 	constructor(x, y, width, height, thickness,
-			layermask) {
+			layermaskId) {
 		this.owningUnit=null;
 		this.uuid = core.UUID();
 		this.x = x;
@@ -6444,7 +6552,7 @@ class Shape{
 		this.fill = Fill.EMPTY;
 		this.fillColor;		 
 		this.isControlPointVisible=true;
-		this.copper = core.Layer.Copper.resolve(layermask);
+		this.copper = core.Layer.Copper.resolve(layermaskId);
 	}
 getCenter(){
 	return new d2.Point(this.x,this.y);
@@ -12929,16 +13037,15 @@ class ResizeEventHandle extends EventHandle{
 		this.component.repaint();
 	 }
 	 mouseReleased(event){
-//		    if(this.component.getParameter("snaptogrid")){
-//	         this.target.alignResizingPointToGrid(this.targetPoint);
-//		     this.component.repaint();	 
-//			}
+		    if(this.component.getParameter("snaptogrid")){
+	          this.target.alignResizingPointToGrid(this.isStartPoint);
+		      this.component.repaint();	 
+			}
 			
 	 }
 	 mouseDragged(event){
 	 	let new_mx = event.x;
 	    let new_my = event.y;
-
 	    this.target.resizeStartEndPoint(new_mx - this.mx, new_my - this.my,this.isStartPoint);
 
 	    
@@ -13460,26 +13567,32 @@ class RoundRect extends Shape{
 		if (!rect.intersects(viewportWindow)) {
 			return;
 		}
-		
+		if(this.copper.getLayerMaskID()==core.Layer.BOARD_OUTLINE_LAYER){
+		  g2.globalCompositeOperation = 'source-atop';	
+		}else{
+		  g2.globalCompositeOperation = 'lighter';
+		}
 		g2.lineWidth = this.thickness * scale.getScale();
 		g2.lineCap = 'round';
 		g2.lineJoin = 'round';
-		if (this.fill == core.Fill.EMPTY) {
-			g2.globalCompositeOperation = 'lighter';
+
+		if (this.fill == core.Fill.EMPTY) {		
 			if (this.selection) {
+				g2.globalCompositeOperation = 'source-over';
 				g2.strokeStyle = "gray";
 			} else {
 				g2.strokeStyle = this.copper.getColor();
-			}
-			g2.globalCompositeOperation = 'source-over';
+			}			
 		} else {
 			g2._fill=true;
 			if (this.selection) {
+				g2.globalCompositeOperation = 'source-over';
 				g2.fillStyle = "gray";
 			} else {
 				g2.fillStyle = this.copper.getColor();
 			}			
 		}
+
 		let r=this.roundRect.clone();	
 		r.scale(scale.getScale());
         r.move(-viewportWindow.x,- viewportWindow.y);
@@ -13487,7 +13600,7 @@ class RoundRect extends Shape{
 		
 		g2._fill=false;
 		
-		
+		g2.globalCompositeOperation = 'source-over';
 
 		if (this.isSelected()&&this.isControlPointVisible) {
 			this.drawControlPoints(g2, viewportWindow, scale);
@@ -13635,7 +13748,11 @@ fromXML(data) {
 		}
 
 		// ****3 http://scienceprimer.com/draw-oval-html5-canvas
-		g2.globalCompositeOperation = 'lighter';
+		if(this.copper.getLayerMaskID()==core.Layer.BOARD_OUTLINE_LAYER){
+		  g2.globalCompositeOperation = 'source-atop';	
+		}else{
+		  g2.globalCompositeOperation = 'lighter';
+		}
 		g2.lineWidth = this.thickness * scale.getScale();
 
 		if (this.fill == core.Fill.EMPTY) {
@@ -13691,6 +13808,7 @@ class Arc extends Shape{
 			this.arcType=core.ArcType.CENTER_POINT_ARC;
 	}
 	clone() {
+
 			var copy = new Arc(this.arc.center.x,this.arc.center.y, this.arc.r,this.thickness,this.copper.getLayerMaskID());		
 	        copy.arc.startAngle = this.arc.startAngle;
 	        copy.arc.endAngle = this.arc.endAngle; 
@@ -13700,6 +13818,18 @@ class Arc extends Shape{
 	}
 	calculateShape() {
 		return this.arc.box;	
+	}
+	alignResizingPointToGrid(isStartPoint) {
+		let A=this.arc.start.clone(),B=this.arc.end.clone();				
+	    let targetPoint;
+
+		if(isStartPoint){  //start point click	    		    	
+	    	 targetPoint=this.owningUnit.grid.positionOnGrid(A.x,A.y);
+	    	 this.resizeStartEndPoint((targetPoint.x-A.x),(targetPoint.y-A.y),isStartPoint);
+	    }else{	    	
+	    	targetPoint=this.owningUnit.grid.positionOnGrid(B.x,B.y);
+	    	this.resizeStartEndPoint((targetPoint.x-B.x),(targetPoint.y-B.y),isStartPoint);
+	    }			        
 	}
 	getOrderWeight(){
 		return this.arc.area; 
@@ -13965,14 +14095,17 @@ class Arc extends Shape{
 			return;
 		}
 
-		g2.globalCompositeOperation = 'lighter';
+		
 		g2.beginPath(); // clear the canvas context
 		g2.lineCap = 'round';
 
 						
 		g2.lineWidth = this.thickness * scale.getScale();
-        		
-		
+		if(this.copper.getLayerMaskID()==core.Layer.BOARD_OUTLINE_LAYER){
+			  g2.globalCompositeOperation = 'source-atop';	
+		}else{
+			  g2.globalCompositeOperation = 'lighter';
+		}				
 		if (this.fill == core.Fill.EMPTY) {
 			if (this.selection) {
 					g2.strokeStyle = "gray";
@@ -14477,14 +14610,16 @@ paint(g2, viewportWindow, scale,layersmask) {
 		return;
 	   }
 				
-		g2.globalCompositeOperation = 'lighter';
 		g2.lineCap = 'round';
 		g2.lineJoin = 'round';
 		
 
 		g2.lineWidth = this.thickness * scale.getScale();
-
-
+		if(this.copper.getLayerMaskID()==core.Layer.BOARD_OUTLINE_LAYER){
+			  g2.globalCompositeOperation = 'source-atop';	
+		}else{
+			  g2.globalCompositeOperation = 'lighter';
+		}
 		if (this.selection)
 			g2.strokeStyle = "gray";
 		else
@@ -14936,6 +15071,7 @@ drawClearence(g2,viewportWindow,scale,source){
 	this.shape.drawClearence(g2,viewportWindow,scale,source);
 }
 paint(g2,viewportWindow,scale,layersmask){
+	if((this.copper.getLayerMaskID()&layersmask)!=0) {
 	switch(this.type){
 	    case PadType.THROUGH_HOLE:
 	        if(this.shape.paint(g2, viewportWindow, scale)){
@@ -14952,7 +15088,7 @@ paint(g2,viewportWindow,scale,layersmask){
 	    this.number.paint(g2, viewportWindow, scale);
 	    this.netvalue.paint(g2, viewportWindow, scale);
 	 }
-
+	}
 }
 	//----------CircularShape-------------------
 class CircularShape{

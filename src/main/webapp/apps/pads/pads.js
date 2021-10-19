@@ -247,6 +247,7 @@ var ModeEnum=(function(){
 
 var BOARD_LAYERS=[{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'},{id:'BSilkS',value:'BSilkS'},{id:'FSilkS',value:'FSilkS'},{id:'All',value:'All'},{id:'None',value:'None'}];
 var PCB_SYMBOL_LAYERS=[{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'},{id:'BSilkS',value:'BSilkS'},{id:'FSilkS',value:'FSilkS'}];
+var PCB_SYMBOL_OUTLINE_LAYERS=[{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'},{id:'BSilkS',value:'BSilkS'},{id:'FSilkS',value:'FSilkS'},{id:'BOutln',value:'BOutln'}];
 
 var Layer=(function(){
 	return{
@@ -320,9 +321,9 @@ var Layer=(function(){
 	      COMMENT_LAYER          : (1 << 26),
 	      ECO1_LAYER             : (1 << 27),
 	      ECO2_LAYER             : (1 << 28),
-	      EDGE_LAYER             : (1 << 29),
+	      BOARD_OUTLINE_LAYER    : (1 << 29),
 	      
-	      LAYER_ALL :0xFFFFFF,
+	      LAYER_ALL :0xFFFFFFFF,
 	          
 	      BOARD_COLOR_FRONT:'rgb(56,0,0)',
 	      BOARD_COLOR_BACK:'rgb(0,0,56)',
@@ -355,7 +356,9 @@ var Layer=(function(){
                 return Layer.Side.BOTTOM;
             } else if (layermaskId == Layer.SOLDERMASK_LAYER_BACK) {
                 return Layer.Side.BOTTOM;
-            }
+            }else if(layermaskId == Layer.SOLDERMASK_LAYER_BACK) {
+				throw new Error('Unknown layer');
+			}
             return Layer.Side.TOP;
            }
 		},			
@@ -373,9 +376,9 @@ var Layer=(function(){
 		          getColor:function(){
 		              return 'red';
 		          },
-		          getBoardColor:function(){
-		              return Layer.BOARD_COLOR_FRONT;
-		          }				
+//		          getBoardColor:function(){
+//		              return Layer.BOARD_COLOR_FRONT;
+//		          }				
 			},
 			BCu:{
 	            toString:function(){
@@ -390,9 +393,9 @@ var Layer=(function(){
 	            getColor:function(){
 	                return 'green';
 	            },
-	            getBoardColor:function(){
-	                  return Layer.BOARD_COLOR_BACK;
-	            },				
+//	            getBoardColor:function(){
+//	                  return Layer.BOARD_COLOR_BACK;
+//	            },				
 			},
 			Cu:{
 	            toString:function(){
@@ -407,9 +410,9 @@ var Layer=(function(){
 	            getColor:function(){
 	            	return 'rgb(128,128,0)';
 	            },
-	            getBoardColor:function(){
-	                  return Layer.BOARD_COLOR_BACK;
-	            },				
+//	            getBoardColor:function(){
+//	                  return Layer.BOARD_COLOR_BACK;
+//	            },				
 			},			
 	        FSilkS:{
 		          toString:function(){
@@ -424,9 +427,9 @@ var Layer=(function(){
 		          getColor:function(){
 		              return 'cyan';
 		          },
-		          getBoardColor:function(){
-		                return Layer.BOARD_COLOR_FRONT;
-		          }
+//		          getBoardColor:function(){
+//		                return Layer.BOARD_COLOR_FRONT;
+//		          }
 		        },
 		    BSilkS:{
 		          toString:function(){
@@ -441,10 +444,27 @@ var Layer=(function(){
 		          getColor:function(){
 		              return 'magenta';
 		          },
-		          getBoardColor:function(){
-		                return Layer.BOARD_COLOR_BACK;
-		          }
-		        }, 			
+//		          getBoardColor:function(){
+//		                return Layer.BOARD_COLOR_BACK;
+//		          }
+		        }, 
+			BOutln:{
+			          toString:function(){
+			              return "B.Outline";
+			          },
+			          getName:function(){
+			              return "BOutln";
+			          },
+			          getLayerMaskID:function(){
+			              return Layer.BOARD_OUTLINE_LAYER;
+			          },
+			          getColor:function(){
+			              return 'yellow';
+			          },
+//			          getBoardColor:function(){
+//			                return Layer.BOARD_COLOR_BACK;
+//			          }
+			        }, 		        
 			All:{
 	            toString:function(){
 	                return "All";
@@ -458,9 +478,9 @@ var Layer=(function(){
 	            getColor:function(){
 	                return 'rgb(128,128,0)';
 	            },
-	            getBoardColor:function(){
-	                  return 'black';
-	            }
+//	            getBoardColor:function(){
+//	                  return 'black';
+//	            }
 			},
 			None:{
 	            toString:function(){
@@ -475,9 +495,9 @@ var Layer=(function(){
 	            getColor:function(){
 	                return 'gray';
 	            },
-	            getBoardColor:function(){
-	                  return 'black';
-	            }				
+//	            getBoardColor:function(){
+//	                  return 'black';
+//	            }				
 			},
 	        resolve:function(layermask){
 	            if(layermask==Layer.LAYER_FRONT){
@@ -491,7 +511,10 @@ var Layer=(function(){
 	            }
 	            if(layermask==Layer.SILKSCREEN_LAYER_BACK){
 	                return Layer.Copper.BSilkS;
-	            }	            
+	            }
+	            if(layermask==Layer.BOARD_OUTLINE_LAYER){
+	                return Layer.Copper.BOutln;
+	            }
 	            if(layermask==(Layer.LAYER_BACK|Layer.LAYER_FRONT)){
 	                return Layer.Copper.Cu;
 	            } 
@@ -508,6 +531,7 @@ var Layer=(function(){
 				case 'Cu': return this.Cu;
 				case 'FSilkS':return this.FSilkS;
 				case 'BSilkS':return this.BSilkS;
+				case 'BOutln':return this.BOutln;
 				case 'All': return this.All;
 				case 'None': return this.None;
 					default:
@@ -1033,7 +1057,7 @@ module.exports ={
 	Fill,
 	Units,
 	ModeEnum,
-	BOARD_LAYERS,PCB_SYMBOL_LAYERS,
+	BOARD_LAYERS,PCB_SYMBOL_LAYERS,PCB_SYMBOL_OUTLINE_LAYERS,
 	Layer,
 	ScalableTransformation,
 	ViewportWindow,
@@ -2284,7 +2308,7 @@ var font = require('core/text/d2font');
 
 class Shape{
 	constructor(x, y, width, height, thickness,
-			layermask) {
+			layermaskId) {
 		this.owningUnit=null;
 		this.uuid = core.UUID();
 		this.x = x;
@@ -2297,7 +2321,7 @@ class Shape{
 		this.fill = Fill.EMPTY;
 		this.fillColor;		 
 		this.isControlPointVisible=true;
-		this.copper = core.Layer.Copper.resolve(layermask);
+		this.copper = core.Layer.Copper.resolve(layermaskId);
 	}
 getCenter(){
 	return new d2.Point(this.x,this.y);
@@ -8782,16 +8806,15 @@ class ResizeEventHandle extends EventHandle{
 		this.component.repaint();
 	 }
 	 mouseReleased(event){
-//		    if(this.component.getParameter("snaptogrid")){
-//	         this.target.alignResizingPointToGrid(this.targetPoint);
-//		     this.component.repaint();	 
-//			}
+		    if(this.component.getParameter("snaptogrid")){
+	          this.target.alignResizingPointToGrid(this.isStartPoint);
+		      this.component.repaint();	 
+			}
 			
 	 }
 	 mouseDragged(event){
 	 	let new_mx = event.x;
 	    let new_my = event.y;
-
 	    this.target.resizeStartEndPoint(new_mx - this.mx, new_my - this.my,this.isStartPoint);
 
 	    
@@ -9444,26 +9467,32 @@ class RoundRect extends Shape{
 		if (!rect.intersects(viewportWindow)) {
 			return;
 		}
-		
+		if(this.copper.getLayerMaskID()==core.Layer.BOARD_OUTLINE_LAYER){
+		  g2.globalCompositeOperation = 'source-atop';	
+		}else{
+		  g2.globalCompositeOperation = 'lighter';
+		}
 		g2.lineWidth = this.thickness * scale.getScale();
 		g2.lineCap = 'round';
 		g2.lineJoin = 'round';
-		if (this.fill == core.Fill.EMPTY) {
-			g2.globalCompositeOperation = 'lighter';
+
+		if (this.fill == core.Fill.EMPTY) {		
 			if (this.selection) {
+				g2.globalCompositeOperation = 'source-over';
 				g2.strokeStyle = "gray";
 			} else {
 				g2.strokeStyle = this.copper.getColor();
-			}
-			g2.globalCompositeOperation = 'source-over';
+			}			
 		} else {
 			g2._fill=true;
 			if (this.selection) {
+				g2.globalCompositeOperation = 'source-over';
 				g2.fillStyle = "gray";
 			} else {
 				g2.fillStyle = this.copper.getColor();
 			}			
 		}
+
 		let r=this.roundRect.clone();	
 		r.scale(scale.getScale());
         r.move(-viewportWindow.x,- viewportWindow.y);
@@ -9471,7 +9500,7 @@ class RoundRect extends Shape{
 		
 		g2._fill=false;
 		
-		
+		g2.globalCompositeOperation = 'source-over';
 
 		if (this.isSelected()&&this.isControlPointVisible) {
 			this.drawControlPoints(g2, viewportWindow, scale);
@@ -9619,7 +9648,11 @@ fromXML(data) {
 		}
 
 		// ****3 http://scienceprimer.com/draw-oval-html5-canvas
-		g2.globalCompositeOperation = 'lighter';
+		if(this.copper.getLayerMaskID()==core.Layer.BOARD_OUTLINE_LAYER){
+		  g2.globalCompositeOperation = 'source-atop';	
+		}else{
+		  g2.globalCompositeOperation = 'lighter';
+		}
 		g2.lineWidth = this.thickness * scale.getScale();
 
 		if (this.fill == core.Fill.EMPTY) {
@@ -9675,6 +9708,7 @@ class Arc extends Shape{
 			this.arcType=core.ArcType.CENTER_POINT_ARC;
 	}
 	clone() {
+
 			var copy = new Arc(this.arc.center.x,this.arc.center.y, this.arc.r,this.thickness,this.copper.getLayerMaskID());		
 	        copy.arc.startAngle = this.arc.startAngle;
 	        copy.arc.endAngle = this.arc.endAngle; 
@@ -9684,6 +9718,18 @@ class Arc extends Shape{
 	}
 	calculateShape() {
 		return this.arc.box;	
+	}
+	alignResizingPointToGrid(isStartPoint) {
+		let A=this.arc.start.clone(),B=this.arc.end.clone();				
+	    let targetPoint;
+
+		if(isStartPoint){  //start point click	    		    	
+	    	 targetPoint=this.owningUnit.grid.positionOnGrid(A.x,A.y);
+	    	 this.resizeStartEndPoint((targetPoint.x-A.x),(targetPoint.y-A.y),isStartPoint);
+	    }else{	    	
+	    	targetPoint=this.owningUnit.grid.positionOnGrid(B.x,B.y);
+	    	this.resizeStartEndPoint((targetPoint.x-B.x),(targetPoint.y-B.y),isStartPoint);
+	    }			        
 	}
 	getOrderWeight(){
 		return this.arc.area; 
@@ -9949,14 +9995,17 @@ class Arc extends Shape{
 			return;
 		}
 
-		g2.globalCompositeOperation = 'lighter';
+		
 		g2.beginPath(); // clear the canvas context
 		g2.lineCap = 'round';
 
 						
 		g2.lineWidth = this.thickness * scale.getScale();
-        		
-		
+		if(this.copper.getLayerMaskID()==core.Layer.BOARD_OUTLINE_LAYER){
+			  g2.globalCompositeOperation = 'source-atop';	
+		}else{
+			  g2.globalCompositeOperation = 'lighter';
+		}				
 		if (this.fill == core.Fill.EMPTY) {
 			if (this.selection) {
 					g2.strokeStyle = "gray";
@@ -10461,14 +10510,16 @@ paint(g2, viewportWindow, scale,layersmask) {
 		return;
 	   }
 				
-		g2.globalCompositeOperation = 'lighter';
 		g2.lineCap = 'round';
 		g2.lineJoin = 'round';
 		
 
 		g2.lineWidth = this.thickness * scale.getScale();
-
-
+		if(this.copper.getLayerMaskID()==core.Layer.BOARD_OUTLINE_LAYER){
+			  g2.globalCompositeOperation = 'source-atop';	
+		}else{
+			  g2.globalCompositeOperation = 'lighter';
+		}
 		if (this.selection)
 			g2.strokeStyle = "gray";
 		else
@@ -10920,6 +10971,7 @@ drawClearence(g2,viewportWindow,scale,source){
 	this.shape.drawClearence(g2,viewportWindow,scale,source);
 }
 paint(g2,viewportWindow,scale,layersmask){
+	if((this.copper.getLayerMaskID()&layersmask)!=0) {
 	switch(this.type){
 	    case PadType.THROUGH_HOLE:
 	        if(this.shape.paint(g2, viewportWindow, scale)){
@@ -10936,7 +10988,7 @@ paint(g2,viewportWindow,scale,layersmask){
 	    this.number.paint(g2, viewportWindow, scale);
 	    this.netvalue.paint(g2, viewportWindow, scale);
 	 }
-
+	}
 }
 	//----------CircularShape-------------------
 class CircularShape{
