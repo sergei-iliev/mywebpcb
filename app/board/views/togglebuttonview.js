@@ -80,14 +80,17 @@ var ToggleButtonView=Backbone.View.extend({
             this.boardComponent.getModel().fireUnitEvent({target:this.boardComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 	
 		}
 		if(event.data.model.id=='boardoutlineroundrectid'){
+			BoardMgr.getInstance().deleteBoardOutlineShapes(this.boardComponent.getModel().getUnit());
 			BoardOutlineShapeFactory.createRoundRect(this.boardComponent.getModel().getUnit());
 			this.boardComponent.repaint();
 		}
 		if(event.data.model.id=='boardoutlinerectid'){
+			BoardMgr.getInstance().deleteBoardOutlineShapes(this.boardComponent.getModel().getUnit());
 			BoardOutlineShapeFactory.createRect(this.boardComponent.getModel().getUnit());
 			this.boardComponent.repaint();
 		}
 		if(event.data.model.id=='boardoutlinecircleid'){
+			BoardMgr.getInstance().deleteBoardOutlineShapes(this.boardComponent.getModel().getUnit());
 			BoardOutlineShapeFactory.createCircle(this.boardComponent.getModel().getUnit());
 			this.boardComponent.repaint();
 		}

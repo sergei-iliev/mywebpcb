@@ -35,6 +35,18 @@ var BoardMgr=(function(){
 	var instance=null;
 
 class manager{
+	deleteBoardOutlineShapes(board){
+	  	let uuids=[];
+	  	for(let shape of board.shapes){	  		
+	  		if((shape.copper.getLayerMaskID()&core.Layer.BOARD_OUTLINE_LAYER)!=0){
+	  		  uuids.push(shape.uuid);
+	  		}
+	  	}
+	  	for(let uuid of uuids){
+	  	   board.remove(uuid);
+	  	} 
+	  	
+	}
 	createPCBFootprint(footprint,activeSide) {
         var pcbfootprint = new PCBFootprint(core.Layer.LAYER_FRONT);
         var len=footprint.shapes.length;
