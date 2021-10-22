@@ -160,9 +160,9 @@ class ResizeEventHandle extends EventHandle{
 	 mouseReleased(event){
 		    if(this.component.getParameter("snaptogrid")){
 	          this.target.alignResizingPointToGrid(this.isStartPoint);
-		      this.component.repaint();	 
+	          this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});		      
 			}
-			
+		    this.component.repaint();	
 	 }
 	 mouseDragged(event){
 	 	let new_mx = event.x;
