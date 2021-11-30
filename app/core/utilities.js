@@ -211,6 +211,7 @@ version=(function(){
 
 module.exports = {
   version,
+  isLeftPlane,
   round,
   roundDouble,
   roundFloat,
