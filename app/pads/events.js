@@ -20,6 +20,10 @@ mousePressed(event){
 	this.mx=event.x;
 	this.my=event.y;
     
+	this.target.A=this.target.arc.start.clone();
+	this.target.B=this.target.arc.end.clone();
+	this.target.M=this.target.arc.middle.clone();
+	
     this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
     
 	this.component.repaint();

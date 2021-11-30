@@ -535,6 +535,9 @@ class Arc extends Shape{
 			this.selectionRectWidth=3000;
 			this.resizingPoint=null;
 			this.arc=new d2.Arc(new d2.Point(x,y),r,50,170);
+			this.A;
+			this.B;
+			this.M;
 			this.rotation=0;
 			this.arcType=core.ArcType.CENTER_POINT_ARC;
 	}
@@ -750,70 +753,135 @@ class Arc extends Shape{
 	/*
 	 * Resize through mouse position point
 	 */
-	Resize(xoffset, yoffset,point) {
-	    	
-	    this.resizingPoint=this.calculateResizingMidPoint(point);
-	    
-		//old middle point on arc
-		let a1=this.arc.middle;  
-		//mid point on line
-		let m=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
-		//new middle point on arc
-		let a2=this.resizingPoint;  //new middle
+//	Resize(xoffset, yoffset,point) {
+//	    	
+//	    this.resizingPoint=this.calculateResizingMidPoint(point);
+//	    
+//		//old middle point on arc
+//		let a1=this.arc.middle;  
+//		//mid point on line
+//		let m=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
+//		//new middle point on arc
+//		let a2=this.resizingPoint;  //new middle
+//		
+//		//do they belong to the same plane in regard to m 
+//		let vec = new d2.Vector(m, a2);
+//		let linevec=new d2.Vector(m,a1);
+//	    let samePlane = d2.utils.GT(vec.dot(linevec.normalize()), 0);
+//	    
+//	    
+//	//which plane
+//	    	
+//		if(!samePlane){
+//	      //return;
+//		}
+//			let C=this.resizingPoint;  //projection
+//			let C1=m;
+//	    
+//			let y=C1.distanceTo(C);
+//			let x=C1.distanceTo(this.arc.start);
+//	    
+//			let l=(x*x)/y;
+//			let lambda=(l-y)/2;
+//
+//			let v=new d2.Vector(C,C1);
+//			let norm=v.normalize();			  
+//		
+//			let a=C1.x +lambda*norm.x;
+//			let b=C1.y + lambda*norm.y;
+//			let center=new d2.Point(a,b);
+//	        let r = center.distanceTo(this.arc.start);
+//			
+//			let startAngle =new d2.Vector(center,this.arc.start).slope;
+//			let endAngle = new d2.Vector(center, this.arc.end).slope;
+//	    
+//
+//			let start = 360 - startAngle;		
+//			let end= (360-endAngle)-start;		
+//			
+//			if(this.arc.endAngle<0){  //negative extend
+//				if(end>0){			  
+//				  end=end-360;
+//				}
+//			}else{		//positive extend			
+//				if(end<0){ 					   
+//					end=360-Math.abs(end);
+//				}			
+//			}
+//
+//		
+//			this.arc.center.set(center.x,center.y);
+//			this.arc.r=r;
+//			this.arc.startAngle=start;
+//			this.arc.endAngle=end;  
+//		
+//}
+Resize(xoffset, yoffset,point) {  
+	//previous mid pont
+	let oldM=this.M.clone();		
+    this.M=this.calculateResizingMidPoint(point);
+    
+     
+	//mid point on line
+	let m=new d2.Point((this.A.x+this.B.x)/2,(this.A.y+this.B.y)/2);
 		
-		//do they belong to the same plane in regard to m 
-		let vec = new d2.Vector(m, a2);
-		let linevec=new d2.Vector(m,a1);
-	    let samePlane = d2.utils.GT(vec.dot(linevec.normalize()), 0);
-	    
-	    
-	//which plane
-	    	
-		if(!samePlane){
-	      //return;
-		}
-			let C=this.resizingPoint;  //projection
-			let C1=m;
-	    
-			let y=C1.distanceTo(C);
-			let x=C1.distanceTo(this.arc.start);
-	    
-			let l=(x*x)/y;
-			let lambda=(l-y)/2;
+	
+		let C=this.M;  //projection
+		let C1=m;
+    
+		let y=C1.distanceTo(C);
+		let x=C1.distanceTo(this.A);
+    
+		let l=(x*x)/y;
+		let lambda=(l-y)/2;
 
-			let v=new d2.Vector(C,C1);
-			let norm=v.normalize();			  
+		let v=new d2.Vector(C,C1);
+		let norm=v.normalize();			  
+	
+		let a=C1.x +lambda*norm.x;
+		let b=C1.y + lambda*norm.y;
+		let center=new d2.Point(a,b);
+        let r = center.distanceTo(this.A);
+			        
+        
+     	let startAngle =new d2.Vector(center,this.A).slope;
+		let endAngle = new d2.Vector(center, this.B).slope;
+	
+		let start = 360 - startAngle;		
+		let end= (360-endAngle)-start;		
 		
-			let a=C1.x +lambda*norm.x;
-			let b=C1.y + lambda*norm.y;
-			let center=new d2.Point(a,b);
-	        let r = center.distanceTo(this.arc.start);
-			
-			let startAngle =new d2.Vector(center,this.arc.start).slope;
-			let endAngle = new d2.Vector(center, this.arc.end).slope;
-	    
-
-			let start = 360 - startAngle;		
-			let end= (360-endAngle)-start;		
-			
-			if(this.arc.endAngle<0){  //negative extend
-				if(end>0){			  
-				  end=end-360;
-				}
-			}else{		//positive extend			
-				if(end<0){ 					   
-					end=360-Math.abs(end);
-				}			
+		if(this.arc.endAngle<0){  //negative extend
+			if(end>0){			  
+			  end=end-360;
 			}
-
+		}else{		//positive extend			
+			if(end<0){ 					   
+				end=360-Math.abs(end);
+			}			
+		}
+		this.arc.center.set(center.x,center.y);
+		this.arc.r=r;
+		this.arc.startAngle=start;
 		
-			this.arc.center.set(center.x,center.y);
-			this.arc.r=r;
-			this.arc.startAngle=start;
-			this.arc.endAngle=end;  
-		
+        //check if M and oldM on the same plane	    
+	    if(utilities.isLeftPlane(this.A,this.B,this.M)!=utilities.isLeftPlane(this.A,this.B,oldM)){		     					
+			if(this.arc.endAngle<0){  //negative extend
+			 this.arc.endAngle=(360-end);
+			}else{
+			 this.arc.endAngle=-1*(360-end);	
+			}						     		
+	    }else{							
+	    	this.arc.endAngle=end;			
+	    }			   
+	
+	    this.resizingPoint=this.arc.middle;
+}	
+calculateResizingMidPoint(pt){
+	let middle=new d2.Point((this.A.x+this.B.x)/2,(this.A.y+this.B.y)/2);
+	let line=new d2.Line(middle,this.M);
+	return line.projectionPoint(new d2.Point(pt.x,pt.y));	
 }
-	move(xoffset,yoffset){
+move(xoffset,yoffset){
 	  this.arc.move(xoffset,yoffset);	
 	}
 	paint(g2, viewportWindow, scale,layersmask) {
@@ -877,28 +945,23 @@ class Arc extends Shape{
 	getResizingPoint() {
 		return this.resizingPoint;
 	}
-	calculateResizingMidPoint(pt){
-		let middle=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
-		let line=new d2.Line(middle,this.arc.middle);
-		return line.projectionPoint(new d2.Point(pt.x,pt.y));	
-	}
-	}
+}
 
 /*
  * Works with points but can not calculate start and end angle
  */
+
 //class Arc extends Shape{
 //	constructor(x,y,r,thickness,layermaskid){	
 //	        super(0, 0, 0,0,thickness,layermaskid);  
 //			this.setDisplayName("Arc");
 //			this.selectionRectWidth=3000;
 //			this.resizingPoint=null;
-//			this.arc=new d2.Arc(new d2.Point(x,y),r,100,70);
+//			this.arc=new d2.Arc(new d2.Point(x,y),r,50,-170);
 //			this.rotation=0;
 //			this.A=this.arc.start.clone();
 //			this.B=this.arc.end.clone();
-//			this.M=this.arc.middle.clone();
-//			this.O=this.M.clone();
+//			this.M=this.arc.middle.clone();			
 //			this.isLeftPlane=undefined;
 //	}
 //	clone() {
@@ -939,11 +1002,17 @@ class Arc extends Shape{
 //	}
 //
 //	isControlRectClicked(x,y) {
-//		 if(this.isMidPointClicked(x,y)){
-//			    return this.arc.middle;	 
-//			 }
-//		     return null;
-//		}
+//	 if(this.isStartAnglePointClicked(x,y)){
+//		    return this.arc.start;
+//		 }
+//	 if(this.isExtendAnglePointClicked(x,y)){
+//		    return this.arc.end;
+//		 }
+//	 if(this.isMidPointClicked(x,y)){
+//		    return this.arc.middle;	 
+//		 }
+//	     return null;
+//	}
 //	isClicked(x, y) {
 //		if(this.arc.isPointOn(new d2.Point(x, y),this.thickness))
 //			return true;
@@ -954,7 +1023,7 @@ class Arc extends Shape{
 //			return false;
 //		}
 //	isMidPointClicked(x,y){
-//	    let p=this.M;
+//	    let p=this.arc.middle;
 //	    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
 //	                 this.selectionRectWidth, this.selectionRectWidth);
 //	    if (box.contains({x,y})) {
@@ -963,13 +1032,27 @@ class Arc extends Shape{
 //	        return false;
 //		}	
 //	}
-//	isStartAnglePointClicked(x,y){	
-//      return false;
-//
+//isStartAnglePointClicked(x,y){	
+//    let p=this.arc.start;
+//    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
+//                 this.selectionRectWidth, this.selectionRectWidth);
+//    if (box.contains({x,y})) {
+//        return true;
+//    }else{                   
+//        return false;
+//	}
 //}
 //isExtendAnglePointClicked(x,y){
-//      return false;
-//}	
+//    let p=this.arc.end;
+//    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
+//                 this.selectionRectWidth, this.selectionRectWidth);
+//    if (box.contains({x,y})) {
+//        return true;
+//    }else{                   
+//        return false;
+//	}
+//}
+//
 //rotate(rotation){
 //		//fix angle
 //	  let alpha=this.rotation+rotation.angle;
@@ -993,26 +1076,11 @@ class Arc extends Shape{
 //		let oldM=this.M.clone();		
 //	    this.M=this.calculateResizingMidPoint(point);
 //        
-//        
-//		//old middle point on arc
-//		let a1=this.M;  
+//         
 //		//mid point on line
 //		let m=new d2.Point((this.A.x+this.B.x)/2,(this.A.y+this.B.y)/2);
-//		//new middle point on arc
-//		let a2=this.resizingPoint;  //new middle
+//			
 //		
-//		//do they belong to the same plane in regard to m 
-//		//let vec = new d2.Vector(m, a2);
-//		//let linevec=new d2.Vector(m,a1);
-//	    //let samePlane = d2.utils.GT(vec.dot(linevec.normalize()), 0);
-//	    
-//	    
-//	//which plane
-//	    	
-//		//if(!samePlane){
-//	    //  return;
-//		//}
-//
 //			let C=this.M;  //projection
 //			let C1=m;
 //	    
@@ -1029,29 +1097,11 @@ class Arc extends Shape{
 //			let b=C1.y + lambda*norm.y;
 //			let center=new d2.Point(a,b);
 //	        let r = center.distanceTo(this.A);
-//			
-//	        this.O=center;
+//				        
 //	        
-//	        //var startAngle = Math.atan2(this.A.y - this.O.y, this.A.x - this.O.x);
-//	        //var endAngle   = Math.atan2(this.B.y - this.O.y, this.B.x - this.O.x);
-//	        //console.log("start="+d2.utils.degrees(startAngle)+"::end="+d2.utils.degrees(endAngle));
-//
-//	        //check if M and oldM on the same plane	    
-//		    if(d2.utils.isLeftPlane(this.A,this.B,this.M)!=d2.utils.isLeftPlane(this.A,this.B,oldM)){
-//		     	console.log('changed');
-//		     	let rot=core.AffineTransform.createRotateInstance(center.x,center.y,180);		     			     	
-//		     	this.rotate(rot); 
-//		     	console.log(this.arc.startAngle+"::"+this.arc.endAngle);
-//				this.arc.pc.set(center.x,center.y);
-//				//this.arc.r=r;
-//				//this.arc.startAngle=shape.startAngle;
-//				//this.arc.endAngle=shape.endAngle;		
-//		    }else{
-//			let startAngle =new d2.Vector(center,this.arc.start).slope;
-//			let endAngle = new d2.Vector(center, this.arc.end).slope;
-//	    
-//
-//
+//	     	let startAngle =new d2.Vector(center,this.A).slope;
+//			let endAngle = new d2.Vector(center, this.B).slope;
+//		
 //			let start = 360 - startAngle;		
 //			let end= (360-endAngle)-start;		
 //			
@@ -1067,15 +1117,24 @@ class Arc extends Shape{
 //			this.arc.center.set(center.x,center.y);
 //			this.arc.r=r;
 //			this.arc.startAngle=start;
-//			this.arc.endAngle=end;			
+//			
+//	        //check if M and oldM on the same plane	    
+//		    if(utilities.isLeftPlane(this.A,this.B,this.M)!=utilities.isLeftPlane(this.A,this.B,oldM)){		     					
+//				if(this.arc.endAngle<0){  //negative extend
+//				 this.arc.endAngle=(360-end);
+//				}else{
+//				 this.arc.endAngle=-1*(360-end);	
+//				}						     		
+//		    }else{							
+//		    	this.arc.endAngle=end;			
 //		    }			   
 //		
 //	}
 //move(xoffset,yoffset){
 //	  this.arc.move(xoffset,yoffset);
-//	  this.A.move(xoffset,yoffset);
-//	  this.B.move(xoffset,yoffset);
-//	  this.M.move(xoffset,yoffset);
+//	  //this.A.move(xoffset,yoffset);
+//	  //this.B.move(xoffset,yoffset);
+//	  //this.M.move(xoffset,yoffset);
 //	}
 //paint(g2, viewportWindow, scale,layersmask) {
 //	    if((this.copper.getLayerMaskID()&layersmask)==0){
@@ -1127,7 +1186,7 @@ class Arc extends Shape{
 //
 //	}
 //	drawControlPoints(g2, viewportWindow, scale) {
-//		//utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.A,this.B,this.M,this.O]);
+//	    //utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.A,this.B,this.M,this.O]);
 //		utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.arc.center,this.arc.start,this.arc.end,this.arc.middle]);
 //	}
 //	setResizingPoint(pt){
