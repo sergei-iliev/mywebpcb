@@ -15,20 +15,7 @@ constructor(component,placeholderid){
 //	  this.setContent(items,{target:target});	
 //	  this.open(event);	
 //	}
-registerShapePopup(target,event){
-	var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
-	  items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
-	  items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
-	  items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
-	  items+="<tr id='topbottomid'><td style='padding: 0.4em'>Mirror Top-Bottom</td></tr>";
-	  items+="<tr id='leftrightid'><td style='padding: 0.4em'>Mirror Left-Right</td></tr>";
-	  items+="<tr id='sendbackid'><td style='padding: 0.4em'>Send To Back</td></tr>";
-	  items+="<tr id='sendfrontid'><td style='padding: 0.4em'>Send To Front</td></tr>";	  
-	  items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
-	  items+="</table></div>";
-	  this.setContent(items,{target:target});	
-	  this.open(event);	
-	}
+
 registerUnitPopup(target,event){	          	            
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
 	    items+="<tr id='selectallid' ><td style='padding: 0.4em;'>Select All</td></tr>";

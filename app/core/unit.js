@@ -88,7 +88,49 @@ class manager{
                     }  
                });
             return count > 1;
-        }        
+        }     
+        sendToBack(shapes,target){
+        	let box=target.getBoundingShape();
+        	let min=Number.MAX_VALUE;
+        	let sind=-1;
+        	for(let i=0;i<shapes.length;i++){
+        		if(shapes[i].uuid===target.uuid){
+        			sind=i;
+        			continue;
+        		}
+        		if(box.intersects(shapes[i].getBoundingShape())){
+        			min = Math.min(min,i);
+        		}
+        		
+        	}
+            if(min<Number.MAX_VALUE){
+            	let tmp=shapes[min];
+            	shapes[min]=shapes[sind];
+            	shapes[sind]=tmp;
+            }
+        	
+        }
+        bringToFront(shapes,target){
+        	let box=target.getBoundingShape();
+        	let max=Number.MIN_VALUE;
+        	let sind=-1;
+        	for(let i=0;i<shapes.length;i++){
+        		if(shapes[i].uuid===target.uuid){
+        			sind=i;
+        			continue;
+        		}
+        		if(box.intersects(shapes[i].getBoundingShape())){
+        			max = Math.max(max,i);
+        		}
+        		
+        	}        	
+            if(max>Number.MIN_VALUE){
+            	let tmp=shapes[max];
+            	shapes[max]=shapes[sind];
+            	shapes[sind]=tmp;
+            }
+        	
+        }
         getLabelByTag(unit,tag){
            let result=null;
        	   unit.shapes.some(function(shape) {

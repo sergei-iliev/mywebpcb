@@ -12,17 +12,19 @@ constructor(component,placeholderid){
 	this.opened = false;	
 }
 registerShapePopup(target,event){
-var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
-  items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
-  items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
-  items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
-  items+="<tr id='topbottomid'><td style='padding: 0.4em'>Mirror Top-Bottom</td></tr>";
-  items+="<tr id='leftrightid'><td style='padding: 0.4em'>Mirror Left-Right</td></tr>";
-  items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
-  items+="</table></div>";
-  this.setContent(items,{target:target});	
-  this.open(event);	
-}
+	var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
+	  items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
+	  items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
+	  items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
+	  items+="<tr id='topbottomid'><td style='padding: 0.4em'>Mirror Top-Bottom</td></tr>";
+	  items+="<tr id='leftrightid'><td style='padding: 0.4em'>Mirror Left-Right</td></tr>";
+	  items+="<tr id='sendbackid'><td style='padding: 0.4em'>Send To Back</td></tr>";
+	  items+="<tr id='bringfrontid'><td style='padding: 0.4em'>Bring To Front</td></tr>";	  
+	  items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
+	  items+="</table></div>";
+	  this.setContent(items,{target:target});	
+	  this.open(event);	
+	}
 registerLineSelectPopup(target,event){
 	  let bending=target.isBendingPointClicked(event.x,event.y);
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -87,7 +89,16 @@ attachEventListeners(context){
 }
 
 actionPerformed(id,context){
-	
+	if(id==='sendbackid'){
+		let unitMgr = UnitMgr.getInstance();
+		unitMgr.sendToBack(this.component.getModel().getUnit().shapes,context.target);		
+		this.component.repaint();
+	}
+	if(id==='bringfrontid'){
+		let unitMgr = UnitMgr.getInstance();		
+		unitMgr.bringToFront(this.component.getModel().getUnit().shapes,context.target);		
+		this.component.repaint();
+	}
 	if(id=='defaultbendid'){
 		let line =this.component.lineBendingProcessor.line;
 		this.component.lineBendingProcessor=new DefaultLineBendingProcessor();

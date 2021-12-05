@@ -15,6 +15,28 @@ registerPadPopup(target,event){
 	  this.setContent(items,{target:target});	
 	  this.open(event);	
 	}
+registerLineSelectPopup(target,event){
+	  let bending=target.isBendingPointClicked(event.x,event.y);
+	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
+	    items+="<tr id='cloneid' ><td style='padding: 0.4em;'>Clone</td></tr>";
+	    if(bending!=null){
+	      if(target.isEndPoint(event.x,event.y)){	
+	        items+="<tr id='resumeid'><td style='padding: 0.4em;'>Resume</td></tr>";
+	      }
+	    }else{
+	    	items+="<tr id='addbendingpointid'><td style='padding: 0.4em;'>Add Bending point</td></tr>";	
+	    }
+	    
+	    if(bending!=null){
+	      items+="<tr id='deletebendingpointid'><td style='padding: 0.4em'>Delete Bending point</td></tr>";
+	    }
+		items+="<tr id='sendbackid'><td style='padding: 0.4em'>Send To Back</td></tr>";
+		items+="<tr id='bringfrontid'><td style='padding: 0.4em'>Bring To Front</td></tr>";	  
+	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
+	    items+="</table></div>";
+	    this.setContent(items,{target:target});	
+	    this.open(event);	
+}
 registerUnitPopup(target,event){	          	            
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
 	    items+="<tr id='selectallid' ><td style='padding: 0.4em;'>Select All</td></tr>";
