@@ -689,11 +689,15 @@ paint(g2, viewportWindow, scale,layersmask) {
 		return;
 	}
 
-	g2.globalCompositeOperation = 'lighter';
+	if(this.owningUnit.compositeLayer.activeSide== core.Layer.Side.resolve(this.copper.getLayerMaskID())){
+		g2.globalCompositeOperation = 'source-over';
+	}else{
+		g2.globalCompositeOperation = 'lighter';
+	}
 	g2.lineCap = 'round';
 	g2.lineJoin = 'round';
 	
-
+    
 	g2.lineWidth = this.thickness * scale.getScale();
 
 

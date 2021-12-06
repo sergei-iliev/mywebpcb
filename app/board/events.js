@@ -112,12 +112,19 @@ mouseMove(event){
 mouseDragged(event){
 	
 }
-dblClick(){
+dblClick(){	
 	this.target.reset();
     this.target.setSelected(false);
     this.component.getEventMgr().resetEventHandle();
     this.component.repaint();	 
 } 
+keyPressed(event){
+	 if(this.component.getEventMgr().getTargetEventHandle() != null&&event.keyCode==27){   //ESCAPE      
+		 this.component.lineBendingProcessor.release();
+		 this.component.getEventMgr().resetEventHandle();
+		 this.component.repaint();
+	 }   
+	}
 detach() {
     this.target.reset(); 
     if(this.target.getLinePoints().length<2){

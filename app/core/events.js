@@ -386,6 +386,15 @@ mouseMove(event){
 	this.component.lineBendingProcessor.moveLinePoint(event.x,event.y);    
 	this.component.repaint();  
 	   }
+
+keyPressed(event){
+	 if(this.component.getEventMgr().getTargetEventHandle() != null&&event.keyCode==27){   //ESCAPE      
+		 this.component.lineBendingProcessor.release();
+		 this.component.getEventMgr().resetEventHandle();
+		 this.component.repaint();
+	 }   
+}
+
 dblClick(){
 	this.target.reset();
     this.target.setSelected(false);

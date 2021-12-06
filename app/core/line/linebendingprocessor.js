@@ -17,6 +17,9 @@ addLinePoint(point){
 moveLinePoint(x,y){
 
 }
+release(){
+	this.line.reset();	
+}
 isOverlappedPoint(pointToAdd){
     if(this.line.getLinePoints().length>0){      
       let lastPoint;

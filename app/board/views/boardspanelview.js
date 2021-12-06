@@ -547,7 +547,7 @@ var BoardPanelBuilder=BaseBuilder.extend({
 			this.component.repaint();
 		}	
 		if(event.target.id=='sideid'){
-			this.target.setActiveSide(j$("#sideid").val());
+			this.target.setActiveSide(parseInt(j$("#sideid").val()));
 			this.component.repaint();
 		}		
 	},
@@ -556,7 +556,7 @@ var BoardPanelBuilder=BaseBuilder.extend({
 	   j$("#widthid").val(core.COORD_TO_MM( this.target.width));    
 	   j$("#heightid").val(core.COORD_TO_MM(this.target.height));
 	   j$("#gridrasterid").val(this.target.grid.getGridValue());	 
-	   j$("#sideid").val(this.target.compositeLayer.activeSide);
+	   j$("#sideid").val((this.target.compositeLayer.activeSide));
 	   if(this.component.getModel().getUnit().coordinateSystem!=null){
 		     j$("#originxid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getX()));    
 		     j$("#originyid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getY()));
