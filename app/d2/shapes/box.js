@@ -97,6 +97,13 @@ module.exports = function(d2) {
               this.min.y > other.max.y
           );
       }
+	  grow(offset){
+        this.min.x-=offset;
+        this.min.y-=offset;
+        
+        this.max.x+=offset;
+        this.max.y+=offset;
+      }
       move(offsetX,offsetY){
     	  this.min.move(offsetX,offsetY);
     	  this.max.move(offsetX,offsetY);

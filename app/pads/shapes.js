@@ -1846,11 +1846,23 @@ calculateShape() {
 	return this.shape.box;
 } 
 validateClearance(source){
-    //is different layer and SMD -> no clearance
+    //1 is different layer and SMD -> no clearance
     if ((source.copper.getLayerMaskID() & this.copper.getLayerMaskID()) == 0) {
         //if(this.type==PadType.SMD)
            return false; //not on the same layer
     }	
+    //2. is same net 
+    //if(isSameNet(source)&&source.getPadConnection()==PadShape.PadConnection.DIRECT){
+    //    return;
+    //}
+    
+    //3. is pad  within copper area
+    let rect = this.getBoundingShape();
+        rect.grow(source.clearance);
+        
+    if(!source.getBoundingShape().intersects(rect)){
+          return false; 
+    }  
 	return true;
 }
 drawClearence(g2,viewportWindow,scale,source){
