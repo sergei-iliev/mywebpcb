@@ -41,6 +41,29 @@ clone(){
 	  //copy.silent=false;
 	  return copy;
 	}	
+paint(g2, viewportWindow){	
+	   let len=this.shapes.length;
+ 	   for(let i=0;i<len;i++){
+ 		   this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);  
+ 	   }
+ 	   this.shapes.forEach((shape)=>{	 	    	
+			if ((typeof shape.drawControlShape === 'function')&&shape.isSelected()) {					                
+				shape.drawControlShape(g2, viewportWindow,this.scalableTransformation);
+        	}
+ 	   });
+ 	   //grid
+       this.grid.paint(g2,viewportWindow,this.scalableTransformation);
+        //coordinate system
+       if(this.coordinateSystem!=null){
+         this.coordinateSystem.paint(g2, viewportWindow,this.scalableTransformation);
+       }	
+         //ruler
+	   this.ruler.paint(g2, viewportWindow,this.scalableTransformation);
+        //frame
+       if(this.frame!=null){
+	     this.frame.paint(g2, viewportWindow,this.scalableTransformation);
+       }
+}	
 parse(data){
 	 	   this.unitName=j$(data).find("name").text();
 	 	   this.grid.setGridUnits(j$(data).find("units").attr("raster"),core.Units.MM);

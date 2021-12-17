@@ -600,7 +600,8 @@ var HolePanelBuilder=BaseBuilder.extend({
     events: {
         'keypress #xid' : 'onenter',	
         'keypress #yid' : 'onenter',	
-        'keypress #drillsizeid' : 'onenter',        
+        'keypress #drillsizeid' : 'onenter',   
+		'keypress #clearanceid' : 'onenter',     
     },
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -616,12 +617,16 @@ var HolePanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='yid'){	            
 			 this.target.y=this.fromUnitY(j$('#yid').val());  
 	     }
+		 if(event.target.id=='clearanceid'){
+			   this.target.clearance=(core.MM_TO_COORD(parseFloat(j$('#clearanceid').val())));			 
+		 }
 		 this.component.repaint();  
    },
 	updateui:function(){		
         j$('#xid').val(this.toUnitX(this.target.circle.center.x));
         j$('#yid').val(this.toUnitY(this.target.circle.center.y)); 
         j$('#drillsizeid').val(core.COORD_TO_MM(2*this.target.circle.r));
+		j$('#clearanceid').val(core.COORD_TO_MM(this.target.clearance));
         
 	},
 	render:function(){
@@ -631,6 +636,7 @@ var HolePanelBuilder=BaseBuilder.extend({
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Drill size</td><td><input type='text' id='drillsizeid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Clearance</td><td><input type='text' id='clearanceid' value='' class='form-control input-sm\'></td></tr>"+
 				"</table>");
 			
 		return this;

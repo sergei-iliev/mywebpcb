@@ -333,12 +333,12 @@ class RoundRect extends Shape{
 		
 		g2.globalCompositeOperation = 'source-over';
 
-		if (this.isSelected()&&this.isControlPointVisible) {
-			this.drawControlPoints(g2, viewportWindow, scale);
-		}
+//		if (this.isSelected()&&this.isControlPointVisible) {
+//			this.drawControlPoints(g2, viewportWindow, scale);
+//		}
 	}
 
-drawControlPoints(g2, viewportWindow, scale){
+drawControlShape(g2, viewportWindow, scale){
 	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.roundRect.vertices); 		
 	}	
 }
@@ -509,11 +509,9 @@ fromXML(data) {
 
 		g2.globalCompositeOperation = 'source-over';
 		
-		if (this.isSelected()&&this.isControlPointVisible) {
-			this.drawControlPoints(g2, viewportWindow, scale);
-  } 
+		  
  }
-drawControlPoints(g2, viewportWindow, scale) {
+drawControlShape(g2, viewportWindow, scale) {
 	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.circle.vertices);	
 }
 getOrderWeight(){
@@ -929,14 +927,10 @@ move(xoffset,yoffset){
 		g2._fill=undefined;
 		
 		g2.globalCompositeOperation = 'source-over';
-	
-		
-    if (this.isSelected()&&this.isControlPointVisible) {
-		this.drawControlPoints(g2, viewportWindow, scale);
-	}
+			    
 
 	}
-	drawControlPoints(g2, viewportWindow, scale) {
+	drawControlShape(g2, viewportWindow, scale) {		
 		utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,[this.arc.center,this.arc.start,this.arc.end,this.arc.middle]);	
 	}
 	setResizingPoint(pt){
@@ -1336,11 +1330,11 @@ paint(g2, viewportWindow, scale,layersmask) {
 	g2.globalCompositeOperation = 'source-over';
 	g2._fill=false;
     
-	if (this.isSelected()) {
-		this.drawControlPoints(g2, viewportWindow, scale);
-	}
+	//if (this.isSelected()) {
+	//	this.drawControlPoints(g2, viewportWindow, scale);
+	//}
 }
-drawControlPoints(g2, viewportWindow, scale) {
+drawControlShape(g2, viewportWindow, scale) {
 	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.polygon.points);	
 }
 toXML() {
@@ -1432,9 +1426,10 @@ paint(g2, viewportWindow, scale,layersmask) {
 		
 		
 		g2.globalCompositeOperation = 'source-over';
-		if (this.selection&&this.isControlPointVisible) {
-			this.drawControlPoints(g2, viewportWindow, scale);
-		}
+		
+		//if (this.selection&&this.isControlPointVisible) {
+		//	this.drawControlPoints(g2, viewportWindow, scale);
+		//}
 
 }
 

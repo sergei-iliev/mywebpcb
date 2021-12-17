@@ -504,9 +504,10 @@ calculateShape() {
 }
 
 
-drawControlPoints(g2, viewportWindow, scale) {
+drawControlShape(g2, viewportWindow, scale) {
 	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.polyline.points);	
 }
+
 isFloating() {
 	return (!(this.floatingStartPoint
 								.equals(this.floatingEndPoint) && this.floatingStartPoint

@@ -180,11 +180,11 @@ paint(g2, viewportWindow){
  	   for(let i=0;i<len;i++){
  		   this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation,this.compositeLayer.getLayerMaskID());  
  	   }
- 	   this.shapes.forEach(function(shape){
- 	    if (shape instanceof PCBTrack || shape instanceof PCBCopperArea) {
-           shape.drawControlShape(g2, viewportWindow,this.scalableTransformation);
-        }
- 	   },this);
+ 	   this.shapes.forEach((shape)=>{ 	    	
+			if ((typeof shape.drawControlShape === 'function')&&shape.isSelected()) {					                
+				shape.drawControlShape(g2, viewportWindow,this.scalableTransformation);
+        	}
+ 	   });
  	   //grid
        this.grid.paint(g2,viewportWindow,this.scalableTransformation);
         //coordinate system

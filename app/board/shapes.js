@@ -486,7 +486,8 @@ clone() {
 		var copy = new PCBLine(this.thickness,this.copper.getLayerMaskID());
 		  copy.polyline=this.polyline.clone();
 		  return copy;
-	}    
+	}
+	  
 }
 class PCBSolidRegion extends SolidRegion{
 	constructor(layermaskId){
@@ -497,6 +498,7 @@ class PCBSolidRegion extends SolidRegion{
 			  copy.polygon=this.polygon.clone();  
 			  return copy;
 		}    
+
 }
 
 class PCBRoundRect extends RoundRect{
@@ -733,12 +735,9 @@ paint(g2, viewportWindow, scale,layersmask) {
 	g2.globalCompositeOperation = 'source-over';
 
 }
-drawControlShape(g2, viewportWindow, scale){   
-    if((!this.isSelected())/*&&(!this.isSublineSelected())*/){
-      return;
-    }
-    this.drawControlPoints(g2, viewportWindow, scale);
-}
+//drawControlShape(g2, viewportWindow, scale){       
+//    this.drawControlShape(g2, viewportWindow, scale);
+//}
 fromXML(data) {
        this.copper =core.Layer.Copper.valueOf(j$(data).attr("layer"));
 	   this.thickness = (parseInt(j$(data).attr("thickness")));
@@ -836,9 +835,9 @@ paint(g2, viewportWindow, scale,layersmask) {
     c.move(-viewportWindow.x,- viewportWindow.y);
 	c.paint(g2);
 	
-	if(this.selection){
-	  utilities.drawCrosshair(g2, viewportWindow, scale,null,this.selectionRectWidth,[this.circle.center]);
-	}
+}
+drawControlShape(g2, viewportWindow,scale){
+	utilities.drawCrosshair(g2, viewportWindow, scale,null,this.selectionRectWidth,[this.circle.center]);
 }
 toXML(){
     return "<hole x=\""+utilities.roundFloat(this.circle.pc.x,5)+"\" y=\""+utilities.roundFloat(this.circle.pc.y,5)+"\" width=\""+this.circle.r*2+"\"  clearance=\""+this.clearance+"\" />";	
