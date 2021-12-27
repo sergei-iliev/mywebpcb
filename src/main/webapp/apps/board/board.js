@@ -888,12 +888,19 @@ mouseMove(event){
 mouseDragged(event){
 	
 }
-dblClick(){
+dblClick(){	
 	this.target.reset();
     this.target.setSelected(false);
     this.component.getEventMgr().resetEventHandle();
     this.component.repaint();	 
 } 
+keyPressed(event){
+	 if(this.component.getEventMgr().getTargetEventHandle() != null&&event.keyCode==27){   //ESCAPE      
+		 this.component.lineBendingProcessor.release();
+		 this.component.getEventMgr().resetEventHandle();
+		 this.component.repaint();
+	 }   
+	}
 detach() {
     this.target.reset(); 
     if(this.target.getLinePoints().length<2){
@@ -1883,11 +1890,15 @@ paint(g2, viewportWindow, scale,layersmask) {
 		return;
 	}
 
-	g2.globalCompositeOperation = 'lighter';
+	if(this.owningUnit.compositeLayer.activeSide== core.Layer.Side.resolve(this.copper.getLayerMaskID())){
+		g2.globalCompositeOperation = 'source-over';
+	}else{
+		g2.globalCompositeOperation = 'lighter';
+	}
 	g2.lineCap = 'round';
 	g2.lineJoin = 'round';
 	
-
+    
 	g2.lineWidth = this.thickness * scale.getScale();
 
 
@@ -3334,7 +3345,7 @@ var BoardPanelBuilder=BaseBuilder.extend({
 			this.component.repaint();
 		}	
 		if(event.target.id=='sideid'){
-			this.target.setActiveSide(j$("#sideid").val());
+			this.target.setActiveSide(parseInt(j$("#sideid").val()));
 			this.component.repaint();
 		}		
 	},
@@ -3343,7 +3354,7 @@ var BoardPanelBuilder=BaseBuilder.extend({
 	   j$("#widthid").val(core.COORD_TO_MM( this.target.width));    
 	   j$("#heightid").val(core.COORD_TO_MM(this.target.height));
 	   j$("#gridrasterid").val(this.target.grid.getGridValue());	 
-	   j$("#sideid").val(this.target.compositeLayer.activeSide);
+	   j$("#sideid").val((this.target.compositeLayer.activeSide));
 	   if(this.component.getModel().getUnit().coordinateSystem!=null){
 		     j$("#originxid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getX()));    
 		     j$("#originyid").val(core.COORD_TO_MM(this.component.getModel().getUnit().getCoordinateSystem().getY()));
@@ -5700,6 +5711,15 @@ mouseMove(event){
 	this.component.lineBendingProcessor.moveLinePoint(event.x,event.y);    
 	this.component.repaint();  
 	   }
+
+keyPressed(event){
+	 if(this.component.getEventMgr().getTargetEventHandle() != null&&event.keyCode==27){   //ESCAPE      
+		 this.component.lineBendingProcessor.release();
+		 this.component.getEventMgr().resetEventHandle();
+		 this.component.repaint();
+	 }   
+}
+
 dblClick(){
 	this.target.reset();
     this.target.setSelected(false);
@@ -5895,6 +5915,9 @@ addLinePoint(point){
 
 moveLinePoint(x,y){
 
+}
+release(){
+	this.line.reset();	
 }
 isOverlappedPoint(pointToAdd){
     if(this.line.getLinePoints().length>0){      
@@ -6307,17 +6330,19 @@ constructor(component,placeholderid){
 	this.opened = false;	
 }
 registerShapePopup(target,event){
-var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
-  items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
-  items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
-  items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
-  items+="<tr id='topbottomid'><td style='padding: 0.4em'>Mirror Top-Bottom</td></tr>";
-  items+="<tr id='leftrightid'><td style='padding: 0.4em'>Mirror Left-Right</td></tr>";
-  items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
-  items+="</table></div>";
-  this.setContent(items,{target:target});	
-  this.open(event);	
-}
+	var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
+	  items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
+	  items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
+	  items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
+	  items+="<tr id='topbottomid'><td style='padding: 0.4em'>Mirror Top-Bottom</td></tr>";
+	  items+="<tr id='leftrightid'><td style='padding: 0.4em'>Mirror Left-Right</td></tr>";
+	  items+="<tr id='sendbackid'><td style='padding: 0.4em'>Send To Back</td></tr>";
+	  items+="<tr id='bringfrontid'><td style='padding: 0.4em'>Bring To Front</td></tr>";	  
+	  items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
+	  items+="</table></div>";
+	  this.setContent(items,{target:target});	
+	  this.open(event);	
+	}
 registerLineSelectPopup(target,event){
 	  let bending=target.isBendingPointClicked(event.x,event.y);
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -6382,7 +6407,16 @@ attachEventListeners(context){
 }
 
 actionPerformed(id,context){
-	
+	if(id==='sendbackid'){
+		let unitMgr = UnitMgr.getInstance();
+		unitMgr.sendToBack(this.component.getModel().getUnit().shapes,context.target);		
+		this.component.repaint();
+	}
+	if(id==='bringfrontid'){
+		let unitMgr = UnitMgr.getInstance();		
+		unitMgr.bringToFront(this.component.getModel().getUnit().shapes,context.target);		
+		this.component.repaint();
+	}
 	if(id=='defaultbendid'){
 		let line =this.component.lineBendingProcessor.line;
 		this.component.lineBendingProcessor=new DefaultLineBendingProcessor();
@@ -8090,7 +8124,49 @@ class manager{
                     }  
                });
             return count > 1;
-        }        
+        }     
+        sendToBack(shapes,target){
+        	let box=target.getBoundingShape();
+        	let min=Number.MAX_VALUE;
+        	let sind=-1;
+        	for(let i=0;i<shapes.length;i++){
+        		if(shapes[i].uuid===target.uuid){
+        			sind=i;
+        			continue;
+        		}
+        		if(box.intersects(shapes[i].getBoundingShape())){
+        			min = Math.min(min,i);
+        		}
+        		
+        	}
+            if(min<Number.MAX_VALUE){
+            	let tmp=shapes[min];
+            	shapes[min]=shapes[sind];
+            	shapes[sind]=tmp;
+            }
+        	
+        }
+        bringToFront(shapes,target){
+        	let box=target.getBoundingShape();
+        	let max=Number.MIN_VALUE;
+        	let sind=-1;
+        	for(let i=0;i<shapes.length;i++){
+        		if(shapes[i].uuid===target.uuid){
+        			sind=i;
+        			continue;
+        		}
+        		if(box.intersects(shapes[i].getBoundingShape())){
+        			max = Math.max(max,i);
+        		}
+        		
+        	}        	
+            if(max>Number.MIN_VALUE){
+            	let tmp=shapes[max];
+            	shapes[max]=shapes[sind];
+            	shapes[sind]=tmp;
+            }
+        	
+        }
         getLabelByTag(unit,tag){
            let result=null;
        	   unit.shapes.some(function(shape) {
@@ -9083,6 +9159,7 @@ version=(function(){
 
 module.exports = {
   version,
+  isLeftPlane,
   round,
   roundDouble,
   roundFloat,
@@ -12899,6 +12976,10 @@ mousePressed(event){
 	this.mx=event.x;
 	this.my=event.y;
     
+	this.target.A=this.target.arc.start.clone();
+	this.target.B=this.target.arc.end.clone();
+	this.target.M=this.target.arc.middle.clone();
+	
     this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
     
 	this.component.repaint();
@@ -13039,9 +13120,9 @@ class ResizeEventHandle extends EventHandle{
 	 mouseReleased(event){
 		    if(this.component.getParameter("snaptogrid")){
 	          this.target.alignResizingPointToGrid(this.isStartPoint);
-		      this.component.repaint();	 
+	          this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});		      
 			}
-			
+		    this.component.repaint();	
 	 }
 	 mouseDragged(event){
 	 	let new_mx = event.x;
@@ -13202,6 +13283,28 @@ registerPadPopup(target,event){
 	  this.setContent(items,{target:target});	
 	  this.open(event);	
 	}
+registerLineSelectPopup(target,event){
+	  let bending=target.isBendingPointClicked(event.x,event.y);
+	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
+	    items+="<tr id='cloneid' ><td style='padding: 0.4em;'>Clone</td></tr>";
+	    if(bending!=null){
+	      if(target.isEndPoint(event.x,event.y)){	
+	        items+="<tr id='resumeid'><td style='padding: 0.4em;'>Resume</td></tr>";
+	      }
+	    }else{
+	    	items+="<tr id='addbendingpointid'><td style='padding: 0.4em;'>Add Bending point</td></tr>";	
+	    }
+	    
+	    if(bending!=null){
+	      items+="<tr id='deletebendingpointid'><td style='padding: 0.4em'>Delete Bending point</td></tr>";
+	    }
+		items+="<tr id='sendbackid'><td style='padding: 0.4em'>Send To Back</td></tr>";
+		items+="<tr id='bringfrontid'><td style='padding: 0.4em'>Bring To Front</td></tr>";	  
+	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
+	    items+="</table></div>";
+	    this.setContent(items,{target:target});	
+	    this.open(event);	
+}
 registerUnitPopup(target,event){	          	            
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
 	    items+="<tr id='selectallid' ><td style='padding: 0.4em;'>Select All</td></tr>";
@@ -13804,6 +13907,9 @@ class Arc extends Shape{
 			this.selectionRectWidth=3000;
 			this.resizingPoint=null;
 			this.arc=new d2.Arc(new d2.Point(x,y),r,50,170);
+			this.A;
+			this.B;
+			this.M;
 			this.rotation=0;
 			this.arcType=core.ArcType.CENTER_POINT_ARC;
 	}
@@ -14019,70 +14125,135 @@ class Arc extends Shape{
 	/*
 	 * Resize through mouse position point
 	 */
-	Resize(xoffset, yoffset,point) {
-	    	
-	    this.resizingPoint=this.calculateResizingMidPoint(point);
-	    
-		//old middle point on arc
-		let a1=this.arc.middle;  
-		//mid point on line
-		let m=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
-		//new middle point on arc
-		let a2=this.resizingPoint;  //new middle
+//	Resize(xoffset, yoffset,point) {
+//	    	
+//	    this.resizingPoint=this.calculateResizingMidPoint(point);
+//	    
+//		//old middle point on arc
+//		let a1=this.arc.middle;  
+//		//mid point on line
+//		let m=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
+//		//new middle point on arc
+//		let a2=this.resizingPoint;  //new middle
+//		
+//		//do they belong to the same plane in regard to m 
+//		let vec = new d2.Vector(m, a2);
+//		let linevec=new d2.Vector(m,a1);
+//	    let samePlane = d2.utils.GT(vec.dot(linevec.normalize()), 0);
+//	    
+//	    
+//	//which plane
+//	    	
+//		if(!samePlane){
+//	      //return;
+//		}
+//			let C=this.resizingPoint;  //projection
+//			let C1=m;
+//	    
+//			let y=C1.distanceTo(C);
+//			let x=C1.distanceTo(this.arc.start);
+//	    
+//			let l=(x*x)/y;
+//			let lambda=(l-y)/2;
+//
+//			let v=new d2.Vector(C,C1);
+//			let norm=v.normalize();			  
+//		
+//			let a=C1.x +lambda*norm.x;
+//			let b=C1.y + lambda*norm.y;
+//			let center=new d2.Point(a,b);
+//	        let r = center.distanceTo(this.arc.start);
+//			
+//			let startAngle =new d2.Vector(center,this.arc.start).slope;
+//			let endAngle = new d2.Vector(center, this.arc.end).slope;
+//	    
+//
+//			let start = 360 - startAngle;		
+//			let end= (360-endAngle)-start;		
+//			
+//			if(this.arc.endAngle<0){  //negative extend
+//				if(end>0){			  
+//				  end=end-360;
+//				}
+//			}else{		//positive extend			
+//				if(end<0){ 					   
+//					end=360-Math.abs(end);
+//				}			
+//			}
+//
+//		
+//			this.arc.center.set(center.x,center.y);
+//			this.arc.r=r;
+//			this.arc.startAngle=start;
+//			this.arc.endAngle=end;  
+//		
+//}
+Resize(xoffset, yoffset,point) {  
+	//previous mid pont
+	let oldM=this.M.clone();		
+    this.M=this.calculateResizingMidPoint(point);
+    
+     
+	//mid point on line
+	let m=new d2.Point((this.A.x+this.B.x)/2,(this.A.y+this.B.y)/2);
 		
-		//do they belong to the same plane in regard to m 
-		let vec = new d2.Vector(m, a2);
-		let linevec=new d2.Vector(m,a1);
-	    let samePlane = d2.utils.GT(vec.dot(linevec.normalize()), 0);
-	    
-	    
-	//which plane
-	    	
-		if(!samePlane){
-	      //return;
-		}
-			let C=this.resizingPoint;  //projection
-			let C1=m;
-	    
-			let y=C1.distanceTo(C);
-			let x=C1.distanceTo(this.arc.start);
-	    
-			let l=(x*x)/y;
-			let lambda=(l-y)/2;
+	
+		let C=this.M;  //projection
+		let C1=m;
+    
+		let y=C1.distanceTo(C);
+		let x=C1.distanceTo(this.A);
+    
+		let l=(x*x)/y;
+		let lambda=(l-y)/2;
 
-			let v=new d2.Vector(C,C1);
-			let norm=v.normalize();			  
+		let v=new d2.Vector(C,C1);
+		let norm=v.normalize();			  
+	
+		let a=C1.x +lambda*norm.x;
+		let b=C1.y + lambda*norm.y;
+		let center=new d2.Point(a,b);
+        let r = center.distanceTo(this.A);
+			        
+        
+     	let startAngle =new d2.Vector(center,this.A).slope;
+		let endAngle = new d2.Vector(center, this.B).slope;
+	
+		let start = 360 - startAngle;		
+		let end= (360-endAngle)-start;		
 		
-			let a=C1.x +lambda*norm.x;
-			let b=C1.y + lambda*norm.y;
-			let center=new d2.Point(a,b);
-	        let r = center.distanceTo(this.arc.start);
-			
-			let startAngle =new d2.Vector(center,this.arc.start).slope;
-			let endAngle = new d2.Vector(center, this.arc.end).slope;
-	    
-
-			let start = 360 - startAngle;		
-			let end= (360-endAngle)-start;		
-			
-			if(this.arc.endAngle<0){  //negative extend
-				if(end>0){			  
-				  end=end-360;
-				}
-			}else{		//positive extend			
-				if(end<0){ 					   
-					end=360-Math.abs(end);
-				}			
+		if(this.arc.endAngle<0){  //negative extend
+			if(end>0){			  
+			  end=end-360;
 			}
-
+		}else{		//positive extend			
+			if(end<0){ 					   
+				end=360-Math.abs(end);
+			}			
+		}
+		this.arc.center.set(center.x,center.y);
+		this.arc.r=r;
+		this.arc.startAngle=start;
 		
-			this.arc.center.set(center.x,center.y);
-			this.arc.r=r;
-			this.arc.startAngle=start;
-			this.arc.endAngle=end;  
-		
+        //check if M and oldM on the same plane	    
+	    if(utilities.isLeftPlane(this.A,this.B,this.M)!=utilities.isLeftPlane(this.A,this.B,oldM)){		     					
+			if(this.arc.endAngle<0){  //negative extend
+			 this.arc.endAngle=(360-end);
+			}else{
+			 this.arc.endAngle=-1*(360-end);	
+			}						     		
+	    }else{							
+	    	this.arc.endAngle=end;			
+	    }			   
+	
+	    this.resizingPoint=this.arc.middle;
+}	
+calculateResizingMidPoint(pt){
+	let middle=new d2.Point((this.A.x+this.B.x)/2,(this.A.y+this.B.y)/2);
+	let line=new d2.Line(middle,this.M);
+	return line.projectionPoint(new d2.Point(pt.x,pt.y));	
 }
-	move(xoffset,yoffset){
+move(xoffset,yoffset){
 	  this.arc.move(xoffset,yoffset);	
 	}
 	paint(g2, viewportWindow, scale,layersmask) {
@@ -14146,28 +14317,23 @@ class Arc extends Shape{
 	getResizingPoint() {
 		return this.resizingPoint;
 	}
-	calculateResizingMidPoint(pt){
-		let middle=new d2.Point((this.arc.start.x+this.arc.end.x)/2,(this.arc.start.y+this.arc.end.y)/2);
-		let line=new d2.Line(middle,this.arc.middle);
-		return line.projectionPoint(new d2.Point(pt.x,pt.y));	
-	}
-	}
+}
 
 /*
  * Works with points but can not calculate start and end angle
  */
+
 //class Arc extends Shape{
 //	constructor(x,y,r,thickness,layermaskid){	
 //	        super(0, 0, 0,0,thickness,layermaskid);  
 //			this.setDisplayName("Arc");
 //			this.selectionRectWidth=3000;
 //			this.resizingPoint=null;
-//			this.arc=new d2.Arc(new d2.Point(x,y),r,100,70);
+//			this.arc=new d2.Arc(new d2.Point(x,y),r,50,-170);
 //			this.rotation=0;
 //			this.A=this.arc.start.clone();
 //			this.B=this.arc.end.clone();
-//			this.M=this.arc.middle.clone();
-//			this.O=this.M.clone();
+//			this.M=this.arc.middle.clone();			
 //			this.isLeftPlane=undefined;
 //	}
 //	clone() {
@@ -14208,11 +14374,17 @@ class Arc extends Shape{
 //	}
 //
 //	isControlRectClicked(x,y) {
-//		 if(this.isMidPointClicked(x,y)){
-//			    return this.arc.middle;	 
-//			 }
-//		     return null;
-//		}
+//	 if(this.isStartAnglePointClicked(x,y)){
+//		    return this.arc.start;
+//		 }
+//	 if(this.isExtendAnglePointClicked(x,y)){
+//		    return this.arc.end;
+//		 }
+//	 if(this.isMidPointClicked(x,y)){
+//		    return this.arc.middle;	 
+//		 }
+//	     return null;
+//	}
 //	isClicked(x, y) {
 //		if(this.arc.isPointOn(new d2.Point(x, y),this.thickness))
 //			return true;
@@ -14223,7 +14395,7 @@ class Arc extends Shape{
 //			return false;
 //		}
 //	isMidPointClicked(x,y){
-//	    let p=this.M;
+//	    let p=this.arc.middle;
 //	    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
 //	                 this.selectionRectWidth, this.selectionRectWidth);
 //	    if (box.contains({x,y})) {
@@ -14232,13 +14404,27 @@ class Arc extends Shape{
 //	        return false;
 //		}	
 //	}
-//	isStartAnglePointClicked(x,y){	
-//      return false;
-//
+//isStartAnglePointClicked(x,y){	
+//    let p=this.arc.start;
+//    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
+//                 this.selectionRectWidth, this.selectionRectWidth);
+//    if (box.contains({x,y})) {
+//        return true;
+//    }else{                   
+//        return false;
+//	}
 //}
 //isExtendAnglePointClicked(x,y){
-//      return false;
-//}	
+//    let p=this.arc.end;
+//    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
+//                 this.selectionRectWidth, this.selectionRectWidth);
+//    if (box.contains({x,y})) {
+//        return true;
+//    }else{                   
+//        return false;
+//	}
+//}
+//
 //rotate(rotation){
 //		//fix angle
 //	  let alpha=this.rotation+rotation.angle;
@@ -14262,26 +14448,11 @@ class Arc extends Shape{
 //		let oldM=this.M.clone();		
 //	    this.M=this.calculateResizingMidPoint(point);
 //        
-//        
-//		//old middle point on arc
-//		let a1=this.M;  
+//         
 //		//mid point on line
 //		let m=new d2.Point((this.A.x+this.B.x)/2,(this.A.y+this.B.y)/2);
-//		//new middle point on arc
-//		let a2=this.resizingPoint;  //new middle
+//			
 //		
-//		//do they belong to the same plane in regard to m 
-//		//let vec = new d2.Vector(m, a2);
-//		//let linevec=new d2.Vector(m,a1);
-//	    //let samePlane = d2.utils.GT(vec.dot(linevec.normalize()), 0);
-//	    
-//	    
-//	//which plane
-//	    	
-//		//if(!samePlane){
-//	    //  return;
-//		//}
-//
 //			let C=this.M;  //projection
 //			let C1=m;
 //	    
@@ -14298,29 +14469,11 @@ class Arc extends Shape{
 //			let b=C1.y + lambda*norm.y;
 //			let center=new d2.Point(a,b);
 //	        let r = center.distanceTo(this.A);
-//			
-//	        this.O=center;
+//				        
 //	        
-//	        //var startAngle = Math.atan2(this.A.y - this.O.y, this.A.x - this.O.x);
-//	        //var endAngle   = Math.atan2(this.B.y - this.O.y, this.B.x - this.O.x);
-//	        //console.log("start="+d2.utils.degrees(startAngle)+"::end="+d2.utils.degrees(endAngle));
-//
-//	        //check if M and oldM on the same plane	    
-//		    if(d2.utils.isLeftPlane(this.A,this.B,this.M)!=d2.utils.isLeftPlane(this.A,this.B,oldM)){
-//		     	console.log('changed');
-//		     	let rot=core.AffineTransform.createRotateInstance(center.x,center.y,180);		     			     	
-//		     	this.rotate(rot); 
-//		     	console.log(this.arc.startAngle+"::"+this.arc.endAngle);
-//				this.arc.pc.set(center.x,center.y);
-//				//this.arc.r=r;
-//				//this.arc.startAngle=shape.startAngle;
-//				//this.arc.endAngle=shape.endAngle;		
-//		    }else{
-//			let startAngle =new d2.Vector(center,this.arc.start).slope;
-//			let endAngle = new d2.Vector(center, this.arc.end).slope;
-//	    
-//
-//
+//	     	let startAngle =new d2.Vector(center,this.A).slope;
+//			let endAngle = new d2.Vector(center, this.B).slope;
+//		
 //			let start = 360 - startAngle;		
 //			let end= (360-endAngle)-start;		
 //			
@@ -14336,15 +14489,24 @@ class Arc extends Shape{
 //			this.arc.center.set(center.x,center.y);
 //			this.arc.r=r;
 //			this.arc.startAngle=start;
-//			this.arc.endAngle=end;			
+//			
+//	        //check if M and oldM on the same plane	    
+//		    if(utilities.isLeftPlane(this.A,this.B,this.M)!=utilities.isLeftPlane(this.A,this.B,oldM)){		     					
+//				if(this.arc.endAngle<0){  //negative extend
+//				 this.arc.endAngle=(360-end);
+//				}else{
+//				 this.arc.endAngle=-1*(360-end);	
+//				}						     		
+//		    }else{							
+//		    	this.arc.endAngle=end;			
 //		    }			   
 //		
 //	}
 //move(xoffset,yoffset){
 //	  this.arc.move(xoffset,yoffset);
-//	  this.A.move(xoffset,yoffset);
-//	  this.B.move(xoffset,yoffset);
-//	  this.M.move(xoffset,yoffset);
+//	  //this.A.move(xoffset,yoffset);
+//	  //this.B.move(xoffset,yoffset);
+//	  //this.M.move(xoffset,yoffset);
 //	}
 //paint(g2, viewportWindow, scale,layersmask) {
 //	    if((this.copper.getLayerMaskID()&layersmask)==0){
@@ -14396,7 +14558,7 @@ class Arc extends Shape{
 //
 //	}
 //	drawControlPoints(g2, viewportWindow, scale) {
-//		//utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.A,this.B,this.M,this.O]);
+//	    //utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.A,this.B,this.M,this.O]);
 //		utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.arc.center,this.arc.start,this.arc.end,this.arc.middle]);
 //	}
 //	setResizingPoint(pt){

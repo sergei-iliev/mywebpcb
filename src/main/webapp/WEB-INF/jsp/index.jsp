@@ -37,45 +37,45 @@
       <div class="row">
         <div class="col-lg-3 d-flex align-items-center justify-content-center">
           <div class=" mx-auto mb-5 mb-lg-0 mb-lg-3">
-            <div class="media-middle">
+            <div  class='text-center'>
                <a href="apps/symbols.html" >
                 <img src="../img/symbol_icon.png">
                </a>
              </div>
-            <h3>Symbol</h3>
+            <h3  class='text-center'>Symbol</h3>
             <p>Create,Edit and Share symbols</p>
           </div>
         </div>        
         <div class="col-lg-3 d-flex align-items-center justify-content-center">
           <div class=" mx-auto mb-5 mb-lg-0 mb-lg-3">
-            <div class="media-middle">
+            <div  class='text-center'>
                <a href="apps/pads.html" >
                 <img src="../img/footprint_icon.png">
                </a>
              </div>
-            <h3>Footprint</h3>
+            <h3  class='text-center'>Footprint</h3>
             <p>Create,Edit and Share Footprint</p>
           </div>
         </div>
         <div class="col-lg-3 d-flex align-items-center justify-content-center">
           <div class=" mx-auto mb-0 mb-lg-3">
-            <div class="media-middle">
+            <div  class='text-center'>
                <a href="apps/circuit.html" >
                 <img src="../img/circuit_icon.png">
                </a>
              </div>
-            <h3>Circuit</h3>
+            <h3  class='text-center'>Circuit</h3>
             <p>Create,Edit and Share Circuit</p>
           </div>
         </div>
         <div class="col-lg-3 d-flex align-items-center justify-content-center">
           <div class=" mx-auto mb-0 mb-lg-3">
-            <div class="media-middle">
+            <div  class='text-center'>
                <a href="apps/board.html" >
                 <img src="../img/board_icon.png">
                </a>
              </div>            
-            <h3>Board</h3>
+            <h3  class='text-center'>Board</h3>
             <p>Create, Edit and Share Boards</p>
           </div>
         </div>        
