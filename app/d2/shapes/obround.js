@@ -69,14 +69,7 @@ module.exports = function(d2) {
 		                pa,pb,pc,pd]
 		            );			
 		}
-//		setWidth(width){
-//			this.width=width;	
-//			this.reset();
-//		}
-//		setHeight(height){
-//		    this.height=height;
-//		    this.reset();
-//		}
+
 		setSize(width,height){
 			  this.height=height;
 			  this.width=width;
