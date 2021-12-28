@@ -209,8 +209,8 @@ var PadPanelBuilder=BaseBuilder.extend({
         'keypress #netvaluexid' : 'onenter',	
         'keypress #netvalueyid' : 'onenter',
         'keypress #drillwidthid' : 'onenter',
-        'keypress #offsetxid' : 'onenter',
-        'keypress #offsetyid' : 'onenter',
+        //'keypress #offsetxid' : 'onenter',
+        //'keypress #offsetyid' : 'onenter',
         'change #layerid': 'onchange',
         'change #typeid': 'onchange', 
         'change #shapeid': 'onchange', 
@@ -266,12 +266,12 @@ var PadPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='drillwidthid'){ 
 			 this.target.drill.setWidth(core.MM_TO_COORD(parseFloat(j$('#drillwidthid').val())));   
 		 }
-		 if(event.target.id=='offsetxid'){ 
-			 this.target.offset.x=(core.MM_TO_COORD(parseFloat(j$('#offsetxid').val())));   
-		 }
-		 if(event.target.id=='offsetyid'){ 
-			 this.target.offset.y=(core.MM_TO_COORD(parseFloat(j$('#offsetyid').val())));   
-		 }
+		 //if(event.target.id=='offsetxid'){ 
+		//	 this.target.offset.x=(core.MM_TO_COORD(parseFloat(j$('#offsetxid').val())));   
+		 //}
+		 //if(event.target.id=='offsetyid'){ 
+		//	 this.target.offset.y=(core.MM_TO_COORD(parseFloat(j$('#offsetyid').val())));   
+		 //}
 		 this.component.repaint(); 
     },
 	updateui:function(){
@@ -316,17 +316,17 @@ var PadPanelBuilder=BaseBuilder.extend({
 	        
 	        //-----drill and offset------
 	        j$('#drillwidthid').val(core.COORD_TO_MM(this.target.drill==null?0:this.target.drill.getWidth()));
-	        j$('#offsetxid').val(core.COORD_TO_MM(this.target.offset.x));
-			j$('#offsetyid').val(core.COORD_TO_MM(this.target.offset.y));
+	        //j$('#offsetxid').val(core.COORD_TO_MM(this.target.offset.x));
+			//j$('#offsetyid').val(core.COORD_TO_MM(this.target.offset.y));
 			
 	        if(this.target.type== PadType.SMD){
 	        	 j$('#drillwidthid').prop('disabled',true);
-	        	 j$('#offsetxid').prop('disabled',true);
-	        	 j$('#offsetyid').prop('disabled',true);
+	        	 //j$('#offsetxid').prop('disabled',true);
+	        	 //j$('#offsetyid').prop('disabled',true);
 	        }else{
 	        	 j$('#drillwidthid').prop('disabled',false);
-	        	 j$('#offsetxid').prop('disabled',false);
-	        	 j$('#offsetyid').prop('disabled',false);	        	
+	        	 //j$('#offsetxid').prop('disabled',false);
+	        	 //j$('#offsetyid').prop('disabled',false);	        	
 	        }	       
 	},
 	render:function(){
@@ -354,8 +354,8 @@ var PadPanelBuilder=BaseBuilder.extend({
 			    "</select>" +
 				"</td></tr>"+
 				"<tr><td style='padding:7px'>Drill Width</td><td><input type='text' id='drillwidthid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Offset X</td><td><input type='text' id='offsetxid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Offset Y</td><td><input type='text' id='offsetyid' value='' class='form-control input-sm\'></td></tr>"+				
+				//"<tr><td style='padding:7px'>Offset X</td><td><input type='text' id='offsetxid' value='' class='form-control input-sm\'></td></tr>"+
+				//"<tr><td style='padding:7px'>Offset Y</td><td><input type='text' id='offsetyid' value='' class='form-control input-sm\'></td></tr>"+				
 				
 				"<tr><td style='padding:7px'>Number</td><td><input type='text' id='numberid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='numbersizeid' value='' class='form-control input-sm\'></td></tr>"+

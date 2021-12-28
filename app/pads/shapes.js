@@ -1831,11 +1831,11 @@ getShape(){
 }    
 setWidth(width){
 	        this.width=width;
-	        this.shape.setWidth(width);    
+	        this.shape.setSize(width,this.height);    
 	    }
-setHeight(height){
-	        this.height=height;
-	        this.shape.setHeight(height);
+setHeight(height){	        
+			this.height=height;
+	        this.shape.setSize(this.width,height);
 	    }
 calculateShape() {
 	return this.shape.box;
@@ -1959,12 +1959,10 @@ class CircularShape{
 	get center(){
 		return this.circle.center;	
 	}
-    setWidth(width) {
+    setSize(width,height) {
 	   this.circle.r=width/2;
 	}
-    setHeight(height){
-	
-    }
+    
 
 }
 //------------RectangularShape----------------
@@ -2040,13 +2038,9 @@ get box(){
 get center(){
 	return this.rect.box.center;	
 }
-setWidth(width) {
-		   this.rect.setSize(this.pad.width,this.pad.height);
-		   this.rect.rotate(this.pad.rotate);
-}
-setHeight(height) {
-		   this.rect.setSize(this.pad.width,this.pad.height);
-		   this.rect.rotate(this.pad.rotate);
+setSize(width,height) {
+		   this.rect.setSize(width,height);
+		   this.rect.rotate(this.pad.rotation);
 }
 }
 //------------OvalShape-----------------------
@@ -2116,12 +2110,9 @@ get box(){
 get center(){
 	return this.obround.center;	
 }
-setWidth(width) {	    
-	    this.obround.setWidth(width);
-}
-setHeight(height) {	    
-	    this.obround.setHeight(height);
-	    this.obround.rotate(this.pad.rotate);
+setSize(width,height) {	    
+	    this.obround.setSize(width,height);
+	    this.obround.rotate(this.pad.rotation);
 }
 }
 
@@ -2195,12 +2186,11 @@ move(xoffset, yoffset) {
 mirror(line) {
    this.hexagon.mirror(line);
 }
-setWidth(width) {
+setSize(width,height) {
    this.hexagon.setWidth(width);
+   this.hexagon.rotate(this.pad.rotation);
 }
-setHeight(height) {
-            
-}	
+	
 }
 module.exports ={
 	GlyphLabel,

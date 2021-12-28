@@ -69,14 +69,19 @@ module.exports = function(d2) {
 		                pa,pb,pc,pd]
 		            );			
 		}
-		setWidth(width){
-			this.width=width;	
-			this.reset();
-		}
-		setHeight(height){
-		    this.height=height;
-		    this.reset();
-		}
+//		setWidth(width){
+//			this.width=width;	
+//			this.reset();
+//		}
+//		setHeight(height){
+//		    this.height=height;
+//		    this.reset();
+//		}
+		setSize(width,height){
+			  this.height=height;
+			  this.width=width;
+			  this.reset();
+		}		
 		/**
 		if (x-x1)/(x2-x1) = (y-y1)/(y2-y1) = alpha (a constant), then the point C(x,y) will lie on the line between pts 1 & 2.
 		If alpha < 0.0, then C is exterior to point 1.
@@ -114,7 +119,7 @@ module.exports = function(d2) {
 		get center(){
 			return this.pc;
 		}		
-		reset(){
+		reset(){			
 			let w=0,h=0;
 			if(this.width>this.height){  //horizontal
 			  w=this.width;
