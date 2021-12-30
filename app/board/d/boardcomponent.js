@@ -177,8 +177,10 @@ selectNetAt(target){
 
 paint(g2, viewportWindow){
 	   let len=this.shapes.length;
- 	   for(let i=0;i<len;i++){
- 		   this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation,this.compositeLayer.getLayerMaskID());  
+ 	   for(let i=0;i<len;i++){ 		 
+ 		 if((this.shapes[i] instanceof PCBFootprint)||(this.shapes[i].copper.getLayerMaskID()&this.compositeLayer.getLayerMaskID())!=0){   		   
+ 			 this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation,this.compositeLayer.getLayerMaskID());
+ 		 }
  	   }
  	   this.shapes.forEach((shape)=>{ 	    	
 			if ((typeof shape.drawControlShape === 'function')&&shape.isSelected()) {					                

@@ -402,6 +402,45 @@ class PCBCircle extends Circle{
     	copy.fill=this.fill;
     	return copy;
     }  
+	paint(g2, viewportWindow, scale,layersmask) {	    		
+		var rect = this.circle.box;
+		rect.scale(scale.getScale());
+		if (!rect.intersects(viewportWindow)) {
+			return;
+		}
+		
+		if(this.copper.getLayerMaskID()==core.Layer.BOARD_OUTLINE_LAYER){
+		  g2.globalCompositeOperation = 'source-atop';	
+		}else{
+		  g2.globalCompositeOperation = 'lighter';
+		}
+		g2.lineWidth = this.thickness * scale.getScale();
+
+		if (this.fill == core.Fill.EMPTY) {
+			if (this.selection) {
+				g2.strokeStyle = "gray";
+			} else {
+				g2.strokeStyle = this.copper.getColor();
+			}
+		} else {
+			g2._fill=true;
+			if (this.selection) {
+				g2.fillStyle = "gray";
+			} else {
+				g2.fillStyle = this.copper.getColor();
+			}			
+		}
+
+		let c=this.circle.clone();
+		c.scale(scale.getScale());
+        c.move(-viewportWindow.x,- viewportWindow.y);
+		c.paint(g2);
+		g2._fill=false;
+
+		g2.globalCompositeOperation = 'source-over';
+		
+		  
+ }
     
     
 }
@@ -419,6 +458,52 @@ class PCBArc extends Arc{
 		copy.fill = this.fill;
 		return copy;
 }    
+    paint(g2, viewportWindow, scale,layersmask) {	    
+		var rect = this.arc.box;
+		rect.scale(scale.getScale());
+		if (!rect.intersects(viewportWindow)) {
+			return;
+		}
+
+		
+		g2.beginPath(); // clear the canvas context
+		g2.lineCap = 'round';
+
+						
+		g2.lineWidth = this.thickness * scale.getScale();
+		if(this.copper.getLayerMaskID()==core.Layer.BOARD_OUTLINE_LAYER){
+			  g2.globalCompositeOperation = 'source-atop';	
+		}else{
+			  g2.globalCompositeOperation = 'lighter';
+		}				
+		if (this.fill == core.Fill.EMPTY) {
+			if (this.selection) {
+					g2.strokeStyle = "gray";
+			} else {
+					g2.strokeStyle = this.copper.getColor();
+			}
+			g2._fill=false;
+		} else {
+			if (this.selection) {
+				g2.fillStyle = "gray";
+			} else {
+				g2.fillStyle = this.copper.getColor();
+			}
+			g2._fill=true;
+		}
+
+		let a=this.arc.clone();
+		a.scale(scale.getScale());
+		a.move( - viewportWindow.x, - viewportWindow.y);		
+		a.paint(g2);
+
+		g2._fill=undefined;
+		
+		g2.globalCompositeOperation = 'source-over';
+			    
+
+	}
+    
 }
 
 class PCBLabel extends GlyphLabel{
@@ -477,6 +562,20 @@ getDrawingOrder() {
         }  
         return order;
     }
+paint(g2, viewportWindow, scale,layersmask) {    
+		var rect = this.texture.getBoundingShape();
+			rect.scale(scale.getScale());
+			if (!rect.intersects(viewportWindow)) {
+				return;
+			}
+
+		if (this.selection) {
+			this.texture.fillColor = "gray";
+		} else {
+			this.texture.fillColor = this.copper.getColor();
+		}
+		this.texture.paint(g2, viewportWindow, scale,this.copper.getLayerMaskID());
+  }
 }
 class PCBLine extends Line{
 constructor(thickness,layermaskId){
@@ -487,6 +586,47 @@ clone() {
 		  copy.polyline=this.polyline.clone();
 		  return copy;
 	}
+paint(g2, viewportWindow, scale,layersmask) {		    
+	   var rect = this.polyline.box;
+	   rect.scale(scale.getScale());		
+	   if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
+		return;
+	   }
+				
+		g2.lineCap = 'round';
+		g2.lineJoin = 'round';
+		
+
+		g2.lineWidth = this.thickness * scale.getScale();
+		if(this.copper.getLayerMaskID()==core.Layer.BOARD_OUTLINE_LAYER){
+			  g2.globalCompositeOperation = 'source-atop';	
+		}else{
+			  g2.globalCompositeOperation = 'lighter';
+		}
+		if (this.selection)
+			g2.strokeStyle = "gray";
+		else
+			g2.strokeStyle = this.copper.getColor();
+
+		let a=this.polyline.clone();
+		if (this.isFloating()) {                                                    
+         if(this.resumeState==ResumeState.ADD_AT_FRONT){                
+             let p = this.floatingEndPoint.clone();
+             a.points.unshift(p);               
+         }else{		                            
+             let p = this.floatingEndPoint.clone();
+             a.add(p);    
+         }
+		} 	
+		
+		a.scale(scale.getScale());
+		a.move( - viewportWindow.x, - viewportWindow.y);		
+		a.paint(g2);
+		
+		
+		g2.globalCompositeOperation = 'source-over';				
+
+}
 	  
 }
 class PCBSolidRegion extends SolidRegion{
@@ -498,6 +638,40 @@ class PCBSolidRegion extends SolidRegion{
 			  copy.polygon=this.polygon.clone();  
 			  return copy;
 		}    
+	paint(g2, viewportWindow, scale,layersmask) {			    
+		var rect = this.polygon.box;
+		rect.scale(scale.getScale());		
+		if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
+			return;
+		}
+		
+		g2.lineWidth = 1;
+		
+		if(this.isFloating()){
+	      g2.strokeStyle = this.copper.getColor();		
+		}else{
+		  g2._fill=true;
+		  if (this.selection) {
+			 g2.fillStyle = "gray";
+		  } else {
+			 g2.fillStyle = this.copper.getColor();
+		  }
+		}
+
+		
+
+		let a=this.polygon.clone();	
+		if (this.isFloating()) {
+			let p = this.floatingEndPoint.clone();
+			a.add(p);	
+	    }
+		a.scale(scale.getScale());
+		a.move( - viewportWindow.x, - viewportWindow.y);		
+		g2.globalCompositeOperation = 'lighter';
+		a.paint(g2);
+		g2.globalCompositeOperation = 'source-over';
+		g2._fill=false;    
+	}
 
 }
 
@@ -512,7 +686,50 @@ clone(){
 	copy.fill = this.fill;
 	copy.arc=this.arc;
 	return copy;	
-}    
+}
+paint(g2, viewportWindow, scale,layersmask) {
+	var rect = this.roundRect.box;
+	rect.scale(scale.getScale());
+	if (!rect.intersects(viewportWindow)) {
+		return;
+	}
+	if(this.copper.getLayerMaskID()==core.Layer.BOARD_OUTLINE_LAYER){
+	  g2.globalCompositeOperation = 'source-atop';	
+	}else{
+	  g2.globalCompositeOperation = 'lighter';
+	}
+	g2.lineWidth = this.thickness * scale.getScale();
+	g2.lineCap = 'round';
+	g2.lineJoin = 'round';
+
+	if (this.fill == core.Fill.EMPTY) {		
+		if (this.selection) {
+			g2.globalCompositeOperation = 'source-over';
+			g2.strokeStyle = "gray";
+		} else {
+			g2.strokeStyle = this.copper.getColor();
+		}			
+	} else {
+		g2._fill=true;
+		if (this.selection) {
+			g2.globalCompositeOperation = 'source-over';
+			g2.fillStyle = "gray";
+		} else {
+			g2.fillStyle = this.copper.getColor();
+		}			
+	}
+
+	let r=this.roundRect.clone();	
+	r.scale(scale.getScale());
+    r.move(-viewportWindow.x,- viewportWindow.y);
+	r.paint(g2);
+	
+	g2._fill=false;
+	
+	g2.globalCompositeOperation = 'source-over';
+
+}
+
 }
 //************************PCBTrack********************
 class PCBTrack extends AbstractLine{
@@ -680,11 +897,7 @@ getNetShapes(selectedShapes){
     
     return net;
 }
-paint(g2, viewportWindow, scale,layersmask) {
-    if((this.copper.getLayerMaskID()&layersmask)==0){
-        return;
-    }
-	
+paint(g2, viewportWindow, scale,layersmask) {    	
 	var rect = this.polyline.box;
 	rect.scale(scale.getScale());		
 	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
@@ -928,9 +1141,6 @@ drawClearence(g2, viewportWindow,scale, source) {
     g2._fill=false;
 }
 paint(g2, viewportWindow, scale,layersmask) {   
-    if((this.copper.getLayerMaskID()&layersmask)==0){
-            return;
-    }	
 	var rect = this.calculateShape();
 	rect.scale(scale.getScale());
 	if (!rect.intersects(viewportWindow)) {
@@ -1104,10 +1314,6 @@ Resize(xoffset, yoffset, clickedPoint) {
 								clickedPoint.y + yoffset);
 }
 paint(g2,viewportWindow,scale, layersmask){
-   
-    if((this.copper.getLayerMaskID()&layersmask)==0){
-      return;
-    }
 	var rect = this.polygon.box;
 	rect.scale(scale.getScale());		
 	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {

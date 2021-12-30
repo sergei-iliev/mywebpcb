@@ -144,6 +144,7 @@ var RectPanelBuilder=BaseBuilder.extend({
         'keypress #widthid' : 'onenter',
         'keypress #heightid' : 'onenter',
         'keypress #roundingid' : 'onenter',
+        'keypress #rotateid' : 'onenter',
         'change #fillid': 'onchange',
         'change #controllayerid': 'onchange',
     },
@@ -170,6 +171,9 @@ var RectPanelBuilder=BaseBuilder.extend({
 	     if(event.target.id=='yid'){		
 	         var y=this.fromUnitY(j$('#yid').val()); 
 	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
+		 } 
+		 if(event.target.id=='rotateid'){
+			   this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val())));			 
 		 } 	
 		 if(event.target.id=='roundingid'){
 			 this.target.setRounding(core.MM_TO_COORD(parseFloat(j$('#roundingid').val())));			 
@@ -184,6 +188,7 @@ var RectPanelBuilder=BaseBuilder.extend({
         j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
 		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));	
 		j$("#roundingid").val(core.COORD_TO_MM(this.target.roundRect.rounding));
+		j$("#rotateid").val(this.target.rotation);
 		j$("#fillid").val(this.target.fill);
 	},
 	render:function(){
@@ -203,6 +208,7 @@ var RectPanelBuilder=BaseBuilder.extend({
 				this.fillComboBox([{id:1,value:'EMPTY',selected:true},{id:2,value:'FILLED'}])+
 			    "</select>" +
 				"</td></tr>"+
+				"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Rounding</td><td><input type='text' id='roundingid' value='' class='form-control input-sm\'></td></tr>"+						        
 		"</table>");
 			

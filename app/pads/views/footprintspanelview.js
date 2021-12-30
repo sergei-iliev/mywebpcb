@@ -426,7 +426,7 @@ var RectPanelBuilder=BaseBuilder.extend({
         j$('#xid').val(utilities.roundDouble(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x)));
         j$('#yid').val(utilities.roundDouble(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y))); 
 		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
-		//j$("#rotateid").val(this.target.rotate);    
+		j$("#rotateid").val(this.target.rotation);    
 		j$("#roundingid").val(core.COORD_TO_MM(this.target.roundRect.rounding));
 		j$("#fillid").val(this.target.fill);
 	},
@@ -447,7 +447,7 @@ var RectPanelBuilder=BaseBuilder.extend({
 				this.fillComboBox([{id:1,value:'EMPTY',selected:true},{id:2,value:'FILLED'}])+
 			    "</select>" +
 				"</td></tr>"+
-				//"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Rounding</td><td><input type='text' id='roundingid' value='' class='form-control input-sm\'></td></tr>"+						        
 		"</table>");
 			
@@ -609,21 +609,21 @@ var CirclePanelBuilder=BaseBuilder.extend({
 		 } 
 		 if(event.target.id=='xid'){			 
 	         var x=this.fromUnitX(j$('#xid').val()); 
-	         this.target.Resize(x-this.target.resizingPoint.x, 0, this.target.resizingPoint);			   
+	         this.target.circle.pc.x=x;			   
 		 } 
 	     if(event.target.id=='yid'){		
 	         var y=this.fromUnitY(j$('#yid').val()); 
-	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
+	         this.target.circle.pc.y=y;		   			 
 		 } 		 
 		 this.component.repaint(); 		 
     },
 
 	updateui:function(){
 		j$('#layerid').val(this.target.copper.getName());
-        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
-        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
-        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
-        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
+        //j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
+        //j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
+        j$('#xid').val(this.toUnitX(this.target.circle.pc.x));
+        j$('#yid').val(this.toUnitY(this.target.circle.pc.y)); 
 		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
 		j$("#radiusid").val(core.COORD_TO_MM(this.target.circle.radius));    
 		j$("#fillid").val(this.target.fill);		
@@ -637,8 +637,8 @@ var CirclePanelBuilder=BaseBuilder.extend({
 				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
 			    "</select>" +
 				"</td></tr>"+				
-				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='width:50%;padding:7px'>Center X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Center Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Fill</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"fillid\">"+

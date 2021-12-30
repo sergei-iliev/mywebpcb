@@ -879,7 +879,7 @@ calculateResizingMidPoint(pt){
 move(xoffset,yoffset){
 	  this.arc.move(xoffset,yoffset);	
 	}
-	paint(g2, viewportWindow, scale,layersmask) {
+paint(g2, viewportWindow, scale,layersmask) {
 	    if((this.copper.getLayerMaskID()&layersmask)==0){
 	    	return;
 	    }
