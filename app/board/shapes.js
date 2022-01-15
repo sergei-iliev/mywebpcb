@@ -770,14 +770,9 @@ drawClearence(g2,viewportWindow,scale,source){
    g2.strokeStyle = "black";
    
     
-   let clip=source.clip;
-   g2.save();
-   g2.beginPath();
-   g2.moveTo(clip[0].x,clip[0].y);
-   for (var i = 1; i < clip.length; i++) {
-	   g2.lineTo(clip[i].x, clip[i].y);
-   } 
-   g2.clip();
+   
+   g2.save();   
+   g2.clip(source.clip);
    
    let a=this.polyline.clone();
    a.scale(scale.getScale());
@@ -1200,7 +1195,7 @@ class PCBCopperArea extends Shape{
         this.fill=core.Fill.FILLED;
         this.polygon=new d2.Polygon();
         this.resizingPoint;
-        this.clip=[];
+        this.clip=null;
         this.net='gnd';
     }
 clone(){
@@ -1210,13 +1205,20 @@ clone(){
 }
 
 prepareClippingRegion(viewportWindow,scale){
-    this.clip=[];
+    let arr=[];
     this.polygon.points.forEach(function(point){
         let p=point.clone();            
         p.scale(scale.getScale());
         p.move(-viewportWindow.x,-viewportWindow.y);
-        this.clip.push(p);    
+        arr.push(p);    
 	}.bind(this));
+    //prepare clip only once
+    this.clip = new Path2D();    
+    this.clip.moveTo(arr[0].x,arr[0].y);
+    for (var i = 1; i < arr.length; i++) {
+ 	   this.clip.lineTo(arr[i].x, arr[i].y);
+    } 
+    
 }
 
 alignResizingPointToGrid(pt) {

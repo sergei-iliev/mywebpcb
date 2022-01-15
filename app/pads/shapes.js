@@ -1591,15 +1591,24 @@ validateClearance(source){
         
     if(!source.getBoundingShape().intersects(rect)){
           return false; 
-    }  
-	return true;
+    }  	
+    return true;
 }
 drawClearence(g2,viewportWindow,scale,source){
     if(!this.validateClearance(source)){
         return;
     }
-	
+    
+    g2.save();    
+    //g2.beginPath();
+    //g2.moveTo(clip[0].x,clip[0].y);
+    //for (var i = 1; i < clip.length; i++) {
+ 	//   g2.lineTo(clip[i].x, clip[i].y);
+    //} 
+    g2.clip(source.clip);
+
 	this.shape.drawClearence(g2,viewportWindow,scale,source);
+	g2.restore();
 }
 paint(g2,viewportWindow,scale,layersmask){
 	if((this.copper.getLayerMaskID()&layersmask)!=0) {
