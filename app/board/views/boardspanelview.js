@@ -386,7 +386,7 @@ var CopperAreaPanelBuilder=BaseBuilder.extend({
 				return; 
 		 }
 		 if(event.target.id=='netid'){
-			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
+			 this.target.net=j$('#netid').val();			 
 		 } 
 		 if(event.target.id=='clearanceid'){
 			   this.target.clearance=(core.MM_TO_COORD(parseFloat(j$('#clearanceid').val())));			 
@@ -410,7 +410,7 @@ var CopperAreaPanelBuilder=BaseBuilder.extend({
         j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:(this.target.resizingPoint.x)));
         j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:(this.target.resizingPoint.y))); 
 		j$('#clearanceid').val(core.COORD_TO_MM(this.target.clearance));
-		//j$("#widthid").val(core.COORD_TO_MM(this.target.getWidth()));
+		j$("#netid").val(this.target.net);
 		j$("#fillid").val(this.target.fill);
 	},
 	render:function(){
@@ -657,7 +657,8 @@ var ViaPanelBuilder=BaseBuilder.extend({
         'keypress #xid' : 'onenter',	
         'keypress #yid' : 'onenter',	
         'keypress #drillsizeid' : 'onenter',
-        'keypress #viasizeid':'onenter',
+        'keypress #netid' : 'onenter',
+		'keypress #viasizeid':'onenter',
     },
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -666,6 +667,10 @@ var ViaPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='drillsizeid'){
 			 this.target.inner.r=core.MM_TO_COORD(parseFloat(j$('#drillsizeid').val())/2); 
 		 }   
+		 if(event.target.id=='netid'){
+			 this.target.net=j$('#netid').val(); 
+		 }   
+
 		 if(event.target.id=='viasizeid'){
 			 
 			 this.target.outer.r=core.MM_TO_COORD(parseFloat(j$('#viasizeid').val())/2); 
@@ -684,6 +689,7 @@ var ViaPanelBuilder=BaseBuilder.extend({
         j$('#yid').val(this.toUnitY(this.target.inner.pc.y)); 
         j$('#drillsizeid').val(core.COORD_TO_MM(2*this.target.inner.r));
         j$('#viasizeid').val(core.COORD_TO_MM(2*this.target.outer.r));
+		j$('#netid').val(this.target.net);
 	},
 	render:function(){
 		j$(this.el).empty();
@@ -693,6 +699,7 @@ var ViaPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Drill size</td><td><input type='text' id='drillsizeid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Via size</td><td><input type='text' id='viasizeid' value='' class='form-control input-sm\'></td></tr>"+        
+				"<tr><td style='padding:7px'>Net</td><td><input type='text' id='netid' value='' class='form-control input-sm\'></td></tr>"+
 				"</table>");
 			
 		return this;

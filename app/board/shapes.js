@@ -402,6 +402,7 @@ class PCBCircle extends Circle{
     	copy.fill=this.fill;
     	return copy;
     }  
+
 	paint(g2, viewportWindow, scale,layersmask) {	    		
 		var rect = this.circle.box;
 		rect.scale(scale.getScale());
@@ -409,11 +410,7 @@ class PCBCircle extends Circle{
 			return;
 		}
 		
-		if(this.copper.getLayerMaskID()==core.Layer.BOARD_OUTLINE_LAYER){
-		  g2.globalCompositeOperation = 'source-atop';	
-		}else{
-		  g2.globalCompositeOperation = 'lighter';
-		}
+		
 		g2.lineWidth = this.thickness * scale.getScale();
 
 		if (this.fill == core.Fill.EMPTY) {
@@ -434,10 +431,17 @@ class PCBCircle extends Circle{
 		let c=this.circle.clone();
 		c.scale(scale.getScale());
         c.move(-viewportWindow.x,- viewportWindow.y);
+		g2.save();
+		if((this.owningUnit!=null)&&(this.owningUnit.compositeLayer.activeSide== core.Layer.Side.resolve(this.copper.getLayerMaskID()))){		
+			g2.globalAlpha = 1;				
+		}else{		
+			g2.globalAlpha = 0.5;					
+		}		
 		c.paint(g2);
+		g2.restore();
 		g2._fill=false;
 
-		g2.globalCompositeOperation = 'source-over';
+		
 		
 		  
  }
@@ -458,7 +462,8 @@ class PCBArc extends Arc{
 		copy.fill = this.fill;
 		return copy;
 }    
-    paint(g2, viewportWindow, scale,layersmask) {	    
+
+paint(g2, viewportWindow, scale,layersmask) {	    
 		var rect = this.arc.box;
 		rect.scale(scale.getScale());
 		if (!rect.intersects(viewportWindow)) {
@@ -471,11 +476,7 @@ class PCBArc extends Arc{
 
 						
 		g2.lineWidth = this.thickness * scale.getScale();
-		if(this.copper.getLayerMaskID()==core.Layer.BOARD_OUTLINE_LAYER){
-			  g2.globalCompositeOperation = 'source-atop';	
-		}else{
-			  g2.globalCompositeOperation = 'lighter';
-		}				
+					
 		if (this.fill == core.Fill.EMPTY) {
 			if (this.selection) {
 					g2.strokeStyle = "gray";
@@ -495,11 +496,16 @@ class PCBArc extends Arc{
 		let a=this.arc.clone();
 		a.scale(scale.getScale());
 		a.move( - viewportWindow.x, - viewportWindow.y);		
+		g2.save();
+		if((this.owningUnit!=null)&&(this.owningUnit.compositeLayer.activeSide== core.Layer.Side.resolve(this.copper.getLayerMaskID()))){		
+			g2.globalAlpha = 1;				
+		}else{		
+			g2.globalAlpha = 0.5;					
+		}
 		a.paint(g2);
-
+		g2.restore();
 		g2._fill=undefined;
 		
-		g2.globalCompositeOperation = 'source-over';
 			    
 
 	}
@@ -549,19 +555,6 @@ drawClearence(g2,viewportWindow,scale,source){
     g2._fill=false;	
    
 }
-getDrawingOrder() {
-        let order=super.getDrawingOrder();
-        if(this.owningUnit==null){            
-           return order;
-        }
-        
-        if(this.owningUnit.activeSide==core.Layer.Side.resolve(this.copper.getLayerMaskID())){
-          order= 4;
-        }else{
-          order= 3; 
-        }  
-        return order;
-    }
 paint(g2, viewportWindow, scale,layersmask) {    
 		var rect = this.texture.getBoundingShape();
 			rect.scale(scale.getScale());
@@ -574,7 +567,14 @@ paint(g2, viewportWindow, scale,layersmask) {
 		} else {
 			this.texture.fillColor = this.copper.getColor();
 		}
+		g2.save();
+		if((this.owningUnit!=null)&&(this.owningUnit.compositeLayer.activeSide== core.Layer.Side.resolve(this.copper.getLayerMaskID()))){		
+			g2.globalAlpha = 1;				
+		}else{		
+			g2.globalAlpha = 0.5;					
+		}				
 		this.texture.paint(g2, viewportWindow, scale,this.copper.getLayerMaskID());
+		g2.restore();
   }
 }
 class PCBLine extends Line{
@@ -585,7 +585,7 @@ clone() {
 		var copy = new PCBLine(this.thickness,this.copper.getLayerMaskID());
 		  copy.polyline=this.polyline.clone();
 		  return copy;
-	}
+	}	
 paint(g2, viewportWindow, scale,layersmask) {		    
 	   var rect = this.polyline.box;
 	   rect.scale(scale.getScale());		
@@ -598,11 +598,7 @@ paint(g2, viewportWindow, scale,layersmask) {
 		
 
 		g2.lineWidth = this.thickness * scale.getScale();
-		if(this.copper.getLayerMaskID()==core.Layer.BOARD_OUTLINE_LAYER){
-			  g2.globalCompositeOperation = 'source-atop';	
-		}else{
-			  g2.globalCompositeOperation = 'lighter';
-		}
+		
 		if (this.selection)
 			g2.strokeStyle = "gray";
 		else
@@ -621,10 +617,16 @@ paint(g2, viewportWindow, scale,layersmask) {
 		
 		a.scale(scale.getScale());
 		a.move( - viewportWindow.x, - viewportWindow.y);		
+		g2.save();
+		if((this.owningUnit!=null)&&(this.owningUnit.compositeLayer.activeSide== core.Layer.Side.resolve(this.copper.getLayerMaskID()))){		
+			g2.globalAlpha = 1;				
+		}else{		
+			g2.globalAlpha = 0.5;					
+		}				
 		a.paint(g2);
+		g2.restore();
 		
-		
-		g2.globalCompositeOperation = 'source-over';				
+						
 
 }
 	  
@@ -693,11 +695,7 @@ paint(g2, viewportWindow, scale,layersmask) {
 	if (!rect.intersects(viewportWindow)) {
 		return;
 	}
-	if(this.copper.getLayerMaskID()==core.Layer.BOARD_OUTLINE_LAYER){
-	  g2.globalCompositeOperation = 'source-atop';	
-	}else{
-	  g2.globalCompositeOperation = 'lighter';
-	}
+	
 	g2.lineWidth = this.thickness * scale.getScale();
 	g2.lineCap = 'round';
 	g2.lineJoin = 'round';
@@ -722,11 +720,17 @@ paint(g2, viewportWindow, scale,layersmask) {
 	let r=this.roundRect.clone();	
 	r.scale(scale.getScale());
     r.move(-viewportWindow.x,- viewportWindow.y);
+	g2.save();
+	if((this.owningUnit!=null)&&(this.owningUnit.compositeLayer.activeSide== core.Layer.Side.resolve(this.copper.getLayerMaskID()))){		
+			g2.globalAlpha = 1;				
+	}else{		
+			g2.globalAlpha = 0.5;					
+	}			
 	r.paint(g2);
-	
+	g2.restore();
 	g2._fill=false;
 	
-	g2.globalCompositeOperation = 'source-over';
+	
 
 }
 
@@ -746,18 +750,16 @@ clone() {
 	return copy;
 
 	}
-getDrawingOrder() {
-    let order=super.getDrawingOrder();
+getDrawingOrder() {    
     if(this.owningUnit==null){            
-        return order;
+        return super.getDrawingOrder();
     }
     
     if(this.owningUnit.activeSide==core.Layer.Side.resolve(this.copper.getLayerMaskID())){
-       order= 4;
+       return 4;
      }else{
-       order= 3; 
-     }  
-    return order;     
+       return 3; 
+     }          
 }
 getOrderWeight() {
     return 4;
@@ -899,11 +901,6 @@ paint(g2, viewportWindow, scale,layersmask) {
 		return;
 	}
 
-	if(this.owningUnit.compositeLayer.activeSide== core.Layer.Side.resolve(this.copper.getLayerMaskID())){
-		g2.globalCompositeOperation = 'source-over';
-	}else{
-		g2.globalCompositeOperation = 'lighter';
-	}
 	g2.lineCap = 'round';
 	g2.lineJoin = 'round';
 	
@@ -938,9 +935,15 @@ paint(g2, viewportWindow, scale,layersmask) {
 	}
 	a.scale(scale.getScale());
 	a.move( - viewportWindow.x, - viewportWindow.y);	
+	
+	g2.save();
+	if(this.owningUnit.compositeLayer.activeSide== core.Layer.Side.resolve(this.copper.getLayerMaskID())){		
+		g2.globalCompositeOperation = 'source-over';		
+	}else{		
+		g2.globalCompositeOperation = 'lighten';			
+	}
 	a.paint(g2);	
-
-	g2.globalCompositeOperation = 'source-over';
+	g2.restore();
 
 }
 //drawControlShape(g2, viewportWindow, scale){       
@@ -1067,6 +1070,7 @@ constructor() {
 		this.inner=new d2.Circle(new d2.Point(0,0),core.MM_TO_COORD(0.4));
         this.selectionRectWidth = 3000;
 		this.displayName='Via';	
+		this.net='';
         this.fillColor='white'; 
         this.clearance=0;
    	}
@@ -1114,7 +1118,9 @@ getNetShapes(selected) {
     return net;
 }
 drawClearence(g2, viewportWindow,scale, source) {    
-	
+	if(source.net===this.net){
+		return;
+	}
     let r=this.outer.r+(this.clearance!=0?this.clearance:source.clearance);
     let c=new d2.Circle(this.outer.pc.clone(),r);
 	let rect=c.box;
@@ -1341,7 +1347,15 @@ paint(g2,viewportWindow,scale, layersmask){
     }
 	a.scale(scale.getScale());
 	a.move( - viewportWindow.x, - viewportWindow.y);		
+	g2.save();
+    if(this.owningUnit.compositeLayer.activeSide== core.Layer.Side.resolve(this.copper.getLayerMaskID())){		
+		g2.globalAlpha  = 1;
+	}else{		
+		g2.globalAlpha = 0.5;
+	}
 	a.paint(g2);
+	g2.restore();
+	
 	g2._fill=false;
     
     
