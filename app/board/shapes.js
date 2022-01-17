@@ -755,7 +755,7 @@ getDrawingOrder() {
         return super.getDrawingOrder();
     }
     
-    if(this.owningUnit.activeSide==core.Layer.Side.resolve(this.copper.getLayerMaskID())){
+    if(this.owningUnit.compositeLayer.activeSide==core.Layer.Side.resolve(this.copper.getLayerMaskID())){
        return 4;
      }else{
        return 3; 
