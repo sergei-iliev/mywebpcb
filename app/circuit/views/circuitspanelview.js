@@ -439,7 +439,9 @@ var CircuitsTree=Backbone.View.extend({
 			this.circuitComponent.getModel().getUnit().setSelected(false);
 			this.circuitComponent.componentResized();
 			
-			this.circuitComponent.toCenter();
+			this.circuitComponent.hbar.jqxScrollBar({ value:this.circuitComponent.getModel().getUnit().scrollPositionXValue});
+			this.circuitComponent.vbar.jqxScrollBar({ value:this.circuitComponent.getModel().getUnit().scrollPositionYValue});
+			
 			this.circuitComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:this.circuitComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 
 		}
@@ -458,8 +460,9 @@ var CircuitsTree=Backbone.View.extend({
 			this.circuitComponent.repaint();
 			            
 	        //position on shape center
-            //var rect=shape.getBoundingShape();            
-            //this.circuitComponent.setScrollPosition(rect.center.x,rect.center.y);            		 
+            var rect=shape.getBoundingShape();            
+            this.circuitComponent.setScrollPosition(rect.center.x,rect.center.y);
+             		  
 			mywebpcb.trigger('tree:select',{target:shape,type:events.Event.SELECT_SHAPE}); 	
 		}
 	

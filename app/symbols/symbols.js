@@ -21,7 +21,7 @@ var SymbolComponent=require('symbols/d/symbolcomponent').SymbolComponent;
 			//enable tooltips
 			j$('[data-toggle="tooltip"]').tooltip();
 
-			var sc=new SymbolComponent('mycanvas','popup-menu');
+			var sc=new SymbolComponent('jqxHorizontalScrollBar','jqxVerticalScrollBar','mycanvas','popup-menu');
 			
 			//create ui
 			var toggleButtonCollection=new togglebutton.ToggleButtonCollection(

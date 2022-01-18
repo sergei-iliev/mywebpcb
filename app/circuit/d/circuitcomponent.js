@@ -254,8 +254,8 @@ class CircuitContainer extends UnitContainer{
 	}	
 }
 class CircuitComponent extends UnitComponent{
-	constructor(canvas,popup) {
-	    super(canvas,popup);    
+	constructor(hbar,vbar,canvas,popup) {
+	     super(hbar,vbar,canvas,popup);    
 		this.setParameter("snaptogrid",true);
 		this.eventMgr=new CircuitEventMgr(this); 
 		this.model=new CircuitContainer();
@@ -421,10 +421,10 @@ mouseWheelMoved(event){
 	  }
 	var e=this.getScaledEvent(event);
 	if(event.originalEvent.wheelDelta /120 > 0) {
-		   this.zoomIn(e.windowx,e.windowy);
+		   this.ZoomIn(e.windowx,e.windowy);
     }
     else{
-		   this.zoomOut(e.windowx,e.windowy);
+		   this.ZoomOut(e.windowx,e.windowy);
     }
 } 
 }

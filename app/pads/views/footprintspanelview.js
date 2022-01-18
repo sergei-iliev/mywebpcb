@@ -821,7 +821,10 @@ var FootprintsTree=Backbone.View.extend({
 			this.footprintComponent.getModel().setActiveUnitUUID(item.id);
 			this.footprintComponent.getModel().getUnit().setSelected(false);
 			this.footprintComponent.componentResized();
-			this.footprintComponent.toCenter();
+			
+			this.footprintComponent.hbar.jqxScrollBar({ value:this.footprintComponent.getModel().getUnit().scrollPositionXValue});
+			this.footprintComponent.vbar.jqxScrollBar({ value:this.footprintComponent.getModel().getUnit().scrollPositionYValue});
+			
 			this.footprintComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:this.footprintComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 
 		}

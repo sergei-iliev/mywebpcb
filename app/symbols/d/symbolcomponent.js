@@ -47,7 +47,7 @@ class manager{
 class Symbol extends Unit{
 constructor(width,height) {
        super(width,height);
-       this.scalableTransformation.reset(1.2,2,0,15);
+       this.scalableTransformation.reset(1.2,2,2,15);
 	   this.shapeFactory = new SymbolShapeFactory();
        this.grid.setGridUnits(8, core.Units.PIXEL);
        this.grid.pointsColor='#000000'; 
@@ -192,8 +192,8 @@ class SymbolContainer extends UnitContainer{
 
 
 class SymbolComponent extends UnitComponent{
-  constructor(canvas,popup) {
-	super(canvas,popup); 
+  constructor(hbar,vbar,canvas,popup) {
+	super(hbar,vbar,canvas,popup); 
 	
 	this.eventMgr=new SymbolEventMgr(this); 
 	this.model=new SymbolContainer();
@@ -394,10 +394,10 @@ mouseWheelMoved(event){
 	  }
 	var e=this.getScaledEvent(event);
 	if(event.originalEvent.wheelDelta /120 > 0) {
-		   this.zoomIn(e.windowx,e.windowy);
+		   this.ZoomIn(e.windowx,e.windowy);
     }
     else{
-		   this.zoomOut(e.windowx,e.windowy);
+		   this.ZoomOut(e.windowx,e.windowy);
     }
 } 
 }

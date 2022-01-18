@@ -21,7 +21,7 @@ var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
 			//enable tooltips
 			j$('[data-toggle="tooltip"]').tooltip();
 
-			var fc=new FootprintComponent('mycanvas','popup-menu');
+			var fc=new FootprintComponent('jqxHorizontalScrollBar','jqxVerticalScrollBar','mycanvas','popup-menu');
 			
 			//create ui
 			var toggleButtonCollection=new togglebutton.ToggleButtonCollection(				

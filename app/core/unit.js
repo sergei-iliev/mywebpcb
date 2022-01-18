@@ -609,7 +609,7 @@ class UnitContainer{
 
 //**********************UnitComponent*******************************************
 class UnitComponent{
-	constructor(canvas,popup){
+	constructor(hbar,vbar,canvas,popup){
 	GlyphManager.getInstance();
     
 	if(canvas!=null){	
@@ -641,14 +641,14 @@ class UnitComponent{
 	this.viewportWindow=new ViewportWindow(0,0,this.width,this.height);
 	this.parameters=new Map();
 	this.parameters.set("snaptogrid",false);
-	//if(hbar!=null&&vbar!=null){
-	//	this.hbar = j$('#'+hbar);
-	//	this.vbar=j$('#'+vbar);
-	//	this.hbar.jqxScrollBar({ width: '100%', height: 18, min: 0, max: 100});
-	//	this.vbar.jqxScrollBar({ width: 18, height:'100%', min: 0, max: 100, vertical: true});
-	//	this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
-	//	this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
-	//}
+	if(hbar!=null&&vbar!=null){
+		this.hbar = j$('#'+hbar);
+		this.vbar=j$('#'+vbar);
+		this.hbar.jqxScrollBar({ width: '100%', height: 18, min: 0, max: 100});
+		this.vbar.jqxScrollBar({ width: 18, height:'100%', min: 0, max: 100, vertical: true});
+		this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
+		this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
+	}
 	
 	this.mode=core.ModeEnum.COMPONENT_MODE;
 	this.backgroundColor="black";
@@ -656,7 +656,8 @@ class UnitComponent{
 	this.cursor=null;
 	
 }
-resumeLine(line,handleKey,event) {		
+resumeLine(line,handleKey,event) {	
+	console.log(this.lineBendingProcessor);
 	  line.resumeLine(event.x,event.y);
 	  this.eventMgr.setEventHandle(handleKey,line);
 } 
@@ -682,32 +683,16 @@ getParameter(key) {
 setParameter(key,value){
 	    this.parameters.set(key,value); 
 	}
-toCenter(){
-	let box=this.getModel().getUnit().getBoundingRect();
-	//convert to real coordinates
-	var x1=box.center.x*this.getModel().getUnit().getScalableTransformation().getScale();
-    var y1=box.center.y*this.getModel().getUnit().getScalableTransformation().getScale();
+setScrollPosition(x,y) {
+    var xx=x*this.getModel().getUnit().getScalableTransformation().getScale();
+    var yy=y*this.getModel().getUnit().getScalableTransformation().getScale();
     
-    let x2=this.viewportWindow.x+this.viewportWindow.width/2;
-    let y2=this.viewportWindow.y+this.viewportWindow.height/2;
+    xx=parseInt(xx-(this.width/2));
+    yy=parseInt(yy-(this.height/2));
 
-	
-	this.viewportWindow.x-=(x2-x1);	
-	this.viewportWindow.y-=(y2-y1);
-	
+    this.hbar.jqxScrollBar('setPosition',xx); 
+    this.vbar.jqxScrollBar('setPosition',yy);
 }
-	
-//setScrollPosition(x,y) {
-    //var xx=x*this.getModel().getUnit().getScalableTransformation().getScale();
-    //var yy=y*this.getModel().getUnit().getScalableTransformation().getScale();
-    
-    //xx=parseInt(xx-(this.width/2));
-    //yy=parseInt(yy-(this.height/2));
-
-    //this.hbar.jqxScrollBar('setPosition',xx); 
-    //this.vbar.jqxScrollBar('setPosition',yy);
-//}
-
 setSize( width, height){
      this.viewportWindow.setSize(width,height);      
  }
@@ -812,50 +797,50 @@ mouseWheelMoved(event){
 	var e=this.getScaledEvent(event);
 
 	if(event.originalEvent.wheelDelta /120 > 0) {
-		   this.zoomOut(e.windowx,e.windowy);
+		   this.ZoomOut(e.windowx,e.windowy);
       }
       else{
-		   this.zoomIn(e.windowx,e.windowy);
+		   this.ZoomIn(e.windowx,e.windowy);
       }
 }
-zoomIn(x,y){
+ZoomIn(x,y){
     if(this.getModel().getUnit().getScalableTransformation().scaleIn()){
         this.viewportWindow.scaleIn(x,y, this.getModel().getUnit().getScalableTransformation());
         this.repaint();         
     }else{
         return false;
     } 
-	//this.hbar.off(); 
-	//this.vbar.off(); 
+	this.hbar.off(); 
+	this.vbar.off(); 
 
 	//set new maximum 
-	//this.hbar.jqxScrollBar({ value:this.viewportWindow.x,width: this.width, height: 18, min: 0, max: parseInt(this.getModel().getUnit().getWidth()*this.getModel().getUnit().getScalableTransformation().getScale()-this.width)});
-	//this.vbar.jqxScrollBar({ value:this.viewportWindow.y,width: 18, min: 0, max: parseInt(this.getModel().getUnit().getHeight()*this.getModel().getUnit().getScalableTransformation().getScale()-this.height)});
+	this.hbar.jqxScrollBar({ value:this.viewportWindow.x,width: this.width, height: 18, min: 0, max: parseInt(this.getModel().getUnit().getWidth()*this.getModel().getUnit().getScalableTransformation().getScale()-this.width)});
+	this.vbar.jqxScrollBar({ value:this.viewportWindow.y,width: 18, min: 0, max: parseInt(this.getModel().getUnit().getHeight()*this.getModel().getUnit().getScalableTransformation().getScale()-this.height)});
 	
-	//this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
-	//this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
+	this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
+	this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
 	
 	return true;
 }
-zoomOut(x,y){	
+ZoomOut(x,y){
     if(this.getModel().getUnit().getScalableTransformation().scaleOut()){
             this.viewportWindow.scaleOut(x,y, this.getModel().getUnit().getScalableTransformation());
             this.repaint();                       
     }else{
             return false;
     }
-	//this.hbar.off(); 
-	//this.vbar.off(); 
-              //set new maximum 
-   	//this.hbar.jqxScrollBar({value:this.viewportWindow.x, width: this.width, height: 18, min: 0, max: parseInt(this.getModel().getUnit().getWidth()*this.getModel().getUnit().getScalableTransformation().getScale()-this.width)});
-	//this.vbar.jqxScrollBar({value:this.viewportWindow.y, width: 18, min: 0, max: parseInt(this.getModel().getUnit().getHeight()*this.getModel().getUnit().getScalableTransformation().getScale()-this.height)});
 
-	//this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
-	//this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
+	this.hbar.off(); 
+	this.vbar.off(); 
+              //set new maximum 
+   	this.hbar.jqxScrollBar({value:this.viewportWindow.x, width: this.width, height: 18, min: 0, max: parseInt(this.getModel().getUnit().getWidth()*this.getModel().getUnit().getScalableTransformation().getScale()-this.width)});
+	this.vbar.jqxScrollBar({value:this.viewportWindow.y, width: 18, min: 0, max: parseInt(this.getModel().getUnit().getHeight()*this.getModel().getUnit().getScalableTransformation().getScale()-this.height)});
+
+	this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
+	this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
 	
 	return true;
 }
-/*
 vStateChanged(event){
     this.viewportWindow.y= parseInt(event.currentValue);
     this.repaint();
@@ -865,7 +850,6 @@ hStateChanged(event){
     this.viewportWindow.x= parseInt(event.currentValue);
     this.repaint();
   }
-*/
 screenResized(e){	  
 	  var container = j$('#mycanvasframe');	  
 	  var oldwidth=this.width;
@@ -882,17 +866,17 @@ screenResized(e){
 componentResized(){
     if(this.getModel().getUnit()==null){
   	  this.setSize(1,1);
-  	  //this.hbar.jqxScrollBar({ width: this.width, height: 18, min: 0, max: 1});
-      //this.vbar.jqxScrollBar({ width: 18, min: 0, max: 1, vertical: true});
+  	  this.hbar.jqxScrollBar({ width: this.width, height: 18, min: 0, max: 1});
+		  this.vbar.jqxScrollBar({ width: 18, min: 0, max: 1, vertical: true});
     }else{
   	this.setSize(this.width,this.height); 
       
-  	  //var hCurrentValue = this.hbar.jqxScrollBar('value');
-      //var vCurrentValue = this.vbar.jqxScrollBar('value');
+  	var hCurrentValue = this.hbar.jqxScrollBar('value');
+      var vCurrentValue = this.vbar.jqxScrollBar('value');
   	
   	
-	  //this.hbar.jqxScrollBar({ value:hCurrentValue,width:this.width, height: 18, min: 0, max: parseInt(this.getModel().getUnit().getWidth()*this.getModel().getUnit().getScalableTransformation().getScale()-this.width)});
-	  //this.vbar.jqxScrollBar({ value:vCurrentValue,width: 18, min: 0, max: parseInt(this.getModel().getUnit().getHeight()*this.getModel().getUnit().getScalableTransformation().getScale()-this.height), vertical: true});
+		this.hbar.jqxScrollBar({ value:hCurrentValue,width:this.width, height: 18, min: 0, max: parseInt(this.getModel().getUnit().getWidth()*this.getModel().getUnit().getScalableTransformation().getScale()-this.width)});
+		this.vbar.jqxScrollBar({ value:vCurrentValue,width: 18, min: 0, max: parseInt(this.getModel().getUnit().getHeight()*this.getModel().getUnit().getScalableTransformation().getScale()-this.height), vertical: true});
     }  
 	  
 }

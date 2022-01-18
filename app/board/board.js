@@ -21,7 +21,7 @@ var Board=require('board/d/boardcomponent').Board;
 		    //enable tooltips
 			j$('[data-toggle="tooltip"]').tooltip();
 			
-			var bc=new BoardComponent('mycanvas','popup-menu');
+			var bc=new BoardComponent('jqxScrollBar','jqxVerticalScrollBar','mycanvas','popup-menu');
 			//create ui
 			var toggleButtonCollection=new togglebutton.ToggleButtonCollection(
 			[

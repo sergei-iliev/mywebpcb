@@ -196,8 +196,8 @@ var ToggleButtonView=Backbone.View.extend({
 		}	
 		if(event.data.model.id=='tocenterid'){
 			
-            this.footprintComponent.toCenter();
-			this.footprintComponent.repaint();
+            this.footprintComponent.setScrollPosition(parseInt(this.footprintComponent.getModel().getUnit().width/2),
+            		parseInt(this.footprintComponent.getModel().getUnit().height/2));
 		}		
         if (event.data.model.id=='measureid') {
             this.footprintComponent.setMode(core.ModeEnum.MEASUMENT_MODE);
@@ -226,8 +226,9 @@ var ToggleButtonView=Backbone.View.extend({
 		  this.footprintComponent.getModel().categoryname=selectedModel.categoryname;
 		  
 		  this.footprintComponent.componentResized();
-        //position on center          
-          this.footprintComponent.toCenter();
+        //position on center
+          let rect=this.footprintComponent.getModel().getUnit().getBoundingRect();
+          this.footprintComponent.setScrollPosition(rect.center.x,rect.center.y);
           this.footprintComponent.fireContainerEvent({target:null,type: events.Event.RENAME_CONTAINER});
           this.footprintComponent.getModel().fireUnitEvent({target:this.footprintComponent.getModel().getUnit(),type: events.Event.SELECT_UNIT});
 		  this.footprintComponent.repaint();
