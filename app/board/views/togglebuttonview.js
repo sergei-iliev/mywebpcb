@@ -181,10 +181,11 @@ var ToggleButtonView=Backbone.View.extend({
 		if(event.data.model.id=='grabid'){
 			 this.boardComponent.setMode(core.ModeEnum.DRAGHEAND_MODE);
 		}	
-		if(event.data.model.id=='tocenterid'){
-			
-            this.boardComponent.setScrollPosition(parseInt(this.boardComponent.getModel().getUnit().width/2),
-            		parseInt(this.boardComponent.getModel().getUnit().height/2));
+		if(event.data.model.id=='tocenterid'){	
+			this.boardComponent.toCenter();	
+			this.boardComponent.repaint();	
+            //this.boardComponent.setScrollPosition(parseInt(this.boardComponent.getModel().getUnit().width/2),
+            //		parseInt(this.boardComponent.getModel().getUnit().height/2));
 		}	
 		if(event.data.model.id=='layerid'){
 			new LayersPanelView(this.boardComponent);		
@@ -228,9 +229,8 @@ var ToggleButtonView=Backbone.View.extend({
 		  
 		  this.boardComponent.componentResized();
 
-	        //position on center
-          var rect=this.boardComponent.getModel().getUnit().getBoundingRect();
-          this.boardComponent.setScrollPosition(rect.center.x,rect.center.y);
+	        //position on center          
+          this.boardComponent.toCenter();
           this.boardComponent.fireContainerEvent({target:null,type: events.Event.RENAME_CONTAINER});
           this.boardComponent.getModel().fireUnitEvent({target:this.boardComponent.getModel().getUnit(),type: events.Event.SELECT_UNIT});
 		  this.boardComponent.repaint();

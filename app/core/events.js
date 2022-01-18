@@ -182,8 +182,8 @@ mouseDragged(event){
    this.component.viewportWindow.x=newX;
    this.component.viewportWindow.y=newY;
    
-   this.component.hbar.jqxScrollBar('setPosition',newX); 
-   this.component.vbar.jqxScrollBar('setPosition',newY);
+   //this.component.hbar.jqxScrollBar('setPosition',newX); 
+   //this.component.vbar.jqxScrollBar('setPosition',newY);
    
    this.mx = event.windowx;
    this.my = event.windowy;

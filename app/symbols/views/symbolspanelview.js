@@ -794,8 +794,8 @@ var SymbolsTree=Backbone.View.extend({
 			this.symbolComponent.getModel().getUnit().setSelected(false);
 			this.symbolComponent.componentResized();
 			
-			this.symbolComponent.hbar.jqxScrollBar({ value:this.symbolComponent.getModel().getUnit().scrollPositionXValue});
-			this.symbolComponent.vbar.jqxScrollBar({ value:this.symbolComponent.getModel().getUnit().scrollPositionYValue});
+			
+			this.symbolComponent.toCenter();
 			
 			this.symbolComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:this.symbolComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 

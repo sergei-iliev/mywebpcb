@@ -937,9 +937,7 @@ var BoardsTree=Backbone.View.extend({
 			this.boardComponent.getModel().getUnit().setSelected(false);
 			this.boardComponent.componentResized();
 			
-			this.boardComponent.hbar.jqxScrollBar({ value:this.boardComponent.getModel().getUnit().scrollPositionXValue});
-			this.boardComponent.vbar.jqxScrollBar({ value:this.boardComponent.getModel().getUnit().scrollPositionYValue});
-			
+			this.boardComponent.toCenter();
 			this.boardComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:this.boardComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 
 		}
@@ -958,8 +956,8 @@ var BoardsTree=Backbone.View.extend({
 			this.boardComponent.repaint();
 			            
 	        //position on shape center
-            var rect=shape.getBoundingShape();            
-            this.boardComponent.setScrollPosition(rect.center.x,rect.center.y);
+            //var rect=shape.getBoundingShape();            
+            //this.boardComponent.setScrollPosition(rect.center.x,rect.center.y);
              		  
 			mywebpcb.trigger('tree:select',{target:shape,type:events.Event.SELECT_SHAPE}); 	
 		}
