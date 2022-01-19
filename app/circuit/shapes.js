@@ -155,6 +155,14 @@ calculateShape() {
     r.setRect(x1, y1, x2 - x1, y2 - y1);
     return r;
 }
+isClicked(x,y) {
+   for(let shape of this.shapes){
+	  if(shape.isClicked(x,y)){
+		return true;
+	  }
+   }   
+   return super.isClicked(x,y);           
+}
 getClickableOrder() {
 	var box = this.getBoundingShape();	
 	return box.width*box.height;
@@ -366,7 +374,7 @@ class SCHWire extends AbstractLine{
 		a.paint(g2);
 
 	    if((this.isSelected())/*&&(!this.isSublineSelected())*/){
-	    	this.drawControlPoints(g2, viewportWindow, scale);
+	    	this.drawControlShape(g2, viewportWindow, scale);
 		}
 		    
 		    

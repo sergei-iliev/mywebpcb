@@ -112,7 +112,7 @@ paint(g2, viewportWindow, scale,layersmask) {
 		
 		
 		if (this.selection&&this.isControlPointVisible) {
-			this.drawControlPoints(g2, viewportWindow, scale);
+			this.drawControlShape(g2, viewportWindow, scale);
 		}
 
 }
