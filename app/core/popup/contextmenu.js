@@ -5,11 +5,33 @@ var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').Defaul
 
 class ContextMenu{
 constructor(component,placeholderid){
-	this.component=component;
-	this.placeholder = document.getElementById(placeholderid);	
+	this.menu=j$('#popup-menu');
+	this.menu.addClass('visible'); 
+	this.component=component;	
 	this.content="";
+	this.context;
 	this.x=this.y=0;
-	this.opened = false;	
+	this.opened = false;
+	this.component.canvas.contextmenu(j$.proxy(this.conontextMenuHandler,this));
+}
+conontextMenuHandler(e){
+   e.preventDefault();
+   e.stopPropagation();
+   this.opened = true;	
+  // get mouse position relative to the canvas
+   var x=parseInt(e.originalEvent.offsetX);
+   var y=parseInt(e.originalEvent.offsetY);
+  
+   this.menu.empty();
+   this.menu.show();    
+   this.menu.css({left:x,top:y});
+   this.menu.html(this.content);
+   let that=this;
+   j$('#menu-items tr').click(function(){            
+		that.menu.hide();      
+		that.actionPerformed(j$(this)[0].id,that.context);	  
+   });
+   return false;		
 }
 registerShapePopup(target,event){
 	var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -22,8 +44,8 @@ registerShapePopup(target,event){
 	  items+="<tr id='bringfrontid'><td style='padding: 0.4em'>Bring To Front</td></tr>";	  
 	  items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	  items+="</table></div>";
-	  this.setContent(items,{target:target});	
-	  this.open(event);	
+	  this.setContent(event,items,{target:target});	
+	  //this.open(event);	
 	}
 registerLineSelectPopup(target,event){
 	  let bending=target.isBendingPointClicked(event.x,event.y);
@@ -42,37 +64,42 @@ registerLineSelectPopup(target,event){
 	    }
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-	    this.open(event);	
+	    this.setContent(event,items,{target:target});	
+	    //this.open(event);	
 }
-open(event){ 
-	this.x=event.x;
-	this.y=event.y;
-    this.placeholder.style.left=event.data.originalEvent.offsetX+"px";
-    this.placeholder.style.top=event.data.originalEvent.offsetY+"px";
-    this.show();				  
-}
-show(){
-    if (!this.opened) {
-	   this.placeholder.className = "visible";
-	}    
-	this.opened = true;		  		  
-}
-close() {
-	
-	j$(this.placeholder).removeClass("visible");
-	j$(this.placeholder).empty();
+//open(event){ 	
+	//this.x=event.x;
+	//this.y=event.y;
+    //this.placeholder.style.left=event.data.originalEvent.offsetX+"px";
+    //this.placeholder.style.top=event.data.originalEvent.offsetY+"px";
+    //this.show();				  
+//}
+//show(){
+    //if (!this.opened) {
+	//   this.placeholder.className = "visible";
+	//}    
+	//this.opened = true;			  		 
+//}
+
+close() {	
+	this.menu.hide();
+	this.content="";
     this.opened = false;  
 }
+
 isOpen(){
 	return this.opened;
 }
-setContent(content,context) {
-    this.placeholder.innerHTML ="<div class='content'>" + content + "</div>";
+setContent(event,content,context) {
+	this.x=event.x;
+	this.y=event.y;
+	this.context=context;
+	this.content="<div class='content'>" + content + "</div>";
+    //this.placeholder.innerHTML ="<div class='content'>" + content + "</div>";
     //attach event listeners
-    this.attachEventListeners(context);
+    //this.attachEventListeners(context);
 }	
-
+/*
 attachEventListeners(context){
 	  var placeholder=document.getElementById('menu-items');		  
 	  var rows=placeholder.getElementsByTagName("table")[0].rows;
@@ -87,7 +114,7 @@ attachEventListeners(context){
 	      })(rows[i]);
 	  }
 }
-
+*/
 actionPerformed(id,context){
 	if(id==='sendbackid'){
 		let unitMgr = UnitMgr.getInstance();
@@ -175,13 +202,11 @@ actionPerformed(id,context){
          let shapes= this.component.getModel().getUnit().getSelectedShapes(false);         
          if(shapes.length==0){
              return; 
-         }
-         
+         }         
          let r=this.component.getModel().getUnit().getShapesRect(shapes);       
          let unitMgr = UnitMgr.getInstance();
          
-         unitMgr.rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(id==("rotateleftid")?1:-1)*(90.0)));
-         
+         unitMgr.rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(id==("rotateleftid")?1:-1)*(90.0)));         
          unitMgr.alignBlock(this.component.getModel().getUnit().grid,shapes);
          this.component.repaint();		 
 	 }

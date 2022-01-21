@@ -5,16 +5,6 @@ class FootprintContextMenu extends ContextMenu{
 constructor(component,placeholderid){
 		super(component,placeholderid);	
 	}	
-registerPadPopup(target,event){
-	var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
-	  items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
-	  items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
-	  items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
-	  items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
-	  items+="</table></div>";
-	  this.setContent(items,{target:target});	
-	  this.open(event);	
-	}
 registerLineSelectPopup(target,event){
 	  let bending=target.isBendingPointClicked(event.x,event.y);
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -34,8 +24,8 @@ registerLineSelectPopup(target,event){
 		items+="<tr id='bringfrontid'><td style='padding: 0.4em'>Bring To Front</td></tr>";	  
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-	    this.open(event);	
+	    this.setContent(event,items,{target:target});		
+	    
 }
 registerUnitPopup(target,event){	          	            
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -49,8 +39,8 @@ registerUnitPopup(target,event){
 	    items+="<tr id='pasteid'><td style='padding: 0.4em'>Paste</td></tr>";		    
 	    items+="<tr id='positiontocenterid'><td style='padding: 0.4em'>Position drawing to center</td></tr>";
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	    
-	    this.open(event);	
+	    this.setContent(event,items,{target:target});		    
+	    
 }
 registerBlockPopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -61,8 +51,8 @@ registerBlockPopup(target,event){
 	    items+="<tr id='leftrightid'><td style='padding: 0.4em'>Mirror Left-Right</td></tr>";
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-		this.open(event);		
+	    this.setContent(event,items,{target:target});		
+				
 }
 registerLinePopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -70,23 +60,8 @@ registerLinePopup(target,event){
 	    items+="<tr id='deletelineid'><td style='padding: 0.4em;'>Delete Line</td></tr>";	  
 	    items+="<tr id='cancelid'><td style='padding: 0.4em;'>Cancel</td></tr>";	    	    	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-	    this.open(event);	  	
+	    this.setContent(event,items,{target:target});	  	
 }
-//attachEventListeners(context){
-//	  var placeholder=document.getElementById('menu-items');		  
-//	  var rows=placeholder.getElementsByTagName("table")[0].rows;
-//	  var self=this;
-//	  for (var i = 0; i < rows.length; i++) {
-//	      //closure		   
-//	      (function(row) {
-//	          row.addEventListener("click", function() {	    		          	    	  		        	 
-//	        	  self.close();	        	  
-//	        	  self.actionPerformed(row.id,context);
-//	          });
-//	      })(rows[i]);
-//	  }
-//}
 actionPerformed(id,context){ 	
 	
    super.actionPerformed(id,context);

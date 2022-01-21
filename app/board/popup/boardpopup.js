@@ -17,8 +17,7 @@ registerTrackPopup(target,event){
 	    items+="<tr id='slopelinebendid' ><td style='padding: 0.4em;'>Slope Line Bending</td></tr>";
 	    items+="<tr id='defaultbendid'><td style='padding: 0.4em;'>Default Bending</td></tr>";	  
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	    
-	    this.open(event);		
+	    this.setContent(event,items,{target:target});		    	    
 }
 registerFootprintPopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -30,8 +29,8 @@ registerFootprintPopup(target,event){
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Wire ends connect</td></tr>";	
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Wire ends disconnect</td></tr>";	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	    
-	    this.open(event);		
+	    this.setContent(event,items,{target:target});		    
+	    	
 }
 registerUnitPopup(target,event){	          	            
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -45,8 +44,8 @@ registerUnitPopup(target,event){
 	    items+="<tr id='pasteid'><td style='padding: 0.4em'>Paste</td></tr>";		    
 	    items+="<tr id='positiontocenterid'><td style='padding: 0.4em'>Position drawing to center</td></tr>";
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	    
-	    this.open(event);	
+	    this.setContent(event,items,{target:target});		    
+	    
 }
 registerLineSelectPopup(target,event){
 	  let bending=target.isBendingPointClicked(event.x,event.y);
@@ -66,8 +65,8 @@ registerLineSelectPopup(target,event){
 	    }
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-	    this.open(event);	
+	    this.setContent(event,items,{target:target});		
+	    
 }
 registerBlockPopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -76,8 +75,8 @@ registerBlockPopup(target,event){
 	    items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-		this.open(event);		
+	    this.setContent(event,items,{target:target});		
+				
 }
 registerLinePopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -85,8 +84,8 @@ registerLinePopup(target,event){
 	    items+="<tr id='deletelineid'><td style='padding: 0.4em;'>Delete Line</td></tr>";	  
 	    items+="<tr id='cancelid'><td style='padding: 0.4em;'>Cancel</td></tr>";	    	    	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-	    this.open(event);	  	
+	    this.setContent(event,items,{target:target});		
+	      	
 }
 
 

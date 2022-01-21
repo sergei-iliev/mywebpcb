@@ -20,8 +20,8 @@ registerSymbolPopup(target,event){
 	    items+="<tr id='leftrightid'><td style='padding: 0.4em'>Mirror Left-Right</td></tr>";
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	    
-	    this.open(event);		
+	    this.setContent(event,items,{target:target});	    
+	    	
 }
 registerUnitPopup(target,event){	          	            
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -35,17 +35,17 @@ registerUnitPopup(target,event){
 	    items+="<tr id='pasteid'><td style='padding: 0.4em'>Paste</td></tr>";		    
 	    items+="<tr id='positiontocenterid'><td style='padding: 0.4em'>Position drawing to center</td></tr>";
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	    
-	    this.open(event);	
+	    this.setContent(event,items,{target:target});	    
+	    	
 }
-registerWirePopup(target,event){	          	            
+registerWirePopup(target,event){	 	     	           
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
 	    items+="<tr id='hvid' ><td style='padding: 0.4em;'>Horizontal To Vertical Bending</td></tr>";
 	    items+="<tr id='vhid' ><td style='padding: 0.4em;'>Vertical to Horizontal Bending</td></tr>";
 	    items+="<tr id='defaultbendid'><td style='padding: 0.4em;'>Default Bending</td></tr>";
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	    
-	    this.open(event);	
+	    this.setContent(event,items,{target:target});	    
+	    	
 }
 registerBlockPopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -56,8 +56,8 @@ registerBlockPopup(target,event){
 	    items+="<tr id='leftrightid'><td style='padding: 0.4em'>Mirror Left-Right</td></tr>";
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-		this.open(event);		
+	    this.setContent(event,items,{target:target});	
+				
 }
 
 actionPerformed(id,context){	

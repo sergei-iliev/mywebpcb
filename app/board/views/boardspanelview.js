@@ -459,7 +459,8 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 			return; 
 	     }
 		  if(event.target.id=='rotateid'){
-		      this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val()))); 
+			  let center=this.target.getBoundingShape().center;
+		      this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val())),center); 
 		  }	
 		 if(event.target.id=='nameid'){
 			 this.target.displayName=j$("#nameid").val(); 

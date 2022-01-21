@@ -68,3 +68,8 @@ $screen-sm: 768px;
     padding-right:0;
     padding-left:0;
 }
+
+#popup-menu{
+  position:absolute;
+}
+

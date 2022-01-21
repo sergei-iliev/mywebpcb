@@ -79,7 +79,7 @@ class MoveEventHandle extends EventHandle{
             }else if(this.target["getPinsRect"]!=undefined){
             	this.component.popup.registerPadPopup(this.target,event);
             }
-            else{
+            else{	
                 this.component.popup.registerShapePopup(this.target,event);
                 
             }

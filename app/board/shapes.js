@@ -284,16 +284,20 @@ move(xoffset,yoffset){
 	   this.reference.move(xoffset,yoffset);
 	   this.value.move(xoffset,yoffset);
 }
-setRotation(rotate){
-	let center=this.getBoundingShape().center;
+setRotation(angle,center){		
+	let alpha=angle-this.rotation;
+	let rotation={originx:center.x,
+				  originy:center.y,
+				  angle:alpha};
 	let len=this.shapes.length;
+	
 	for(var i=0;i<len;i++){
 		
-	   this.shapes[i].setRotation(rotate,center);  
+	   this.shapes[i].rotate(rotation);  
 	}	
-    this.value.setRotation(rotate,center);
-    this.reference.setRotation(rotate,center);
-	this.rotation=rotate;
+    this.value.rotate(alpha,center);
+    this.reference.rotate(alpha,center);
+	this.rotation=angle;
 }
 rotate(rotation){
 	//fix angle

@@ -619,7 +619,7 @@ class UnitComponent{
   	  //keypress
   	  j$('body').keydown(j$.proxy(this.keyPress,this));
   	  //right popup
-  	  j$('body').on('contextmenu', '#'+canvas, function(e){ return false; });
+  	  //j$('body').on('contextmenu', '#'+canvas, function(e){ return false; });
   	  //mouse wheel event
   	  j$('#'+canvas).bind('mousewheel',j$.proxy(this.mouseWheelMoved,this));
   	  //mouse click event 

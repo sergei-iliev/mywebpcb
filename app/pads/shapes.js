@@ -1218,9 +1218,9 @@ class Drill{
 	 setWidth(width){
 		 this.circle.r=width/2;
 	 }
-	 rotate(rotation) {
-		 this.circle.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
-	 }	   
+	 //rotate(rotation) {
+	 //	 this.circle.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	 //}	   
 	 mirror( line) {
 	       this.circle.mirror(line);
 	 }
@@ -1503,7 +1503,7 @@ rotate(rotation){
 	 }
 	this.shape.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	
     if(this.drill!=null){
-     this.drill.rotate(rotation);
+     this.drill.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
     }	
 	this.number.setRotation(alpha,new d2.Point(rotation.originx,rotation.originy));
 	this.netvalue.setRotation(alpha,new d2.Point(rotation.originx,rotation.originy));
