@@ -101,6 +101,9 @@ getCenter(){
 getTexture(){
   return this.texture;    
 }
+getClickableOrder(){
+	return 1;
+}
 setSide(side, line,angle) {
     this.copper=(core.Layer.Side.change(this.copper.getLayerMaskID()));
     this.texture.setSide(side, line, angle);
@@ -249,7 +252,7 @@ class RoundRect extends Shape{
 	Resize(xoffset, yoffset,clickedPoint){
 		this.roundRect.resize(xoffset, yoffset,clickedPoint);
 	}
-	getOrderWeight(){
+	getClickableOrder(){
 		return this.roundRect.area; 
 	}	
 	toXML() {
@@ -511,7 +514,7 @@ fromXML(data) {
 drawControlShape(g2, viewportWindow, scale) {
 	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.circle.vertices);	
 }
-getOrderWeight(){
+getClickableOrder(){
 	return this.circle.area; 
 }	
 getResizingPoint() {
@@ -560,7 +563,7 @@ class Arc extends Shape{
 	    	this.resizeStartEndPoint((targetPoint.x-B.x),(targetPoint.y-B.y),isStartPoint);
 	    }			        
 	}
-	getOrderWeight(){
+	getClickableOrder(){
 		return this.arc.area; 
 	}
 	fromXML(data){
@@ -956,7 +959,7 @@ clone(){
       copy.rotation=this.rotation;
       return copy;
 }
-getOrderWeight(){
+getClickableOrder(){
 	return this.polygon.box.area; 
 }
 alignResizingPointToGrid(targetPoint) {
@@ -1435,7 +1438,7 @@ alignToGrid(isRequired){
 	     this.move(point.x - center.x,point.y - center.y);
 	     return null;     
 	}	
-getOrderWeight(){
+getClickableOrder(){
 	     return 2; 
 	}
 isClicked(x,y){

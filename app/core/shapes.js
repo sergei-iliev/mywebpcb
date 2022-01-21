@@ -64,7 +64,7 @@ setHeight (height) {
 getHeight() {
 		return this.height;
 	}
-getDrawingOrder() {
+getDrawingLayerPriority() {
     return 100;
 }
 getClickableOrder() {

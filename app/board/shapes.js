@@ -179,9 +179,9 @@ clear() {
      this.value.clear();
      this.reference.clear();
 }
-getOrderWeight() {
+getClickableOrder() {
    var r=this.getBoundingShape();
-   return (r.width);
+   return (r.area);
 }
 isClicked(x,y){
 	var r=this.getBoundingShape();
@@ -754,7 +754,7 @@ clone() {
 	return copy;
 
 	}
-getDrawingOrder() {    
+getDrawingLayerPriority() {    
     if(this.owningUnit==null){            
         return super.getDrawingOrder();
     }
@@ -764,9 +764,6 @@ getDrawingOrder() {
      }else{
        return 3; 
      }          
-}
-getOrderWeight() {
-    return 4;
 }
 drawClearence(g2,viewportWindow,scale,source){
    if((source.copper.getLayerMaskID()&this.copper.getLayerMaskID())==0){        
@@ -1004,7 +1001,10 @@ rotate(rotation) {
 move(xoffset, yoffset) {
 	this.circle.move(xoffset,yoffset);
 }
-getOrderWeight() {
+getDrawingLayerPriority() {
+  return 110;
+}
+getClickableOrder() {
     return 3;
 }
 setWidth(width){
@@ -1180,9 +1180,10 @@ paint(g2, viewportWindow, scale,layersmask) {
 	   utilities.drawCrosshair(g2, viewportWindow, scale,null,this.selectionRectWidth,[this.inner.center]);
 	}    
 }
-getOrderWeight() {
-    return 3;
+getDrawingLayerPriority() {
+  return 120;
 }
+
 fromXML(data) {
 	let x=parseFloat(j$(data).attr("x"));
 	let y=parseFloat(j$(data).attr("y"));
@@ -1248,7 +1249,7 @@ getLinePoints() {
 add(point) {
     this.polygon.add(point);
 }
-getDrawingOrder() {
+getDrawingLayerPriority() {
     if(this.owningUnit==null){            
         return super.getDrawingOrder();
     }

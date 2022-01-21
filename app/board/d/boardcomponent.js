@@ -112,7 +112,7 @@ add(shape){
     	let len=this.shapes.length;
     	shape.owningUnit=this;
     	for(let i=0;i<len;i++){                      
-            if (this.shapes[i].getDrawingOrder() >= shape.getDrawingOrder()) {             
+            if (this.shapes[i].getDrawingLayerPriority() >= shape.getDrawingLayerPriority()) {             
                 this.shapes.splice(i, 0,shape);           	    
         	    this.fireShapeEvent({target:shape,type:events.Event.ADD_SHAPE});
                 return;
@@ -121,11 +121,10 @@ add(shape){
         super.add(shape);
     }
 }
-buildClickedShapesList(x,  y,  isTextIncluded){
-	
+buildClickedShapesList(x,  y,  isTextIncluded){	
 	   var orderElements = [];
 	   let len=this.shapes.length;
-	   for(i=0;i<len;i++){   
+	   for(i=len;i-->0;){   
 	       if(isTextIncluded){
 	    	if((undefined !=this.shapes[i]['getTextureByTag'])&&this.shapes[i].getClickedTexture(x, y)){                               
 	             orderElements.splice(0, 0, this.shapes[i]);
@@ -138,11 +137,35 @@ buildClickedShapesList(x,  y,  isTextIncluded){
 	   }
 	   return orderElements;
 }
+
+getClickedShape( x,  y,  isTextIncluded) {
+        let clickedShapes = this.buildClickedShapesList(x,y,isTextIncluded);
+        if(clickedShapes.length==0){
+            return null;
+        }
+        //Text?       
+		if((undefined !=clickedShapes[0]['getTextureByTag'])&&clickedShapes[0].getClickedTexture(x, y)){                                            
+             return clickedShapes[0];
+        }
+                
+        let result=null;
+        for(let shape of clickedShapes){
+            if(result==null){
+                result=shape;
+            }else if(shape.getDrawingLayerPriority()==result.getDrawingLayerPriority()){
+                if(shape.getClickableOrder()<result.getClickableOrder()){
+                    result=shape;
+                }
+            }
+        
+        }
+        return result;  
+}
 reorder(){
     this.shapes.sort(function(a,b){
-		if (a.getDrawingOrder() > b.getDrawingOrder()) {  
+		if (a.getDrawingLayerPriority() > b.getDrawingLayerPriority()) {  
 			return 1;
-		}else if(a.getDrawingOrder() < b.getDrawingOrder()){
+		}else if(a.getDrawingLayerPriority() < b.getDrawingLayerPriority()){
 			return -1;
 		}else
 			return 0;
