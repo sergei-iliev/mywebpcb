@@ -7,6 +7,7 @@ var SymbolSaveView=require('symbols/views/symbolsaveview');
 var Symbol=require('symbols/d/symbolcomponent').Symbol;
 var UnitMgr = require('core/unit').UnitMgr;
 var SymbolContainer=require('symbols/d/symbolcomponent').SymbolContainer;
+var d2=require('d2/d2');
 
 var ToggleButtonView=Backbone.View.extend({
 
@@ -189,8 +190,8 @@ var ToggleButtonView=Backbone.View.extend({
             }  
 			//shapes= this.footprintComponent.getModel().getUnit().getSelectedShapes();
 			var r=this.symbolComponent.getModel().getUnit().getShapesRect(shapes);
-            
-            UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(event.data.model.id==("rotateleftid")?1:-1)*(90.0)));   
+            UnitMgr.getInstance().rotateBlock(shapes,{origin:new d2.Point(r.center.x,r.center.y),angle:(event.data.model.id==("rotateleftid")?1:-1)*(90.0)});
+            //UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(event.data.model.id==("rotateleftid")?1:-1)*(90.0)));   
             UnitMgr.getInstance().alignBlock(this.symbolComponent.getModel().getUnit().grid,shapes);  
             
             this.symbolComponent.repaint();

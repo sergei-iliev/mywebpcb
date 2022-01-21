@@ -298,7 +298,7 @@ class Arc extends Shape{
 	    this.arc.startAngle=utilities.round(startAngle);
 	}	
 	rotate(rotation){	
-		   this.arc.pc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+		   this.arc.pc.rotate(rotation.angle,rotation.origin);
 		   let w=this.arc.w;
 		   this.arc.w=this.arc.h;
 		   this.arc.h=w;
@@ -479,7 +479,7 @@ class Ellipse extends Shape{
        this.ellipse.mirror(line);	
     }
     rotate(rotation){			   
-	   this.ellipse.pc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	   this.ellipse.pc.rotate(rotation.angle,rotation.origin);
 	   let w=this.ellipse.w;
 	   this.ellipse.w=this.ellipse.h;
 	   this.ellipse.h=w;
@@ -639,7 +639,7 @@ class RoundRect extends Shape{
 		this.roundRect.move(xoffset,yoffset);
 	}
 	rotate(rotation){		
-		this.roundRect.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+		this.roundRect.rotate(rotation.angle,rotation.origin);
 	}
     mirror(line){
     	this.roundRect.mirror(line);
@@ -808,8 +808,8 @@ Resize(xoffset,yoffset,clickedPoint) {
     this.setHeadSize(this.headSize);
 }
 rotate(rotation){		
-	this.arrow.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
-	this.line.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	this.arrow.rotate(rotation.angle,rotation.origin);
+	this.line.rotate(rotation.angle,rotation.origin);
 }
 move(xoffset, yoffset) {
 	this.line.move(xoffset,yoffset);
@@ -952,7 +952,7 @@ Resize(xoffset, yoffset, clickedPoint) {
 								clickedPoint.y + yoffset);
 }
 rotate(rotation){		
-	this.shape.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	
+	this.shape.rotate(rotation.angle,rotation.origin);	
 }
 move(xoffset, yoffset) {
 	this.shape.move(xoffset,yoffset);	
@@ -1248,7 +1248,7 @@ rotate(rotation){
 	let oalignmentnumber=TextAlignment.getOrientation(this.number.shape.alignment);
 	let alignmentnumber=this.number.shape.alignment;
 	
-	this.segment.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	this.segment.rotate(rotation.angle,rotation.origin);
 	this.orientation=Orientation.rotate(rotation.angle>0?false:true,this.orientation);
 	this.name.rotate(rotation);
 	this.number.rotate(rotation);

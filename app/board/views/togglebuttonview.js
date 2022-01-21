@@ -11,7 +11,7 @@ var UnitMgr = require('core/unit').UnitMgr;
 var BoardLoadView=require('board/views/boardloadview');
 var BoardSaveView=require('board/views/boardsaveview');
 var LayersPanelView=require('board/views/layerspanelview');
-
+var d2=require('d2/d2');
 
 var ToggleButtonView=Backbone.View.extend({
 
@@ -167,7 +167,7 @@ var ToggleButtonView=Backbone.View.extend({
             }  
 			var r=this.boardComponent.getModel().getUnit().getShapesRect(shapes);
                
-            UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(event.data.model.id==("rotateleftid")?1:-1)*(90.0)));
+            UnitMgr.getInstance().rotateBlock(shapes,{origin:new d2.Point(r.center.x,r.center.y),angle:(event.data.model.id==("rotateleftid")?1:-1)*(90.0)});
             UnitMgr.getInstance().alignBlock(this.boardComponent.getModel().getUnit().grid,shapes);  
             
             this.boardComponent.repaint();

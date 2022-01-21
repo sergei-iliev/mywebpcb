@@ -314,8 +314,8 @@ rotate(rotation){
 		   this.shapes[i].rotate(rotation);  
 	   }
 	  
-	   this.value.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
-	   this.reference.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	   this.value.rotate(rotation.angle,rotation.origin);
+	   this.reference.rotate(rotation.angle,rotation.origin);
 	   this.rotation=alpha;
 }
 drawClearence(g2,viewportWindow,scale,source){
@@ -997,6 +997,10 @@ alignToGrid(isRequired) {
 	        return null;
 	    }
 	}
+rotate(rotation) {
+        this.circle.rotate(rotation.angle,rotation.origin);  
+}    
+	
 move(xoffset, yoffset) {
 	this.circle.move(xoffset,yoffset);
 }
@@ -1098,8 +1102,8 @@ move(xoffset, yoffset) {
    this.inner.move(xoffset,yoffset);
 }
 rotate(rotation) {
-	this.inner.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
-	this.outer.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	this.inner.rotate(rotation.angle,rotation.origin);
+	this.outer.rotate(rotation.angle,rotation.origin);
 }
 setWidth(width){
 
@@ -1319,7 +1323,7 @@ resetToPoint(p){
     this.floatingEndPoint.set(p.x,p.y); 
 }
 rotate(rotation) {
-	this.polygon.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	this.polygon.rotate(rotation.angle,rotation.origin);
 }
 Resize(xoffset, yoffset, clickedPoint) {
 	clickedPoint.set(clickedPoint.x + xoffset,

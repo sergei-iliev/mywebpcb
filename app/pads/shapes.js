@@ -112,7 +112,7 @@ isSelected() {
    return this.texture.selection;
 }
 rotate(rotation) {	
-	this.texture.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	
+	this.texture.rotate(rotation.angle,rotation.origin);	
 }
 mirror(line) {
 
@@ -244,7 +244,7 @@ class RoundRect extends Shape{
 		 alpha+=360; 
 		}	
 		this.rotation=alpha;		
-		this.roundRect.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+		this.roundRect.rotate(rotation.angle,rotation.origin);
 	}
 	Resize(xoffset, yoffset,clickedPoint){
 		this.roundRect.resize(xoffset, yoffset,clickedPoint);
@@ -442,7 +442,7 @@ fromXML(data) {
 		 alpha+=360; 
 		}	
 		this.rotation=alpha;
-		this.circle.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+		this.circle.rotate(rotation.angle,rotation.origin);
 	}
 	Resize(xoffset, yoffset,point) {    
 		let radius=this.circle.r;
@@ -666,7 +666,7 @@ class Arc extends Shape{
 		 alpha+=360; 
 	  }	
 	  this.rotation=alpha;	
-	  this.arc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy)); 
+	  this.arc.rotate(rotation.angle,rotation.origin); 
 	}
 	mirror(line) {
 	  this.arc.mirror(line);
@@ -1032,7 +1032,7 @@ rotate(rotation) {
 	 alpha+=360; 
 	}	
 	this.rotation=alpha;
-	this.polygon.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	this.polygon.rotate(rotation.angle,rotation.origin);
 }
 paint(g2, viewportWindow, scale,layersmask) {		
     if((this.copper.getLayerMaskID()&layersmask)==0){
@@ -1501,12 +1501,12 @@ rotate(rotation){
 	 if(alpha<0){
 		 alpha+=360; 
 	 }
-	this.shape.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	
+	this.shape.rotate(rotation.angle,rotation.origin);	
     if(this.drill!=null){
-     this.drill.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+     this.drill.rotate(rotation.angle,rotation.origin);
     }	
-	this.number.setRotation(alpha,new d2.Point(rotation.originx,rotation.originy));
-	this.netvalue.setRotation(alpha,new d2.Point(rotation.originx,rotation.originy));
+	this.number.setRotation(alpha,rotation.origin);
+	this.netvalue.setRotation(alpha,rotation.origin);
 	this.rotation=alpha;
 	
 	}

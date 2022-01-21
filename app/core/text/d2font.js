@@ -281,7 +281,7 @@ class SymbolFontTexture{
       return this.shape.alignment;
 	}	
 	rotate(rotation){		   
-	   this.shape.anchorPoint.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	   this.shape.anchorPoint.rotate(rotation.angle,rotation.origin);
 	   if(rotation.angle<0){  //clockwise
 		   this.shape.alignment=TextAlignment.rotate(this.shape.alignment,true);
 	   }else{

@@ -497,7 +497,7 @@ rotate(rotation) {
 	 alpha+=360; 
 	}	
 	this.rotation=alpha;	
-	this.polyline.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	this.polyline.rotate(rotation.angle,rotation.origin);
 }
 calculateShape() {
 	return this.polyline.box;

@@ -10,7 +10,7 @@ var CircuitContainer = require('circuit/d/circuitcomponent').CircuitContainer;
 var UnitMgr = require('core/unit').UnitMgr;
 var CircuitLoadView=require('circuit/views/circuitloadview');
 var CircuitSaveView=require('circuit/views/circuitsaveview');
-
+var d2=require('d2/d2');
 var power=require('circuit/power').power;
 var ground=require('circuit/ground').ground;
 
@@ -164,8 +164,8 @@ var ToggleButtonView=Backbone.View.extend({
             }  
 			//shapes= this.circuitComponent.getModel().getUnit().getSelectedShapes();
 			var r=this.circuitComponent.getModel().getUnit().getShapesRect(shapes);
-               
-            UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(event.data.model.id==("rotateleftid")?1:-1)*(90.0)));
+			UnitMgr.getInstance().rotateBlock(shapes,{origin:new d2.Point(r.center.x,r.center.y),angle:(event.data.model.id==("rotateleftid")?1:-1)*(90.0)});               
+            //UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(event.data.model.id==("rotateleftid")?1:-1)*(90.0)));
             UnitMgr.getInstance().alignBlock(this.circuitComponent.getModel().getUnit().grid,shapes);  
             
             this.circuitComponent.repaint();

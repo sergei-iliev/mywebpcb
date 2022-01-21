@@ -414,7 +414,7 @@ setLayerVisible(mask,flag) {
 }
 	  
 }
-
+/*
 var AffineTransform=(function(){
 	var x,y,a;
 	return{
@@ -423,8 +423,7 @@ var AffineTransform=(function(){
 			y=originy;
 			a=angle;
 			return {
-				originx:x,
-				originy:y,
+				origin:new d2.Point(originx,originy),				
 				angle:a,
 				toString:function(){
 				  return "x="+x+",y="+y+"angle="+a;	
@@ -433,7 +432,7 @@ var AffineTransform=(function(){
 		},
 	}; 
 })();
-
+*/
 class ScalableTransformation{
   constructor(scaleFactor,minScaleFactor,maxScaleFactor) {	    
         this.reset(0.5,scaleFactor,minScaleFactor,maxScaleFactor);
@@ -913,7 +912,7 @@ module.exports ={
 	ViewportWindow,
 	Grid,	
 	UnitFrame,
-	AffineTransform,
+	//AffineTransform,
     MM_TO_COORD,
     COORD_TO_MM,
 	UnitSelectionPanel,

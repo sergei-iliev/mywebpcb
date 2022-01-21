@@ -691,7 +691,7 @@ class SCHConnector extends Shape{
 	  this.shape.calculatePoints();
 	}
 	rotate(rotation){
-		this.segment.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+		this.segment.rotate(rotation.angle,rotation.origin);
 		this.texture.setRotation(rotation);
 		this.shape.calculatePoints();				
 	}	
@@ -1128,7 +1128,7 @@ move( xoffset, yoffset) {
     this.texture.move(xoffset, yoffset);     
 }
 rotate( rotation) {
-    this.point.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+    this.point.rotate(rotation.angle,rotation.origin);
     this.texture.setRotation(rotation);        
 }
 mirror( line) {        
@@ -1204,7 +1204,7 @@ move(xoffset, yoffset) {
 	this.circle.move(xoffset,yoffset);
 } 
 rotate(rotation){	  
-	this.circle.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	   
+	this.circle.rotate(rotation.angle,rotation.origin);	   
 }
 mirror(line){
 	this.circle.mirror(line);	
@@ -1273,7 +1273,7 @@ move(xoffset,yoffset){
 	this.point.move(xoffset,yoffset);
 }
 rotate(rotation){
-	this.point.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	   
+	this.point.rotate(rotation.angle,rotation.origin);	   
 }
 mirror(line){
 	this.point.mirror(line);	
