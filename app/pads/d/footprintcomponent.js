@@ -41,6 +41,7 @@ clone(){
 	  //copy.silent=false;
 	  return copy;
 	}	
+	/*
 paint(g2, viewportWindow){	
 	   let len=this.shapes.length;
  	   for(let i=0;i<len;i++){
@@ -52,18 +53,19 @@ paint(g2, viewportWindow){
         	}
  	   });
  	   //grid
-       this.grid.paint(g2,viewportWindow,this.scalableTransformation);
+       this.grid.paint(g2,viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
         //coordinate system
        if(this.coordinateSystem!=null){
-         this.coordinateSystem.paint(g2, viewportWindow,this.scalableTransformation);
+         this.coordinateSystem.paint(g2, viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
        }	
          //ruler
-	   this.ruler.paint(g2, viewportWindow,this.scalableTransformation);
+	   this.ruler.paint(g2, viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
         //frame
        if(this.frame!=null){
-	     this.frame.paint(g2, viewportWindow,this.scalableTransformation);
+	     this.frame.paint(g2, viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
        }
 }	
+*/
 parse(data){
 	 	   this.unitName=j$(data).find("name").text();
 	 	   this.grid.setGridUnits(j$(data).find("units").attr("raster"),core.Units.MM);

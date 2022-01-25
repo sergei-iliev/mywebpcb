@@ -236,15 +236,17 @@ class UnitEventHandle extends EventHandle{
 	      this.selectionBox.setRect(x,y,Math.abs(w),Math.abs(h));	
 	      this.component.repaint();
 		  
-		  this.component.ctx.globalCompositeOperation='lighter';
-	      this.component.ctx.beginPath();
-	      this.component.ctx.rect(this.selectionBox.x,this.selectionBox.y,this.selectionBox.width,this.selectionBox.height);
-	      this.component.ctx.fillStyle = 'gray';
-	      this.component.ctx.fill();
-		  this.component.ctx.globalCompositeOperation='source-over';
+		  this.component.ctx.save();		  
+	      this.component.ctx.globalAlpha =0.5; 		  
+		  this.component.ctx.fillStyle = 'blue';
+		  this.component.ctx.fillRect(this.selectionBox.x,this.selectionBox.y,this.selectionBox.width,this.selectionBox.height);
+          		  
+          
 	      this.component.ctx.lineWidth = 1;
-	      this.component.ctx.strokeStyle = '#5B5B5B';
+	      this.component.ctx.strokeStyle = 'blue';
 	      this.component.ctx.stroke();
+		  this.component.ctx.restore();
+
 	 }
 	 mouseMove(event){
 

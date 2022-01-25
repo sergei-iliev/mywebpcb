@@ -500,11 +500,16 @@ notifyListeners(eventType) {
      this.height = height;
      this.frame.setSize(width, height);	
  }
-paint(g2, viewportWindow){
- 	   let len=this.shapes.length;
+paint(g2, viewportWindow){	
+	   let len=this.shapes.length;
  	   for(let i=0;i<len;i++){
  		   this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);  
  	   }
+ 	   this.shapes.forEach((shape)=>{	 	    	
+			if ((typeof shape.drawControlShape === 'function')&&shape.isSelected()) {					                
+				shape.drawControlShape(g2, viewportWindow,this.scalableTransformation);
+        	}
+ 	   });
  	   //grid
        this.grid.paint(g2,viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
         //coordinate system
@@ -517,7 +522,7 @@ paint(g2, viewportWindow){
        if(this.frame!=null){
 	     this.frame.paint(g2, viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
        }
-     }    
+}    
        
 }
 
