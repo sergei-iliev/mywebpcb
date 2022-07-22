@@ -19,16 +19,22 @@ app.get('/rest/boards/workspaces/CardReader', (req, res, next) => {
 	'<?xml version="1.0" encoding="UTF-8"?><boards>'+
 	'<name fullname="CR_v1" project="CR_v1">CR_v1</name>'+
 	'<name fullname="CR_v2" project="CR_v2">CR_v2</name>'+
+	'<name fullname="proba" project="proba">proba</name>'+
 	'</boards>'
 	);
 	});
+app.get('/rest/boards/workspaces/CardReader/proba', (req, res, next) => {
+    fs.readFile('D:\\sergei\\myNetPCB\\java_11\\deploy\\workspace\\boards\\demo\\proba.xml','utf8', function(err, data) {
+		res.send(data);
+  });
+});
 app.get('/rest/boards/workspaces/CardReader/CR_v1', (req, res, next) => {
-    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\workspace\\boards\\CardReader\\CardReader.xml','utf8', function(err, data) {
+    fs.readFile('D:\\sergei\\myNetPCB\\java_11\\deploy\\workspace\\boards\\CardReader\\CardReader.xml','utf8', function(err, data) {
 		res.send(data);
   });
 });
 app.get('/rest/boards/workspaces/CardReader/CR_v2', (req, res, next) => {
-    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\workspace\\boards\\CardReader\\wifidemo.xml','utf8', function(err, data) {
+    fs.readFile('D:\\sergei\\myNetPCB\\java_11\\deploy\\workspace\\boards\\CardReader\\wifidemo.xml','utf8', function(err, data) {
 		res.send(data);
   });
 });
@@ -51,7 +57,7 @@ app.get('/rest/circuits/workspaces/CardReader', (req, res, next) => {
 	);
 	});
 app.get('/rest/circuits/workspaces/CardReader/CR%20v1', (req, res, next) => {
-    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\workspace\\circuits\\Bluetooth\\HC-06.xml','utf8', function(err, data) {
+    fs.readFile('D:\\sergei\\myNetPCB\\Java_11\\deploy\\workspace\\circuits\\CardReader\\CardReader.xml','utf8', function(err, data) {
 		res.send(data);
   });
 });	
@@ -78,7 +84,7 @@ app.get('/rest/symbols/libraries/Atmel/categories', (req, res, next) => {
 app.get('/rest/symbols/libraries/General/categories', (req, res, next) => {
   res.send(
 '<?xml version="1.0" encoding="UTF-8"?><category>'+
-'<name library="General">Diod</name>'+
+'<name library="General">Ground</name>'+
 '<name library="General">Fuse</name>'+
 '</category>'
 );
@@ -95,12 +101,12 @@ app.get('/rest/symbols/libraries/Atmel/categories/CPU', (req, res, next) => {
 );
 });
 app.get('/rest/symbols/libraries/Atmel/categories/CPU/ATtiny26', (req, res, next) => {
-    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\library\\symbols\\Atmel\\CPU\\ATtiny26.xml','utf8', function(err, data) {
+    fs.readFile('D:\\sergei\\java\\myNetPCB\\deploy\\library\\symbols\\Atmel\\CPU\\ATtiny26.xml','utf8', function(err, data) {
 		res.send(data);
   });
 });
 app.get('/rest/symbols/libraries/Atmel/categories/CPU/ATMega2560', (req, res, next) => {
-    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\library\\symbols\\Atmel\\CPU\\MEGA2560.xml','utf8', function(err, data) {
+    fs.readFile('D:\\sergei\\myNetPCB\\java_11\\deploy\\library\\symbols\\Atmel\\CPU\\MEGA2560.xml','utf8', function(err, data) {
 		res.send(data);
   });
 });
@@ -114,8 +120,8 @@ app.get('/rest/symbols/libraries/Atmel/categories/CPU/test', (req, res, next) =>
 		res.send(data);
   });
 });
-app.get('/rest/symbols/libraries/General/categories/null/Diod', (req, res, next) => {
-    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\library\\symbols\\General\\Test_8.xml','utf8', function(err, data) {
+app.get('/rest/symbols/libraries/General/categories/null/Ground', (req, res, next) => {
+    fs.readFile('D:\\sergei\\myNetPCB\\java_11\\deploy\\library\\symbols\\General\\Ground.xml','utf8', function(err, data) {
 		res.send(data);
   });
 });
@@ -166,18 +172,18 @@ app.get('/rest/footprints/libraries/DIP/categories', (req, res, next) => {
 '</units>'
 );
 });
-app.get('/rest/footprints/libraries/Atmel/categories/CPU/testpackage', (req, res, next) => {
-    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\library\\footprints\\Atmel\\CPU\\testpackage.xml','utf8', function(err, data) {
+app.get('/rest/footprints/libraries/Atmel/categories/CPU/test1', (req, res, next) => {
+    fs.readFile('D:\\sergei\\myNetPCB\\java_11\\deploy\\library\\footprints\\Atmel\\CPU\\mega8_MLF_bug.xml','utf8', function(err, data) {
 		res.send(data);
   });
 });
 app.get('/rest/footprints/libraries/Atmel/categories/CPU/mega8', (req, res, next) => {
-    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\library\\footprints\\Atmel\\CPU\\mega8.xml','utf8', function(err, data) {
+    fs.readFile('D:\\sergei\\myNetPCB\\Java_11\\deploy\\library\\footprints\\Atmel\\CPU\\mega8.xml','utf8', function(err, data) {
 		res.send(data);
   });
 });
 app.get('/rest/footprints/libraries/Atmel/categories/CPU/Mega328', (req, res, next) => {
-    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\library\\footprints\\Atmel\\CPU\\Mega328.xml','utf8', function(err, data) {
+    fs.readFile('D:\\sergei\\java\\myNetPCB\\Java_11\\deploy\\library\\footprints\\Atmel\\CPU\\Mega328.xml','utf8', function(err, data) {
 		res.send(data);
   });
 });

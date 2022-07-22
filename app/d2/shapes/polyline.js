@@ -100,7 +100,24 @@ module.exports = function(d2) {
        }
 	   get vertices() {
 		    return this.points;	
-	   } 	   
+	   } 
+       isPointOnSegment(pt,diviation){    	       
+     	  let segment=new d2.Segment(0,0,0,0);	   
+	          let prevPoint = this.points[0];        
+	          for(let point of this.points){    	        	  
+	              if(prevPoint.equals(point)){    	            	  
+	            	  prevPoint = point;
+	                  continue;
+	              }    	              
+	              segment.set(prevPoint.x,prevPoint.y,point.x,point.y);
+	              if(segment.isPointOn(pt,diviation)){
+	                  return true;
+	              }
+	              prevPoint = point;
+	          }		
+	          
+	          return false;
+       } 	   
 	   paint(g2){
 		  g2.beginPath(); 
 		  g2.moveTo(this.points[0].x, this.points[0].y);

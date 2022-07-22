@@ -367,6 +367,9 @@ mouseDown(event){
 				     this.getEventMgr().setEventHandle("texture",shape);
 	               }else if(shape instanceof SCHSymbol){
 	            	 this.getEventMgr().setEventHandle("symbol",shape);
+				   }else if(shape instanceof SCHWire){
+	                  if(shape.isSegmentClicked(scaledEvent))
+					     this.getEventMgr().setEventHandle("move.segment",shape);
 			       }else
 			         this.getEventMgr().setEventHandle("move",shape);
 			     }else{

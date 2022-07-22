@@ -3,6 +3,46 @@ var events = require('core/events');
 var core = require('core/core');
 var d2 = require('d2/d2');
 
+class MoveLineSegmentHandle extends EventHandle{
+constructor(component) {
+		 super(component);
+	     this.startPoint;
+	     this.endPoint;
+	 }
+ 
+mousePressed(event){
+	if(super.isRightMouseButton(event)){
+      return;            
+    }
+     
+    this.component.getModel().getUnit().setSelected(false);
+    this.target.setSelected(true);
+
+    
+    let arr=this.target.getSegmentClicked(event);
+    this.startPoint=arr[0];
+    this.endPoint=arr[1];
+    	
+	this.component.repaint();
+ }
+ mouseReleased(event){
+	    if(this.component.getParameter("snaptogrid")){
+         this.target.alignResizingPointToGrid(this.startPoint);
+         this.target.alignResizingPointToGrid(this.endPoint);
+	     this.component.repaint();	 
+		}
+	    this.target.resizingPoint=null;
+ }
+ mouseDragged(event){
+
+    this.target.moveSegment(this.startPoint,this.endPoint,event);    
+
+	this.component.repaint();
+ }
+ mouseMove(event){
+ 
+ }
+}
 class SymbolEventHandle extends EventHandle{
 	constructor(component) {
 			 super(component);
@@ -141,7 +181,8 @@ class CircuitEventMgr{
 		this.hash.set("texture",new events.TextureEventHandle(component));
 		this.hash.set("dragheand",new events.DragingEventHandle(component));
 		this.hash.set("origin",new events.OriginEventHandle(component));
-		this.hash.set("measure",new events.MeasureEventHandle(component));		
+		this.hash.set("measure",new events.MeasureEventHandle(component));	
+		this.hash.set("move.segment",new MoveLineSegmentHandle(component));	
 		
 	 }
 	 //****private
@@ -182,5 +223,5 @@ class CircuitEventMgr{
 
 module.exports ={
 		CircuitEventMgr,
-		WireEventHandle
+		WireEventHandle,		
 	}

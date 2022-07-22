@@ -279,7 +279,7 @@ reset(...args) {
    }
 }
 
-Resize(xoffset, yoffset, clickedPoint) {
+Resize(xoffset, yoffset, clickedPoint) {	
 	clickedPoint.set(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);
 }
@@ -456,6 +456,8 @@ isBendingPointClicked( x,  y) {
 	return point;
 }
 isControlRectClicked(x, y) {
+	return this.isBendingPointClicked(x,y);
+	/*
 	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
 	let point = null;
 
@@ -469,6 +471,7 @@ isControlRectClicked(x, y) {
 	});
 
 	return point;
+	*/
 }
 
 move(xoffset, yoffset) {
