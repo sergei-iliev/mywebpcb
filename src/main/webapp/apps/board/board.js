@@ -404,7 +404,7 @@ add(shape){
     	let len=this.shapes.length;
     	shape.owningUnit=this;
     	for(let i=0;i<len;i++){                      
-            if (this.shapes[i].getDrawingOrder() >= shape.getDrawingOrder()) {             
+            if (this.shapes[i].getDrawingLayerPriority() >= shape.getDrawingLayerPriority()) {             
                 this.shapes.splice(i, 0,shape);           	    
         	    this.fireShapeEvent({target:shape,type:events.Event.ADD_SHAPE});
                 return;
@@ -413,11 +413,10 @@ add(shape){
         super.add(shape);
     }
 }
-buildClickedShapesList(x,  y,  isTextIncluded){
-	
+buildClickedShapesList(x,  y,  isTextIncluded){	
 	   var orderElements = [];
 	   let len=this.shapes.length;
-	   for(i=0;i<len;i++){   
+	   for(i=len;i-->0;){   
 	       if(isTextIncluded){
 	    	if((undefined !=this.shapes[i]['getTextureByTag'])&&this.shapes[i].getClickedTexture(x, y)){                               
 	             orderElements.splice(0, 0, this.shapes[i]);
@@ -430,11 +429,35 @@ buildClickedShapesList(x,  y,  isTextIncluded){
 	   }
 	   return orderElements;
 }
+
+getClickedShape( x,  y,  isTextIncluded) {
+        let clickedShapes = this.buildClickedShapesList(x,y,isTextIncluded);
+        if(clickedShapes.length==0){
+            return null;
+        }
+        //Text?       
+		if((undefined !=clickedShapes[0]['getTextureByTag'])&&clickedShapes[0].getClickedTexture(x, y)){                                            
+             return clickedShapes[0];
+        }
+                
+        let result=null;
+        for(let shape of clickedShapes){
+            if(result==null){
+                result=shape;
+            }else if(shape.getDrawingLayerPriority()==result.getDrawingLayerPriority()){
+                if(shape.getClickableOrder()<result.getClickableOrder()){
+                    result=shape;
+                }
+            }
+        
+        }
+        return result;  
+}
 reorder(){
     this.shapes.sort(function(a,b){
-		if (a.getDrawingOrder() > b.getDrawingOrder()) {  
+		if (a.getDrawingLayerPriority() > b.getDrawingLayerPriority()) {  
 			return 1;
-		}else if(a.getDrawingOrder() < b.getDrawingOrder()){
+		}else if(a.getDrawingLayerPriority() < b.getDrawingLayerPriority()){
 			return -1;
 		}else
 			return 0;
@@ -469,14 +492,16 @@ selectNetAt(target){
 
 paint(g2, viewportWindow){
 	   let len=this.shapes.length;
- 	   for(let i=0;i<len;i++){
- 		   this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation,this.compositeLayer.getLayerMaskID());  
+ 	   for(let i=0;i<len;i++){ 		 
+ 		 if((this.shapes[i] instanceof PCBFootprint)||(this.shapes[i].copper.getLayerMaskID()&this.compositeLayer.getLayerMaskID())!=0){   		   
+ 			 this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation,this.compositeLayer.getLayerMaskID());
+ 		 }
  	   }
- 	   this.shapes.forEach(function(shape){
- 	    if (shape instanceof PCBTrack || shape instanceof PCBCopperArea) {
-           shape.drawControlShape(g2, viewportWindow,this.scalableTransformation);
-        }
- 	   },this);
+ 	   this.shapes.forEach((shape)=>{ 	    	
+			if ((typeof shape.drawControlShape === 'function')&&shape.isSelected()) {					                
+				shape.drawControlShape(g2, viewportWindow,this.scalableTransformation);
+        	}
+ 	   });
  	   //grid
        this.grid.paint(g2,viewportWindow,this.scalableTransformation);
         //coordinate system
@@ -1083,8 +1108,7 @@ registerTrackPopup(target,event){
 	    items+="<tr id='slopelinebendid' ><td style='padding: 0.4em;'>Slope Line Bending</td></tr>";
 	    items+="<tr id='defaultbendid'><td style='padding: 0.4em;'>Default Bending</td></tr>";	  
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	    
-	    this.open(event);		
+	    this.setContent(event,items,{target:target});		    	    
 }
 registerFootprintPopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -1096,8 +1120,8 @@ registerFootprintPopup(target,event){
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Wire ends connect</td></tr>";	
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Wire ends disconnect</td></tr>";	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	    
-	    this.open(event);		
+	    this.setContent(event,items,{target:target});		    
+	    	
 }
 registerUnitPopup(target,event){	          	            
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -1111,8 +1135,8 @@ registerUnitPopup(target,event){
 	    items+="<tr id='pasteid'><td style='padding: 0.4em'>Paste</td></tr>";		    
 	    items+="<tr id='positiontocenterid'><td style='padding: 0.4em'>Position drawing to center</td></tr>";
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	    
-	    this.open(event);	
+	    this.setContent(event,items,{target:target});		    
+	    
 }
 registerLineSelectPopup(target,event){
 	  let bending=target.isBendingPointClicked(event.x,event.y);
@@ -1132,8 +1156,8 @@ registerLineSelectPopup(target,event){
 	    }
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-	    this.open(event);	
+	    this.setContent(event,items,{target:target});		
+	    
 }
 registerBlockPopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -1142,8 +1166,8 @@ registerBlockPopup(target,event){
 	    items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-		this.open(event);		
+	    this.setContent(event,items,{target:target});		
+				
 }
 registerLinePopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -1151,8 +1175,8 @@ registerLinePopup(target,event){
 	    items+="<tr id='deletelineid'><td style='padding: 0.4em;'>Delete Line</td></tr>";	  
 	    items+="<tr id='cancelid'><td style='padding: 0.4em;'>Cancel</td></tr>";	    	    	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-	    this.open(event);	  	
+	    this.setContent(event,items,{target:target});		
+	      	
 }
 
 
@@ -1380,9 +1404,9 @@ clear() {
      this.value.clear();
      this.reference.clear();
 }
-getOrderWeight() {
+getClickableOrder() {
    var r=this.getBoundingShape();
-   return (r.width);
+   return (r.area);
 }
 isClicked(x,y){
 	var r=this.getBoundingShape();
@@ -1485,16 +1509,20 @@ move(xoffset,yoffset){
 	   this.reference.move(xoffset,yoffset);
 	   this.value.move(xoffset,yoffset);
 }
-setRotation(rotate){
-	let center=this.getBoundingShape().center;
+setRotation(angle,center){		
+	let alpha=angle-this.rotation;
+	let rotation={originx:center.x,
+				  originy:center.y,
+				  angle:alpha};
 	let len=this.shapes.length;
+	
 	for(var i=0;i<len;i++){
 		
-	   this.shapes[i].setRotation(rotate,center);  
+	   this.shapes[i].rotate(rotation);  
 	}	
-    this.value.setRotation(rotate,center);
-    this.reference.setRotation(rotate,center);
-	this.rotation=rotate;
+    this.value.rotate(alpha,center);
+    this.reference.rotate(alpha,center);
+	this.rotation=angle;
 }
 rotate(rotation){
 	//fix angle
@@ -1511,8 +1539,8 @@ rotate(rotation){
 		   this.shapes[i].rotate(rotation);  
 	   }
 	  
-	   this.value.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
-	   this.reference.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	   this.value.rotate(rotation.angle,rotation.origin);
+	   this.reference.rotate(rotation.angle,rotation.origin);
 	   this.rotation=alpha;
 }
 drawClearence(g2,viewportWindow,scale,source){
@@ -1603,6 +1631,49 @@ class PCBCircle extends Circle{
     	copy.fill=this.fill;
     	return copy;
     }  
+
+	paint(g2, viewportWindow, scale,layersmask) {	    		
+		var rect = this.circle.box;
+		rect.scale(scale.getScale());
+		if (!rect.intersects(viewportWindow)) {
+			return;
+		}
+		
+		
+		g2.lineWidth = this.thickness * scale.getScale();
+
+		if (this.fill == core.Fill.EMPTY) {
+			if (this.selection) {
+				g2.strokeStyle = "gray";
+			} else {
+				g2.strokeStyle = this.copper.getColor();
+			}
+		} else {
+			g2._fill=true;
+			if (this.selection) {
+				g2.fillStyle = "gray";
+			} else {
+				g2.fillStyle = this.copper.getColor();
+			}			
+		}
+
+		let c=this.circle.clone();
+		c.scale(scale.getScale());
+        c.move(-viewportWindow.x,- viewportWindow.y);
+		g2.save();
+		if((this.owningUnit!=null)&&(this.owningUnit.compositeLayer.activeSide== core.Layer.Side.resolve(this.copper.getLayerMaskID()))){		
+			g2.globalAlpha = 1;				
+		}else{		
+			g2.globalAlpha = 0.5;					
+		}		
+		c.paint(g2);
+		g2.restore();
+		g2._fill=false;
+
+		
+		
+		  
+ }
     
     
 }
@@ -1620,6 +1691,54 @@ class PCBArc extends Arc{
 		copy.fill = this.fill;
 		return copy;
 }    
+
+paint(g2, viewportWindow, scale,layersmask) {	    
+		var rect = this.arc.box;
+		rect.scale(scale.getScale());
+		if (!rect.intersects(viewportWindow)) {
+			return;
+		}
+
+		
+		g2.beginPath(); // clear the canvas context
+		g2.lineCap = 'round';
+
+						
+		g2.lineWidth = this.thickness * scale.getScale();
+					
+		if (this.fill == core.Fill.EMPTY) {
+			if (this.selection) {
+					g2.strokeStyle = "gray";
+			} else {
+					g2.strokeStyle = this.copper.getColor();
+			}
+			g2._fill=false;
+		} else {
+			if (this.selection) {
+				g2.fillStyle = "gray";
+			} else {
+				g2.fillStyle = this.copper.getColor();
+			}
+			g2._fill=true;
+		}
+
+		let a=this.arc.clone();
+		a.scale(scale.getScale());
+		a.move( - viewportWindow.x, - viewportWindow.y);		
+		g2.save();
+		if((this.owningUnit!=null)&&(this.owningUnit.compositeLayer.activeSide== core.Layer.Side.resolve(this.copper.getLayerMaskID()))){		
+			g2.globalAlpha = 1;				
+		}else{		
+			g2.globalAlpha = 0.5;					
+		}
+		a.paint(g2);
+		g2.restore();
+		g2._fill=undefined;
+		
+			    
+
+	}
+    
 }
 
 class PCBLabel extends GlyphLabel{
@@ -1665,19 +1784,27 @@ drawClearence(g2,viewportWindow,scale,source){
     g2._fill=false;	
    
 }
-getDrawingOrder() {
-        let order=super.getDrawingOrder();
-        if(this.owningUnit==null){            
-           return order;
-        }
-        
-        if(this.owningUnit.activeSide==core.Layer.Side.resolve(this.copper.getLayerMaskID())){
-          order= 4;
-        }else{
-          order= 3; 
-        }  
-        return order;
-    }
+paint(g2, viewportWindow, scale,layersmask) {    
+		var rect = this.texture.getBoundingShape();
+			rect.scale(scale.getScale());
+			if (!rect.intersects(viewportWindow)) {
+				return;
+			}
+
+		if (this.selection) {
+			this.texture.fillColor = "gray";
+		} else {
+			this.texture.fillColor = this.copper.getColor();
+		}
+		g2.save();
+		if((this.owningUnit!=null)&&(this.owningUnit.compositeLayer.activeSide== core.Layer.Side.resolve(this.copper.getLayerMaskID()))){		
+			g2.globalAlpha = 1;				
+		}else{		
+			g2.globalAlpha = 0.5;					
+		}				
+		this.texture.paint(g2, viewportWindow, scale,this.copper.getLayerMaskID());
+		g2.restore();
+  }
 }
 class PCBLine extends Line{
 constructor(thickness,layermaskId){
@@ -1687,7 +1814,51 @@ clone() {
 		var copy = new PCBLine(this.thickness,this.copper.getLayerMaskID());
 		  copy.polyline=this.polyline.clone();
 		  return copy;
-	}    
+	}	
+paint(g2, viewportWindow, scale,layersmask) {		    
+	   var rect = this.polyline.box;
+	   rect.scale(scale.getScale());		
+	   if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
+		return;
+	   }
+				
+		g2.lineCap = 'round';
+		g2.lineJoin = 'round';
+		
+
+		g2.lineWidth = this.thickness * scale.getScale();
+		
+		if (this.selection)
+			g2.strokeStyle = "gray";
+		else
+			g2.strokeStyle = this.copper.getColor();
+
+		let a=this.polyline.clone();
+		if (this.isFloating()) {                                                    
+         if(this.resumeState==ResumeState.ADD_AT_FRONT){                
+             let p = this.floatingEndPoint.clone();
+             a.points.unshift(p);               
+         }else{		                            
+             let p = this.floatingEndPoint.clone();
+             a.add(p);    
+         }
+		} 	
+		
+		a.scale(scale.getScale());
+		a.move( - viewportWindow.x, - viewportWindow.y);		
+		g2.save();
+		if((this.owningUnit!=null)&&(this.owningUnit.compositeLayer.activeSide== core.Layer.Side.resolve(this.copper.getLayerMaskID()))){		
+			g2.globalAlpha = 1;				
+		}else{		
+			g2.globalAlpha = 0.5;					
+		}				
+		a.paint(g2);
+		g2.restore();
+		
+						
+
+}
+	  
 }
 class PCBSolidRegion extends SolidRegion{
 	constructor(layermaskId){
@@ -1698,6 +1869,41 @@ class PCBSolidRegion extends SolidRegion{
 			  copy.polygon=this.polygon.clone();  
 			  return copy;
 		}    
+	paint(g2, viewportWindow, scale,layersmask) {			    
+		var rect = this.polygon.box;
+		rect.scale(scale.getScale());		
+		if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
+			return;
+		}
+		
+		g2.lineWidth = 1;
+		
+		if(this.isFloating()){
+	      g2.strokeStyle = this.copper.getColor();		
+		}else{
+		  g2._fill=true;
+		  if (this.selection) {
+			 g2.fillStyle = "gray";
+		  } else {
+			 g2.fillStyle = this.copper.getColor();
+		  }
+		}
+
+		
+
+		let a=this.polygon.clone();	
+		if (this.isFloating()) {
+			let p = this.floatingEndPoint.clone();
+			a.add(p);	
+	    }
+		a.scale(scale.getScale());
+		a.move( - viewportWindow.x, - viewportWindow.y);		
+		g2.globalCompositeOperation = 'lighter';
+		a.paint(g2);
+		g2.globalCompositeOperation = 'source-over';
+		g2._fill=false;    
+	}
+
 }
 
 class PCBRoundRect extends RoundRect{
@@ -1711,7 +1917,52 @@ clone(){
 	copy.fill = this.fill;
 	copy.arc=this.arc;
 	return copy;	
-}    
+}
+paint(g2, viewportWindow, scale,layersmask) {
+	var rect = this.roundRect.box;
+	rect.scale(scale.getScale());
+	if (!rect.intersects(viewportWindow)) {
+		return;
+	}
+	
+	g2.lineWidth = this.thickness * scale.getScale();
+	g2.lineCap = 'round';
+	g2.lineJoin = 'round';
+
+	if (this.fill == core.Fill.EMPTY) {		
+		if (this.selection) {
+			g2.globalCompositeOperation = 'source-over';
+			g2.strokeStyle = "gray";
+		} else {
+			g2.strokeStyle = this.copper.getColor();
+		}			
+	} else {
+		g2._fill=true;
+		if (this.selection) {
+			g2.globalCompositeOperation = 'source-over';
+			g2.fillStyle = "gray";
+		} else {
+			g2.fillStyle = this.copper.getColor();
+		}			
+	}
+
+	let r=this.roundRect.clone();	
+	r.scale(scale.getScale());
+    r.move(-viewportWindow.x,- viewportWindow.y);
+	g2.save();
+	if((this.owningUnit!=null)&&(this.owningUnit.compositeLayer.activeSide== core.Layer.Side.resolve(this.copper.getLayerMaskID()))){		
+			g2.globalAlpha = 1;				
+	}else{		
+			g2.globalAlpha = 0.5;					
+	}			
+	r.paint(g2);
+	g2.restore();
+	g2._fill=false;
+	
+	
+
+}
+
 }
 //************************PCBTrack********************
 class PCBTrack extends AbstractLine{
@@ -1728,21 +1979,16 @@ clone() {
 	return copy;
 
 	}
-getDrawingOrder() {
-    let order=super.getDrawingOrder();
+getDrawingLayerPriority() {    
     if(this.owningUnit==null){            
-        return order;
+        return super.getDrawingOrder();
     }
     
-    if(this.owningUnit.activeSide==core.Layer.Side.resolve(this.copper.getLayerMaskID())){
-       order= 4;
+    if(this.owningUnit.compositeLayer.activeSide==core.Layer.Side.resolve(this.copper.getLayerMaskID())){
+       return 4;
      }else{
-       order= 3; 
-     }  
-    return order;     
-}
-getOrderWeight() {
-    return 4;
+       return 3; 
+     }          
 }
 drawClearence(g2,viewportWindow,scale,source){
    if((source.copper.getLayerMaskID()&this.copper.getLayerMaskID())==0){        
@@ -1752,14 +1998,9 @@ drawClearence(g2,viewportWindow,scale,source){
    g2.strokeStyle = "black";
    
     
-   let clip=source.clip;
-   g2.save();
-   g2.beginPath();
-   g2.moveTo(clip[0].x,clip[0].y);
-   for (var i = 1; i < clip.length; i++) {
-	   g2.lineTo(clip[i].x, clip[i].y);
-   } 
-   g2.clip();
+   
+   g2.save();   
+   g2.clip(source.clip);
    
    let a=this.polyline.clone();
    a.scale(scale.getScale());
@@ -1879,22 +2120,13 @@ getNetShapes(selectedShapes){
     
     return net;
 }
-paint(g2, viewportWindow, scale,layersmask) {
-    if((this.copper.getLayerMaskID()&layersmask)==0){
-        return;
-    }
-	
+paint(g2, viewportWindow, scale,layersmask) {    	
 	var rect = this.polyline.box;
 	rect.scale(scale.getScale());		
 	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
 		return;
 	}
 
-	if(this.owningUnit.compositeLayer.activeSide== core.Layer.Side.resolve(this.copper.getLayerMaskID())){
-		g2.globalCompositeOperation = 'source-over';
-	}else{
-		g2.globalCompositeOperation = 'lighter';
-	}
 	g2.lineCap = 'round';
 	g2.lineJoin = 'round';
 	
@@ -1929,17 +2161,20 @@ paint(g2, viewportWindow, scale,layersmask) {
 	}
 	a.scale(scale.getScale());
 	a.move( - viewportWindow.x, - viewportWindow.y);	
+	
+	g2.save();
+	if(this.owningUnit.compositeLayer.activeSide== core.Layer.Side.resolve(this.copper.getLayerMaskID())){		
+		g2.globalCompositeOperation = 'source-over';		
+	}else{		
+		g2.globalCompositeOperation = 'lighten';			
+	}
 	a.paint(g2);	
-
-	g2.globalCompositeOperation = 'source-over';
+	g2.restore();
 
 }
-drawControlShape(g2, viewportWindow, scale){   
-    if((!this.isSelected())/*&&(!this.isSublineSelected())*/){
-      return;
-    }
-    this.drawControlPoints(g2, viewportWindow, scale);
-}
+//drawControlShape(g2, viewportWindow, scale){       
+//    this.drawControlShape(g2, viewportWindow, scale);
+//}
 fromXML(data) {
        this.copper =core.Layer.Copper.valueOf(j$(data).attr("layer"));
 	   this.thickness = (parseInt(j$(data).attr("thickness")));
@@ -1984,10 +2219,17 @@ alignToGrid(isRequired) {
 	        return null;
 	    }
 	}
+rotate(rotation) {
+        this.circle.rotate(rotation.angle,rotation.origin);  
+}    
+	
 move(xoffset, yoffset) {
 	this.circle.move(xoffset,yoffset);
 }
-getOrderWeight() {
+getDrawingLayerPriority() {
+  return 110;
+}
+getClickableOrder() {
     return 3;
 }
 setWidth(width){
@@ -2037,9 +2279,9 @@ paint(g2, viewportWindow, scale,layersmask) {
     c.move(-viewportWindow.x,- viewportWindow.y);
 	c.paint(g2);
 	
-	if(this.selection){
-	  utilities.drawCrosshair(g2, viewportWindow, scale,null,this.selectionRectWidth,[this.circle.center]);
-	}
+}
+drawControlShape(g2, viewportWindow,scale){
+	utilities.drawCrosshair(g2, viewportWindow, scale,null,this.selectionRectWidth,[this.circle.center]);
 }
 toXML(){
     return "<hole x=\""+utilities.roundFloat(this.circle.pc.x,5)+"\" y=\""+utilities.roundFloat(this.circle.pc.y,5)+"\" width=\""+this.circle.r*2+"\"  clearance=\""+this.clearance+"\" />";	
@@ -2061,6 +2303,7 @@ constructor() {
 		this.inner=new d2.Circle(new d2.Point(0,0),core.MM_TO_COORD(0.4));
         this.selectionRectWidth = 3000;
 		this.displayName='Via';	
+		this.net='';
         this.fillColor='white'; 
         this.clearance=0;
    	}
@@ -2084,8 +2327,8 @@ move(xoffset, yoffset) {
    this.inner.move(xoffset,yoffset);
 }
 rotate(rotation) {
-	this.inner.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
-	this.outer.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	this.inner.rotate(rotation.angle,rotation.origin);
+	this.outer.rotate(rotation.angle,rotation.origin);
 }
 setWidth(width){
 
@@ -2108,7 +2351,9 @@ getNetShapes(selected) {
     return net;
 }
 drawClearence(g2, viewportWindow,scale, source) {    
-	
+	if(source.net===this.net){
+		return;
+	}
     let r=this.outer.r+(this.clearance!=0?this.clearance:source.clearance);
     let c=new d2.Circle(this.outer.pc.clone(),r);
 	let rect=c.box;
@@ -2130,9 +2375,6 @@ drawClearence(g2, viewportWindow,scale, source) {
     g2._fill=false;
 }
 paint(g2, viewportWindow, scale,layersmask) {   
-    if((this.copper.getLayerMaskID()&layersmask)==0){
-            return;
-    }	
 	var rect = this.calculateShape();
 	rect.scale(scale.getScale());
 	if (!rect.intersects(viewportWindow)) {
@@ -2163,9 +2405,10 @@ paint(g2, viewportWindow, scale,layersmask) {
 	   utilities.drawCrosshair(g2, viewportWindow, scale,null,this.selectionRectWidth,[this.inner.center]);
 	}    
 }
-getOrderWeight() {
-    return 3;
+getDrawingLayerPriority() {
+  return 120;
 }
+
 fromXML(data) {
 	let x=parseFloat(j$(data).attr("x"));
 	let y=parseFloat(j$(data).attr("y"));
@@ -2192,7 +2435,7 @@ class PCBCopperArea extends Shape{
         this.fill=core.Fill.FILLED;
         this.polygon=new d2.Polygon();
         this.resizingPoint;
-        this.clip=[];
+        this.clip=null;
         this.net='gnd';
     }
 clone(){
@@ -2202,13 +2445,20 @@ clone(){
 }
 
 prepareClippingRegion(viewportWindow,scale){
-    this.clip=[];
+    let arr=[];
     this.polygon.points.forEach(function(point){
         let p=point.clone();            
         p.scale(scale.getScale());
         p.move(-viewportWindow.x,-viewportWindow.y);
-        this.clip.push(p);    
+        arr.push(p);    
 	}.bind(this));
+    //prepare clip only once
+    this.clip = new Path2D();    
+    this.clip.moveTo(arr[0].x,arr[0].y);
+    for (var i = 1; i < arr.length; i++) {
+ 	   this.clip.lineTo(arr[i].x, arr[i].y);
+    } 
+    
 }
 
 alignResizingPointToGrid(pt) {
@@ -2224,7 +2474,7 @@ getLinePoints() {
 add(point) {
     this.polygon.add(point);
 }
-getDrawingOrder() {
+getDrawingLayerPriority() {
     if(this.owningUnit==null){            
         return super.getDrawingOrder();
     }
@@ -2299,17 +2549,13 @@ resetToPoint(p){
     this.floatingEndPoint.set(p.x,p.y); 
 }
 rotate(rotation) {
-	this.polygon.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	this.polygon.rotate(rotation.angle,rotation.origin);
 }
 Resize(xoffset, yoffset, clickedPoint) {
 	clickedPoint.set(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);
 }
 paint(g2,viewportWindow,scale, layersmask){
-   
-    if((this.copper.getLayerMaskID()&layersmask)==0){
-      return;
-    }
 	var rect = this.polygon.box;
 	rect.scale(scale.getScale());		
 	if (!this.isFloating()&& (!rect.intersects(viewportWindow))) {
@@ -2335,7 +2581,15 @@ paint(g2,viewportWindow,scale, layersmask){
     }
 	a.scale(scale.getScale());
 	a.move( - viewportWindow.x, - viewportWindow.y);		
+	g2.save();
+    if(this.owningUnit.compositeLayer.activeSide== core.Layer.Side.resolve(this.copper.getLayerMaskID())){		
+		g2.globalAlpha  = 1;
+	}else{		
+		g2.globalAlpha = 0.5;
+	}
 	a.paint(g2);
+	g2.restore();
+	
 	g2._fill=false;
     
     
@@ -2942,6 +3196,7 @@ var RectPanelBuilder=BaseBuilder.extend({
         'keypress #widthid' : 'onenter',
         'keypress #heightid' : 'onenter',
         'keypress #roundingid' : 'onenter',
+        'keypress #rotateid' : 'onenter',
         'change #fillid': 'onchange',
         'change #controllayerid': 'onchange',
     },
@@ -2968,6 +3223,9 @@ var RectPanelBuilder=BaseBuilder.extend({
 	     if(event.target.id=='yid'){		
 	         var y=this.fromUnitY(j$('#yid').val()); 
 	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
+		 } 
+		 if(event.target.id=='rotateid'){
+			   this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val())));			 
 		 } 	
 		 if(event.target.id=='roundingid'){
 			 this.target.setRounding(core.MM_TO_COORD(parseFloat(j$('#roundingid').val())));			 
@@ -2982,6 +3240,7 @@ var RectPanelBuilder=BaseBuilder.extend({
         j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
 		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));	
 		j$("#roundingid").val(core.COORD_TO_MM(this.target.roundRect.rounding));
+		j$("#rotateid").val(this.target.rotation);
 		j$("#fillid").val(this.target.fill);
 	},
 	render:function(){
@@ -3001,6 +3260,7 @@ var RectPanelBuilder=BaseBuilder.extend({
 				this.fillComboBox([{id:1,value:'EMPTY',selected:true},{id:2,value:'FILLED'}])+
 			    "</select>" +
 				"</td></tr>"+
+				"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Rounding</td><td><input type='text' id='roundingid' value='' class='form-control input-sm\'></td></tr>"+						        
 		"</table>");
 			
@@ -3178,7 +3438,7 @@ var CopperAreaPanelBuilder=BaseBuilder.extend({
 				return; 
 		 }
 		 if(event.target.id=='netid'){
-			 this.target.thickness=core.MM_TO_COORD(parseFloat(j$('#thicknessid').val()));			 
+			 this.target.net=j$('#netid').val();			 
 		 } 
 		 if(event.target.id=='clearanceid'){
 			   this.target.clearance=(core.MM_TO_COORD(parseFloat(j$('#clearanceid').val())));			 
@@ -3202,7 +3462,7 @@ var CopperAreaPanelBuilder=BaseBuilder.extend({
         j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:(this.target.resizingPoint.x)));
         j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:(this.target.resizingPoint.y))); 
 		j$('#clearanceid').val(core.COORD_TO_MM(this.target.clearance));
-		//j$("#widthid").val(core.COORD_TO_MM(this.target.getWidth()));
+		j$("#netid").val(this.target.net);
 		j$("#fillid").val(this.target.fill);
 	},
 	render:function(){
@@ -3251,7 +3511,8 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 			return; 
 	     }
 		  if(event.target.id=='rotateid'){
-		      this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val()))); 
+			  let center=this.target.getBoundingShape().center;
+		      this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val())),center); 
 		  }	
 		 if(event.target.id=='nameid'){
 			 this.target.displayName=j$("#nameid").val(); 
@@ -3398,7 +3659,8 @@ var HolePanelBuilder=BaseBuilder.extend({
     events: {
         'keypress #xid' : 'onenter',	
         'keypress #yid' : 'onenter',	
-        'keypress #drillsizeid' : 'onenter',        
+        'keypress #drillsizeid' : 'onenter',   
+		'keypress #clearanceid' : 'onenter',     
     },
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -3414,12 +3676,16 @@ var HolePanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='yid'){	            
 			 this.target.y=this.fromUnitY(j$('#yid').val());  
 	     }
+		 if(event.target.id=='clearanceid'){
+			   this.target.clearance=(core.MM_TO_COORD(parseFloat(j$('#clearanceid').val())));			 
+		 }
 		 this.component.repaint();  
    },
 	updateui:function(){		
         j$('#xid').val(this.toUnitX(this.target.circle.center.x));
         j$('#yid').val(this.toUnitY(this.target.circle.center.y)); 
         j$('#drillsizeid').val(core.COORD_TO_MM(2*this.target.circle.r));
+		j$('#clearanceid').val(core.COORD_TO_MM(this.target.clearance));
         
 	},
 	render:function(){
@@ -3429,6 +3695,7 @@ var HolePanelBuilder=BaseBuilder.extend({
 				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Drill size</td><td><input type='text' id='drillsizeid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Clearance</td><td><input type='text' id='clearanceid' value='' class='form-control input-sm\'></td></tr>"+
 				"</table>");
 			
 		return this;
@@ -3443,7 +3710,8 @@ var ViaPanelBuilder=BaseBuilder.extend({
         'keypress #xid' : 'onenter',	
         'keypress #yid' : 'onenter',	
         'keypress #drillsizeid' : 'onenter',
-        'keypress #viasizeid':'onenter',
+        'keypress #netid' : 'onenter',
+		'keypress #viasizeid':'onenter',
     },
     onenter:function(event){
 		 if(event.keyCode != 13){
@@ -3452,6 +3720,10 @@ var ViaPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='drillsizeid'){
 			 this.target.inner.r=core.MM_TO_COORD(parseFloat(j$('#drillsizeid').val())/2); 
 		 }   
+		 if(event.target.id=='netid'){
+			 this.target.net=j$('#netid').val(); 
+		 }   
+
 		 if(event.target.id=='viasizeid'){
 			 
 			 this.target.outer.r=core.MM_TO_COORD(parseFloat(j$('#viasizeid').val())/2); 
@@ -3470,6 +3742,7 @@ var ViaPanelBuilder=BaseBuilder.extend({
         j$('#yid').val(this.toUnitY(this.target.inner.pc.y)); 
         j$('#drillsizeid').val(core.COORD_TO_MM(2*this.target.inner.r));
         j$('#viasizeid').val(core.COORD_TO_MM(2*this.target.outer.r));
+		j$('#netid').val(this.target.net);
 	},
 	render:function(){
 		j$(this.el).empty();
@@ -3479,6 +3752,7 @@ var ViaPanelBuilder=BaseBuilder.extend({
 				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Drill size</td><td><input type='text' id='drillsizeid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Via size</td><td><input type='text' id='viasizeid' value='' class='form-control input-sm\'></td></tr>"+        
+				"<tr><td style='padding:7px'>Net</td><td><input type='text' id='netid' value='' class='form-control input-sm\'></td></tr>"+
 				"</table>");
 			
 		return this;
@@ -4132,7 +4406,7 @@ var UnitMgr = require('core/unit').UnitMgr;
 var BoardLoadView=require('board/views/boardloadview');
 var BoardSaveView=require('board/views/boardsaveview');
 var LayersPanelView=require('board/views/layerspanelview');
-
+var d2=require('d2/d2');
 
 var ToggleButtonView=Backbone.View.extend({
 
@@ -4288,7 +4562,7 @@ var ToggleButtonView=Backbone.View.extend({
             }  
 			var r=this.boardComponent.getModel().getUnit().getShapesRect(shapes);
                
-            UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(event.data.model.id==("rotateleftid")?1:-1)*(90.0)));
+            UnitMgr.getInstance().rotateBlock(shapes,{origin:new d2.Point(r.center.x,r.center.y),angle:(event.data.model.id==("rotateleftid")?1:-1)*(90.0)});
             UnitMgr.getInstance().alignBlock(this.boardComponent.getModel().getUnit().grid,shapes);  
             
             this.boardComponent.repaint();
@@ -4806,7 +5080,7 @@ setLayerVisible(mask,flag) {
 }
 	  
 }
-
+/*
 var AffineTransform=(function(){
 	var x,y,a;
 	return{
@@ -4815,8 +5089,7 @@ var AffineTransform=(function(){
 			y=originy;
 			a=angle;
 			return {
-				originx:x,
-				originy:y,
+				origin:new d2.Point(originx,originy),				
 				angle:a,
 				toString:function(){
 				  return "x="+x+",y="+y+"angle="+a;	
@@ -4825,7 +5098,7 @@ var AffineTransform=(function(){
 		},
 	}; 
 })();
-
+*/
 class ScalableTransformation{
   constructor(scaleFactor,minScaleFactor,maxScaleFactor) {	    
         this.reset(0.5,scaleFactor,minScaleFactor,maxScaleFactor);
@@ -5305,7 +5578,7 @@ module.exports ={
 	ViewportWindow,
 	Grid,	
 	UnitFrame,
-	AffineTransform,
+	//AffineTransform,
     MM_TO_COORD,
     COORD_TO_MM,
 	UnitSelectionPanel,
@@ -5404,7 +5677,7 @@ class MoveEventHandle extends EventHandle{
             }else if(this.target["getPinsRect"]!=undefined){
             	this.component.popup.registerPadPopup(this.target,event);
             }
-            else{
+            else{	
                 this.component.popup.registerShapePopup(this.target,event);
                 
             }
@@ -5561,15 +5834,17 @@ class UnitEventHandle extends EventHandle{
 	      this.selectionBox.setRect(x,y,Math.abs(w),Math.abs(h));	
 	      this.component.repaint();
 		  
-		  this.component.ctx.globalCompositeOperation='lighter';
-	      this.component.ctx.beginPath();
-	      this.component.ctx.rect(this.selectionBox.x,this.selectionBox.y,this.selectionBox.width,this.selectionBox.height);
-	      this.component.ctx.fillStyle = 'gray';
-	      this.component.ctx.fill();
-		  this.component.ctx.globalCompositeOperation='source-over';
+		  this.component.ctx.save();		  
+	      this.component.ctx.globalAlpha =0.5; 		  
+		  this.component.ctx.fillStyle = 'blue';
+		  this.component.ctx.fillRect(this.selectionBox.x,this.selectionBox.y,this.selectionBox.width,this.selectionBox.height);
+          		  
+          
 	      this.component.ctx.lineWidth = 1;
-	      this.component.ctx.strokeStyle = '#5B5B5B';
+	      this.component.ctx.strokeStyle = 'blue';
 	      this.component.ctx.stroke();
+		  this.component.ctx.restore();
+
 	 }
 	 mouseMove(event){
 
@@ -6323,11 +6598,33 @@ var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').Defaul
 
 class ContextMenu{
 constructor(component,placeholderid){
-	this.component=component;
-	this.placeholder = document.getElementById(placeholderid);	
+	this.menu=j$('#popup-menu');
+	this.menu.addClass('visible'); 
+	this.component=component;	
 	this.content="";
+	this.context;
 	this.x=this.y=0;
-	this.opened = false;	
+	this.opened = false;
+	this.component.canvas.contextmenu(j$.proxy(this.conontextMenuHandler,this));
+}
+conontextMenuHandler(e){
+   e.preventDefault();
+   e.stopPropagation();
+   this.opened = true;	
+  // get mouse position relative to the canvas
+   var x=parseInt(e.originalEvent.offsetX);
+   var y=parseInt(e.originalEvent.offsetY);
+  
+   this.menu.empty();
+   this.menu.show();    
+   this.menu.css({left:x,top:y});
+   this.menu.html(this.content);
+   let that=this;
+   j$('#menu-items tr').click(function(){            
+		that.menu.hide();      
+		that.actionPerformed(j$(this)[0].id,that.context);	  
+   });
+   return false;		
 }
 registerShapePopup(target,event){
 	var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -6340,8 +6637,8 @@ registerShapePopup(target,event){
 	  items+="<tr id='bringfrontid'><td style='padding: 0.4em'>Bring To Front</td></tr>";	  
 	  items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	  items+="</table></div>";
-	  this.setContent(items,{target:target});	
-	  this.open(event);	
+	  this.setContent(event,items,{target:target});	
+	  //this.open(event);	
 	}
 registerLineSelectPopup(target,event){
 	  let bending=target.isBendingPointClicked(event.x,event.y);
@@ -6360,37 +6657,42 @@ registerLineSelectPopup(target,event){
 	    }
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-	    this.open(event);	
+	    this.setContent(event,items,{target:target});	
+	    //this.open(event);	
 }
-open(event){ 
-	this.x=event.x;
-	this.y=event.y;
-    this.placeholder.style.left=event.data.originalEvent.offsetX+"px";
-    this.placeholder.style.top=event.data.originalEvent.offsetY+"px";
-    this.show();				  
-}
-show(){
-    if (!this.opened) {
-	   this.placeholder.className = "visible";
-	}    
-	this.opened = true;		  		  
-}
-close() {
-	
-	j$(this.placeholder).removeClass("visible");
-	j$(this.placeholder).empty();
+//open(event){ 	
+	//this.x=event.x;
+	//this.y=event.y;
+    //this.placeholder.style.left=event.data.originalEvent.offsetX+"px";
+    //this.placeholder.style.top=event.data.originalEvent.offsetY+"px";
+    //this.show();				  
+//}
+//show(){
+    //if (!this.opened) {
+	//   this.placeholder.className = "visible";
+	//}    
+	//this.opened = true;			  		 
+//}
+
+close() {	
+	this.menu.hide();
+	this.content="";
     this.opened = false;  
 }
+
 isOpen(){
 	return this.opened;
 }
-setContent(content,context) {
-    this.placeholder.innerHTML ="<div class='content'>" + content + "</div>";
+setContent(event,content,context) {
+	this.x=event.x;
+	this.y=event.y;
+	this.context=context;
+	this.content="<div class='content'>" + content + "</div>";
+    //this.placeholder.innerHTML ="<div class='content'>" + content + "</div>";
     //attach event listeners
-    this.attachEventListeners(context);
+    //this.attachEventListeners(context);
 }	
-
+/*
 attachEventListeners(context){
 	  var placeholder=document.getElementById('menu-items');		  
 	  var rows=placeholder.getElementsByTagName("table")[0].rows;
@@ -6405,7 +6707,7 @@ attachEventListeners(context){
 	      })(rows[i]);
 	  }
 }
-
+*/
 actionPerformed(id,context){
 	if(id==='sendbackid'){
 		let unitMgr = UnitMgr.getInstance();
@@ -6493,13 +6795,11 @@ actionPerformed(id,context){
          let shapes= this.component.getModel().getUnit().getSelectedShapes(false);         
          if(shapes.length==0){
              return; 
-         }
-         
+         }         
          let r=this.component.getModel().getUnit().getShapesRect(shapes);       
          let unitMgr = UnitMgr.getInstance();
          
-         unitMgr.rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(id==("rotateleftid")?1:-1)*(90.0)));
-         
+         unitMgr.rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(id==("rotateleftid")?1:-1)*(90.0)));         
          unitMgr.alignBlock(this.component.getModel().getUnit().grid,shapes);
          this.component.repaint();		 
 	 }
@@ -6632,7 +6932,7 @@ setHeight (height) {
 getHeight() {
 		return this.height;
 	}
-getDrawingOrder() {
+getDrawingLayerPriority() {
     return 100;
 }
 getClickableOrder() {
@@ -6847,7 +7147,7 @@ reset(...args) {
    }
 }
 
-Resize(xoffset, yoffset, clickedPoint) {
+Resize(xoffset, yoffset, clickedPoint) {	
 	clickedPoint.set(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);
 }
@@ -7024,6 +7324,8 @@ isBendingPointClicked( x,  y) {
 	return point;
 }
 isControlRectClicked(x, y) {
+	return this.isBendingPointClicked(x,y);
+	/*
 	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
 	let point = null;
 
@@ -7037,6 +7339,7 @@ isControlRectClicked(x, y) {
 	});
 
 	return point;
+	*/
 }
 
 move(xoffset, yoffset) {
@@ -7065,16 +7368,17 @@ rotate(rotation) {
 	 alpha+=360; 
 	}	
 	this.rotation=alpha;	
-	this.polyline.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	this.polyline.rotate(rotation.angle,rotation.origin);
 }
 calculateShape() {
 	return this.polyline.box;
 }
 
 
-drawControlPoints(g2, viewportWindow, scale) {
+drawControlShape(g2, viewportWindow, scale) {
 	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.polyline.points);	
 }
+
 isFloating() {
 	return (!(this.floatingStartPoint
 								.equals(this.floatingEndPoint) && this.floatingStartPoint
@@ -7383,7 +7687,7 @@ class SymbolFontTexture{
       return this.shape.alignment;
 	}	
 	rotate(rotation){		   
-	   this.shape.anchorPoint.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	   this.shape.anchorPoint.rotate(rotation.angle,rotation.origin);
 	   if(rotation.angle<0){  //clockwise
 		   this.shape.alignment=TextAlignment.rotate(this.shape.alignment,true);
 	   }else{
@@ -8536,11 +8840,16 @@ notifyListeners(eventType) {
      this.height = height;
      this.frame.setSize(width, height);	
  }
-paint(g2, viewportWindow){
- 	   let len=this.shapes.length;
+paint(g2, viewportWindow){	
+	   let len=this.shapes.length;
  	   for(let i=0;i<len;i++){
  		   this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);  
  	   }
+ 	   this.shapes.forEach((shape)=>{	 	    	
+			if ((typeof shape.drawControlShape === 'function')&&shape.isSelected()) {					                
+				shape.drawControlShape(g2, viewportWindow,this.scalableTransformation);
+        	}
+ 	   });
  	   //grid
        this.grid.paint(g2,viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
         //coordinate system
@@ -8553,7 +8862,7 @@ paint(g2, viewportWindow){
        if(this.frame!=null){
 	     this.frame.paint(g2, viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
        }
-     }    
+}    
        
 }
 
@@ -8655,7 +8964,7 @@ class UnitComponent{
   	  //keypress
   	  j$('body').keydown(j$.proxy(this.keyPress,this));
   	  //right popup
-  	  j$('body').on('contextmenu', '#'+canvas, function(e){ return false; });
+  	  //j$('body').on('contextmenu', '#'+canvas, function(e){ return false; });
   	  //mouse wheel event
   	  j$('#'+canvas).bind('mousewheel',j$.proxy(this.mouseWheelMoved,this));
   	  //mouse click event 
@@ -9766,6 +10075,13 @@ module.exports = function(d2) {
               this.min.y > other.max.y
           );
       }
+	  grow(offset){
+        this.min.x-=offset;
+        this.min.y-=offset;
+        
+        this.max.x+=offset;
+        this.max.y+=offset;
+      }
       move(offsetX,offsetY){
     	  this.min.move(offsetX,offsetY);
     	  this.max.move(offsetX,offsetY);
@@ -10644,14 +10960,12 @@ module.exports = function(d2) {
 		                pa,pb,pc,pd]
 		            );			
 		}
-		setWidth(width){
-			this.width=width;	
-			this.reset();
-		}
-		setHeight(height){
-		    this.height=height;
-		    this.reset();
-		}
+
+		setSize(width,height){
+			  this.height=height;
+			  this.width=width;
+			  this.reset();
+		}		
 		/**
 		if (x-x1)/(x2-x1) = (y-y1)/(y2-y1) = alpha (a constant), then the point C(x,y) will lie on the line between pts 1 & 2.
 		If alpha < 0.0, then C is exterior to point 1.
@@ -10689,7 +11003,7 @@ module.exports = function(d2) {
 		get center(){
 			return this.pc;
 		}		
-		reset(){
+		reset(){			
 			let w=0,h=0;
 			if(this.width>this.height){  //horizontal
 			  w=this.width;
@@ -11319,7 +11633,24 @@ module.exports = function(d2) {
        }
 	   get vertices() {
 		    return this.points;	
-	   } 	   
+	   } 
+       isPointOnSegment(pt,diviation){    	       
+     	  let segment=new d2.Segment(0,0,0,0);	   
+	          let prevPoint = this.points[0];        
+	          for(let point of this.points){    	        	  
+	              if(prevPoint.equals(point)){    	            	  
+	            	  prevPoint = point;
+	                  continue;
+	              }    	              
+	              segment.set(prevPoint.x,prevPoint.y,point.x,point.y);
+	              if(segment.isPointOn(pt,diviation)){
+	                  return true;
+	              }
+	              prevPoint = point;
+	          }		
+	          
+	          return false;
+       } 	   
 	   paint(g2){
 		  g2.beginPath(); 
 		  g2.moveTo(this.points[0].x, this.points[0].y);
@@ -12655,6 +12986,31 @@ clone(){
 	  //copy.silent=false;
 	  return copy;
 	}	
+	/*
+paint(g2, viewportWindow){	
+	   let len=this.shapes.length;
+ 	   for(let i=0;i<len;i++){
+ 		   this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);  
+ 	   }
+ 	   this.shapes.forEach((shape)=>{	 	    	
+			if ((typeof shape.drawControlShape === 'function')&&shape.isSelected()) {					                
+				shape.drawControlShape(g2, viewportWindow,this.scalableTransformation);
+        	}
+ 	   });
+ 	   //grid
+       this.grid.paint(g2,viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
+        //coordinate system
+       if(this.coordinateSystem!=null){
+         this.coordinateSystem.paint(g2, viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
+       }	
+         //ruler
+	   this.ruler.paint(g2, viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
+        //frame
+       if(this.frame!=null){
+	     this.frame.paint(g2, viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
+       }
+}	
+*/
 parse(data){
 	 	   this.unitName=j$(data).find("name").text();
 	 	   this.grid.setGridUnits(j$(data).find("units").attr("raster"),core.Units.MM);
@@ -13273,16 +13629,6 @@ class FootprintContextMenu extends ContextMenu{
 constructor(component,placeholderid){
 		super(component,placeholderid);	
 	}	
-registerPadPopup(target,event){
-	var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
-	  items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
-	  items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
-	  items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
-	  items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
-	  items+="</table></div>";
-	  this.setContent(items,{target:target});	
-	  this.open(event);	
-	}
 registerLineSelectPopup(target,event){
 	  let bending=target.isBendingPointClicked(event.x,event.y);
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -13302,8 +13648,8 @@ registerLineSelectPopup(target,event){
 		items+="<tr id='bringfrontid'><td style='padding: 0.4em'>Bring To Front</td></tr>";	  
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-	    this.open(event);	
+	    this.setContent(event,items,{target:target});		
+	    
 }
 registerUnitPopup(target,event){	          	            
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -13317,8 +13663,8 @@ registerUnitPopup(target,event){
 	    items+="<tr id='pasteid'><td style='padding: 0.4em'>Paste</td></tr>";		    
 	    items+="<tr id='positiontocenterid'><td style='padding: 0.4em'>Position drawing to center</td></tr>";
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	    
-	    this.open(event);	
+	    this.setContent(event,items,{target:target});		    
+	    
 }
 registerBlockPopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -13329,8 +13675,8 @@ registerBlockPopup(target,event){
 	    items+="<tr id='leftrightid'><td style='padding: 0.4em'>Mirror Left-Right</td></tr>";
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-		this.open(event);		
+	    this.setContent(event,items,{target:target});		
+				
 }
 registerLinePopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -13338,23 +13684,8 @@ registerLinePopup(target,event){
 	    items+="<tr id='deletelineid'><td style='padding: 0.4em;'>Delete Line</td></tr>";	  
 	    items+="<tr id='cancelid'><td style='padding: 0.4em;'>Cancel</td></tr>";	    	    	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-	    this.open(event);	  	
+	    this.setContent(event,items,{target:target});	  	
 }
-//attachEventListeners(context){
-//	  var placeholder=document.getElementById('menu-items');		  
-//	  var rows=placeholder.getElementsByTagName("table")[0].rows;
-//	  var self=this;
-//	  for (var i = 0; i < rows.length; i++) {
-//	      //closure		   
-//	      (function(row) {
-//	          row.addEventListener("click", function() {	    		          	    	  		        	 
-//	        	  self.close();	        	  
-//	        	  self.actionPerformed(row.id,context);
-//	          });
-//	      })(rows[i]);
-//	  }
-//}
 actionPerformed(id,context){ 	
 	
    super.actionPerformed(id,context);
@@ -13473,6 +13804,9 @@ getCenter(){
 getTexture(){
   return this.texture;    
 }
+getClickableOrder(){
+	return 1;
+}
 setSide(side, line,angle) {
     this.copper=(core.Layer.Side.change(this.copper.getLayerMaskID()));
     this.texture.setSide(side, line, angle);
@@ -13484,7 +13818,7 @@ isSelected() {
    return this.texture.selection;
 }
 rotate(rotation) {	
-	this.texture.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	
+	this.texture.rotate(rotation.angle,rotation.origin);	
 }
 mirror(line) {
 
@@ -13616,12 +13950,12 @@ class RoundRect extends Shape{
 		 alpha+=360; 
 		}	
 		this.rotation=alpha;		
-		this.roundRect.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+		this.roundRect.rotate(rotation.angle,rotation.origin);
 	}
 	Resize(xoffset, yoffset,clickedPoint){
 		this.roundRect.resize(xoffset, yoffset,clickedPoint);
 	}
-	getOrderWeight(){
+	getClickableOrder(){
 		return this.roundRect.area; 
 	}	
 	toXML() {
@@ -13705,12 +14039,9 @@ class RoundRect extends Shape{
 		
 		g2.globalCompositeOperation = 'source-over';
 
-		if (this.isSelected()&&this.isControlPointVisible) {
-			this.drawControlPoints(g2, viewportWindow, scale);
-		}
 	}
 
-drawControlPoints(g2, viewportWindow, scale){
+drawControlShape(g2, viewportWindow, scale){
 	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.roundRect.vertices); 		
 	}	
 }
@@ -13817,7 +14148,7 @@ fromXML(data) {
 		 alpha+=360; 
 		}	
 		this.rotation=alpha;
-		this.circle.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+		this.circle.rotate(rotation.angle,rotation.origin);
 	}
 	Resize(xoffset, yoffset,point) {    
 		let radius=this.circle.r;
@@ -13881,14 +14212,12 @@ fromXML(data) {
 
 		g2.globalCompositeOperation = 'source-over';
 		
-		if (this.isSelected()&&this.isControlPointVisible) {
-			this.drawControlPoints(g2, viewportWindow, scale);
-  } 
+		  
  }
-drawControlPoints(g2, viewportWindow, scale) {
+drawControlShape(g2, viewportWindow, scale) {
 	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.circle.vertices);	
 }
-getOrderWeight(){
+getClickableOrder(){
 	return this.circle.area; 
 }	
 getResizingPoint() {
@@ -13937,7 +14266,7 @@ class Arc extends Shape{
 	    	this.resizeStartEndPoint((targetPoint.x-B.x),(targetPoint.y-B.y),isStartPoint);
 	    }			        
 	}
-	getOrderWeight(){
+	getClickableOrder(){
 		return this.arc.area; 
 	}
 	fromXML(data){
@@ -14043,7 +14372,7 @@ class Arc extends Shape{
 		 alpha+=360; 
 	  }	
 	  this.rotation=alpha;	
-	  this.arc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy)); 
+	  this.arc.rotate(rotation.angle,rotation.origin); 
 	}
 	mirror(line) {
 	  this.arc.mirror(line);
@@ -14256,7 +14585,7 @@ calculateResizingMidPoint(pt){
 move(xoffset,yoffset){
 	  this.arc.move(xoffset,yoffset);	
 	}
-	paint(g2, viewportWindow, scale,layersmask) {
+paint(g2, viewportWindow, scale,layersmask) {
 	    if((this.copper.getLayerMaskID()&layersmask)==0){
 	    	return;
 	    }
@@ -14301,14 +14630,10 @@ move(xoffset,yoffset){
 		g2._fill=undefined;
 		
 		g2.globalCompositeOperation = 'source-over';
-	
-		
-    if (this.isSelected()&&this.isControlPointVisible) {
-		this.drawControlPoints(g2, viewportWindow, scale);
-	}
+			    
 
 	}
-	drawControlPoints(g2, viewportWindow, scale) {
+	drawControlShape(g2, viewportWindow, scale) {		
 		utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,[this.arc.center,this.arc.start,this.arc.end,this.arc.middle]);	
 	}
 	setResizingPoint(pt){
@@ -14319,262 +14644,6 @@ move(xoffset,yoffset){
 	}
 }
 
-/*
- * Works with points but can not calculate start and end angle
- */
-
-//class Arc extends Shape{
-//	constructor(x,y,r,thickness,layermaskid){	
-//	        super(0, 0, 0,0,thickness,layermaskid);  
-//			this.setDisplayName("Arc");
-//			this.selectionRectWidth=3000;
-//			this.resizingPoint=null;
-//			this.arc=new d2.Arc(new d2.Point(x,y),r,50,-170);
-//			this.rotation=0;
-//			this.A=this.arc.start.clone();
-//			this.B=this.arc.end.clone();
-//			this.M=this.arc.middle.clone();			
-//			this.isLeftPlane=undefined;
-//	}
-//	clone() {
-//			var copy = new Arc(this.arc.center.x,this.arc.center.y, this.arc.r,this.thickness,this.copper.getLayerMaskID());			        
-//			return copy;
-//	}
-//	calculateShape() {
-//		return this.arc.box;	
-//	}
-//	getOrderWeight(){
-//		return this.arc.area; 
-//	}
-//	fromXML(data){
-//	        
-//	        this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));        
-//			let xx=parseInt(j$(data).attr("x"));
-//			let yy=parseInt(j$(data).attr("y"));
-//			
-//	 		if(j$(data).attr("width")!=undefined){
-//	 			let diameter=parseInt(parseInt(j$(data).attr("width")));
-//	 	        this.arc.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
-//	 	        this.arc.r=parseInt(diameter/2); 			
-//	 		}else{
-//	 			let radius=parseInt(parseInt(j$(data).attr("radius")));
-//	 	        this.arc.pc.set(xx,yy);
-//	 	        this.arc.r=radius; 			 		
-//	 		}        
-//			this.arc.startAngle = parseInt(j$(data).attr("start"));
-//	        this.arc.endAngle = parseInt(j$(data).attr("extend"));        
-//			this.thickness = (parseInt(j$(data).attr("thickness")));
-//			this.fill=parseInt(j$(data).attr("fill"));
-//	}
-//	toXML() {
-//	    return '<arc copper="'+this.copper.getName()+'"  x="'+utilities.roundFloat(this.arc.pc.x,4)+'" y="'+utilities.roundFloat(this.arc.pc.y,4)+'" radius="'+utilities.roundFloat(this.arc.r,4)+'"  thickness="'+this.thickness+'" start="'+utilities.roundFloat(this.arc.startAngle,2)+'" extend="'+utilities.roundFloat(this.arc.endAngle,2)+'" fill="'+this.fill+'" />';
-//	}
-//	setRadius(r){
-//		this.arc.r=r;	
-//	}
-//
-//	isControlRectClicked(x,y) {
-//	 if(this.isStartAnglePointClicked(x,y)){
-//		    return this.arc.start;
-//		 }
-//	 if(this.isExtendAnglePointClicked(x,y)){
-//		    return this.arc.end;
-//		 }
-//	 if(this.isMidPointClicked(x,y)){
-//		    return this.arc.middle;	 
-//		 }
-//	     return null;
-//	}
-//	isClicked(x, y) {
-//		if(this.arc.isPointOn(new d2.Point(x, y),this.thickness))
-//			return true;
-//		
-//		if (this.arc.contains(new d2.Point(x, y)))
-//			return true;
-//		else
-//			return false;
-//		}
-//	isMidPointClicked(x,y){
-//	    let p=this.arc.middle;
-//	    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
-//	                 this.selectionRectWidth, this.selectionRectWidth);
-//	    if (box.contains({x,y})) {
-//	        return true;
-//	    }else{                   
-//	        return false;
-//		}	
-//	}
-//isStartAnglePointClicked(x,y){	
-//    let p=this.arc.start;
-//    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
-//                 this.selectionRectWidth, this.selectionRectWidth);
-//    if (box.contains({x,y})) {
-//        return true;
-//    }else{                   
-//        return false;
-//	}
-//}
-//isExtendAnglePointClicked(x,y){
-//    let p=this.arc.end;
-//    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
-//                 this.selectionRectWidth, this.selectionRectWidth);
-//    if (box.contains({x,y})) {
-//        return true;
-//    }else{                   
-//        return false;
-//	}
-//}
-//
-//rotate(rotation){
-//		//fix angle
-//	  let alpha=this.rotation+rotation.angle;
-//	  if(alpha>=360){
-//			alpha-=360
-//	  }
-//	  if(alpha<0){
-//		 alpha+=360; 
-//	  }	
-//	  this.rotation=alpha;	
-//	  this.arc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy)); 
-//	}
-//mirror(line) {
-//	  this.arc.mirror(line);
-//	}
-//	/*
-//	 * Resize through mouse position point
-//	 */
-//Resize(xoffset, yoffset,point) {  
-//		//previous mid pont
-//		let oldM=this.M.clone();		
-//	    this.M=this.calculateResizingMidPoint(point);
-//        
-//         
-//		//mid point on line
-//		let m=new d2.Point((this.A.x+this.B.x)/2,(this.A.y+this.B.y)/2);
-//			
-//		
-//			let C=this.M;  //projection
-//			let C1=m;
-//	    
-//			let y=C1.distanceTo(C);
-//			let x=C1.distanceTo(this.A);
-//	    
-//			let l=(x*x)/y;
-//			let lambda=(l-y)/2;
-//
-//			let v=new d2.Vector(C,C1);
-//			let norm=v.normalize();			  
-//		
-//			let a=C1.x +lambda*norm.x;
-//			let b=C1.y + lambda*norm.y;
-//			let center=new d2.Point(a,b);
-//	        let r = center.distanceTo(this.A);
-//				        
-//	        
-//	     	let startAngle =new d2.Vector(center,this.A).slope;
-//			let endAngle = new d2.Vector(center, this.B).slope;
-//		
-//			let start = 360 - startAngle;		
-//			let end= (360-endAngle)-start;		
-//			
-//			if(this.arc.endAngle<0){  //negative extend
-//				if(end>0){			  
-//				  end=end-360;
-//				}
-//			}else{		//positive extend			
-//				if(end<0){ 					   
-//					end=360-Math.abs(end);
-//				}			
-//			}
-//			this.arc.center.set(center.x,center.y);
-//			this.arc.r=r;
-//			this.arc.startAngle=start;
-//			
-//	        //check if M and oldM on the same plane	    
-//		    if(utilities.isLeftPlane(this.A,this.B,this.M)!=utilities.isLeftPlane(this.A,this.B,oldM)){		     					
-//				if(this.arc.endAngle<0){  //negative extend
-//				 this.arc.endAngle=(360-end);
-//				}else{
-//				 this.arc.endAngle=-1*(360-end);	
-//				}						     		
-//		    }else{							
-//		    	this.arc.endAngle=end;			
-//		    }			   
-//		
-//	}
-//move(xoffset,yoffset){
-//	  this.arc.move(xoffset,yoffset);
-//	  //this.A.move(xoffset,yoffset);
-//	  //this.B.move(xoffset,yoffset);
-//	  //this.M.move(xoffset,yoffset);
-//	}
-//paint(g2, viewportWindow, scale,layersmask) {
-//	    if((this.copper.getLayerMaskID()&layersmask)==0){
-//	        return;
-//	      }
-//			var rect = this.arc.box;
-//			rect.scale(scale.getScale());
-//			if (!rect.intersects(viewportWindow)) {
-//				return;
-//			}
-//
-//			g2.globalCompositeOperation = 'lighter';
-//			g2.beginPath(); // clear the canvas context
-//			g2.lineCap = 'round';
-//
-//							
-//			g2.lineWidth = this.thickness * scale.getScale();
-//	        		
-//			
-//			if (this.fill == core.Fill.EMPTY) {
-//				if (this.selection) {
-//						g2.strokeStyle = "gray";
-//				} else {
-//						g2.strokeStyle = this.copper.getColor();
-//				}
-//				g2._fill=false;
-//			} else {
-//				if (this.selection) {
-//					g2.fillStyle = "gray";
-//				} else {
-//					g2.fillStyle = this.copper.getColor();
-//				}
-//				g2._fill=true;
-//			}
-//
-//			let a=this.arc.clone();
-//			a.scale(scale.getScale());
-//			a.move( - viewportWindow.x, - viewportWindow.y);		
-//			a.paint(g2);
-//
-//			g2._fill=undefined;
-//			
-//			g2.globalCompositeOperation = 'source-over';
-//		
-//			
-//	    //if (this.isSelected()&&this.isControlPointVisible) {
-//			this.drawControlPoints(g2, viewportWindow, scale);
-//		//}
-//
-//	}
-//	drawControlPoints(g2, viewportWindow, scale) {
-//	    //utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.A,this.B,this.M,this.O]);
-//		utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.arc.center,this.arc.start,this.arc.end,this.arc.middle]);
-//	}
-//	setResizingPoint(pt){
-//		this.resizingPoint=pt;
-//	}
-//	getResizingPoint() {
-//		return this.resizingPoint;
-//	}
-//	calculateResizingMidPoint(pt){
-//		let middle=new d2.Point((this.A.x+this.B.x)/2,(this.A.y+this.B.y)/2);
-//		let line=new d2.Line(middle,this.M);
-//		return line.projectionPoint(new d2.Point(pt.x,pt.y));	
-//	}
-//
-//
-//	}
 
 class SolidRegion extends Shape{
 	constructor(layermaskId) {
@@ -14593,7 +14662,7 @@ clone(){
       copy.rotation=this.rotation;
       return copy;
 }
-getOrderWeight(){
+getClickableOrder(){
 	return this.polygon.box.area; 
 }
 alignResizingPointToGrid(targetPoint) {
@@ -14669,7 +14738,7 @@ rotate(rotation) {
 	 alpha+=360; 
 	}	
 	this.rotation=alpha;
-	this.polygon.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	this.polygon.rotate(rotation.angle,rotation.origin);
 }
 paint(g2, viewportWindow, scale,layersmask) {		
     if((this.copper.getLayerMaskID()&layersmask)==0){
@@ -14706,13 +14775,10 @@ paint(g2, viewportWindow, scale,layersmask) {
 	g2.globalCompositeOperation = 'lighter';
 	a.paint(g2);
 	g2.globalCompositeOperation = 'source-over';
-	g2._fill=false;
-    
-	if (this.isSelected()) {
-		this.drawControlPoints(g2, viewportWindow, scale);
-	}
+	g2._fill=false;    
 }
-drawControlPoints(g2, viewportWindow, scale) {
+
+drawControlShape(g2, viewportWindow, scale) {
 	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.polygon.points);	
 }
 toXML() {
@@ -14803,10 +14869,7 @@ paint(g2, viewportWindow, scale,layersmask) {
 		a.paint(g2);
 		
 		
-		g2.globalCompositeOperation = 'source-over';
-		if (this.selection&&this.isControlPointVisible) {
-			this.drawControlPoints(g2, viewportWindow, scale);
-		}
+		g2.globalCompositeOperation = 'source-over';				
 
 }
 
@@ -14861,9 +14924,9 @@ class Drill{
 	 setWidth(width){
 		 this.circle.r=width/2;
 	 }
-	 rotate(rotation) {
-		 this.circle.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
-	 }	   
+	 //rotate(rotation) {
+	 //	 this.circle.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	 //}	   
 	 mirror( line) {
 	       this.circle.mirror(line);
 	 }
@@ -15078,7 +15141,7 @@ alignToGrid(isRequired){
 	     this.move(point.x - center.x,point.y - center.y);
 	     return null;     
 	}	
-getOrderWeight(){
+getClickableOrder(){
 	     return 2; 
 	}
 isClicked(x,y){
@@ -15144,12 +15207,12 @@ rotate(rotation){
 	 if(alpha<0){
 		 alpha+=360; 
 	 }
-	this.shape.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	
+	this.shape.rotate(rotation.angle,rotation.origin);	
     if(this.drill!=null){
-     this.drill.rotate(rotation);
+     this.drill.rotate(rotation.angle,rotation.origin);
     }	
-	this.number.setRotation(alpha,new d2.Point(rotation.originx,rotation.originy));
-	this.netvalue.setRotation(alpha,new d2.Point(rotation.originx,rotation.originy));
+	this.number.setRotation(alpha,rotation.origin);
+	this.netvalue.setRotation(alpha,rotation.origin);
 	this.rotation=alpha;
 	
 	}
@@ -15208,29 +15271,45 @@ getShape(){
 }    
 setWidth(width){
 	        this.width=width;
-	        this.shape.setWidth(width);    
+	        this.shape.setSize(width,this.height);    
 	    }
-setHeight(height){
-	        this.height=height;
-	        this.shape.setHeight(height);
+setHeight(height){	        
+			this.height=height;
+	        this.shape.setSize(this.width,height);
 	    }
 calculateShape() {
 	return this.shape.box;
 } 
 validateClearance(source){
-    //is different layer and SMD -> no clearance
+    //1 is different layer and SMD -> no clearance
     if ((source.copper.getLayerMaskID() & this.copper.getLayerMaskID()) == 0) {
         //if(this.type==PadType.SMD)
            return false; //not on the same layer
     }	
-	return true;
+    //2. is same net 
+    //if(isSameNet(source)&&source.getPadConnection()==PadShape.PadConnection.DIRECT){
+    //    return;
+    //}
+    
+    //3. is pad  within copper area
+    let rect = this.getBoundingShape();
+        rect.grow(source.clearance);
+        
+    if(!source.getBoundingShape().intersects(rect)){
+          return false; 
+    }  	
+    return true;
 }
 drawClearence(g2,viewportWindow,scale,source){
     if(!this.validateClearance(source)){
         return;
     }
-	
+    
+    //g2.save();     
+    //g2.clip(source.clip);
+
 	this.shape.drawClearence(g2,viewportWindow,scale,source);
+	//g2.restore();
 }
 paint(g2,viewportWindow,scale,layersmask){
 	if((this.copper.getLayerMaskID()&layersmask)!=0) {
@@ -15324,12 +15403,10 @@ class CircularShape{
 	get center(){
 		return this.circle.center;	
 	}
-    setWidth(width) {
+    setSize(width,height) {
 	   this.circle.r=width/2;
 	}
-    setHeight(height){
-	
-    }
+    
 
 }
 //------------RectangularShape----------------
@@ -15405,13 +15482,9 @@ get box(){
 get center(){
 	return this.rect.box.center;	
 }
-setWidth(width) {
-		   this.rect.setSize(this.pad.width,this.pad.height);
-		   this.rect.rotate(this.pad.rotate);
-}
-setHeight(height) {
-		   this.rect.setSize(this.pad.width,this.pad.height);
-		   this.rect.rotate(this.pad.rotate);
+setSize(width,height) {
+		   this.rect.setSize(width,height);
+		   this.rect.rotate(this.pad.rotation);
 }
 }
 //------------OvalShape-----------------------
@@ -15481,12 +15554,9 @@ get box(){
 get center(){
 	return this.obround.center;	
 }
-setWidth(width) {	    
-	    this.obround.setWidth(width);
-}
-setHeight(height) {	    
-	    this.obround.setHeight(height);
-	    this.obround.rotate(this.pad.rotate);
+setSize(width,height) {	    
+	    this.obround.setSize(width,height);
+	    this.obround.rotate(this.pad.rotation);
 }
 }
 
@@ -15560,12 +15630,11 @@ move(xoffset, yoffset) {
 mirror(line) {
    this.hexagon.mirror(line);
 }
-setWidth(width) {
+setSize(width,height) {
    this.hexagon.setWidth(width);
+   this.hexagon.rotate(this.pad.rotation);
 }
-setHeight(height) {
-            
-}	
+	
 }
 module.exports ={
 	GlyphLabel,
@@ -15815,3 +15884,5 @@ module.exports =FootprintLoadView
   
 });})();require('___globals___');
 
+
+//# sourceMappingURL=board.js.map

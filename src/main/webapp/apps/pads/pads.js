@@ -564,7 +564,7 @@ setLayerVisible(mask,flag) {
 }
 	  
 }
-
+/*
 var AffineTransform=(function(){
 	var x,y,a;
 	return{
@@ -573,8 +573,7 @@ var AffineTransform=(function(){
 			y=originy;
 			a=angle;
 			return {
-				originx:x,
-				originy:y,
+				origin:new d2.Point(originx,originy),				
 				angle:a,
 				toString:function(){
 				  return "x="+x+",y="+y+"angle="+a;	
@@ -583,7 +582,7 @@ var AffineTransform=(function(){
 		},
 	}; 
 })();
-
+*/
 class ScalableTransformation{
   constructor(scaleFactor,minScaleFactor,maxScaleFactor) {	    
         this.reset(0.5,scaleFactor,minScaleFactor,maxScaleFactor);
@@ -1063,7 +1062,7 @@ module.exports ={
 	ViewportWindow,
 	Grid,	
 	UnitFrame,
-	AffineTransform,
+	//AffineTransform,
     MM_TO_COORD,
     COORD_TO_MM,
 	UnitSelectionPanel,
@@ -1162,7 +1161,7 @@ class MoveEventHandle extends EventHandle{
             }else if(this.target["getPinsRect"]!=undefined){
             	this.component.popup.registerPadPopup(this.target,event);
             }
-            else{
+            else{	
                 this.component.popup.registerShapePopup(this.target,event);
                 
             }
@@ -1319,15 +1318,17 @@ class UnitEventHandle extends EventHandle{
 	      this.selectionBox.setRect(x,y,Math.abs(w),Math.abs(h));	
 	      this.component.repaint();
 		  
-		  this.component.ctx.globalCompositeOperation='lighter';
-	      this.component.ctx.beginPath();
-	      this.component.ctx.rect(this.selectionBox.x,this.selectionBox.y,this.selectionBox.width,this.selectionBox.height);
-	      this.component.ctx.fillStyle = 'gray';
-	      this.component.ctx.fill();
-		  this.component.ctx.globalCompositeOperation='source-over';
+		  this.component.ctx.save();		  
+	      this.component.ctx.globalAlpha =0.5; 		  
+		  this.component.ctx.fillStyle = 'blue';
+		  this.component.ctx.fillRect(this.selectionBox.x,this.selectionBox.y,this.selectionBox.width,this.selectionBox.height);
+          		  
+          
 	      this.component.ctx.lineWidth = 1;
-	      this.component.ctx.strokeStyle = '#5B5B5B';
+	      this.component.ctx.strokeStyle = 'blue';
 	      this.component.ctx.stroke();
+		  this.component.ctx.restore();
+
 	 }
 	 mouseMove(event){
 
@@ -2081,11 +2082,33 @@ var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').Defaul
 
 class ContextMenu{
 constructor(component,placeholderid){
-	this.component=component;
-	this.placeholder = document.getElementById(placeholderid);	
+	this.menu=j$('#popup-menu');
+	this.menu.addClass('visible'); 
+	this.component=component;	
 	this.content="";
+	this.context;
 	this.x=this.y=0;
-	this.opened = false;	
+	this.opened = false;
+	this.component.canvas.contextmenu(j$.proxy(this.conontextMenuHandler,this));
+}
+conontextMenuHandler(e){
+   e.preventDefault();
+   e.stopPropagation();
+   this.opened = true;	
+  // get mouse position relative to the canvas
+   var x=parseInt(e.originalEvent.offsetX);
+   var y=parseInt(e.originalEvent.offsetY);
+  
+   this.menu.empty();
+   this.menu.show();    
+   this.menu.css({left:x,top:y});
+   this.menu.html(this.content);
+   let that=this;
+   j$('#menu-items tr').click(function(){            
+		that.menu.hide();      
+		that.actionPerformed(j$(this)[0].id,that.context);	  
+   });
+   return false;		
 }
 registerShapePopup(target,event){
 	var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -2098,8 +2121,8 @@ registerShapePopup(target,event){
 	  items+="<tr id='bringfrontid'><td style='padding: 0.4em'>Bring To Front</td></tr>";	  
 	  items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	  items+="</table></div>";
-	  this.setContent(items,{target:target});	
-	  this.open(event);	
+	  this.setContent(event,items,{target:target});	
+	  //this.open(event);	
 	}
 registerLineSelectPopup(target,event){
 	  let bending=target.isBendingPointClicked(event.x,event.y);
@@ -2118,37 +2141,42 @@ registerLineSelectPopup(target,event){
 	    }
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-	    this.open(event);	
+	    this.setContent(event,items,{target:target});	
+	    //this.open(event);	
 }
-open(event){ 
-	this.x=event.x;
-	this.y=event.y;
-    this.placeholder.style.left=event.data.originalEvent.offsetX+"px";
-    this.placeholder.style.top=event.data.originalEvent.offsetY+"px";
-    this.show();				  
-}
-show(){
-    if (!this.opened) {
-	   this.placeholder.className = "visible";
-	}    
-	this.opened = true;		  		  
-}
-close() {
-	
-	j$(this.placeholder).removeClass("visible");
-	j$(this.placeholder).empty();
+//open(event){ 	
+	//this.x=event.x;
+	//this.y=event.y;
+    //this.placeholder.style.left=event.data.originalEvent.offsetX+"px";
+    //this.placeholder.style.top=event.data.originalEvent.offsetY+"px";
+    //this.show();				  
+//}
+//show(){
+    //if (!this.opened) {
+	//   this.placeholder.className = "visible";
+	//}    
+	//this.opened = true;			  		 
+//}
+
+close() {	
+	this.menu.hide();
+	this.content="";
     this.opened = false;  
 }
+
 isOpen(){
 	return this.opened;
 }
-setContent(content,context) {
-    this.placeholder.innerHTML ="<div class='content'>" + content + "</div>";
+setContent(event,content,context) {
+	this.x=event.x;
+	this.y=event.y;
+	this.context=context;
+	this.content="<div class='content'>" + content + "</div>";
+    //this.placeholder.innerHTML ="<div class='content'>" + content + "</div>";
     //attach event listeners
-    this.attachEventListeners(context);
+    //this.attachEventListeners(context);
 }	
-
+/*
 attachEventListeners(context){
 	  var placeholder=document.getElementById('menu-items');		  
 	  var rows=placeholder.getElementsByTagName("table")[0].rows;
@@ -2163,7 +2191,7 @@ attachEventListeners(context){
 	      })(rows[i]);
 	  }
 }
-
+*/
 actionPerformed(id,context){
 	if(id==='sendbackid'){
 		let unitMgr = UnitMgr.getInstance();
@@ -2251,13 +2279,11 @@ actionPerformed(id,context){
          let shapes= this.component.getModel().getUnit().getSelectedShapes(false);         
          if(shapes.length==0){
              return; 
-         }
-         
+         }         
          let r=this.component.getModel().getUnit().getShapesRect(shapes);       
          let unitMgr = UnitMgr.getInstance();
          
-         unitMgr.rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(id==("rotateleftid")?1:-1)*(90.0)));
-         
+         unitMgr.rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(id==("rotateleftid")?1:-1)*(90.0)));         
          unitMgr.alignBlock(this.component.getModel().getUnit().grid,shapes);
          this.component.repaint();		 
 	 }
@@ -2390,7 +2416,7 @@ setHeight (height) {
 getHeight() {
 		return this.height;
 	}
-getDrawingOrder() {
+getDrawingLayerPriority() {
     return 100;
 }
 getClickableOrder() {
@@ -2605,7 +2631,7 @@ reset(...args) {
    }
 }
 
-Resize(xoffset, yoffset, clickedPoint) {
+Resize(xoffset, yoffset, clickedPoint) {	
 	clickedPoint.set(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);
 }
@@ -2782,6 +2808,8 @@ isBendingPointClicked( x,  y) {
 	return point;
 }
 isControlRectClicked(x, y) {
+	return this.isBendingPointClicked(x,y);
+	/*
 	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
 	let point = null;
 
@@ -2795,6 +2823,7 @@ isControlRectClicked(x, y) {
 	});
 
 	return point;
+	*/
 }
 
 move(xoffset, yoffset) {
@@ -2823,16 +2852,17 @@ rotate(rotation) {
 	 alpha+=360; 
 	}	
 	this.rotation=alpha;	
-	this.polyline.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	this.polyline.rotate(rotation.angle,rotation.origin);
 }
 calculateShape() {
 	return this.polyline.box;
 }
 
 
-drawControlPoints(g2, viewportWindow, scale) {
+drawControlShape(g2, viewportWindow, scale) {
 	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.polyline.points);	
 }
+
 isFloating() {
 	return (!(this.floatingStartPoint
 								.equals(this.floatingEndPoint) && this.floatingStartPoint
@@ -3141,7 +3171,7 @@ class SymbolFontTexture{
       return this.shape.alignment;
 	}	
 	rotate(rotation){		   
-	   this.shape.anchorPoint.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	   this.shape.anchorPoint.rotate(rotation.angle,rotation.origin);
 	   if(rotation.angle<0){  //clockwise
 		   this.shape.alignment=TextAlignment.rotate(this.shape.alignment,true);
 	   }else{
@@ -4294,11 +4324,16 @@ notifyListeners(eventType) {
      this.height = height;
      this.frame.setSize(width, height);	
  }
-paint(g2, viewportWindow){
- 	   let len=this.shapes.length;
+paint(g2, viewportWindow){	
+	   let len=this.shapes.length;
  	   for(let i=0;i<len;i++){
  		   this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);  
  	   }
+ 	   this.shapes.forEach((shape)=>{	 	    	
+			if ((typeof shape.drawControlShape === 'function')&&shape.isSelected()) {					                
+				shape.drawControlShape(g2, viewportWindow,this.scalableTransformation);
+        	}
+ 	   });
  	   //grid
        this.grid.paint(g2,viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
         //coordinate system
@@ -4311,7 +4346,7 @@ paint(g2, viewportWindow){
        if(this.frame!=null){
 	     this.frame.paint(g2, viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
        }
-     }    
+}    
        
 }
 
@@ -4413,7 +4448,7 @@ class UnitComponent{
   	  //keypress
   	  j$('body').keydown(j$.proxy(this.keyPress,this));
   	  //right popup
-  	  j$('body').on('contextmenu', '#'+canvas, function(e){ return false; });
+  	  //j$('body').on('contextmenu', '#'+canvas, function(e){ return false; });
   	  //mouse wheel event
   	  j$('#'+canvas).bind('mousewheel',j$.proxy(this.mouseWheelMoved,this));
   	  //mouse click event 
@@ -5524,6 +5559,13 @@ module.exports = function(d2) {
               this.min.y > other.max.y
           );
       }
+	  grow(offset){
+        this.min.x-=offset;
+        this.min.y-=offset;
+        
+        this.max.x+=offset;
+        this.max.y+=offset;
+      }
       move(offsetX,offsetY){
     	  this.min.move(offsetX,offsetY);
     	  this.max.move(offsetX,offsetY);
@@ -6402,14 +6444,12 @@ module.exports = function(d2) {
 		                pa,pb,pc,pd]
 		            );			
 		}
-		setWidth(width){
-			this.width=width;	
-			this.reset();
-		}
-		setHeight(height){
-		    this.height=height;
-		    this.reset();
-		}
+
+		setSize(width,height){
+			  this.height=height;
+			  this.width=width;
+			  this.reset();
+		}		
 		/**
 		if (x-x1)/(x2-x1) = (y-y1)/(y2-y1) = alpha (a constant), then the point C(x,y) will lie on the line between pts 1 & 2.
 		If alpha < 0.0, then C is exterior to point 1.
@@ -6447,7 +6487,7 @@ module.exports = function(d2) {
 		get center(){
 			return this.pc;
 		}		
-		reset(){
+		reset(){			
 			let w=0,h=0;
 			if(this.width>this.height){  //horizontal
 			  w=this.width;
@@ -7077,7 +7117,24 @@ module.exports = function(d2) {
        }
 	   get vertices() {
 		    return this.points;	
-	   } 	   
+	   } 
+       isPointOnSegment(pt,diviation){    	       
+     	  let segment=new d2.Segment(0,0,0,0);	   
+	          let prevPoint = this.points[0];        
+	          for(let point of this.points){    	        	  
+	              if(prevPoint.equals(point)){    	            	  
+	            	  prevPoint = point;
+	                  continue;
+	              }    	              
+	              segment.set(prevPoint.x,prevPoint.y,point.x,point.y);
+	              if(segment.isPointOn(pt,diviation)){
+	                  return true;
+	              }
+	              prevPoint = point;
+	          }		
+	          
+	          return false;
+       } 	   
 	   paint(g2){
 		  g2.beginPath(); 
 		  g2.moveTo(this.points[0].x, this.points[0].y);
@@ -8413,6 +8470,31 @@ clone(){
 	  //copy.silent=false;
 	  return copy;
 	}	
+	/*
+paint(g2, viewportWindow){	
+	   let len=this.shapes.length;
+ 	   for(let i=0;i<len;i++){
+ 		   this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);  
+ 	   }
+ 	   this.shapes.forEach((shape)=>{	 	    	
+			if ((typeof shape.drawControlShape === 'function')&&shape.isSelected()) {					                
+				shape.drawControlShape(g2, viewportWindow,this.scalableTransformation);
+        	}
+ 	   });
+ 	   //grid
+       this.grid.paint(g2,viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
+        //coordinate system
+       if(this.coordinateSystem!=null){
+         this.coordinateSystem.paint(g2, viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
+       }	
+         //ruler
+	   this.ruler.paint(g2, viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
+        //frame
+       if(this.frame!=null){
+	     this.frame.paint(g2, viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
+       }
+}	
+*/
 parse(data){
 	 	   this.unitName=j$(data).find("name").text();
 	 	   this.grid.setGridUnits(j$(data).find("units").attr("raster"),core.Units.MM);
@@ -9162,16 +9244,6 @@ class FootprintContextMenu extends ContextMenu{
 constructor(component,placeholderid){
 		super(component,placeholderid);	
 	}	
-registerPadPopup(target,event){
-	var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
-	  items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
-	  items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
-	  items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
-	  items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
-	  items+="</table></div>";
-	  this.setContent(items,{target:target});	
-	  this.open(event);	
-	}
 registerLineSelectPopup(target,event){
 	  let bending=target.isBendingPointClicked(event.x,event.y);
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -9191,8 +9263,8 @@ registerLineSelectPopup(target,event){
 		items+="<tr id='bringfrontid'><td style='padding: 0.4em'>Bring To Front</td></tr>";	  
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-	    this.open(event);	
+	    this.setContent(event,items,{target:target});		
+	    
 }
 registerUnitPopup(target,event){	          	            
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -9206,8 +9278,8 @@ registerUnitPopup(target,event){
 	    items+="<tr id='pasteid'><td style='padding: 0.4em'>Paste</td></tr>";		    
 	    items+="<tr id='positiontocenterid'><td style='padding: 0.4em'>Position drawing to center</td></tr>";
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	    
-	    this.open(event);	
+	    this.setContent(event,items,{target:target});		    
+	    
 }
 registerBlockPopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -9218,8 +9290,8 @@ registerBlockPopup(target,event){
 	    items+="<tr id='leftrightid'><td style='padding: 0.4em'>Mirror Left-Right</td></tr>";
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-		this.open(event);		
+	    this.setContent(event,items,{target:target});		
+				
 }
 registerLinePopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -9227,23 +9299,8 @@ registerLinePopup(target,event){
 	    items+="<tr id='deletelineid'><td style='padding: 0.4em;'>Delete Line</td></tr>";	  
 	    items+="<tr id='cancelid'><td style='padding: 0.4em;'>Cancel</td></tr>";	    	    	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-	    this.open(event);	  	
+	    this.setContent(event,items,{target:target});	  	
 }
-//attachEventListeners(context){
-//	  var placeholder=document.getElementById('menu-items');		  
-//	  var rows=placeholder.getElementsByTagName("table")[0].rows;
-//	  var self=this;
-//	  for (var i = 0; i < rows.length; i++) {
-//	      //closure		   
-//	      (function(row) {
-//	          row.addEventListener("click", function() {	    		          	    	  		        	 
-//	        	  self.close();	        	  
-//	        	  self.actionPerformed(row.id,context);
-//	          });
-//	      })(rows[i]);
-//	  }
-//}
 actionPerformed(id,context){ 	
 	
    super.actionPerformed(id,context);
@@ -9362,6 +9419,9 @@ getCenter(){
 getTexture(){
   return this.texture;    
 }
+getClickableOrder(){
+	return 1;
+}
 setSide(side, line,angle) {
     this.copper=(core.Layer.Side.change(this.copper.getLayerMaskID()));
     this.texture.setSide(side, line, angle);
@@ -9373,7 +9433,7 @@ isSelected() {
    return this.texture.selection;
 }
 rotate(rotation) {	
-	this.texture.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	
+	this.texture.rotate(rotation.angle,rotation.origin);	
 }
 mirror(line) {
 
@@ -9505,12 +9565,12 @@ class RoundRect extends Shape{
 		 alpha+=360; 
 		}	
 		this.rotation=alpha;		
-		this.roundRect.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+		this.roundRect.rotate(rotation.angle,rotation.origin);
 	}
 	Resize(xoffset, yoffset,clickedPoint){
 		this.roundRect.resize(xoffset, yoffset,clickedPoint);
 	}
-	getOrderWeight(){
+	getClickableOrder(){
 		return this.roundRect.area; 
 	}	
 	toXML() {
@@ -9594,12 +9654,9 @@ class RoundRect extends Shape{
 		
 		g2.globalCompositeOperation = 'source-over';
 
-		if (this.isSelected()&&this.isControlPointVisible) {
-			this.drawControlPoints(g2, viewportWindow, scale);
-		}
 	}
 
-drawControlPoints(g2, viewportWindow, scale){
+drawControlShape(g2, viewportWindow, scale){
 	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.roundRect.vertices); 		
 	}	
 }
@@ -9706,7 +9763,7 @@ fromXML(data) {
 		 alpha+=360; 
 		}	
 		this.rotation=alpha;
-		this.circle.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+		this.circle.rotate(rotation.angle,rotation.origin);
 	}
 	Resize(xoffset, yoffset,point) {    
 		let radius=this.circle.r;
@@ -9770,14 +9827,12 @@ fromXML(data) {
 
 		g2.globalCompositeOperation = 'source-over';
 		
-		if (this.isSelected()&&this.isControlPointVisible) {
-			this.drawControlPoints(g2, viewportWindow, scale);
-  } 
+		  
  }
-drawControlPoints(g2, viewportWindow, scale) {
+drawControlShape(g2, viewportWindow, scale) {
 	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.circle.vertices);	
 }
-getOrderWeight(){
+getClickableOrder(){
 	return this.circle.area; 
 }	
 getResizingPoint() {
@@ -9826,7 +9881,7 @@ class Arc extends Shape{
 	    	this.resizeStartEndPoint((targetPoint.x-B.x),(targetPoint.y-B.y),isStartPoint);
 	    }			        
 	}
-	getOrderWeight(){
+	getClickableOrder(){
 		return this.arc.area; 
 	}
 	fromXML(data){
@@ -9932,7 +9987,7 @@ class Arc extends Shape{
 		 alpha+=360; 
 	  }	
 	  this.rotation=alpha;	
-	  this.arc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy)); 
+	  this.arc.rotate(rotation.angle,rotation.origin); 
 	}
 	mirror(line) {
 	  this.arc.mirror(line);
@@ -10145,7 +10200,7 @@ calculateResizingMidPoint(pt){
 move(xoffset,yoffset){
 	  this.arc.move(xoffset,yoffset);	
 	}
-	paint(g2, viewportWindow, scale,layersmask) {
+paint(g2, viewportWindow, scale,layersmask) {
 	    if((this.copper.getLayerMaskID()&layersmask)==0){
 	    	return;
 	    }
@@ -10190,14 +10245,10 @@ move(xoffset,yoffset){
 		g2._fill=undefined;
 		
 		g2.globalCompositeOperation = 'source-over';
-	
-		
-    if (this.isSelected()&&this.isControlPointVisible) {
-		this.drawControlPoints(g2, viewportWindow, scale);
-	}
+			    
 
 	}
-	drawControlPoints(g2, viewportWindow, scale) {
+	drawControlShape(g2, viewportWindow, scale) {		
 		utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,[this.arc.center,this.arc.start,this.arc.end,this.arc.middle]);	
 	}
 	setResizingPoint(pt){
@@ -10208,262 +10259,6 @@ move(xoffset,yoffset){
 	}
 }
 
-/*
- * Works with points but can not calculate start and end angle
- */
-
-//class Arc extends Shape{
-//	constructor(x,y,r,thickness,layermaskid){	
-//	        super(0, 0, 0,0,thickness,layermaskid);  
-//			this.setDisplayName("Arc");
-//			this.selectionRectWidth=3000;
-//			this.resizingPoint=null;
-//			this.arc=new d2.Arc(new d2.Point(x,y),r,50,-170);
-//			this.rotation=0;
-//			this.A=this.arc.start.clone();
-//			this.B=this.arc.end.clone();
-//			this.M=this.arc.middle.clone();			
-//			this.isLeftPlane=undefined;
-//	}
-//	clone() {
-//			var copy = new Arc(this.arc.center.x,this.arc.center.y, this.arc.r,this.thickness,this.copper.getLayerMaskID());			        
-//			return copy;
-//	}
-//	calculateShape() {
-//		return this.arc.box;	
-//	}
-//	getOrderWeight(){
-//		return this.arc.area; 
-//	}
-//	fromXML(data){
-//	        
-//	        this.copper =core.Layer.Copper.valueOf(j$(data).attr("copper"));        
-//			let xx=parseInt(j$(data).attr("x"));
-//			let yy=parseInt(j$(data).attr("y"));
-//			
-//	 		if(j$(data).attr("width")!=undefined){
-//	 			let diameter=parseInt(parseInt(j$(data).attr("width")));
-//	 	        this.arc.pc.set(xx+(parseInt(diameter/2)),yy+(parseInt(diameter/2)));
-//	 	        this.arc.r=parseInt(diameter/2); 			
-//	 		}else{
-//	 			let radius=parseInt(parseInt(j$(data).attr("radius")));
-//	 	        this.arc.pc.set(xx,yy);
-//	 	        this.arc.r=radius; 			 		
-//	 		}        
-//			this.arc.startAngle = parseInt(j$(data).attr("start"));
-//	        this.arc.endAngle = parseInt(j$(data).attr("extend"));        
-//			this.thickness = (parseInt(j$(data).attr("thickness")));
-//			this.fill=parseInt(j$(data).attr("fill"));
-//	}
-//	toXML() {
-//	    return '<arc copper="'+this.copper.getName()+'"  x="'+utilities.roundFloat(this.arc.pc.x,4)+'" y="'+utilities.roundFloat(this.arc.pc.y,4)+'" radius="'+utilities.roundFloat(this.arc.r,4)+'"  thickness="'+this.thickness+'" start="'+utilities.roundFloat(this.arc.startAngle,2)+'" extend="'+utilities.roundFloat(this.arc.endAngle,2)+'" fill="'+this.fill+'" />';
-//	}
-//	setRadius(r){
-//		this.arc.r=r;	
-//	}
-//
-//	isControlRectClicked(x,y) {
-//	 if(this.isStartAnglePointClicked(x,y)){
-//		    return this.arc.start;
-//		 }
-//	 if(this.isExtendAnglePointClicked(x,y)){
-//		    return this.arc.end;
-//		 }
-//	 if(this.isMidPointClicked(x,y)){
-//		    return this.arc.middle;	 
-//		 }
-//	     return null;
-//	}
-//	isClicked(x, y) {
-//		if(this.arc.isPointOn(new d2.Point(x, y),this.thickness))
-//			return true;
-//		
-//		if (this.arc.contains(new d2.Point(x, y)))
-//			return true;
-//		else
-//			return false;
-//		}
-//	isMidPointClicked(x,y){
-//	    let p=this.arc.middle;
-//	    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
-//	                 this.selectionRectWidth, this.selectionRectWidth);
-//	    if (box.contains({x,y})) {
-//	        return true;
-//	    }else{                   
-//	        return false;
-//		}	
-//	}
-//isStartAnglePointClicked(x,y){	
-//    let p=this.arc.start;
-//    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
-//                 this.selectionRectWidth, this.selectionRectWidth);
-//    if (box.contains({x,y})) {
-//        return true;
-//    }else{                   
-//        return false;
-//	}
-//}
-//isExtendAnglePointClicked(x,y){
-//    let p=this.arc.end;
-//    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
-//                 this.selectionRectWidth, this.selectionRectWidth);
-//    if (box.contains({x,y})) {
-//        return true;
-//    }else{                   
-//        return false;
-//	}
-//}
-//
-//rotate(rotation){
-//		//fix angle
-//	  let alpha=this.rotation+rotation.angle;
-//	  if(alpha>=360){
-//			alpha-=360
-//	  }
-//	  if(alpha<0){
-//		 alpha+=360; 
-//	  }	
-//	  this.rotation=alpha;	
-//	  this.arc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy)); 
-//	}
-//mirror(line) {
-//	  this.arc.mirror(line);
-//	}
-//	/*
-//	 * Resize through mouse position point
-//	 */
-//Resize(xoffset, yoffset,point) {  
-//		//previous mid pont
-//		let oldM=this.M.clone();		
-//	    this.M=this.calculateResizingMidPoint(point);
-//        
-//         
-//		//mid point on line
-//		let m=new d2.Point((this.A.x+this.B.x)/2,(this.A.y+this.B.y)/2);
-//			
-//		
-//			let C=this.M;  //projection
-//			let C1=m;
-//	    
-//			let y=C1.distanceTo(C);
-//			let x=C1.distanceTo(this.A);
-//	    
-//			let l=(x*x)/y;
-//			let lambda=(l-y)/2;
-//
-//			let v=new d2.Vector(C,C1);
-//			let norm=v.normalize();			  
-//		
-//			let a=C1.x +lambda*norm.x;
-//			let b=C1.y + lambda*norm.y;
-//			let center=new d2.Point(a,b);
-//	        let r = center.distanceTo(this.A);
-//				        
-//	        
-//	     	let startAngle =new d2.Vector(center,this.A).slope;
-//			let endAngle = new d2.Vector(center, this.B).slope;
-//		
-//			let start = 360 - startAngle;		
-//			let end= (360-endAngle)-start;		
-//			
-//			if(this.arc.endAngle<0){  //negative extend
-//				if(end>0){			  
-//				  end=end-360;
-//				}
-//			}else{		//positive extend			
-//				if(end<0){ 					   
-//					end=360-Math.abs(end);
-//				}			
-//			}
-//			this.arc.center.set(center.x,center.y);
-//			this.arc.r=r;
-//			this.arc.startAngle=start;
-//			
-//	        //check if M and oldM on the same plane	    
-//		    if(utilities.isLeftPlane(this.A,this.B,this.M)!=utilities.isLeftPlane(this.A,this.B,oldM)){		     					
-//				if(this.arc.endAngle<0){  //negative extend
-//				 this.arc.endAngle=(360-end);
-//				}else{
-//				 this.arc.endAngle=-1*(360-end);	
-//				}						     		
-//		    }else{							
-//		    	this.arc.endAngle=end;			
-//		    }			   
-//		
-//	}
-//move(xoffset,yoffset){
-//	  this.arc.move(xoffset,yoffset);
-//	  //this.A.move(xoffset,yoffset);
-//	  //this.B.move(xoffset,yoffset);
-//	  //this.M.move(xoffset,yoffset);
-//	}
-//paint(g2, viewportWindow, scale,layersmask) {
-//	    if((this.copper.getLayerMaskID()&layersmask)==0){
-//	        return;
-//	      }
-//			var rect = this.arc.box;
-//			rect.scale(scale.getScale());
-//			if (!rect.intersects(viewportWindow)) {
-//				return;
-//			}
-//
-//			g2.globalCompositeOperation = 'lighter';
-//			g2.beginPath(); // clear the canvas context
-//			g2.lineCap = 'round';
-//
-//							
-//			g2.lineWidth = this.thickness * scale.getScale();
-//	        		
-//			
-//			if (this.fill == core.Fill.EMPTY) {
-//				if (this.selection) {
-//						g2.strokeStyle = "gray";
-//				} else {
-//						g2.strokeStyle = this.copper.getColor();
-//				}
-//				g2._fill=false;
-//			} else {
-//				if (this.selection) {
-//					g2.fillStyle = "gray";
-//				} else {
-//					g2.fillStyle = this.copper.getColor();
-//				}
-//				g2._fill=true;
-//			}
-//
-//			let a=this.arc.clone();
-//			a.scale(scale.getScale());
-//			a.move( - viewportWindow.x, - viewportWindow.y);		
-//			a.paint(g2);
-//
-//			g2._fill=undefined;
-//			
-//			g2.globalCompositeOperation = 'source-over';
-//		
-//			
-//	    //if (this.isSelected()&&this.isControlPointVisible) {
-//			this.drawControlPoints(g2, viewportWindow, scale);
-//		//}
-//
-//	}
-//	drawControlPoints(g2, viewportWindow, scale) {
-//	    //utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.A,this.B,this.M,this.O]);
-//		utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,[this.arc.center,this.arc.start,this.arc.end,this.arc.middle]);
-//	}
-//	setResizingPoint(pt){
-//		this.resizingPoint=pt;
-//	}
-//	getResizingPoint() {
-//		return this.resizingPoint;
-//	}
-//	calculateResizingMidPoint(pt){
-//		let middle=new d2.Point((this.A.x+this.B.x)/2,(this.A.y+this.B.y)/2);
-//		let line=new d2.Line(middle,this.M);
-//		return line.projectionPoint(new d2.Point(pt.x,pt.y));	
-//	}
-//
-//
-//	}
 
 class SolidRegion extends Shape{
 	constructor(layermaskId) {
@@ -10482,7 +10277,7 @@ clone(){
       copy.rotation=this.rotation;
       return copy;
 }
-getOrderWeight(){
+getClickableOrder(){
 	return this.polygon.box.area; 
 }
 alignResizingPointToGrid(targetPoint) {
@@ -10558,7 +10353,7 @@ rotate(rotation) {
 	 alpha+=360; 
 	}	
 	this.rotation=alpha;
-	this.polygon.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	this.polygon.rotate(rotation.angle,rotation.origin);
 }
 paint(g2, viewportWindow, scale,layersmask) {		
     if((this.copper.getLayerMaskID()&layersmask)==0){
@@ -10595,13 +10390,10 @@ paint(g2, viewportWindow, scale,layersmask) {
 	g2.globalCompositeOperation = 'lighter';
 	a.paint(g2);
 	g2.globalCompositeOperation = 'source-over';
-	g2._fill=false;
-    
-	if (this.isSelected()) {
-		this.drawControlPoints(g2, viewportWindow, scale);
-	}
+	g2._fill=false;    
 }
-drawControlPoints(g2, viewportWindow, scale) {
+
+drawControlShape(g2, viewportWindow, scale) {
 	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.polygon.points);	
 }
 toXML() {
@@ -10692,10 +10484,7 @@ paint(g2, viewportWindow, scale,layersmask) {
 		a.paint(g2);
 		
 		
-		g2.globalCompositeOperation = 'source-over';
-		if (this.selection&&this.isControlPointVisible) {
-			this.drawControlPoints(g2, viewportWindow, scale);
-		}
+		g2.globalCompositeOperation = 'source-over';				
 
 }
 
@@ -10750,9 +10539,9 @@ class Drill{
 	 setWidth(width){
 		 this.circle.r=width/2;
 	 }
-	 rotate(rotation) {
-		 this.circle.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
-	 }	   
+	 //rotate(rotation) {
+	 //	 this.circle.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	 //}	   
 	 mirror( line) {
 	       this.circle.mirror(line);
 	 }
@@ -10967,7 +10756,7 @@ alignToGrid(isRequired){
 	     this.move(point.x - center.x,point.y - center.y);
 	     return null;     
 	}	
-getOrderWeight(){
+getClickableOrder(){
 	     return 2; 
 	}
 isClicked(x,y){
@@ -11033,12 +10822,12 @@ rotate(rotation){
 	 if(alpha<0){
 		 alpha+=360; 
 	 }
-	this.shape.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	
+	this.shape.rotate(rotation.angle,rotation.origin);	
     if(this.drill!=null){
-     this.drill.rotate(rotation);
+     this.drill.rotate(rotation.angle,rotation.origin);
     }	
-	this.number.setRotation(alpha,new d2.Point(rotation.originx,rotation.originy));
-	this.netvalue.setRotation(alpha,new d2.Point(rotation.originx,rotation.originy));
+	this.number.setRotation(alpha,rotation.origin);
+	this.netvalue.setRotation(alpha,rotation.origin);
 	this.rotation=alpha;
 	
 	}
@@ -11097,29 +10886,45 @@ getShape(){
 }    
 setWidth(width){
 	        this.width=width;
-	        this.shape.setWidth(width);    
+	        this.shape.setSize(width,this.height);    
 	    }
-setHeight(height){
-	        this.height=height;
-	        this.shape.setHeight(height);
+setHeight(height){	        
+			this.height=height;
+	        this.shape.setSize(this.width,height);
 	    }
 calculateShape() {
 	return this.shape.box;
 } 
 validateClearance(source){
-    //is different layer and SMD -> no clearance
+    //1 is different layer and SMD -> no clearance
     if ((source.copper.getLayerMaskID() & this.copper.getLayerMaskID()) == 0) {
         //if(this.type==PadType.SMD)
            return false; //not on the same layer
     }	
-	return true;
+    //2. is same net 
+    //if(isSameNet(source)&&source.getPadConnection()==PadShape.PadConnection.DIRECT){
+    //    return;
+    //}
+    
+    //3. is pad  within copper area
+    let rect = this.getBoundingShape();
+        rect.grow(source.clearance);
+        
+    if(!source.getBoundingShape().intersects(rect)){
+          return false; 
+    }  	
+    return true;
 }
 drawClearence(g2,viewportWindow,scale,source){
     if(!this.validateClearance(source)){
         return;
     }
-	
+    
+    //g2.save();     
+    //g2.clip(source.clip);
+
 	this.shape.drawClearence(g2,viewportWindow,scale,source);
+	//g2.restore();
 }
 paint(g2,viewportWindow,scale,layersmask){
 	if((this.copper.getLayerMaskID()&layersmask)!=0) {
@@ -11213,12 +11018,10 @@ class CircularShape{
 	get center(){
 		return this.circle.center;	
 	}
-    setWidth(width) {
+    setSize(width,height) {
 	   this.circle.r=width/2;
 	}
-    setHeight(height){
-	
-    }
+    
 
 }
 //------------RectangularShape----------------
@@ -11294,13 +11097,9 @@ get box(){
 get center(){
 	return this.rect.box.center;	
 }
-setWidth(width) {
-		   this.rect.setSize(this.pad.width,this.pad.height);
-		   this.rect.rotate(this.pad.rotate);
-}
-setHeight(height) {
-		   this.rect.setSize(this.pad.width,this.pad.height);
-		   this.rect.rotate(this.pad.rotate);
+setSize(width,height) {
+		   this.rect.setSize(width,height);
+		   this.rect.rotate(this.pad.rotation);
 }
 }
 //------------OvalShape-----------------------
@@ -11370,12 +11169,9 @@ get box(){
 get center(){
 	return this.obround.center;	
 }
-setWidth(width) {	    
-	    this.obround.setWidth(width);
-}
-setHeight(height) {	    
-	    this.obround.setHeight(height);
-	    this.obround.rotate(this.pad.rotate);
+setSize(width,height) {	    
+	    this.obround.setSize(width,height);
+	    this.obround.rotate(this.pad.rotation);
 }
 }
 
@@ -11449,12 +11245,11 @@ move(xoffset, yoffset) {
 mirror(line) {
    this.hexagon.mirror(line);
 }
-setWidth(width) {
+setSize(width,height) {
    this.hexagon.setWidth(width);
+   this.hexagon.rotate(this.pad.rotation);
 }
-setHeight(height) {
-            
-}	
+	
 }
 module.exports ={
 	GlyphLabel,
@@ -12097,8 +11892,8 @@ var PadPanelBuilder=BaseBuilder.extend({
         'keypress #netvaluexid' : 'onenter',	
         'keypress #netvalueyid' : 'onenter',
         'keypress #drillwidthid' : 'onenter',
-        'keypress #offsetxid' : 'onenter',
-        'keypress #offsetyid' : 'onenter',
+        //'keypress #offsetxid' : 'onenter',
+        //'keypress #offsetyid' : 'onenter',
         'change #layerid': 'onchange',
         'change #typeid': 'onchange', 
         'change #shapeid': 'onchange', 
@@ -12154,12 +11949,12 @@ var PadPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='drillwidthid'){ 
 			 this.target.drill.setWidth(core.MM_TO_COORD(parseFloat(j$('#drillwidthid').val())));   
 		 }
-		 if(event.target.id=='offsetxid'){ 
-			 this.target.offset.x=(core.MM_TO_COORD(parseFloat(j$('#offsetxid').val())));   
-		 }
-		 if(event.target.id=='offsetyid'){ 
-			 this.target.offset.y=(core.MM_TO_COORD(parseFloat(j$('#offsetyid').val())));   
-		 }
+		 //if(event.target.id=='offsetxid'){ 
+		//	 this.target.offset.x=(core.MM_TO_COORD(parseFloat(j$('#offsetxid').val())));   
+		 //}
+		 //if(event.target.id=='offsetyid'){ 
+		//	 this.target.offset.y=(core.MM_TO_COORD(parseFloat(j$('#offsetyid').val())));   
+		 //}
 		 this.component.repaint(); 
     },
 	updateui:function(){
@@ -12204,17 +11999,17 @@ var PadPanelBuilder=BaseBuilder.extend({
 	        
 	        //-----drill and offset------
 	        j$('#drillwidthid').val(core.COORD_TO_MM(this.target.drill==null?0:this.target.drill.getWidth()));
-	        j$('#offsetxid').val(core.COORD_TO_MM(this.target.offset.x));
-			j$('#offsetyid').val(core.COORD_TO_MM(this.target.offset.y));
+	        //j$('#offsetxid').val(core.COORD_TO_MM(this.target.offset.x));
+			//j$('#offsetyid').val(core.COORD_TO_MM(this.target.offset.y));
 			
 	        if(this.target.type== PadType.SMD){
 	        	 j$('#drillwidthid').prop('disabled',true);
-	        	 j$('#offsetxid').prop('disabled',true);
-	        	 j$('#offsetyid').prop('disabled',true);
+	        	 //j$('#offsetxid').prop('disabled',true);
+	        	 //j$('#offsetyid').prop('disabled',true);
 	        }else{
 	        	 j$('#drillwidthid').prop('disabled',false);
-	        	 j$('#offsetxid').prop('disabled',false);
-	        	 j$('#offsetyid').prop('disabled',false);	        	
+	        	 //j$('#offsetxid').prop('disabled',false);
+	        	 //j$('#offsetyid').prop('disabled',false);	        	
 	        }	       
 	},
 	render:function(){
@@ -12242,8 +12037,8 @@ var PadPanelBuilder=BaseBuilder.extend({
 			    "</select>" +
 				"</td></tr>"+
 				"<tr><td style='padding:7px'>Drill Width</td><td><input type='text' id='drillwidthid' value='' class='form-control input-sm\'></td></tr>"+				
-				"<tr><td style='padding:7px'>Offset X</td><td><input type='text' id='offsetxid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Offset Y</td><td><input type='text' id='offsetyid' value='' class='form-control input-sm\'></td></tr>"+				
+				//"<tr><td style='padding:7px'>Offset X</td><td><input type='text' id='offsetxid' value='' class='form-control input-sm\'></td></tr>"+
+				//"<tr><td style='padding:7px'>Offset Y</td><td><input type='text' id='offsetyid' value='' class='form-control input-sm\'></td></tr>"+				
 				
 				"<tr><td style='padding:7px'>Number</td><td><input type='text' id='numberid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Size</td><td><input type='text' id='numbersizeid' value='' class='form-control input-sm\'></td></tr>"+
@@ -12314,7 +12109,7 @@ var RectPanelBuilder=BaseBuilder.extend({
         j$('#xid').val(utilities.roundDouble(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x)));
         j$('#yid').val(utilities.roundDouble(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y))); 
 		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
-		//j$("#rotateid").val(this.target.rotate);    
+		j$("#rotateid").val(this.target.rotation);    
 		j$("#roundingid").val(core.COORD_TO_MM(this.target.roundRect.rounding));
 		j$("#fillid").val(this.target.fill);
 	},
@@ -12335,7 +12130,7 @@ var RectPanelBuilder=BaseBuilder.extend({
 				this.fillComboBox([{id:1,value:'EMPTY',selected:true},{id:2,value:'FILLED'}])+
 			    "</select>" +
 				"</td></tr>"+
-				//"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Rounding</td><td><input type='text' id='roundingid' value='' class='form-control input-sm\'></td></tr>"+						        
 		"</table>");
 			
@@ -12497,21 +12292,21 @@ var CirclePanelBuilder=BaseBuilder.extend({
 		 } 
 		 if(event.target.id=='xid'){			 
 	         var x=this.fromUnitX(j$('#xid').val()); 
-	         this.target.Resize(x-this.target.resizingPoint.x, 0, this.target.resizingPoint);			   
+	         this.target.circle.pc.x=x;			   
 		 } 
 	     if(event.target.id=='yid'){		
 	         var y=this.fromUnitY(j$('#yid').val()); 
-	         this.target.Resize(0, y-this.target.resizingPoint.y, this.target.resizingPoint);		   			 
+	         this.target.circle.pc.y=y;		   			 
 		 } 		 
 		 this.component.repaint(); 		 
     },
 
 	updateui:function(){
 		j$('#layerid').val(this.target.copper.getName());
-        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
-        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
-        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
-        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 
+        //j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
+        //j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
+        j$('#xid').val(this.toUnitX(this.target.circle.pc.x));
+        j$('#yid').val(this.toUnitY(this.target.circle.pc.y)); 
 		j$('#thicknessid').val(core.COORD_TO_MM(this.target.thickness));
 		j$("#radiusid").val(core.COORD_TO_MM(this.target.circle.radius));    
 		j$("#fillid").val(this.target.fill);		
@@ -12525,8 +12320,8 @@ var CirclePanelBuilder=BaseBuilder.extend({
 				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
 			    "</select>" +
 				"</td></tr>"+				
-				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
-				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='width:50%;padding:7px'>Center X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Center Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
 				"<tr><td style='padding:7px'>Thickness</td><td><input type='text' id='thicknessid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Fill</td><td>" +
 				"<select class=\"form-control input-sm\" id=\"fillid\">"+
@@ -13014,7 +12809,7 @@ var FootprintSaveView=require('pads/views/footprintsaveview');
 var Footprint=require('pads/d/footprintcomponent').Footprint;
 var UnitMgr = require('core/unit').UnitMgr;
 var FootprintContainer=require('pads/d/footprintcomponent').FootprintContainer;
-
+var d2=require('d2/d2');
 var ToggleButtonView=Backbone.View.extend({
 
 	/*
@@ -13186,8 +12981,8 @@ var ToggleButtonView=Backbone.View.extend({
             }  
 			//shapes= this.footprintComponent.getModel().getUnit().getSelectedShapes();
 			var r=this.footprintComponent.getModel().getUnit().getShapesRect(shapes);
-            
-            UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(event.data.model.id==("rotateleftid")?1:-1)*(90.0)));   
+            UnitMgr.getInstance().rotateBlock(shapes,{origin:new d2.Point(r.center.x,r.center.y),angle:(event.data.model.id==("rotateleftid")?1:-1)*(90.0)});
+            //UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(event.data.model.id==("rotateleftid")?1:-1)*(90.0)));   
             UnitMgr.getInstance().alignBlock(this.footprintComponent.getModel().getUnit().grid,shapes);  
             
             this.footprintComponent.repaint();
@@ -13293,3 +13088,5 @@ module.exports =ToggleButtonView
   
 });})();require('___globals___');
 
+
+//# sourceMappingURL=pads.js.map

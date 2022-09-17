@@ -661,6 +661,9 @@ mouseDown(event){
 				     this.getEventMgr().setEventHandle("texture",shape);
 	               }else if(shape instanceof SCHSymbol){
 	            	 this.getEventMgr().setEventHandle("symbol",shape);
+				   }else if(shape instanceof SCHWire){
+	                  if(shape.isSegmentClicked(scaledEvent))
+					     this.getEventMgr().setEventHandle("move.segment",shape);
 			       }else
 			         this.getEventMgr().setEventHandle("move",shape);
 			     }else{
@@ -736,6 +739,46 @@ var events = require('core/events');
 var core = require('core/core');
 var d2 = require('d2/d2');
 
+class MoveLineSegmentHandle extends EventHandle{
+constructor(component) {
+		 super(component);
+	     this.startPoint;
+	     this.endPoint;
+	 }
+ 
+mousePressed(event){
+	if(super.isRightMouseButton(event)){
+      return;            
+    }
+     
+    this.component.getModel().getUnit().setSelected(false);
+    this.target.setSelected(true);
+
+    
+    let arr=this.target.getSegmentClicked(event);
+    this.startPoint=arr[0];
+    this.endPoint=arr[1];
+    	
+	this.component.repaint();
+ }
+ mouseReleased(event){
+	    if(this.component.getParameter("snaptogrid")){
+         this.target.alignResizingPointToGrid(this.startPoint);
+         this.target.alignResizingPointToGrid(this.endPoint);
+	     this.component.repaint();	 
+		}
+	    this.target.resizingPoint=null;
+ }
+ mouseDragged(event){
+
+    this.target.moveSegment(this.startPoint,this.endPoint,event);    
+
+	this.component.repaint();
+ }
+ mouseMove(event){
+ 
+ }
+}
 class SymbolEventHandle extends EventHandle{
 	constructor(component) {
 			 super(component);
@@ -874,7 +917,8 @@ class CircuitEventMgr{
 		this.hash.set("texture",new events.TextureEventHandle(component));
 		this.hash.set("dragheand",new events.DragingEventHandle(component));
 		this.hash.set("origin",new events.OriginEventHandle(component));
-		this.hash.set("measure",new events.MeasureEventHandle(component));		
+		this.hash.set("measure",new events.MeasureEventHandle(component));	
+		this.hash.set("move.segment",new MoveLineSegmentHandle(component));	
 		
 	 }
 	 //****private
@@ -915,7 +959,7 @@ class CircuitEventMgr{
 
 module.exports ={
 		CircuitEventMgr,
-		WireEventHandle
+		WireEventHandle,		
 	}
 });
 
@@ -978,8 +1022,8 @@ registerSymbolPopup(target,event){
 	    items+="<tr id='leftrightid'><td style='padding: 0.4em'>Mirror Left-Right</td></tr>";
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	    
-	    this.open(event);		
+	    this.setContent(event,items,{target:target});	    
+	    	
 }
 registerUnitPopup(target,event){	          	            
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -993,17 +1037,17 @@ registerUnitPopup(target,event){
 	    items+="<tr id='pasteid'><td style='padding: 0.4em'>Paste</td></tr>";		    
 	    items+="<tr id='positiontocenterid'><td style='padding: 0.4em'>Position drawing to center</td></tr>";
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	    
-	    this.open(event);	
+	    this.setContent(event,items,{target:target});	    
+	    	
 }
-registerWirePopup(target,event){	          	            
+registerWirePopup(target,event){	 	     	           
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
 	    items+="<tr id='hvid' ><td style='padding: 0.4em;'>Horizontal To Vertical Bending</td></tr>";
 	    items+="<tr id='vhid' ><td style='padding: 0.4em;'>Vertical to Horizontal Bending</td></tr>";
 	    items+="<tr id='defaultbendid'><td style='padding: 0.4em;'>Default Bending</td></tr>";
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	    
-	    this.open(event);	
+	    this.setContent(event,items,{target:target});	    
+	    	
 }
 registerBlockPopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -1014,8 +1058,8 @@ registerBlockPopup(target,event){
 	    items+="<tr id='leftrightid'><td style='padding: 0.4em'>Mirror Left-Right</td></tr>";
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-		this.open(event);		
+	    this.setContent(event,items,{target:target});	
+				
 }
 
 actionPerformed(id,context){	
@@ -1251,6 +1295,14 @@ calculateShape() {
     r.setRect(x1, y1, x2 - x1, y2 - y1);
     return r;
 }
+isClicked(x,y) {
+   for(let shape of this.shapes){
+	  if(shape.isClicked(x,y)){
+		return true;
+	  }
+   }   
+   return super.isClicked(x,y);           
+}
 getClickableOrder() {
 	var box = this.getBoundingShape();	
 	return box.width*box.height;
@@ -1422,6 +1474,52 @@ class SCHWire extends AbstractLine{
         }
         return null;
     } 
+	isSegmentClicked(pt){				      
+	  if(this.isControlRectClicked(pt.x,pt.y))
+          return false;
+      if(this.polyline.isPointOnSegment(pt,this.selectionRectWidth/2)){
+	    return true;
+      }
+	  return false
+	}
+	getSegmentClicked(pt){
+		      let segment=new d2.Segment(0,0,0,0);	   
+	          let prevPoint = this.polyline.points[0];        
+	          for(let point of this.polyline.points){    	        	  
+	              if(prevPoint.equals(point)){    	            	  
+	            	  prevPoint = point;
+	                  continue;
+	              }    	              
+	              segment.set(prevPoint.x,prevPoint.y,point.x,point.y);
+	              if(segment.isPointOn(pt,this.selectionRectWidth)){
+	                  return [prevPoint,point];
+	              }
+	              prevPoint = point;
+	          }			       	          
+	       return null;
+	}
+    moveSegment(startPoint,endPoint,p){	
+	  let pt=new d2.Point(p.x,p.y);
+	  let segment=new d2.Segment(startPoint,endPoint);
+
+	  let projPt=segment.projectionPoint(pt);
+      let delta=projPt.distanceTo(pt);
+
+      if(delta==0){  //flicker movement
+	    return;
+	  }
+      let v=new d2.Vector(projPt,pt);   
+      let norm=v.normalize();
+	  
+      
+      let x=startPoint.x +delta*norm.x;
+	  let y=startPoint.y +delta*norm.y;
+      startPoint.set(x,y);
+
+      x=endPoint.x +delta*norm.x;
+	  y=endPoint.y +delta*norm.y;
+      endPoint.set(x,y);    
+    }
 	paint(g2, viewportWindow, scale,layersmask) {		
 		var rect = this.polyline.box;
 		rect.scale(scale.getScale());		
@@ -1462,7 +1560,7 @@ class SCHWire extends AbstractLine{
 		a.paint(g2);
 
 	    if((this.isSelected())/*&&(!this.isSublineSelected())*/){
-	    	this.drawControlPoints(g2, viewportWindow, scale);
+	    	this.drawControlShape(g2, viewportWindow, scale);
 		}
 		    
 		    
@@ -1779,7 +1877,7 @@ class SCHConnector extends Shape{
 	  this.shape.calculatePoints();
 	}
 	rotate(rotation){
-		this.segment.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+		this.segment.rotate(rotation.angle,rotation.origin);
 		this.texture.setRotation(rotation);
 		this.shape.calculatePoints();				
 	}	
@@ -2216,7 +2314,7 @@ move( xoffset, yoffset) {
     this.texture.move(xoffset, yoffset);     
 }
 rotate( rotation) {
-    this.point.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+    this.point.rotate(rotation.angle,rotation.origin);
     this.texture.setRotation(rotation);        
 }
 mirror( line) {        
@@ -2292,7 +2390,7 @@ move(xoffset, yoffset) {
 	this.circle.move(xoffset,yoffset);
 } 
 rotate(rotation){	  
-	this.circle.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	   
+	this.circle.rotate(rotation.angle,rotation.origin);	   
 }
 mirror(line){
 	this.circle.mirror(line);	
@@ -2361,7 +2459,7 @@ move(xoffset,yoffset){
 	this.point.move(xoffset,yoffset);
 }
 rotate(rotation){
-	this.point.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	   
+	this.point.rotate(rotation.angle,rotation.origin);	   
 }
 mirror(line){
 	this.point.mirror(line);	
@@ -3519,7 +3617,7 @@ var CircuitContainer = require('circuit/d/circuitcomponent').CircuitContainer;
 var UnitMgr = require('core/unit').UnitMgr;
 var CircuitLoadView=require('circuit/views/circuitloadview');
 var CircuitSaveView=require('circuit/views/circuitsaveview');
-
+var d2=require('d2/d2');
 var power=require('circuit/power').power;
 var ground=require('circuit/ground').ground;
 
@@ -3673,8 +3771,8 @@ var ToggleButtonView=Backbone.View.extend({
             }  
 			//shapes= this.circuitComponent.getModel().getUnit().getSelectedShapes();
 			var r=this.circuitComponent.getModel().getUnit().getShapesRect(shapes);
-               
-            UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(event.data.model.id==("rotateleftid")?1:-1)*(90.0)));
+			UnitMgr.getInstance().rotateBlock(shapes,{origin:new d2.Point(r.center.x,r.center.y),angle:(event.data.model.id==("rotateleftid")?1:-1)*(90.0)});               
+            //UnitMgr.getInstance().rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(event.data.model.id==("rotateleftid")?1:-1)*(90.0)));
             UnitMgr.getInstance().alignBlock(this.circuitComponent.getModel().getUnit().grid,shapes);  
             
             this.circuitComponent.repaint();
@@ -4186,7 +4284,7 @@ setLayerVisible(mask,flag) {
 }
 	  
 }
-
+/*
 var AffineTransform=(function(){
 	var x,y,a;
 	return{
@@ -4195,8 +4293,7 @@ var AffineTransform=(function(){
 			y=originy;
 			a=angle;
 			return {
-				originx:x,
-				originy:y,
+				origin:new d2.Point(originx,originy),				
 				angle:a,
 				toString:function(){
 				  return "x="+x+",y="+y+"angle="+a;	
@@ -4205,7 +4302,7 @@ var AffineTransform=(function(){
 		},
 	}; 
 })();
-
+*/
 class ScalableTransformation{
   constructor(scaleFactor,minScaleFactor,maxScaleFactor) {	    
         this.reset(0.5,scaleFactor,minScaleFactor,maxScaleFactor);
@@ -4685,7 +4782,7 @@ module.exports ={
 	ViewportWindow,
 	Grid,	
 	UnitFrame,
-	AffineTransform,
+	//AffineTransform,
     MM_TO_COORD,
     COORD_TO_MM,
 	UnitSelectionPanel,
@@ -4784,7 +4881,7 @@ class MoveEventHandle extends EventHandle{
             }else if(this.target["getPinsRect"]!=undefined){
             	this.component.popup.registerPadPopup(this.target,event);
             }
-            else{
+            else{	
                 this.component.popup.registerShapePopup(this.target,event);
                 
             }
@@ -4941,15 +5038,17 @@ class UnitEventHandle extends EventHandle{
 	      this.selectionBox.setRect(x,y,Math.abs(w),Math.abs(h));	
 	      this.component.repaint();
 		  
-		  this.component.ctx.globalCompositeOperation='lighter';
-	      this.component.ctx.beginPath();
-	      this.component.ctx.rect(this.selectionBox.x,this.selectionBox.y,this.selectionBox.width,this.selectionBox.height);
-	      this.component.ctx.fillStyle = 'gray';
-	      this.component.ctx.fill();
-		  this.component.ctx.globalCompositeOperation='source-over';
+		  this.component.ctx.save();		  
+	      this.component.ctx.globalAlpha =0.5; 		  
+		  this.component.ctx.fillStyle = 'blue';
+		  this.component.ctx.fillRect(this.selectionBox.x,this.selectionBox.y,this.selectionBox.width,this.selectionBox.height);
+          		  
+          
 	      this.component.ctx.lineWidth = 1;
-	      this.component.ctx.strokeStyle = '#5B5B5B';
+	      this.component.ctx.strokeStyle = 'blue';
 	      this.component.ctx.stroke();
+		  this.component.ctx.restore();
+
 	 }
 	 mouseMove(event){
 
@@ -5703,11 +5802,33 @@ var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').Defaul
 
 class ContextMenu{
 constructor(component,placeholderid){
-	this.component=component;
-	this.placeholder = document.getElementById(placeholderid);	
+	this.menu=j$('#popup-menu');
+	this.menu.addClass('visible'); 
+	this.component=component;	
 	this.content="";
+	this.context;
 	this.x=this.y=0;
-	this.opened = false;	
+	this.opened = false;
+	this.component.canvas.contextmenu(j$.proxy(this.conontextMenuHandler,this));
+}
+conontextMenuHandler(e){
+   e.preventDefault();
+   e.stopPropagation();
+   this.opened = true;	
+  // get mouse position relative to the canvas
+   var x=parseInt(e.originalEvent.offsetX);
+   var y=parseInt(e.originalEvent.offsetY);
+  
+   this.menu.empty();
+   this.menu.show();    
+   this.menu.css({left:x,top:y});
+   this.menu.html(this.content);
+   let that=this;
+   j$('#menu-items tr').click(function(){            
+		that.menu.hide();      
+		that.actionPerformed(j$(this)[0].id,that.context);	  
+   });
+   return false;		
 }
 registerShapePopup(target,event){
 	var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -5720,8 +5841,8 @@ registerShapePopup(target,event){
 	  items+="<tr id='bringfrontid'><td style='padding: 0.4em'>Bring To Front</td></tr>";	  
 	  items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	  items+="</table></div>";
-	  this.setContent(items,{target:target});	
-	  this.open(event);	
+	  this.setContent(event,items,{target:target});	
+	  //this.open(event);	
 	}
 registerLineSelectPopup(target,event){
 	  let bending=target.isBendingPointClicked(event.x,event.y);
@@ -5740,37 +5861,42 @@ registerLineSelectPopup(target,event){
 	    }
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-	    this.open(event);	
+	    this.setContent(event,items,{target:target});	
+	    //this.open(event);	
 }
-open(event){ 
-	this.x=event.x;
-	this.y=event.y;
-    this.placeholder.style.left=event.data.originalEvent.offsetX+"px";
-    this.placeholder.style.top=event.data.originalEvent.offsetY+"px";
-    this.show();				  
-}
-show(){
-    if (!this.opened) {
-	   this.placeholder.className = "visible";
-	}    
-	this.opened = true;		  		  
-}
-close() {
-	
-	j$(this.placeholder).removeClass("visible");
-	j$(this.placeholder).empty();
+//open(event){ 	
+	//this.x=event.x;
+	//this.y=event.y;
+    //this.placeholder.style.left=event.data.originalEvent.offsetX+"px";
+    //this.placeholder.style.top=event.data.originalEvent.offsetY+"px";
+    //this.show();				  
+//}
+//show(){
+    //if (!this.opened) {
+	//   this.placeholder.className = "visible";
+	//}    
+	//this.opened = true;			  		 
+//}
+
+close() {	
+	this.menu.hide();
+	this.content="";
     this.opened = false;  
 }
+
 isOpen(){
 	return this.opened;
 }
-setContent(content,context) {
-    this.placeholder.innerHTML ="<div class='content'>" + content + "</div>";
+setContent(event,content,context) {
+	this.x=event.x;
+	this.y=event.y;
+	this.context=context;
+	this.content="<div class='content'>" + content + "</div>";
+    //this.placeholder.innerHTML ="<div class='content'>" + content + "</div>";
     //attach event listeners
-    this.attachEventListeners(context);
+    //this.attachEventListeners(context);
 }	
-
+/*
 attachEventListeners(context){
 	  var placeholder=document.getElementById('menu-items');		  
 	  var rows=placeholder.getElementsByTagName("table")[0].rows;
@@ -5785,7 +5911,7 @@ attachEventListeners(context){
 	      })(rows[i]);
 	  }
 }
-
+*/
 actionPerformed(id,context){
 	if(id==='sendbackid'){
 		let unitMgr = UnitMgr.getInstance();
@@ -5873,13 +5999,11 @@ actionPerformed(id,context){
          let shapes= this.component.getModel().getUnit().getSelectedShapes(false);         
          if(shapes.length==0){
              return; 
-         }
-         
+         }         
          let r=this.component.getModel().getUnit().getShapesRect(shapes);       
          let unitMgr = UnitMgr.getInstance();
          
-         unitMgr.rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(id==("rotateleftid")?1:-1)*(90.0)));
-         
+         unitMgr.rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(id==("rotateleftid")?1:-1)*(90.0)));         
          unitMgr.alignBlock(this.component.getModel().getUnit().grid,shapes);
          this.component.repaint();		 
 	 }
@@ -6012,7 +6136,7 @@ setHeight (height) {
 getHeight() {
 		return this.height;
 	}
-getDrawingOrder() {
+getDrawingLayerPriority() {
     return 100;
 }
 getClickableOrder() {
@@ -6227,7 +6351,7 @@ reset(...args) {
    }
 }
 
-Resize(xoffset, yoffset, clickedPoint) {
+Resize(xoffset, yoffset, clickedPoint) {	
 	clickedPoint.set(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);
 }
@@ -6404,6 +6528,8 @@ isBendingPointClicked( x,  y) {
 	return point;
 }
 isControlRectClicked(x, y) {
+	return this.isBendingPointClicked(x,y);
+	/*
 	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
 	let point = null;
 
@@ -6417,6 +6543,7 @@ isControlRectClicked(x, y) {
 	});
 
 	return point;
+	*/
 }
 
 move(xoffset, yoffset) {
@@ -6445,16 +6572,17 @@ rotate(rotation) {
 	 alpha+=360; 
 	}	
 	this.rotation=alpha;	
-	this.polyline.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	this.polyline.rotate(rotation.angle,rotation.origin);
 }
 calculateShape() {
 	return this.polyline.box;
 }
 
 
-drawControlPoints(g2, viewportWindow, scale) {
+drawControlShape(g2, viewportWindow, scale) {
 	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.polyline.points);	
 }
+
 isFloating() {
 	return (!(this.floatingStartPoint
 								.equals(this.floatingEndPoint) && this.floatingStartPoint
@@ -6763,7 +6891,7 @@ class SymbolFontTexture{
       return this.shape.alignment;
 	}	
 	rotate(rotation){		   
-	   this.shape.anchorPoint.rotate(rotation.angle,{x:rotation.originx,y:rotation.originy});
+	   this.shape.anchorPoint.rotate(rotation.angle,rotation.origin);
 	   if(rotation.angle<0){  //clockwise
 		   this.shape.alignment=TextAlignment.rotate(this.shape.alignment,true);
 	   }else{
@@ -7916,11 +8044,16 @@ notifyListeners(eventType) {
      this.height = height;
      this.frame.setSize(width, height);	
  }
-paint(g2, viewportWindow){
- 	   let len=this.shapes.length;
+paint(g2, viewportWindow){	
+	   let len=this.shapes.length;
  	   for(let i=0;i<len;i++){
  		   this.shapes[i].paint(g2,viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);  
  	   }
+ 	   this.shapes.forEach((shape)=>{	 	    	
+			if ((typeof shape.drawControlShape === 'function')&&shape.isSelected()) {					                
+				shape.drawControlShape(g2, viewportWindow,this.scalableTransformation);
+        	}
+ 	   });
  	   //grid
        this.grid.paint(g2,viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
         //coordinate system
@@ -7933,7 +8066,7 @@ paint(g2, viewportWindow){
        if(this.frame!=null){
 	     this.frame.paint(g2, viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
        }
-     }    
+}    
        
 }
 
@@ -8035,7 +8168,7 @@ class UnitComponent{
   	  //keypress
   	  j$('body').keydown(j$.proxy(this.keyPress,this));
   	  //right popup
-  	  j$('body').on('contextmenu', '#'+canvas, function(e){ return false; });
+  	  //j$('body').on('contextmenu', '#'+canvas, function(e){ return false; });
   	  //mouse wheel event
   	  j$('#'+canvas).bind('mousewheel',j$.proxy(this.mouseWheelMoved,this));
   	  //mouse click event 
@@ -9146,6 +9279,13 @@ module.exports = function(d2) {
               this.min.y > other.max.y
           );
       }
+	  grow(offset){
+        this.min.x-=offset;
+        this.min.y-=offset;
+        
+        this.max.x+=offset;
+        this.max.y+=offset;
+      }
       move(offsetX,offsetY){
     	  this.min.move(offsetX,offsetY);
     	  this.max.move(offsetX,offsetY);
@@ -10024,14 +10164,12 @@ module.exports = function(d2) {
 		                pa,pb,pc,pd]
 		            );			
 		}
-		setWidth(width){
-			this.width=width;	
-			this.reset();
-		}
-		setHeight(height){
-		    this.height=height;
-		    this.reset();
-		}
+
+		setSize(width,height){
+			  this.height=height;
+			  this.width=width;
+			  this.reset();
+		}		
 		/**
 		if (x-x1)/(x2-x1) = (y-y1)/(y2-y1) = alpha (a constant), then the point C(x,y) will lie on the line between pts 1 & 2.
 		If alpha < 0.0, then C is exterior to point 1.
@@ -10069,7 +10207,7 @@ module.exports = function(d2) {
 		get center(){
 			return this.pc;
 		}		
-		reset(){
+		reset(){			
 			let w=0,h=0;
 			if(this.width>this.height){  //horizontal
 			  w=this.width;
@@ -10699,7 +10837,24 @@ module.exports = function(d2) {
        }
 	   get vertices() {
 		    return this.points;	
-	   } 	   
+	   } 
+       isPointOnSegment(pt,diviation){    	       
+     	  let segment=new d2.Segment(0,0,0,0);	   
+	          let prevPoint = this.points[0];        
+	          for(let point of this.points){    	        	  
+	              if(prevPoint.equals(point)){    	            	  
+	            	  prevPoint = point;
+	                  continue;
+	              }    	              
+	              segment.set(prevPoint.x,prevPoint.y,point.x,point.y);
+	              if(segment.isPointOn(pt,diviation)){
+	                  return true;
+	              }
+	              prevPoint = point;
+	          }		
+	          
+	          return false;
+       } 	   
 	   paint(g2){
 		  g2.beginPath(); 
 		  g2.moveTo(this.points[0].x, this.points[0].y);
@@ -12569,16 +12724,6 @@ class SymbolContextMenu extends ContextMenu{
 constructor(component,placeholderid){
 		super(component,placeholderid);	
 	}	
-//registerPinPopup(target,event){
-//	var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
-//	  items+="<tr id='rotateleftid' ><td style='padding: 0.4em;'>Rotate Left</td></tr>";
-//	  items+="<tr id='rotaterightid'><td style='padding: 0.4em;'>Rotate Right</td></tr>";	  
-//	  items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
-//	  items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
-//	  items+="</table></div>";
-//	  this.setContent(items,{target:target});	
-//	  this.open(event);	
-//	}
 
 registerUnitPopup(target,event){	          	            
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -12592,8 +12737,7 @@ registerUnitPopup(target,event){
 	    items+="<tr id='pasteid'><td style='padding: 0.4em'>Paste</td></tr>";		    
 	    items+="<tr id='positiontocenterid'><td style='padding: 0.4em'>Position drawing to center</td></tr>";
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	    
-	    this.open(event);	
+	    this.setContent(event,items,{target:target});	    	  
 }
 registerBlockPopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -12604,8 +12748,7 @@ registerBlockPopup(target,event){
 	    items+="<tr id='leftrightid'><td style='padding: 0.4em'>Mirror Left-Right</td></tr>";
 	    items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-		this.open(event);		
+	    this.setContent(event,items,{target:target});				
 }
 registerLinePopup(target,event){
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
@@ -12613,8 +12756,8 @@ registerLinePopup(target,event){
 	    items+="<tr id='deletelineid'><td style='padding: 0.4em;'>Delete Line</td></tr>";	  
 	    items+="<tr id='cancelid'><td style='padding: 0.4em;'>Cancel</td></tr>";	    	    	
 	    items+="</table></div>";
-	    this.setContent(items,{target:target});	
-	    this.open(event);	  	
+	    this.setContent(event,items,{target:target});	
+	    	  	
 }
 
 actionPerformed(id,context){ 	
@@ -12746,7 +12889,7 @@ paint(g2, viewportWindow, scale,layersmask) {
 		
 		
 		if (this.selection&&this.isControlPointVisible) {
-			this.drawControlPoints(g2, viewportWindow, scale);
+			this.drawControlShape(g2, viewportWindow, scale);
 		}
 
 }
@@ -12932,7 +13075,7 @@ class Arc extends Shape{
 	    this.arc.startAngle=utilities.round(startAngle);
 	}	
 	rotate(rotation){	
-		   this.arc.pc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+		   this.arc.pc.rotate(rotation.angle,rotation.origin);
 		   let w=this.arc.w;
 		   this.arc.w=this.arc.h;
 		   this.arc.h=w;
@@ -13113,7 +13256,7 @@ class Ellipse extends Shape{
        this.ellipse.mirror(line);	
     }
     rotate(rotation){			   
-	   this.ellipse.pc.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	   this.ellipse.pc.rotate(rotation.angle,rotation.origin);
 	   let w=this.ellipse.w;
 	   this.ellipse.w=this.ellipse.h;
 	   this.ellipse.h=w;
@@ -13273,7 +13416,7 @@ class RoundRect extends Shape{
 		this.roundRect.move(xoffset,yoffset);
 	}
 	rotate(rotation){		
-		this.roundRect.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+		this.roundRect.rotate(rotation.angle,rotation.origin);
 	}
     mirror(line){
     	this.roundRect.mirror(line);
@@ -13442,8 +13585,8 @@ Resize(xoffset,yoffset,clickedPoint) {
     this.setHeadSize(this.headSize);
 }
 rotate(rotation){		
-	this.arrow.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
-	this.line.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	this.arrow.rotate(rotation.angle,rotation.origin);
+	this.line.rotate(rotation.angle,rotation.origin);
 }
 move(xoffset, yoffset) {
 	this.line.move(xoffset,yoffset);
@@ -13586,7 +13729,7 @@ Resize(xoffset, yoffset, clickedPoint) {
 								clickedPoint.y + yoffset);
 }
 rotate(rotation){		
-	this.shape.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));	
+	this.shape.rotate(rotation.angle,rotation.origin);	
 }
 move(xoffset, yoffset) {
 	this.shape.move(xoffset,yoffset);	
@@ -13882,7 +14025,7 @@ rotate(rotation){
 	let oalignmentnumber=TextAlignment.getOrientation(this.number.shape.alignment);
 	let alignmentnumber=this.number.shape.alignment;
 	
-	this.segment.rotate(rotation.angle,new d2.Point(rotation.originx,rotation.originy));
+	this.segment.rotate(rotation.angle,rotation.origin);
 	this.orientation=Orientation.rotate(rotation.angle>0?false:true,this.orientation);
 	this.name.rotate(rotation);
 	this.number.rotate(rotation);
@@ -14569,3 +14712,5 @@ module.exports =SymbolLoadView
   
 });})();require('___globals___');
 
+
+//# sourceMappingURL=circuit.js.map
