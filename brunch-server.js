@@ -57,7 +57,7 @@ app.get('/rest/circuits/workspaces/CardReader', (req, res, next) => {
 	);
 	});
 app.get('/rest/circuits/workspaces/CardReader/CR%20v1', (req, res, next) => {
-    fs.readFile('D:\\sergei\\myNetPCB\\Java_11\\deploy\\workspace\\circuits\\CardReader\\CardReader.xml','utf8', function(err, data) {
+    fs.readFile('D:\\sergei\\myNetPCB\\Java_11\\deploy\\workspace\\circuits\\DEMO\\1-Wire.xml','utf8', function(err, data) {
 		res.send(data);
   });
 });	
@@ -86,6 +86,7 @@ app.get('/rest/symbols/libraries/General/categories', (req, res, next) => {
 '<?xml version="1.0" encoding="UTF-8"?><category>'+
 '<name library="General">Ground</name>'+
 '<name library="General">Fuse</name>'+
+'<name library="General">Resistor</name>'+
 '</category>'
 );
 });
@@ -111,7 +112,7 @@ app.get('/rest/symbols/libraries/Atmel/categories/CPU/ATMega2560', (req, res, ne
   });
 });
 app.get('/rest/symbols/libraries/Atmel/categories/CPU/at90s2313', (req, res, next) => {
-    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\library\\symbols\\Atmel\\CPU\\at90s2313.xml','utf8', function(err, data) {
+    fs.readFile('D:\\sergei\\myNetPCB\\Java_11\\deploy\\library\\symbols\\Atmel\\CPU\\at90s2313.xml','utf8', function(err, data) {
 		res.send(data);
   });
 });
@@ -125,8 +126,8 @@ app.get('/rest/symbols/libraries/General/categories/null/Ground', (req, res, nex
 		res.send(data);
   });
 });
-app.get('/rest/symbols/libraries/General/categories/null/Fuse', (req, res, next) => {
-    fs.readFile('C:\\sergei\\java\\myNetPCB\\deploy\\library\\symbols\\General\\Fuse.xml','utf8', function(err, data) {
+app.get('/rest/symbols/libraries/General/categories/null/Resistor', (req, res, next) => {
+    fs.readFile('D:\\sergei\\myNetPCB\\Java_11\\deploy\\library\\symbols\\General\\Resistor.xml','utf8', function(err, data) {
 		res.send(data);
   });
 });

@@ -206,7 +206,7 @@ actionPerformed(id,context){
          let r=this.component.getModel().getUnit().getShapesRect(shapes);       
          let unitMgr = UnitMgr.getInstance();
          
-         unitMgr.rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(id==("rotateleftid")?1:-1)*(90.0)));         
+         unitMgr.rotateBlock(shapes,{origin:r.center,angle:(id==("rotateleftid")?1:-1)*(90.0)});         
          unitMgr.alignBlock(this.component.getModel().getUnit().grid,shapes);
          this.component.repaint();		 
 	 }

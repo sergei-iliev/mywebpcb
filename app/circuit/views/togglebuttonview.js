@@ -183,6 +183,7 @@ var ToggleButtonView=Backbone.View.extend({
 			
             this.circuitComponent.setScrollPosition(parseInt(this.circuitComponent.getModel().getUnit().width/2),
             		parseInt(this.circuitComponent.getModel().getUnit().height/2));
+			this.circuitComponent.repaint();
 		}		
 	},
 	onsymbolload:function(selectedModel){
