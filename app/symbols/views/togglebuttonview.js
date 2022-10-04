@@ -206,9 +206,9 @@ var ToggleButtonView=Backbone.View.extend({
 			 this.symbolComponent.setMode(core.ModeEnum.DRAGHEAND_MODE);
 		}	
 		if(event.data.model.id=='tocenterid'){
-			
             this.symbolComponent.setScrollPosition(parseInt(this.symbolComponent.getModel().getUnit().width/2),
             		parseInt(this.symbolComponent.getModel().getUnit().height/2));
+			this.symbolComponent.repaint();
 		}		
         if (event.data.model.id=='measureid') {
             this.symbolComponent.setMode(core.ModeEnum.MEASUMENT_MODE);
@@ -250,7 +250,7 @@ var ToggleButtonView=Backbone.View.extend({
 	            let r=unit.getBoundingRect();
 	            var x=unit.getScalableTransformation().getScale()*r.x-(this.symbolComponent.viewportWindow.width-unit.getScalableTransformation().getScale()*r.width)/2;
 	            var y=unit.getScalableTransformation().getScale()*r.y-(this.symbolComponent.viewportWindow.height-unit.getScalableTransformation().getScale()*r.height)/2;;
-	            unit.setScrollPositionValue(x,y);            			  
+	            //unit.setScrollPosition(x,y);            			  
 		  }		
 
 	},
