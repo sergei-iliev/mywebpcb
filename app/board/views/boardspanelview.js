@@ -932,14 +932,14 @@ var BoardsTree=Backbone.View.extend({
 
 		if(item.value==111){
 		   //unit	
-			this.boardComponent.getModel().getUnit().setScrollPositionValue(this.boardComponent.viewportWindow.x,this.boardComponent.viewportWindow.y);
+			//this.boardComponent.getModel().getUnit().setScrollPosition(this.boardComponent.viewportWindow.x,this.boardComponent.viewportWindow.y);
 			
 			this.boardComponent.getModel().setActiveUnitUUID(item.id);
 			this.boardComponent.getModel().getUnit().setSelected(false);
 			this.boardComponent.componentResized();
 			
-			this.boardComponent.hbar.jqxScrollBar({ value:this.boardComponent.getModel().getUnit().scrollPositionXValue});
-			this.boardComponent.vbar.jqxScrollBar({ value:this.boardComponent.getModel().getUnit().scrollPositionYValue});
+			//this.boardComponent.hbar.jqxScrollBar({ value:this.boardComponent.getModel().getUnit().scrollPositionXValue});
+			//this.boardComponent.vbar.jqxScrollBar({ value:this.boardComponent.getModel().getUnit().scrollPositionYValue});
 			
 			this.boardComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:this.boardComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 

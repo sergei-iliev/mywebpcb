@@ -447,8 +447,9 @@ class ScalableTransformation{
   getScaleFactor(){
      return this.scaleFactor;  
   }
-  setScaleFactor(newScaleFactor){
-    this.Reset(newScaleFactor,this.minScaleFactor,this.maxScaleFactor); 
+  setScaleFactor(scaleFactor){
+	this.scaleFactor=scaleFactor;
+    this.scale=this.calculateTransformation(); 
   } 
   reset(scaleRatio,scaleFactor,minScaleFactor,maxScaleFactor){
         this.scaleFactor=scaleFactor;

@@ -285,8 +285,8 @@ format() {
 }
 
 class BoardComponent extends UnitComponent{
-constructor(hbar,vbar,canvas,popup) {
-     super(hbar,vbar,canvas,popup);    
+constructor(canvas,popup) {
+     super(canvas,popup);    
 	
 	this.eventMgr=new BoardEventMgr(this); 
 	this.model=new BoardContainer();

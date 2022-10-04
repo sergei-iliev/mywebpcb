@@ -182,9 +182,10 @@ var ToggleButtonView=Backbone.View.extend({
 			 this.boardComponent.setMode(core.ModeEnum.DRAGHEAND_MODE);
 		}	
 		if(event.data.model.id=='tocenterid'){
-			
+			this.boardComponent.getModel().getUnit().getScalableTransformation().setScaleFactor(this.boardComponent.getModel().getUnit().getScalableTransformation().maxScaleFactor);
             this.boardComponent.setScrollPosition(parseInt(this.boardComponent.getModel().getUnit().width/2),
             		parseInt(this.boardComponent.getModel().getUnit().height/2));
+			this.boardComponent.repaint();
 		}	
 		if(event.data.model.id=='layerid'){
 			new LayersPanelView(this.boardComponent);		

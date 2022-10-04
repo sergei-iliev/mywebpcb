@@ -801,10 +801,10 @@ mouseWheelMoved(event){
 	var e=this.getScaledEvent(event);
 
 	if(event.originalEvent.wheelDelta /120 > 0) {
-		   this.ZoomOut(e.windowx,e.windowy);
+		   this.zoomOut(e.windowx,e.windowy);
       }
       else{
-		   this.ZoomIn(e.windowx,e.windowy);
+		   this.zoomIn(e.windowx,e.windowy);
       }
 }
 

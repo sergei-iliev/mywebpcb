@@ -163,8 +163,8 @@ class FootprintContainer extends UnitContainer{
 
 
 class FootprintComponent extends UnitComponent{
-  constructor(hbar,vbar,canvas,popup) {
-	super(hbar,vbar,canvas,popup); 
+  constructor(canvas,popup) {
+	super(canvas,popup); 
 	
 	this.eventMgr=new FootprintEventMgr(this); 
 	this.model=new FootprintContainer();
