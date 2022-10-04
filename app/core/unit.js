@@ -169,18 +169,14 @@ class Unit{
     	this.height=height;
     	this.unitName="Unknown";
     	this.grid=new core.Grid(0.8,core.Units.MM);
-        this.scrollPositionXValue = 0;
-        this.scrollPositionYValue = 0;
+        //this.scrollPositionXValue = 0;
+        //this.scrollPositionYValue = 0;
         this.frame=new core.UnitFrame(this.width,this.height);
         this.coordinateSystem;//=new core.CoordinateSystem(this);
 		this.ruler=new shape.Ruler();
 		this.shapeFactory=null;
         
     }
-setScrollPositionValue(scrollPositionXValue,scrollPositionYValue) {
-        this.scrollPositionXValue = scrollPositionXValue;
-        this.scrollPositionYValue = scrollPositionYValue;
-       }
 fireShapeEvent(event){
 		if(!core.isEventEnabled)
 			return;
@@ -618,7 +614,7 @@ class UnitComponent{
 	GlyphManager.getInstance();
     
 	if(canvas!=null){	
-        this.canvas = j$('#'+canvas);
+      this.canvas = j$('#'+canvas);
   	  this.ctx = this.canvas[0].getContext("2d");
   	  
   	  //keypress
@@ -859,7 +855,7 @@ zoomOut(x,y){
 //    this.repaint();
 //  }
 screenResized(e){	  
-	  var container = j$('#canvasframe');	  
+	  var container = j$(this.canvas).parent();	  	    	  
 	  var oldwidth=this.width;
 	  this.width=j$(container).width();  //mind combo width
 	  
