@@ -145,37 +145,37 @@
                         <target>
                             <echo>**************myWebPCB - copying files*************</echo>
                             <copy todir="${basedir}/src/main/webapp/apps/board" overwrite="true" flatten="true">
-                                <fileset dir="../mywebpcb-v2/public/board" >
+                                <fileset dir="../mywebpcb-v3/public/board" >
                                     <different targetdir="${basedir}/src/main/webapp/apps/board"/>
                                     <include name="board.js" />
                                 </fileset>
                             </copy> 
                             <copy todir="${basedir}/src/main/webapp/apps/circuit" overwrite="true" flatten="true">
-                                <fileset dir="../mywebpcb-v2/public/circuit" >
+                                <fileset dir="../mywebpcb-v3/public/circuit" >
                                     <different targetdir="${basedir}/src/main/webapp/apps/circuit"/>
                                     <include name="circuit.js" />
                                 </fileset>
                             </copy>                             
                             <copy todir="${basedir}/src/main/webapp/apps/symbols" overwrite="true" flatten="true">
-                                <fileset dir="../mywebpcb-v2/public/symbols" >
+                                <fileset dir="../mywebpcb-v3/public/symbols" >
                                     <different targetdir="${basedir}/src/main/webapp/apps/symbols"/>
                                     <include name="symbols.js" />
                                 </fileset>
                             </copy>
                             <copy todir="${basedir}/src/main/webapp/apps/pads" overwrite="true" flatten="true">
-                                <fileset dir="../mywebpcb-v2/public/pads" >
+                                <fileset dir="../mywebpcb-v3/public/pads" >
                                     <different targetdir="${basedir}/src/main/webapp/apps/pads"/>
                                     <include name="pads.js" />
                                 </fileset>
                             </copy>
                             <copy todir="${basedir}/src/main/webapp/apps" overwrite="true" flatten="true">
-                                <fileset dir="../mywebpcb-v2/public" >
+                                <fileset dir="../mywebpcb-v3/public" >
                                     <different targetdir="${basedir}/src/main/webapp/apps"/>
                                     <include name="app.css" />
                                 </fileset>
                             </copy>
                             <copy todir="${basedir}/src/main/webapp/apps" overwrite="true" flatten="true">
-                                <fileset dir="../mywebpcb-v2/public" >
+                                <fileset dir="../mywebpcb-v3/public" >
                                     <different targetdir="${basedir}/src/main/webapp/apps"/>
                                     <include name="vendor.js" />
                                 </fileset>

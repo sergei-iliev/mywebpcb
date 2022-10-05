@@ -171,7 +171,7 @@ var CircuitComponent=require('circuit/d/circuitcomponent').CircuitComponent;
 			//enable tooltips
 			j$('[data-toggle="tooltip"]').tooltip();
 
-			var sc=new CircuitComponent('jqxHorizontalScrollBar','jqxVerticalScrollBar','mycanvas','popup-menu');
+			var sc=new CircuitComponent('mycanvas','popup-menu');
 			
 			//create ui
 			var toggleButtonCollection=new togglebutton.ToggleButtonCollection(
@@ -548,8 +548,8 @@ class CircuitContainer extends UnitContainer{
 	}	
 }
 class CircuitComponent extends UnitComponent{
-	constructor(hbar,vbar,canvas,popup) {
-	     super(hbar,vbar,canvas,popup);    
+	constructor(canvas,popup) {
+	     super(canvas,popup);    
 		this.setParameter("snaptogrid",true);
 		this.eventMgr=new CircuitEventMgr(this); 
 		this.model=new CircuitContainer();
@@ -718,10 +718,10 @@ mouseWheelMoved(event){
 	  }
 	var e=this.getScaledEvent(event);
 	if(event.originalEvent.wheelDelta /120 > 0) {
-		   this.ZoomIn(e.windowx,e.windowy);
+		   this.zoomIn(e.windowx,e.windowy);
     }
     else{
-		   this.ZoomOut(e.windowx,e.windowy);
+		   this.zoomOut(e.windowx,e.windowy);
     }
 } 
 }
@@ -3195,7 +3195,7 @@ var CircuitPanelBuilder=BaseBuilder.extend({
 			return; 
 	     }
 		 if(event.target.id=='widthid'||event.target.id=='heightid'){           
-		    this.component.getModel().getUnit().setSize(core.MM_TO_COORD(parseFloat(j$('#widthid').val())),core.MM_TO_COORD(parseFloat(j$('#heightid').val())));  
+		    this.component.getModel().getUnit().setSize((parseFloat(j$('#widthid').val())),(parseFloat(j$('#heightid').val())));  
 		    this.component.componentResized();     
 		    this.component.repaint();
 		 }
@@ -3274,10 +3274,7 @@ var CircuitsTree=Backbone.View.extend({
 			this.circuitComponent.getModel().setActiveUnitUUID(item.id);
 			this.circuitComponent.getModel().getUnit().setSelected(false);
 			this.circuitComponent.componentResized();
-			
-			this.circuitComponent.hbar.jqxScrollBar({ value:this.circuitComponent.getModel().getUnit().scrollPositionXValue});
-			this.circuitComponent.vbar.jqxScrollBar({ value:this.circuitComponent.getModel().getUnit().scrollPositionYValue});
-			
+				
 			this.circuitComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:this.circuitComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 
 		}
@@ -3790,6 +3787,7 @@ var ToggleButtonView=Backbone.View.extend({
 			
             this.circuitComponent.setScrollPosition(parseInt(this.circuitComponent.getModel().getUnit().width/2),
             		parseInt(this.circuitComponent.getModel().getUnit().height/2));
+			this.circuitComponent.repaint();
 		}		
 	},
 	onsymbolload:function(selectedModel){
@@ -4317,8 +4315,9 @@ class ScalableTransformation{
   getScaleFactor(){
      return this.scaleFactor;  
   }
-  setScaleFactor(newScaleFactor){
-    this.Reset(newScaleFactor,this.minScaleFactor,this.maxScaleFactor); 
+  setScaleFactor(scaleFactor){
+	this.scaleFactor=scaleFactor;
+    this.scale=this.calculateTransformation(); 
   } 
   reset(scaleRatio,scaleFactor,minScaleFactor,maxScaleFactor){
         this.scaleFactor=scaleFactor;
@@ -4984,8 +4983,8 @@ mouseDragged(event){
    this.component.viewportWindow.x=newX;
    this.component.viewportWindow.y=newY;
    
-   this.component.hbar.jqxScrollBar('setPosition',newX); 
-   this.component.vbar.jqxScrollBar('setPosition',newY);
+   //this.component.hbar.jqxScrollBar('setPosition',newX); 
+   //this.component.vbar.jqxScrollBar('setPosition',newY);
    
    this.mx = event.windowx;
    this.my = event.windowy;
@@ -6003,7 +6002,7 @@ actionPerformed(id,context){
          let r=this.component.getModel().getUnit().getShapesRect(shapes);       
          let unitMgr = UnitMgr.getInstance();
          
-         unitMgr.rotateBlock(shapes,core.AffineTransform.createRotateInstance(r.center.x,r.center.y,(id==("rotateleftid")?1:-1)*(90.0)));         
+         unitMgr.rotateBlock(shapes,{origin:r.center,angle:(id==("rotateleftid")?1:-1)*(90.0)});         
          unitMgr.alignBlock(this.component.getModel().getUnit().grid,shapes);
          this.component.repaint();		 
 	 }
@@ -7713,18 +7712,14 @@ class Unit{
     	this.height=height;
     	this.unitName="Unknown";
     	this.grid=new core.Grid(0.8,core.Units.MM);
-        this.scrollPositionXValue = 0;
-        this.scrollPositionYValue = 0;
+        //this.scrollPositionXValue = 0;
+        //this.scrollPositionYValue = 0;
         this.frame=new core.UnitFrame(this.width,this.height);
         this.coordinateSystem;//=new core.CoordinateSystem(this);
 		this.ruler=new shape.Ruler();
 		this.shapeFactory=null;
         
     }
-setScrollPositionValue(scrollPositionXValue,scrollPositionYValue) {
-        this.scrollPositionXValue = scrollPositionXValue;
-        this.scrollPositionYValue = scrollPositionYValue;
-       }
 fireShapeEvent(event){
 		if(!core.isEventEnabled)
 			return;
@@ -8158,11 +8153,11 @@ class UnitContainer{
 
 //**********************UnitComponent*******************************************
 class UnitComponent{
-	constructor(hbar,vbar,canvas,popup){
+	constructor(canvas,popup){
 	GlyphManager.getInstance();
     
 	if(canvas!=null){	
-        this.canvas = j$('#'+canvas);
+      this.canvas = j$('#'+canvas);
   	  this.ctx = this.canvas[0].getContext("2d");
   	  
   	  //keypress
@@ -8190,14 +8185,14 @@ class UnitComponent{
 	this.viewportWindow=new ViewportWindow(0,0,this.width,this.height);
 	this.parameters=new Map();
 	this.parameters.set("snaptogrid",false);
-	if(hbar!=null&&vbar!=null){
-		this.hbar = j$('#'+hbar);
-		this.vbar=j$('#'+vbar);
-		this.hbar.jqxScrollBar({ width: '100%', height: 18, min: 0, max: 100});
-		this.vbar.jqxScrollBar({ width: 18, height:'100%', min: 0, max: 100, vertical: true});
-		this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
-		this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
-	}
+	//if(hbar!=null&&vbar!=null){
+	//	this.hbar = j$('#'+hbar);
+	//	this.vbar=j$('#'+vbar);
+	//	this.hbar.jqxScrollBar({ width: '100%', height: 18, min: 0, max: 100});
+	//	this.vbar.jqxScrollBar({ width: 18, height:'100%', min: 0, max: 100, vertical: true});
+	//	this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
+	//	this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
+	//}
 	
 	this.mode=core.ModeEnum.COMPONENT_MODE;
 	this.backgroundColor="black";
@@ -8239,8 +8234,11 @@ setScrollPosition(x,y) {
     xx=parseInt(xx-(this.width/2));
     yy=parseInt(yy-(this.height/2));
 
-    this.hbar.jqxScrollBar('setPosition',xx); 
-    this.vbar.jqxScrollBar('setPosition',yy);
+    //this.hbar.jqxScrollBar('setPosition',xx); 
+    //this.vbar.jqxScrollBar('setPosition',yy);
+
+	this.viewportWindow.x= parseInt(xx);
+    this.viewportWindow.y= parseInt(yy);
 }
 setSize( width, height){
      this.viewportWindow.setSize(width,height);      
@@ -8346,32 +8344,33 @@ mouseWheelMoved(event){
 	var e=this.getScaledEvent(event);
 
 	if(event.originalEvent.wheelDelta /120 > 0) {
-		   this.ZoomOut(e.windowx,e.windowy);
+		   this.zoomOut(e.windowx,e.windowy);
       }
       else{
-		   this.ZoomIn(e.windowx,e.windowy);
+		   this.zoomIn(e.windowx,e.windowy);
       }
 }
-ZoomIn(x,y){
+
+zoomIn(x,y){
     if(this.getModel().getUnit().getScalableTransformation().scaleIn()){
         this.viewportWindow.scaleIn(x,y, this.getModel().getUnit().getScalableTransformation());
         this.repaint();         
     }else{
         return false;
     } 
-	this.hbar.off(); 
-	this.vbar.off(); 
+	//this.hbar.off(); 
+	//this.vbar.off(); 
 
 	//set new maximum 
-	this.hbar.jqxScrollBar({ value:this.viewportWindow.x,width: this.width, height: 18, min: 0, max: parseInt(this.getModel().getUnit().getWidth()*this.getModel().getUnit().getScalableTransformation().getScale()-this.width)});
-	this.vbar.jqxScrollBar({ value:this.viewportWindow.y,width: 18, min: 0, max: parseInt(this.getModel().getUnit().getHeight()*this.getModel().getUnit().getScalableTransformation().getScale()-this.height)});
+	//this.hbar.jqxScrollBar({ value:this.viewportWindow.x,width: this.width, height: 18, min: 0, max: parseInt(this.getModel().getUnit().getWidth()*this.getModel().getUnit().getScalableTransformation().getScale()-this.width)});
+	//this.vbar.jqxScrollBar({ value:this.viewportWindow.y,width: 18, min: 0, max: parseInt(this.getModel().getUnit().getHeight()*this.getModel().getUnit().getScalableTransformation().getScale()-this.height)});
 	
-	this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
-	this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
+	//this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
+	//this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
 	
 	return true;
 }
-ZoomOut(x,y){
+zoomOut(x,y){
     if(this.getModel().getUnit().getScalableTransformation().scaleOut()){
             this.viewportWindow.scaleOut(x,y, this.getModel().getUnit().getScalableTransformation());
             this.repaint();                       
@@ -8379,30 +8378,29 @@ ZoomOut(x,y){
             return false;
     }
 
-	this.hbar.off(); 
-	this.vbar.off(); 
+	//this.hbar.off(); 
+	//this.vbar.off(); 
               //set new maximum 
-   	this.hbar.jqxScrollBar({value:this.viewportWindow.x, width: this.width, height: 18, min: 0, max: parseInt(this.getModel().getUnit().getWidth()*this.getModel().getUnit().getScalableTransformation().getScale()-this.width)});
-	this.vbar.jqxScrollBar({value:this.viewportWindow.y, width: 18, min: 0, max: parseInt(this.getModel().getUnit().getHeight()*this.getModel().getUnit().getScalableTransformation().getScale()-this.height)});
+   	//this.hbar.jqxScrollBar({value:this.viewportWindow.x, width: this.width, height: 18, min: 0, max: parseInt(this.getModel().getUnit().getWidth()*this.getModel().getUnit().getScalableTransformation().getScale()-this.width)});
+	//this.vbar.jqxScrollBar({value:this.viewportWindow.y, width: 18, min: 0, max: parseInt(this.getModel().getUnit().getHeight()*this.getModel().getUnit().getScalableTransformation().getScale()-this.height)});
 
-	this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
-	this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
+	//this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
+	//this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
 	
 	return true;
 }
-vStateChanged(event){
-    this.viewportWindow.y= parseInt(event.currentValue);
-    this.repaint();
-	
-  }
-hStateChanged(event){
-    this.viewportWindow.x= parseInt(event.currentValue);
-    this.repaint();
-  }
+//vStateChanged(event){
+//    this.viewportWindow.y= parseInt(event.currentValue);
+//    this.repaint();	
+//  }
+//hStateChanged(event){
+//    this.viewportWindow.x= parseInt(event.currentValue);
+//    this.repaint();
+//  }
 screenResized(e){	  
-	  var container = j$('#mycanvasframe');	  
+	  var container = j$(this.canvas).parent();	  	    	  
 	  var oldwidth=this.width;
-	  this.width=j$(container).width()-18;  //mind combo width
+	  this.width=j$(container).width();  //mind combo width
 	  
 	  if(oldwidth==this.width){
 		  return;
@@ -8414,18 +8412,9 @@ screenResized(e){
 	}
 componentResized(){
     if(this.getModel().getUnit()==null){
-  	  this.setSize(1,1);
-  	  this.hbar.jqxScrollBar({ width: this.width, height: 18, min: 0, max: 1});
-		  this.vbar.jqxScrollBar({ width: 18, min: 0, max: 1, vertical: true});
+  	  this.setSize(1,1);  	  
     }else{
-  	this.setSize(this.width,this.height); 
-      
-  	var hCurrentValue = this.hbar.jqxScrollBar('value');
-      var vCurrentValue = this.vbar.jqxScrollBar('value');
-  	
-  	
-		this.hbar.jqxScrollBar({ value:hCurrentValue,width:this.width, height: 18, min: 0, max: parseInt(this.getModel().getUnit().getWidth()*this.getModel().getUnit().getScalableTransformation().getScale()-this.width)});
-		this.vbar.jqxScrollBar({ value:vCurrentValue,width: 18, min: 0, max: parseInt(this.getModel().getUnit().getHeight()*this.getModel().getUnit().getScalableTransformation().getScale()-this.height), vertical: true});
+  	  this.setSize(this.width,this.height);         
     }  
 	  
 }
@@ -12543,10 +12532,10 @@ mouseWheelMoved(event){
 	  }
 	var e=this.getScaledEvent(event);
 	if(event.originalEvent.wheelDelta /120 > 0) {
-		   this.ZoomIn(e.windowx,e.windowy);
+		   this.zoomIn(e.windowx,e.windowy);
     }
     else{
-		   this.ZoomOut(e.windowx,e.windowy);
+		   this.zoomOut(e.windowx,e.windowy);
     }
 } 
 }
