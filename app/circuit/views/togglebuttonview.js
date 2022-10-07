@@ -180,8 +180,8 @@ var ToggleButtonView=Backbone.View.extend({
 			 this.circuitComponent.setMode(core.ModeEnum.DRAGHEAND_MODE);
 		}	
 		if(event.data.model.id=='tocenterid'){
-			
-            this.circuitComponent.setScrollPosition(parseInt(this.circuitComponent.getModel().getUnit().width/2),
+			this.circuitComponent.getModel().getUnit().getScalableTransformation().setScaleFactor(1);
+            this.circuitComponent.setViewportPosition(parseInt(this.circuitComponent.getModel().getUnit().width/2),
             		parseInt(this.circuitComponent.getModel().getUnit().height/2));
 			this.circuitComponent.repaint();
 		}		
@@ -224,7 +224,7 @@ var ToggleButtonView=Backbone.View.extend({
 
 	        //position on center
           var rect=this.circuitComponent.getModel().getUnit().getBoundingRect();
-          this.circuitComponent.setScrollPosition(rect.center.x,rect.center.y);
+          this.circuitComponent.setViewportPosition(rect.center.x,rect.center.y);
           this.circuitComponent.fireContainerEvent({target:null,type: events.Event.RENAME_CONTAINER});
           this.circuitComponent.getModel().fireUnitEvent({target:this.circuitComponent.getModel().getUnit(),type: events.Event.SELECT_UNIT});
 		  this.circuitComponent.repaint();

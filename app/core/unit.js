@@ -684,15 +684,12 @@ getParameter(key) {
 setParameter(key,value){
 	    this.parameters.set(key,value); 
 	}
-setScrollPosition(x,y) {
+setViewportPosition(x,y) {
     var xx=x*this.getModel().getUnit().getScalableTransformation().getScale();
     var yy=y*this.getModel().getUnit().getScalableTransformation().getScale();
     
-    xx=parseInt(xx-(this.width/2));
-    yy=parseInt(yy-(this.height/2));
-
-    //this.hbar.jqxScrollBar('setPosition',xx); 
-    //this.vbar.jqxScrollBar('setPosition',yy);
+    xx=(xx-(this.width/2));
+    yy=(yy-(this.height/2));    
 
 	this.viewportWindow.x= parseInt(xx);
     this.viewportWindow.y= parseInt(yy);

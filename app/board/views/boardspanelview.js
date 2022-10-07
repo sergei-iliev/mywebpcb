@@ -956,12 +956,12 @@ var BoardsTree=Backbone.View.extend({
 			var shape=this.boardComponent.getModel().getUnit().getShape(item.id);
 			this.boardComponent.getModel().getUnit().setSelected(false);
 			shape.setSelected(true);			
-			this.boardComponent.repaint();
+			
 			            
 	        //position on shape center
             var rect=shape.getBoundingShape();            
-            this.boardComponent.setScrollPosition(rect.center.x,rect.center.y);
-             		  
+            this.boardComponent.setViewportPosition(rect.center.x,rect.center.y);
+            this.boardComponent.repaint(); 		  
 			mywebpcb.trigger('tree:select',{target:shape,type:events.Event.SELECT_SHAPE}); 	
 		}
 	

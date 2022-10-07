@@ -433,7 +433,7 @@ var CircuitsTree=Backbone.View.extend({
 
 		if(item.value==111){
 		   //unit	
-			this.circuitComponent.getModel().getUnit().setScrollPositionValue(this.circuitComponent.viewportWindow.x,this.circuitComponent.viewportWindow.y);
+			//this.circuitComponent.getModel().getUnit().setScrollPositionValue(this.circuitComponent.viewportWindow.x,this.circuitComponent.viewportWindow.y);
 			
 			this.circuitComponent.getModel().setActiveUnitUUID(item.id);
 			this.circuitComponent.getModel().getUnit().setSelected(false);
@@ -454,12 +454,12 @@ var CircuitsTree=Backbone.View.extend({
 			var shape=this.circuitComponent.getModel().getUnit().getShape(item.id);
 			this.circuitComponent.getModel().getUnit().setSelected(false);
 			shape.setSelected(true);			
-			this.circuitComponent.repaint();
+		
 			            
 	        //position on shape center
             var rect=shape.getBoundingShape();            
-            this.circuitComponent.setScrollPosition(rect.center.x,rect.center.y);
-             		  
+            this.circuitComponent.setViewportPosition(rect.center.x,rect.center.y);
+            this.circuitComponent.repaint();	  
 			mywebpcb.trigger('tree:select',{target:shape,type:events.Event.SELECT_SHAPE}); 	
 		}
 	

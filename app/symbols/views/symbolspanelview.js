@@ -788,7 +788,7 @@ var SymbolsTree=Backbone.View.extend({
 
 		if(item.value==111){
 		   //unit	
-			this.symbolComponent.getModel().getUnit().setScrollPositionValue(this.symbolComponent.viewportWindow.x,this.symbolComponent.viewportWindow.y);
+			//this.symbolComponent.getModel().getUnit().setScrollPositionValue(this.symbolComponent.viewportWindow.x,this.symbolComponent.viewportWindow.y);
 			
 			this.symbolComponent.getModel().setActiveUnitUUID(item.id);
 			this.symbolComponent.getModel().getUnit().setSelected(false);
@@ -812,6 +812,10 @@ var SymbolsTree=Backbone.View.extend({
 			var shape=this.symbolComponent.getModel().getUnit().getShape(item.id);
 			this.symbolComponent.getModel().getUnit().setSelected(false);
 			shape.setSelected(true);
+			
+		    //position on shape center
+            var rect=shape.getBoundingShape();            
+            this.symbolComponent.setViewportPosition(rect.center.x,rect.center.y);
 			this.symbolComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:shape,type:events.Event.SELECT_SHAPE}); 	
 		}

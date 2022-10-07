@@ -840,6 +840,10 @@ var FootprintsTree=Backbone.View.extend({
 			var shape=this.footprintComponent.getModel().getUnit().getShape(item.id);
 			this.footprintComponent.getModel().getUnit().setSelected(false);
 			shape.setSelected(true);
+			
+		    //position on shape center
+            var rect=shape.getBoundingShape();            
+            this.footprintComponent.setViewportPosition(rect.center.x,rect.center.y);
 			this.footprintComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:shape,type:events.Event.SELECT_SHAPE}); 	
 		}
