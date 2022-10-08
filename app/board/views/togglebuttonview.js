@@ -219,6 +219,7 @@ var ToggleButtonView=Backbone.View.extend({
 			  var copy=unit.clone();	
 			  core.isEventEnabled=true;
 			  this.boardComponent.getModel().add(copy);  
+	          copy.scalableTransformation.setScaleFactor(copy.scalableTransformation.maxScaleFactor);	          
 			  copy.notifyListeners(events.Event.ADD_SHAPE);
 		  };
 		  
@@ -238,6 +239,13 @@ var ToggleButtonView=Backbone.View.extend({
 		  //set button group
 		  this.boardComponent.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
 
+		  //position all to circuit center
+		  for(let unit of this.boardComponent.getModel().getUnits()){			   
+	            let r=unit.getBoundingRect();
+	            var x=unit.getScalableTransformation().getScale()*r.x-(this.boardComponent.viewportWindow.width-unit.getScalableTransformation().getScale()*r.width)/2;
+	            var y=unit.getScalableTransformation().getScale()*r.y-(this.boardComponent.viewportWindow.height-unit.getScalableTransformation().getScale()*r.height)/2;;
+	            unit.setViewportPositionValue(x,y);              			  
+		  }	
 		  
 	},
     setButtonGroup:function(requestedMode) {

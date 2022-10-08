@@ -231,7 +231,13 @@ var ToggleButtonView=Backbone.View.extend({
 		  //set button group
 		  this.circuitComponent.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
 
-		  
+		  //position all to circuit center
+		  for(let unit of this.circuitComponent.getModel().getUnits()){			   
+	            let r=unit.getBoundingRect();
+	            var x=unit.getScalableTransformation().getScale()*r.x-(this.circuitComponent.viewportWindow.width-unit.getScalableTransformation().getScale()*r.width)/2;
+	            var y=unit.getScalableTransformation().getScale()*r.y-(this.circuitComponent.viewportWindow.height-unit.getScalableTransformation().getScale()*r.height)/2;;
+	            unit.setViewportPositionValue(x,y);              			  
+		  }	
 	},
     setButtonGroup:function(requestedMode) {
          if (requestedMode == core.ModeEnum.COMPONENT_MODE) {

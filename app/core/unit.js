@@ -169,14 +169,18 @@ class Unit{
     	this.height=height;
     	this.unitName="Unknown";
     	this.grid=new core.Grid(0.8,core.Units.MM);
-        //this.scrollPositionXValue = 0;
-        //this.scrollPositionYValue = 0;
+        this.viewportPositionX = 0;
+        this.viewportPositionY = 0;
         this.frame=new core.UnitFrame(this.width,this.height);
         this.coordinateSystem;//=new core.CoordinateSystem(this);
 		this.ruler=new shape.Ruler();
 		this.shapeFactory=null;
         
     }
+setViewportPositionValue(viewportPositionX,viewportPositionY) {
+        this.viewportPositionX = viewportPositionX;
+        this.viewportPositionY = viewportPositionY;
+       }
 fireShapeEvent(event){
 		if(!core.isEventEnabled)
 			return;

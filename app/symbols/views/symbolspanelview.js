@@ -788,14 +788,15 @@ var SymbolsTree=Backbone.View.extend({
 
 		if(item.value==111){
 		   //unit	
-			//this.symbolComponent.getModel().getUnit().setScrollPositionValue(this.symbolComponent.viewportWindow.x,this.symbolComponent.viewportWindow.y);
+			this.symbolComponent.getModel().getUnit().setViewportPositionValue(this.symbolComponent.viewportWindow.x,this.symbolComponent.viewportWindow.y);
 			
 			this.symbolComponent.getModel().setActiveUnitUUID(item.id);
 			this.symbolComponent.getModel().getUnit().setSelected(false);
 			this.symbolComponent.componentResized();
 			
-			this.symbolComponent.hbar.jqxScrollBar({ value:this.symbolComponent.getModel().getUnit().scrollPositionXValue});
-			this.symbolComponent.vbar.jqxScrollBar({ value:this.symbolComponent.getModel().getUnit().scrollPositionYValue});
+			//restore viewport
+			this.symbolComponent.viewportWindow.x=this.symbolComponent.getModel().getUnit().viewportPositionX;
+			this.symbolComponent.viewportWindow.y=this.symbolComponent.getModel().getUnit().viewportPositionY;
 			
 			this.symbolComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:this.symbolComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 
@@ -805,6 +806,7 @@ var SymbolsTree=Backbone.View.extend({
 			if(this.symbolComponent.getModel().getUnit().getUUID()!=item.parentId){
 		 		   this.$tree.off('select',j$.proxy(this.valuechanged,this));
 		 		   this.$tree.jqxTree('selectItem',  j$("#"+item.parentId)[0]);
+				   this.symbolComponent.getModel().getUnit().setViewportPositionValue(this.symbolComponent.viewportWindow.x,this.symbolComponent.viewportWindow.y);
 		 		   this.symbolComponent.getModel().setActiveUnitUUID(item.parentId);
 		 		   this.$tree.on('select',j$.proxy(this.valuechanged,this));
 			}

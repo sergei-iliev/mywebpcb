@@ -433,12 +433,16 @@ var CircuitsTree=Backbone.View.extend({
 
 		if(item.value==111){
 		   //unit	
-			//this.circuitComponent.getModel().getUnit().setScrollPositionValue(this.circuitComponent.viewportWindow.x,this.circuitComponent.viewportWindow.y);
+			this.circuitComponent.getModel().getUnit().setViewportPositionValue(this.circuitComponent.viewportWindow.x,this.circuitComponent.viewportWindow.y);
 			
 			this.circuitComponent.getModel().setActiveUnitUUID(item.id);
 			this.circuitComponent.getModel().getUnit().setSelected(false);
 			this.circuitComponent.componentResized();
 				
+	   	    //restore viewport
+			this.circuitComponent.viewportWindow.x=this.circuitComponent.getModel().getUnit().viewportPositionX;
+			this.circuitComponent.viewportWindow.y=this.circuitComponent.getModel().getUnit().viewportPositionY;
+	
 			this.circuitComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:this.circuitComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 
 		}
@@ -447,6 +451,7 @@ var CircuitsTree=Backbone.View.extend({
 			if(this.circuitComponent.getModel().getUnit().getUUID()!=item.parentId){
 		 		   this.$tree.off('select',j$.proxy(this.valuechanged,this));
 		 		   this.$tree.jqxTree('selectItem',  j$("#"+item.parentId)[0]);
+                   this.circuitComponent.getModel().getUnit().setViewportPositionValue(this.circuitComponent.viewportWindow.x,this.circuitComponent.viewportWindow.y);
 		 		   this.circuitComponent.getModel().setActiveUnitUUID(item.parentId);
 		 		   this.$tree.on('select',j$.proxy(this.valuechanged,this));
 			}

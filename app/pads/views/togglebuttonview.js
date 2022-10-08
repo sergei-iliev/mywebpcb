@@ -241,7 +241,7 @@ var ToggleButtonView=Backbone.View.extend({
 	            let r=unit.getBoundingRect();
 	            var x=unit.getScalableTransformation().getScale()*r.x-(this.footprintComponent.viewportWindow.width-unit.getScalableTransformation().getScale()*r.width)/2;
 	            var y=unit.getScalableTransformation().getScale()*r.y-(this.footprintComponent.viewportWindow.height-unit.getScalableTransformation().getScale()*r.height)/2;;
-	            //unit.setScrollPosition(x,y);            			  
+	            unit.setViewportPositionValue(x,y);              			  
 		  }		
 
 	},
