@@ -44,7 +44,8 @@
   };
 
   var expandAlias = function(name) {
-    return aliases[name] ? expandAlias(aliases[name]) : name;
+    var val = aliases[name];
+    return (val && name !== val) ? expandAlias(val) : name;
   };
 
   var _resolve = function(name, dep) {
@@ -3994,14 +3995,18 @@ class Unit{
     	this.height=height;
     	this.unitName="Unknown";
     	this.grid=new core.Grid(0.8,core.Units.MM);
-        //this.scrollPositionXValue = 0;
-        //this.scrollPositionYValue = 0;
+        this.viewportPositionX = 0;
+        this.viewportPositionY = 0;
         this.frame=new core.UnitFrame(this.width,this.height);
         this.coordinateSystem;//=new core.CoordinateSystem(this);
 		this.ruler=new shape.Ruler();
 		this.shapeFactory=null;
         
     }
+setViewportPositionValue(viewportPositionX,viewportPositionY) {
+        this.viewportPositionX = viewportPositionX;
+        this.viewportPositionY = viewportPositionY;
+       }
 fireShapeEvent(event){
 		if(!core.isEventEnabled)
 			return;
@@ -4509,15 +4514,12 @@ getParameter(key) {
 setParameter(key,value){
 	    this.parameters.set(key,value); 
 	}
-setScrollPosition(x,y) {
+setViewportPosition(x,y) {
     var xx=x*this.getModel().getUnit().getScalableTransformation().getScale();
     var yy=y*this.getModel().getUnit().getScalableTransformation().getScale();
     
-    xx=parseInt(xx-(this.width/2));
-    yy=parseInt(yy-(this.height/2));
-
-    //this.hbar.jqxScrollBar('setPosition',xx); 
-    //this.vbar.jqxScrollBar('setPosition',yy);
+    xx=(xx-(this.width/2));
+    yy=(yy-(this.height/2));    
 
 	this.viewportWindow.x= parseInt(xx);
     this.viewportWindow.y= parseInt(yy);
@@ -12490,14 +12492,14 @@ var FootprintsTree=Backbone.View.extend({
 
 		if(item.value==111){
 		   //unit	
-			//this.footprintComponent.getModel().getUnit().setScrollPosition(this.footprintComponent.viewportWindow.x,this.footprintComponent.viewportWindow.y);
-			
+			this.footprintComponent.getModel().getUnit().setViewportPositionValue(this.footprintComponent.viewportWindow.x,this.footprintComponent.viewportWindow.y);
 			this.footprintComponent.getModel().setActiveUnitUUID(item.id);
 			this.footprintComponent.getModel().getUnit().setSelected(false);
 			this.footprintComponent.componentResized();
 			
-			//this.footprintComponent.hbar.jqxScrollBar({ value:this.footprintComponent.getModel().getUnit().scrollPositionXValue});
-			//this.footprintComponent.vbar.jqxScrollBar({ value:this.footprintComponent.getModel().getUnit().scrollPositionYValue});
+			//restore viewport
+			this.footprintComponent.viewportWindow.x=this.footprintComponent.getModel().getUnit().viewportPositionX;
+			this.footprintComponent.viewportWindow.y=this.footprintComponent.getModel().getUnit().viewportPositionY;			
 			
 			this.footprintComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:this.footprintComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 
@@ -12507,13 +12509,18 @@ var FootprintsTree=Backbone.View.extend({
 			if(this.footprintComponent.getModel().getUnit().getUUID()!=item.parentId){
 		 		   this.$tree.off('select',j$.proxy(this.valuechanged,this));
 		 		   this.$tree.jqxTree('selectItem',  j$("#"+item.parentId)[0]);
-		 		   this.footprintComponent.getModel().setActiveUnitUUID(item.parentId);
+				   this.footprintComponent.getModel().getUnit().setViewportPositionValue(this.footprintComponent.viewportWindow.x,this.footprintComponent.viewportWindow.y);		 		   
+				   this.footprintComponent.getModel().setActiveUnitUUID(item.parentId);
 		 		   this.$tree.on('select',j$.proxy(this.valuechanged,this));
 			}
 			   //shape
 			var shape=this.footprintComponent.getModel().getUnit().getShape(item.id);
 			this.footprintComponent.getModel().getUnit().setSelected(false);
 			shape.setSelected(true);
+			
+		    //position on shape center
+            var rect=shape.getBoundingShape();            
+            this.footprintComponent.setViewportPosition(rect.center.x,rect.center.y);
 			this.footprintComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:shape,type:events.Event.SELECT_SHAPE}); 	
 		}
@@ -12989,8 +12996,8 @@ var ToggleButtonView=Backbone.View.extend({
 		}	
 		if(event.data.model.id=='tocenterid'){
 			this.footprintComponent.getModel().getUnit().getScalableTransformation().setScaleFactor(this.footprintComponent.getModel().getUnit().getScalableTransformation().maxScaleFactor);
-            this.footprintComponent.setScrollPosition(parseInt(this.footprintComponent.getModel().getUnit().width/2),
-            		parseInt(this.footprintComponent.getModel().getUnit().height/2));
+            this.footprintComponent.setViewportPosition((this.footprintComponent.getModel().getUnit().width/2),
+            		(this.footprintComponent.getModel().getUnit().height/2));
 			this.footprintComponent.repaint();
 		}		
         if (event.data.model.id=='measureid') {
@@ -13022,7 +13029,7 @@ var ToggleButtonView=Backbone.View.extend({
 		  this.footprintComponent.componentResized();
         //position on center
           let rect=this.footprintComponent.getModel().getUnit().getBoundingRect();
-          this.footprintComponent.setScrollPosition(rect.center.x,rect.center.y);
+          this.footprintComponent.setViewportPosition(rect.center.x,rect.center.y);
           this.footprintComponent.fireContainerEvent({target:null,type: events.Event.RENAME_CONTAINER});
           this.footprintComponent.getModel().fireUnitEvent({target:this.footprintComponent.getModel().getUnit(),type: events.Event.SELECT_UNIT});
 		  this.footprintComponent.repaint();
@@ -13034,7 +13041,7 @@ var ToggleButtonView=Backbone.View.extend({
 	            let r=unit.getBoundingRect();
 	            var x=unit.getScalableTransformation().getScale()*r.x-(this.footprintComponent.viewportWindow.width-unit.getScalableTransformation().getScale()*r.width)/2;
 	            var y=unit.getScalableTransformation().getScale()*r.y-(this.footprintComponent.viewportWindow.height-unit.getScalableTransformation().getScale()*r.height)/2;;
-	            //unit.setScrollPosition(x,y);            			  
+	            unit.setViewportPositionValue(x,y);              			  
 		  }		
 
 	},

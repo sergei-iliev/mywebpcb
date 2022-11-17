@@ -44,7 +44,8 @@
   };
 
   var expandAlias = function(name) {
-    return aliases[name] ? expandAlias(aliases[name]) : name;
+    var val = aliases[name];
+    return (val && name !== val) ? expandAlias(val) : name;
   };
 
   var _resolve = function(name, dep) {
@@ -3269,12 +3270,16 @@ var CircuitsTree=Backbone.View.extend({
 
 		if(item.value==111){
 		   //unit	
-			this.circuitComponent.getModel().getUnit().setScrollPositionValue(this.circuitComponent.viewportWindow.x,this.circuitComponent.viewportWindow.y);
+			this.circuitComponent.getModel().getUnit().setViewportPositionValue(this.circuitComponent.viewportWindow.x,this.circuitComponent.viewportWindow.y);
 			
 			this.circuitComponent.getModel().setActiveUnitUUID(item.id);
 			this.circuitComponent.getModel().getUnit().setSelected(false);
 			this.circuitComponent.componentResized();
 				
+	   	    //restore viewport
+			this.circuitComponent.viewportWindow.x=this.circuitComponent.getModel().getUnit().viewportPositionX;
+			this.circuitComponent.viewportWindow.y=this.circuitComponent.getModel().getUnit().viewportPositionY;
+	
 			this.circuitComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:this.circuitComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 
 		}
@@ -3283,6 +3288,7 @@ var CircuitsTree=Backbone.View.extend({
 			if(this.circuitComponent.getModel().getUnit().getUUID()!=item.parentId){
 		 		   this.$tree.off('select',j$.proxy(this.valuechanged,this));
 		 		   this.$tree.jqxTree('selectItem',  j$("#"+item.parentId)[0]);
+                   this.circuitComponent.getModel().getUnit().setViewportPositionValue(this.circuitComponent.viewportWindow.x,this.circuitComponent.viewportWindow.y);
 		 		   this.circuitComponent.getModel().setActiveUnitUUID(item.parentId);
 		 		   this.$tree.on('select',j$.proxy(this.valuechanged,this));
 			}
@@ -3290,12 +3296,12 @@ var CircuitsTree=Backbone.View.extend({
 			var shape=this.circuitComponent.getModel().getUnit().getShape(item.id);
 			this.circuitComponent.getModel().getUnit().setSelected(false);
 			shape.setSelected(true);			
-			this.circuitComponent.repaint();
+		
 			            
 	        //position on shape center
             var rect=shape.getBoundingShape();            
-            this.circuitComponent.setScrollPosition(rect.center.x,rect.center.y);
-             		  
+            this.circuitComponent.setViewportPosition(rect.center.x,rect.center.y);
+            this.circuitComponent.repaint();	  
 			mywebpcb.trigger('tree:select',{target:shape,type:events.Event.SELECT_SHAPE}); 	
 		}
 	
@@ -3784,8 +3790,8 @@ var ToggleButtonView=Backbone.View.extend({
 			 this.circuitComponent.setMode(core.ModeEnum.DRAGHEAND_MODE);
 		}	
 		if(event.data.model.id=='tocenterid'){
-			
-            this.circuitComponent.setScrollPosition(parseInt(this.circuitComponent.getModel().getUnit().width/2),
+			this.circuitComponent.getModel().getUnit().getScalableTransformation().setScaleFactor(1);
+            this.circuitComponent.setViewportPosition(parseInt(this.circuitComponent.getModel().getUnit().width/2),
             		parseInt(this.circuitComponent.getModel().getUnit().height/2));
 			this.circuitComponent.repaint();
 		}		
@@ -3828,14 +3834,20 @@ var ToggleButtonView=Backbone.View.extend({
 
 	        //position on center
           var rect=this.circuitComponent.getModel().getUnit().getBoundingRect();
-          this.circuitComponent.setScrollPosition(rect.center.x,rect.center.y);
+          this.circuitComponent.setViewportPosition(rect.center.x,rect.center.y);
           this.circuitComponent.fireContainerEvent({target:null,type: events.Event.RENAME_CONTAINER});
           this.circuitComponent.getModel().fireUnitEvent({target:this.circuitComponent.getModel().getUnit(),type: events.Event.SELECT_UNIT});
 		  this.circuitComponent.repaint();
 		  //set button group
 		  this.circuitComponent.getView().setButtonGroup(core.ModeEnum.COMPONENT_MODE);
 
-		  
+		  //position all to circuit center
+		  for(let unit of this.circuitComponent.getModel().getUnits()){			   
+	            let r=unit.getBoundingRect();
+	            var x=unit.getScalableTransformation().getScale()*r.x-(this.circuitComponent.viewportWindow.width-unit.getScalableTransformation().getScale()*r.width)/2;
+	            var y=unit.getScalableTransformation().getScale()*r.y-(this.circuitComponent.viewportWindow.height-unit.getScalableTransformation().getScale()*r.height)/2;;
+	            unit.setViewportPositionValue(x,y);              			  
+		  }	
 	},
     setButtonGroup:function(requestedMode) {
          if (requestedMode == core.ModeEnum.COMPONENT_MODE) {
@@ -7712,14 +7724,18 @@ class Unit{
     	this.height=height;
     	this.unitName="Unknown";
     	this.grid=new core.Grid(0.8,core.Units.MM);
-        //this.scrollPositionXValue = 0;
-        //this.scrollPositionYValue = 0;
+        this.viewportPositionX = 0;
+        this.viewportPositionY = 0;
         this.frame=new core.UnitFrame(this.width,this.height);
         this.coordinateSystem;//=new core.CoordinateSystem(this);
 		this.ruler=new shape.Ruler();
 		this.shapeFactory=null;
         
     }
+setViewportPositionValue(viewportPositionX,viewportPositionY) {
+        this.viewportPositionX = viewportPositionX;
+        this.viewportPositionY = viewportPositionY;
+       }
 fireShapeEvent(event){
 		if(!core.isEventEnabled)
 			return;
@@ -8227,15 +8243,12 @@ getParameter(key) {
 setParameter(key,value){
 	    this.parameters.set(key,value); 
 	}
-setScrollPosition(x,y) {
+setViewportPosition(x,y) {
     var xx=x*this.getModel().getUnit().getScalableTransformation().getScale();
     var yy=y*this.getModel().getUnit().getScalableTransformation().getScale();
     
-    xx=parseInt(xx-(this.width/2));
-    yy=parseInt(yy-(this.height/2));
-
-    //this.hbar.jqxScrollBar('setPosition',xx); 
-    //this.vbar.jqxScrollBar('setPosition',yy);
+    xx=(xx-(this.width/2));
+    yy=(yy-(this.height/2));    
 
 	this.viewportWindow.x= parseInt(xx);
     this.viewportWindow.y= parseInt(yy);
