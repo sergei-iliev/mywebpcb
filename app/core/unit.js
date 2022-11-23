@@ -162,7 +162,7 @@ class manager{
 class Unit{
     constructor(width,height) {
         //this.silent=false; 	 
-    	this.scalableTransformation=new core.ScalableTransformation(8,4,13);
+    	this.scalableTransformation=new core.ScalableTransformation(1,1,13);
     	this.uuid=core.UUID();
     	this.shapes=[];
     	this.width=width;
@@ -178,8 +178,9 @@ class Unit{
         
     }
 setScrollPositionValue(scrollPositionXValue,scrollPositionYValue) {
-        this.scrollPositionXValue = scrollPositionXValue;
-        this.scrollPositionYValue = scrollPositionYValue;
+	throw new e('what is this')
+        //this.scrollPositionXValue = scrollPositionXValue;
+        //this.scrollPositionYValue = scrollPositionYValue;
        }
 fireShapeEvent(event){
 		if(!core.isEventEnabled)
@@ -646,14 +647,14 @@ class UnitComponent{
 	this.viewportWindow=new ViewportWindow(0,0,this.width,this.height);
 	this.parameters=new Map();
 	this.parameters.set("snaptogrid",false);
-	if(hbar!=null&&vbar!=null){
-		this.hbar = j$('#'+hbar);
-		this.vbar=j$('#'+vbar);
-		this.hbar.jqxScrollBar({ width: '100%', height: 18, min: 0, max: 100});
-		this.vbar.jqxScrollBar({ width: 18, height:'100%', min: 0, max: 100, vertical: true});
-		this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
-		this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
-	}
+	//if(hbar!=null&&vbar!=null){
+	//	this.hbar = j$('#'+hbar);
+	//	this.vbar=j$('#'+vbar);
+	//	this.hbar.jqxScrollBar({ width: '100%', height: 18, min: 0, max: 100});
+	//	this.vbar.jqxScrollBar({ width: 18, height:'100%', min: 0, max: 100, vertical: true});
+	//	this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
+	//	this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
+	//}
 	
 	this.mode=core.ModeEnum.COMPONENT_MODE;
 	this.backgroundColor="black";
@@ -694,9 +695,12 @@ setScrollPosition(x,y) {
     
     xx=parseInt(xx-(this.width/2));
     yy=parseInt(yy-(this.height/2));
+    
+    //this.hbar.jqxScrollBar('setPosition',xx); 
+    //this.vbar.jqxScrollBar('setPosition',yy);
 
-    this.hbar.jqxScrollBar('setPosition',xx); 
-    this.vbar.jqxScrollBar('setPosition',yy);
+	this.viewportWindow.x= parseInt(xx);
+    this.viewportWindow.y= parseInt(yy);
 }
 setSize( width, height){
      this.viewportWindow.setSize(width,height);      
@@ -736,10 +740,18 @@ getScaledEvent(event){
 		   y = event.clientY + document.body.scrollTop +
 	            document.documentElement.scrollTop;
 	 }
-	       x -= parseInt(this.canvas.offset().left);
-	       y -= parseInt(this.canvas.offset().top);
+	       x -= (this.canvas.offset().left);
+	       y -= (this.canvas.offset().top);
 	  
-	  return new events.MouseScaledEvent(x,y,this.getModel().getUnit().getScalableTransformation().getInversePoint(this.viewportWindow.x+x,this.viewportWindow.y+y),event);     
+	if(event.handleObj.type==='mousedown'){
+    	//const canvas = document.getElementById('mycanvas')
+    	//const rect = canvas.getBoundingClientRect()
+    	//const xx = event.clientX - rect.left
+    	//const yy = event.clientY - rect.top
+    	//console.log("xx: " + xx + " yy: " + yy)
+    	//console.log("x: " + x + " y: " + y)
+	} 
+	return new events.MouseScaledEvent(x,y,this.getModel().getUnit().getScalableTransformation().getInversePoint(this.viewportWindow.x+x,this.viewportWindow.y+y),event);     
 }
 dblClick(event){
 	  event.preventDefault();
@@ -815,15 +827,15 @@ ZoomIn(x,y){
     }else{
         return false;
     } 
-	this.hbar.off(); 
-	this.vbar.off(); 
+	//this.hbar.off(); 
+	//this.vbar.off(); 
 
 	//set new maximum 
-	this.hbar.jqxScrollBar({ value:this.viewportWindow.x,width: this.width, height: 18, min: 0, max: parseInt(this.getModel().getUnit().getWidth()*this.getModel().getUnit().getScalableTransformation().getScale()-this.width)});
-	this.vbar.jqxScrollBar({ value:this.viewportWindow.y,width: 18, min: 0, max: parseInt(this.getModel().getUnit().getHeight()*this.getModel().getUnit().getScalableTransformation().getScale()-this.height)});
+	//this.hbar.jqxScrollBar({ value:this.viewportWindow.x,width: this.width, height: 18, min: 0, max: parseInt(this.getModel().getUnit().getWidth()*this.getModel().getUnit().getScalableTransformation().getScale()-this.width)});
+	//this.vbar.jqxScrollBar({ value:this.viewportWindow.y,width: 18, min: 0, max: parseInt(this.getModel().getUnit().getHeight()*this.getModel().getUnit().getScalableTransformation().getScale()-this.height)});
 	
-	this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
-	this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
+	//this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
+	//this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
 	
 	return true;
 }
@@ -835,14 +847,14 @@ ZoomOut(x,y){
             return false;
     }
 
-	this.hbar.off(); 
-	this.vbar.off(); 
+	//this.hbar.off(); 
+	//this.vbar.off(); 
               //set new maximum 
-   	this.hbar.jqxScrollBar({value:this.viewportWindow.x, width: this.width, height: 18, min: 0, max: parseInt(this.getModel().getUnit().getWidth()*this.getModel().getUnit().getScalableTransformation().getScale()-this.width)});
-	this.vbar.jqxScrollBar({value:this.viewportWindow.y, width: 18, min: 0, max: parseInt(this.getModel().getUnit().getHeight()*this.getModel().getUnit().getScalableTransformation().getScale()-this.height)});
+   	//this.hbar.jqxScrollBar({value:this.viewportWindow.x, width: this.width, height: 18, min: 0, max: parseInt(this.getModel().getUnit().getWidth()*this.getModel().getUnit().getScalableTransformation().getScale()-this.width)});
+	//this.vbar.jqxScrollBar({value:this.viewportWindow.y, width: 18, min: 0, max: parseInt(this.getModel().getUnit().getHeight()*this.getModel().getUnit().getScalableTransformation().getScale()-this.height)});
 
-	this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
-	this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
+	//this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
+	//this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
 	
 	return true;
 }
@@ -855,33 +867,27 @@ hStateChanged(event){
     this.viewportWindow.x= parseInt(event.currentValue);
     this.repaint();
   }
-screenResized(e){	  
+screenResized(e){	
 	  var container = j$('#mycanvasframe');	  
 	  var oldwidth=this.width;
-	  this.width=j$(container).width()-18;  //mind combo width
-	  
+	  this.width=j$(container).width()-2;  //mind combo width or HTML tag discrepency
+
 	  if(oldwidth==this.width){
 		  return;
 	  }
 	  //set canvas width
 	  this.canvas.attr('width',this.width);
+      	  
 	  this.componentResized();
 	  this.repaint();
-	}
-componentResized(){
+
+}
+componentResized(){	
     if(this.getModel().getUnit()==null){
-  	  this.setSize(1,1);
-  	  this.hbar.jqxScrollBar({ width: this.width, height: 18, min: 0, max: 1});
-		  this.vbar.jqxScrollBar({ width: 18, min: 0, max: 1, vertical: true});
-    }else{
-  	this.setSize(this.width,this.height); 
+  		  this.setSize(1,1);  	  	
+    }else{	
+ 	 	this.setSize(this.width,this.height); 
       
-  	var hCurrentValue = this.hbar.jqxScrollBar('value');
-      var vCurrentValue = this.vbar.jqxScrollBar('value');
-  	
-  	
-		this.hbar.jqxScrollBar({ value:hCurrentValue,width:this.width, height: 18, min: 0, max: parseInt(this.getModel().getUnit().getWidth()*this.getModel().getUnit().getScalableTransformation().getScale()-this.width)});
-		this.vbar.jqxScrollBar({ value:vCurrentValue,width: 18, min: 0, max: parseInt(this.getModel().getUnit().getHeight()*this.getModel().getUnit().getScalableTransformation().getScale()-this.height), vertical: true});
     }  
 	  
 }

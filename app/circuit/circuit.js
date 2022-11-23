@@ -21,7 +21,7 @@ var CircuitComponent=require('circuit/d/circuitcomponent').CircuitComponent;
 			//enable tooltips
 			j$('[data-toggle="tooltip"]').tooltip();
 
-			var sc=new CircuitComponent('jqxHorizontalScrollBar','jqxVerticalScrollBar','mycanvas','popup-menu');
+			var sc=new CircuitComponent('jqxHorizontalScrollBar',null,'mycanvas','popup-menu');
 			
 			//create ui
 			var toggleButtonCollection=new togglebutton.ToggleButtonCollection(

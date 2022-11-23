@@ -180,9 +180,9 @@ var ToggleButtonView=Backbone.View.extend({
 			 this.circuitComponent.setMode(core.ModeEnum.DRAGHEAND_MODE);
 		}	
 		if(event.data.model.id=='tocenterid'){
-			
             this.circuitComponent.setScrollPosition(parseInt(this.circuitComponent.getModel().getUnit().width/2),
             		parseInt(this.circuitComponent.getModel().getUnit().height/2));
+            this.circuitComponent.repaint();
 		}		
 	},
 	onsymbolload:function(selectedModel){

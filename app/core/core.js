@@ -414,7 +414,7 @@ setLayerVisible(mask,flag) {
 }
 	  
 }
-/*
+
 var AffineTransform=(function(){
 	var x,y,a;
 	return{
@@ -432,7 +432,7 @@ var AffineTransform=(function(){
 		},
 	}; 
 })();
-*/
+
 class ScalableTransformation{
   constructor(scaleFactor,minScaleFactor,maxScaleFactor) {	    
         this.reset(0.5,scaleFactor,minScaleFactor,maxScaleFactor);
@@ -909,6 +909,7 @@ module.exports ={
 	BOARD_LAYERS,PCB_SYMBOL_LAYERS,PCB_SYMBOL_OUTLINE_LAYERS,
 	Layer,
 	ScalableTransformation,
+	AffineTransform,
 	ViewportWindow,
 	Grid,	
 	UnitFrame,

@@ -358,8 +358,8 @@ var CircuitPanelBuilder=BaseBuilder.extend({
 		 if(event.keyCode != 13){
 			return; 
 	     }
-		 if(event.target.id=='widthid'||event.target.id=='heightid'){           
-		    this.component.getModel().getUnit().setSize(core.MM_TO_COORD(parseFloat(j$('#widthid').val())),core.MM_TO_COORD(parseFloat(j$('#heightid').val())));  
+		 if(event.target.id=='widthid'||event.target.id=='heightid'){           	    
+			this.component.getModel().getUnit().setSize(parseFloat(j$('#widthid').val()),parseFloat(j$('#heightid').val()));  
 		    this.component.componentResized();     
 		    this.component.repaint();
 		 }
@@ -439,8 +439,8 @@ var CircuitsTree=Backbone.View.extend({
 			this.circuitComponent.getModel().getUnit().setSelected(false);
 			this.circuitComponent.componentResized();
 			
-			this.circuitComponent.hbar.jqxScrollBar({ value:this.circuitComponent.getModel().getUnit().scrollPositionXValue});
-			this.circuitComponent.vbar.jqxScrollBar({ value:this.circuitComponent.getModel().getUnit().scrollPositionYValue});
+			//this.circuitComponent.hbar.jqxScrollBar({ value:this.circuitComponent.getModel().getUnit().scrollPositionXValue});
+			//this.circuitComponent.vbar.jqxScrollBar({ value:this.circuitComponent.getModel().getUnit().scrollPositionYValue});
 			
 			this.circuitComponent.repaint();
 			mywebpcb.trigger('tree:select',{target:this.circuitComponent.getModel().getUnit(),type:events.Event.SELECT_UNIT}); 
