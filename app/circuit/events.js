@@ -6,8 +6,7 @@ var d2 = require('d2/d2');
 class MoveLineSegmentHandle extends EventHandle{
 constructor(component) {
 		 super(component);
-	     this.startPoint;
-	     this.endPoint;
+		 this.segment;
 	 }
  
 mousePressed(event){
@@ -19,24 +18,20 @@ mousePressed(event){
     this.target.setSelected(true);
 
     
-    let arr=this.target.getSegmentClicked(event);
-    this.startPoint=arr[0];
-    this.endPoint=arr[1];
-    	
+    this.segment=this.target.getSegmentClicked(event);        
+
 	this.component.repaint();
  }
  mouseReleased(event){
 	    if(this.component.getParameter("snaptogrid")){
-         this.target.alignResizingPointToGrid(this.startPoint);
-         this.target.alignResizingPointToGrid(this.endPoint);
+         this.target.alignResizingPointToGrid(this.segment.ps);
+         this.target.alignResizingPointToGrid(this.segment.pe);
 	     this.component.repaint();	 
 		}
 	    this.target.resizingPoint=null;
  }
  mouseDragged(event){
-
-    this.target.moveSegment(this.startPoint,this.endPoint,event);    
-
+    this.target.moveSegment(this.segment,event);    
 	this.component.repaint();
  }
  mouseMove(event){

@@ -349,18 +349,19 @@ class SCHWire extends AbstractLine{
 	              if(prevPoint.equals(point)){    	            	  
 	            	  prevPoint = point;
 	                  continue;
-	              }    	              
-	              segment.set(prevPoint.x,prevPoint.y,point.x,point.y);
+	              }    	              	              
+                  segment.ps=prevPoint;
+                  segment.pe=point;
 	              if(segment.isPointOn(pt,this.selectionRectWidth)){
-	                  return [prevPoint,point];
+	                  return segment
 	              }
 	              prevPoint = point;
 	          }			       	          
 	       return null;
 	}
-    moveSegment(startPoint,endPoint,p){	
+    moveSegment(segment,p){	
 	  let pt=new d2.Point(p.x,p.y);
-	  let segment=new d2.Segment(startPoint,endPoint);
+	  
 
 	  let projPt=segment.projectionPoint(pt);
       let delta=projPt.distanceTo(pt);
@@ -372,13 +373,13 @@ class SCHWire extends AbstractLine{
       let norm=v.normalize();
 	  
       
-      let x=startPoint.x +delta*norm.x;
-	  let y=startPoint.y +delta*norm.y;
-      startPoint.set(x,y);
-
-      x=endPoint.x +delta*norm.x;
-	  y=endPoint.y +delta*norm.y;
-      endPoint.set(x,y);    
+      let x=segment.ps.x +delta*norm.x;
+	  let y=segment.ps.y +delta*norm.y;
+      segment.ps.set(x,y)
+      
+      x=segment.pe.x +delta*norm.x;
+	  y=segment.pe.y +delta*norm.y;
+	  segment.pe.set(x,y)    
     }
 	paint(g2, viewportWindow, scale,layersmask) {		
 		var rect = this.polyline.box;

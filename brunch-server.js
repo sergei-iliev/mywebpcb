@@ -5,6 +5,18 @@ const app = express();
 
 app.use(express.static(__dirname + '/public'));
 
+// Export the module like this for Brunch.
+module.exports = (config, callback) => {
+  // Server config is passed within the `config` variable.
+  app.listen(config.port, function () {
+    console.log(`Example app listening on port ${config.port}!`);
+    callback();
+  });
+
+  // Return the app; it has the `close()` method, which would be ran when
+  // Brunch server is terminated
+  return app;
+};
 //**************BOARD****************************************
 app.get('/rest/boards/workspaces', (req, res, next) => {
 	  res.send(
@@ -198,15 +210,3 @@ app.get('/rest/footprints/libraries/DIP/categories/null/DIP-8', (req, res, next)
 		res.send(data);
   });
 });  
-// Export the module like this for Brunch.
-module.exports = (config, callback) => {
-  // Server config is passed within the `config` variable.
-  app.listen(config.port, function () {
-    console.log(`myWebPCB app listening on port ${config.port}!`);
-    callback();
-  });
-
-  // Return the app; it has the `close()` method, which would be ran when
-  // Brunch server is terminated
-  return app;
-};
