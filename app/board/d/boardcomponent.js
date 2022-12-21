@@ -90,7 +90,7 @@ class Board extends Unit{
 constructor(width,height) {
   super(width,height); 
   this.shapeFactory = new BoardShapeFactory();
-  this.compositeLayer = new CompositeLayer();
+  this.compositeLayer = new CompositeLayer();  
 }	
 clone(){
 	 var copy=new Board(this.width,this.height);
@@ -405,6 +405,14 @@ mouseDown(event){
 			     this.getEventMgr().setEventHandle("texture",shape);
                }else if(shape instanceof PCBFootprint){
             	 this.getEventMgr().setEventHandle("symbol",shape);
+			   }else if(shape instanceof PCBTrack){				    
+	                if(shape.isSegmentClicked(scaledEvent)){
+					  if(shape.isSingleSegment()){
+			             this.getEventMgr().setEventHandle("move",shape);
+                      }else{
+                         this.getEventMgr().setEventHandle("move.segment",shape);
+					  }
+					}
 		       }else
 		         this.getEventMgr().setEventHandle("move",shape);
 		     }else{

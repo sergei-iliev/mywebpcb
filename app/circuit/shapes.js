@@ -334,31 +334,7 @@ class SCHWire extends AbstractLine{
         }
         return null;
     } 
-	isSegmentClicked(pt){				      
-	  if(this.isControlRectClicked(pt.x,pt.y))
-          return false;
-      if(this.polyline.isPointOnSegment(pt,this.selectionRectWidth/2)){
-	    return true;
-      }
-	  return false
-	}
-	getSegmentClicked(pt){
-		      let segment=new d2.Segment(0,0,0,0);	   
-	          let prevPoint = this.polyline.points[0];        
-	          for(let point of this.polyline.points){    	        	  
-	              if(prevPoint.equals(point)){    	            	  
-	            	  prevPoint = point;
-	                  continue;
-	              }    	              	              
-                  segment.ps=prevPoint;
-                  segment.pe=point;
-	              if(segment.isPointOn(pt,this.selectionRectWidth)){
-	                  return segment
-	              }
-	              prevPoint = point;
-	          }			       	          
-	       return null;
-	}
+/*	
     moveSegment(segment,p){	
 	  let pt=new d2.Point(p.x,p.y);
 	  
@@ -381,6 +357,7 @@ class SCHWire extends AbstractLine{
 	  y=segment.pe.y +delta*norm.y;
 	  segment.pe.set(x,y)    
     }
+*/
 	paint(g2, viewportWindow, scale,layersmask) {		
 		var rect = this.polyline.box;
 		rect.scale(scale.getScale());		

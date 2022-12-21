@@ -784,20 +784,34 @@ drawClearence(g2,viewportWindow,scale,source){
 
    g2.restore();
 }
-getSegments(){
-    let list=[];
-    let prevPoint = this.polyline.points[0];        
-    for(let point of this.polyline.points){                          
-        if(prevPoint.equals(point)){                        
-            prevPoint = point;
-            continue;
-        }                       
-        list.push(new d2.Segment(prevPoint.x,prevPoint.y,point.x,point.y));
-        
-        prevPoint = point;
-    }
-    return list;         
+
+isSegmentClicked(pt){				     
+	  if(this.isControlRectClicked(pt.x,pt.y))
+          return false;
+      if(this.polyline.isPointOnSegment(pt,this.thickness)){
+	    return true;
+      }
+	  return false
 }
+
+getSegmentClicked(pt){
+		      let segment=new d2.Segment(0,0,0,0);	   
+	          let prevPoint = this.polyline.points[0];        
+	          for(let point of this.polyline.points){    	        	  
+	              if(prevPoint.equals(point)){    	            	  
+	            	  prevPoint = point;
+	                  continue;
+	              }    	              	              
+                  segment.ps=prevPoint;
+                  segment.pe=point;
+	              if(segment.isPointOn(pt,this.thickness)){
+	                  return segment
+	              }
+	              prevPoint = point;
+	          }			       	          
+	       return null;
+}
+
 getNetShapes(selectedShapes){
 	let net=[];
 	//1.vias
@@ -841,7 +855,7 @@ getNetShapes(selectedShapes){
         
     }
     //my track crossing other track on same layer
-    let segments=this.getSegments();
+    let segments=this.polyline.segments;
     for(let track of sameSideTracks){
         if(track==this){
             continue;
@@ -851,7 +865,7 @@ getNetShapes(selectedShapes){
         }            
         for(let segment of segments){
           //is my segment crossing anyone elses's?
-            for(let other of track.getSegments()){
+            for(let other of track.polyline.segments){
                 if(segment.intersect(other)){
                     net.push(track);
                     break;

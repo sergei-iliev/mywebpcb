@@ -368,8 +368,14 @@ mouseDown(event){
 	               }else if(shape instanceof SCHSymbol){
 	            	 this.getEventMgr().setEventHandle("symbol",shape);
 				   }else if(shape instanceof SCHWire){
-	                  if(shape.isSegmentClicked(scaledEvent))
-					     this.getEventMgr().setEventHandle("move.segment",shape);
+	                  if(shape.isSegmentClicked(scaledEvent)){
+						  if(shape.isSingleSegment()){
+			            	 this.getEventMgr().setEventHandle("move",shape);
+                      	  }else{
+                        	 this.getEventMgr().setEventHandle("move.segment",shape);
+					  	  }
+					   } 
+					 
 			       }else
 			         this.getEventMgr().setEventHandle("move",shape);
 			     }else{

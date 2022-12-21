@@ -254,6 +254,50 @@ alignResizingPointToGrid(targetPoint) {
 getClickableOrder(){
 	return 2;
 }
+isSegmentClicked(pt){				      
+	  if(this.isControlRectClicked(pt.x,pt.y))
+          return false;
+      if(this.polyline.isPointOnSegment(pt,this.selectionRectWidth/2)){
+	    return true;
+      }
+	  return false
+	}
+getSegmentClicked(pt){
+		      let segment=new d2.Segment(0,0,0,0);	   
+	          let prevPoint = this.polyline.points[0];        
+	          for(let point of this.polyline.points){    	        	  
+	              if(prevPoint.equals(point)){    	            	  
+	            	  prevPoint = point;
+	                  continue;
+	              }    	              	              
+                  segment.ps=prevPoint;
+                  segment.pe=point;
+	              if(segment.isPointOn(pt,this.selectionRectWidth)){
+	                  return segment
+	              }
+	              prevPoint = point;
+	          }			       	          
+	       return null;
+}
+/*
+getSegments(){
+    let list=[];
+    let prevPoint = this.polyline.points[0];        
+    for(let point of this.polyline.points){                          
+        if(prevPoint.equals(point)){                        
+            prevPoint = point;
+            continue;
+        }                       
+        list.push(new d2.Segment(prevPoint.x,prevPoint.y,point.x,point.y));
+        
+        prevPoint = point;
+    }
+    return list;         
+}
+*/
+isSingleSegment(){
+   return this.polyline.points.length==2;	
+}
 isClicked(x, y) {
 	 return this.polyline.isPointOn({"x":x,"y":y},this.thickness<4?4:this.thickness);
 }
@@ -319,7 +363,25 @@ shiftFloatingPoints(){
 	    
 }
 insertPoint( x, y) {
-    
+       let rect = d2.Box.fromRect(x - (this.thickness / 2), y- (this.thickness / 2), this.thickness,this.thickness);             
+       let count=-1,index=-1;
+        
+        
+        //***make lines and iterate one by one
+        let prevPoint =this.polyline.points[0];        
+        for(let point of this.polyline.points) {
+            count++;                     
+            if (utilities.intersectLineRectangle(prevPoint,point, rect.min, rect.max)) {		            
+                index=count;
+                break;
+            }    
+            prevPoint = point;
+        }        
+        if(index!=-1){
+           this.polyline.points.splice(index,0, new d2.Point(x,y)); 
+        }
+	
+/*    
     let flag = false;
     let point = this.owningUnit.grid.positionOnGrid(x, y);
 
@@ -355,6 +417,7 @@ insertPoint( x, y) {
     });
     if (flag)
         prev.setLocationPoint(tmp); //prev.setPin(tmp.getPin());
+*/
 }
 removePoint(x, y) {
     let point = this.isBendingPointClicked(x, y);
@@ -508,7 +571,7 @@ calculateShape() {
 
 
 drawControlShape(g2, viewportWindow, scale) {
-	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.polyline.points);	
+	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,(this.selectionRectWidth),this.polyline.points);	
 }
 
 isFloating() {

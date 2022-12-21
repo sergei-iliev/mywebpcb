@@ -113,7 +113,7 @@ module.exports = function(d2) {
             let norm2 = v.normalize();
             let angle = Math.atan2(norm1.cross(norm2), norm1.dot(norm2));
             if (angle<0) angle += 2*Math.PI;
-            return angle;
+            return d2.utils.degrees(angle);
         }
         /**
          * Return vector projection of the current vector on another vector

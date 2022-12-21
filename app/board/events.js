@@ -3,6 +3,9 @@ var events = require('core/events');
 var core = require('core/core');
 var pad_events=require('pads/events');
 var d2=require('d2/d2');
+var MoveLineSegmentHandle=require('core/events').MoveLineSegmentHandle;
+
+
 
 class FootprintEventHandle extends EventHandle{
 constructor(component) {
@@ -70,7 +73,7 @@ attach() {
     this.component.lineBendingProcessor.initialize(this.target);
 }
 mousePressed(event){
-    if(this.isRightMouseButton(event)){           
+    if(this.isRightMouseButton(event)){          
 		this.component.popup.registerTrackPopup(this.target,event);            
         return;
     }
@@ -216,13 +219,14 @@ class BoardEventMgr{
 		this.hash.set("track",new TrackEventHandle(component));
 		this.hash.set("copperarea",new CopperAreaEventHandle(component));
 		this.hash.set("solidregion",new pad_events.SolidRegionEventHandle(component));		
+		this.hash.set("move.segment",new MoveLineSegmentHandle(component));	
 	 }
 	 //****private
 	 getEventHandle(eventKey,target) {
 	    var handle=this.hash.get(eventKey);
 		if(handle!=null){
 		  handle.setTarget(target);
-		  if(eventKey=="move"||eventKey=="copperarea"||eventKey=="track"||eventKey=="line"||eventKey=="texture"||eventKey=="symbol"||eventKey=="resize"||eventKey=="solidregion"){		        	
+		  if(eventKey=="move"||eventKey=="copperarea"||eventKey=="track"||eventKey=="line"||eventKey=="texture"||eventKey=="symbol"||eventKey=="resize"||eventKey=="move.segment"||eventKey=="solidregion"){		        	
 		     this.component.getModel().getUnit().fireShapeEvent({target:target,type:events.Event.SELECT_SHAPE});
 		  }
 		  if(eventKey=='component'||eventKey=="origin"){

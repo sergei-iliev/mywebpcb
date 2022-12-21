@@ -2,42 +2,8 @@ var EventHandle = require('core/events').EventHandle;
 var events = require('core/events');
 var core = require('core/core');
 var d2 = require('d2/d2');
+var MoveLineSegmentHandle=require('core/events').MoveLineSegmentHandle;
 
-class MoveLineSegmentHandle extends EventHandle{
-constructor(component) {
-		 super(component);
-		 this.segment;
-	 }
- 
-mousePressed(event){
-	if(super.isRightMouseButton(event)){
-      return;            
-    }
-     
-    this.component.getModel().getUnit().setSelected(false);
-    this.target.setSelected(true);
-
-    
-    this.segment=this.target.getSegmentClicked(event);        
-
-	this.component.repaint();
- }
- mouseReleased(event){
-	    if(this.component.getParameter("snaptogrid")){
-         this.target.alignResizingPointToGrid(this.segment.ps);
-         this.target.alignResizingPointToGrid(this.segment.pe);
-	     this.component.repaint();	 
-		}
-	    this.target.resizingPoint=null;
- }
- mouseDragged(event){
-    this.target.moveSegment(this.segment,event);    
-	this.component.repaint();
- }
- mouseMove(event){
- 
- }
-}
 class SymbolEventHandle extends EventHandle{
 	constructor(component) {
 			 super(component);
@@ -185,7 +151,7 @@ class CircuitEventMgr{
 	    var handle=this.hash.get(eventKey);
 		if(handle!=null){
 		  handle.setTarget(target);
-		  if(eventKey=='resize'||eventKey=='move'||eventKey=='line'||eventKey=='texture'){
+		  if(eventKey=='symbol'||eventKey=='resize'||eventKey=="move.segment"||eventKey=='move'||eventKey=='line'||eventKey=='texture'){
 		     this.component.getModel().getUnit().fireShapeEvent({target:target,type:events.Event.SELECT_SHAPE});
 		  }
 		  if(eventKey=='component'||eventKey=="origin"){

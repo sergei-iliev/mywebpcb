@@ -100,7 +100,23 @@ module.exports = function(d2) {
        }
 	   get vertices() {
 		    return this.points;	
-	   } 
+	   }
+	   get segments(){
+		  let list=[];
+    	  let prevPoint = this.points[0];        
+    	   for(let point of this.points){                          
+        		if(prevPoint.equals(point)){                        
+            		prevPoint = point;
+            		continue;
+           		}                    
+            let segment=new d2.Segment(0,0,0,0);
+            segment.set(prevPoint,point);            
+   
+           	list.push(segment);        
+           	prevPoint = point;
+    	   }
+    	   return list;  
+	   }	 
        isPointOnSegment(pt,diviation){    	       
      	  let segment=new d2.Segment(0,0,0,0);	   
 	          let prevPoint = this.points[0];        

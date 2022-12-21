@@ -17,9 +17,14 @@ module.exports = function(d2) {
         clone() {
             return new Segment(this.ps, this.pe);
         }
-        set(x1,y1,x2,y2){
-        	this.ps.set(x1,y1);
-        	this.pe.set(x2,y2);
+        set(...args){
+          if(args.length==4){	
+			this.ps.set(args[0],args[1]);
+        	this.pe.set(args[2],args[3]);
+		  }else{
+			this.ps=args[0]
+        	this.pe=args[1]			
+		  }
         }
         get length() {
             return this.ps.distanceTo(this.pe);
@@ -140,6 +145,9 @@ module.exports = function(d2) {
         	this.ps.scale(alpha);
         	this.pe.scale(alpha);        	
         }
+		same(that){
+	       return this.ps===that.ps&&this.pe===that.pe;
+		}
 		paint(g2){	
 			g2.beginPath();
 			g2.moveTo(this.ps.x, this.ps.y);
