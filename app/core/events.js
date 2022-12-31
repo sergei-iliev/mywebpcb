@@ -2,6 +2,7 @@ var core = require('core/core');
 var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').DefaultLineBendingProcessor;
 var d2=require('d2/d2');
 var utilities =require('core/utilities'); 
+
 Event={
 	    SELECT_SHAPE:1,
 	    DELETE_SHAPE:2,
@@ -574,11 +575,14 @@ mousePressed(event){
 	 	if(this.isRightMouseButton(event)){ 
 			return
 		}
+		
 	    if(this.component.getParameter("snaptogrid")){
           this.target.alignResizingPointToGrid(this.adapter.segment.ps);
-          this.target.alignResizingPointToGrid(this.adapter.segment.pe);
-	      this.component.repaint();	 
+          this.target.alignResizingPointToGrid(this.adapter.segment.pe);	      
 		}	    
+		this.adapter.validateNonZeroVector();
+		
+		this.component.repaint();	 
  }
  mouseDragged(event){
     this.adapter.moveSegment(new d2.Point(event.x,event.y));    
@@ -594,6 +598,8 @@ class MoveLineSegmentAdapter{
 constructor(track,segment) {
 		 this.segments=track.polyline.segments
 		 this.segment=segment
+	     this.isMidSegment=false
+         this.copy=segment.clone()
 	 }
 moveSegment(p){	
 	 if(this.segment==null){
@@ -602,8 +608,10 @@ moveSegment(p){
      if(this.isSingleSegment()){
 	   this.moveSingleSegment(p)
 	 }else if(this.isEndSegment()){
+	   this.isMidSegment=false
 	   this.moveEndSegment(p)	
 	 }else{
+		this.isMidSegment=true
 		this.moveMidSegment(p)
 	 }
 
@@ -780,6 +788,17 @@ moveMidSegment(p){
     nextpoint.set(xx,yy)
     
     prevpoint.set(x,y)	
+}
+/*
+Avoid loosing direction vectors by moving point to overlapping position
+*/
+validateNonZeroVector(){		  
+	  for(let s of this.segments){				
+		  if(isNaN(s.length)||d2.utils.EQ(s.length,0)){
+			this.segment.set(this.copy.ps.x,this.copy.ps.y,this.copy.pe.x,this.copy.pe.y);
+			break;
+		  }
+	  }		
 }
 findPrev(){
 	let prev=null;
