@@ -567,9 +567,10 @@ mousePressed(event){
         return;
     }         
     
-    let segment=this.target.getSegmentClicked(event);        
-    this.adapter=new  MoveLineSegmentAdapter(this.target,segment)
-    
+    let segment=this.target.getSegmentClicked(event);
+        
+    //this.adapter=new  MoveLineSegmentAdapter(this.target,segment)
+    this.adapter=new  End90DegreeMoveLineSegmentAdapter(this.target,segment)
  }
  mouseReleased(event){
 	 	if(this.isRightMouseButton(event)){ 
@@ -614,8 +615,6 @@ moveSegment(p){
 		this.isMidSegment=true
 		this.moveMidSegment(p)
 	 }
-
-
 }
 isSingleSegment(){
 	return this.segments.length==1
@@ -822,7 +821,81 @@ findNext(){
 	return null;		
 }
 }
- 
+/*
+Make end segment move 90 degree wise only
+*/
+class End90DegreeMoveLineSegmentAdapter extends MoveLineSegmentAdapter{
+	constructor(track,segment) {
+	  super(track,segment)
+	}
+moveEndSegment(p){
+	if(!(this.segment.isVertical||this.segment.isHorizontal)){		
+		super.moveEndSegment(p)
+		return;
+	}
+	
+	 //find neigbor segment
+	 let segm=this.findPrev()     
+	 if(segm==null){
+	   	segm=this.findNext()
+	 }
+	 //find common point and end point on same segm
+     let commonpoint=segm.pe //common point between target segment and segm
+     let endpoint1=segm.ps   //distant point from common one		
+	 if(segm.ps==this.segment.ps||segm.ps==this.segment.pe){	  
+	   commonpoint=segm.ps
+       endpoint1=segm.pe	   
+     }
+	 //find free end point on this.segment
+	 let endpoint2=this.segment.ps
+     if(commonpoint==this.segment.ps){
+	   endpoint2=this.segment.pe	
+	 }
+//find the direction of movement in regard to mouse point and segm end point
+     let invertDirection=true;     
+     if(utilities.isLeftPlane(this.segment.ps,this.segment.pe,p)===utilities.isLeftPlane(this.segment.ps,this.segment.pe,endpoint1)){		
+	 	invertDirection=false;	    
+     }
+//1. move common point
+     let projPoint=this.segment.projectionPoint(p)	 
+     let distance=projPoint.distanceTo(p)		
+    
+     let vsegment=new d2.Vector(commonpoint,endpoint2);
+     let vsegm=new d2.Vector(commonpoint,endpoint1);
+
+	 
+     let angle=vsegment.angleTo(vsegm);
+     if(angle>180){
+        angle=360-angle    
+	 }
+	//find units to move along segm
+	let sina=Math.sin(d2.utils.radians(angle))
+    let delta=distance/sina
+
+    let inverted=vsegm.clone()
+    if(invertDirection){
+      inverted.invert();
+	}
+    let norm=inverted.normalize();
+	  
+      
+    let x=commonpoint.x +delta*norm.x;
+	let y=commonpoint.y +delta*norm.y;
+	
+//2. move free end point of this.segment
+    let xx,yy;   
+    if(this.segment.isHorizontal){     
+     xx=endpoint2.x
+	 yy=y
+    }else{
+	 xx=x
+	 yy=endpoint2.y
+	}	
+    endpoint2.set(xx,yy)
+    commonpoint.set(x,y)
+
+}	
+} 
 module.exports ={
    Event,
    MouseScaledEvent,

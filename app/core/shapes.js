@@ -423,11 +423,11 @@ removePoint(x, y) {
     let point = this.isBendingPointClicked(x, y);
     if (point != null) {
     	
-    	var tempArr = this.points.filter(function(item) { 
+    	var tempArr = this.polyline.points.filter(function(item) { 
     	    return item !== point;
     	});
         
-    	this.points=tempArr;
+    	this.polyline.points=tempArr;
     }
 }
 deleteLastPoint() {

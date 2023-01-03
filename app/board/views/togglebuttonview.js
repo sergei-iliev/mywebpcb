@@ -217,9 +217,9 @@ var ToggleButtonView=Backbone.View.extend({
 		  for(let unit of selectedModel.getUnits()){
 			  core.isEventEnabled=false;
 			  var copy=unit.clone();	
+	          copy.scalableTransformation.reset(0.5,10,3,13);
 			  core.isEventEnabled=true;
-			  this.boardComponent.getModel().add(copy);  
-	          copy.scalableTransformation.setScaleFactor(copy.scalableTransformation.maxScaleFactor);	          
+			  this.boardComponent.getModel().add(copy);  	                   
 			  copy.notifyListeners(events.Event.ADD_SHAPE);
 		  };
 		  
