@@ -82,7 +82,7 @@ constructor(layermaskId){
 	    this.value=(new glyph.GlyphTexture("","value", 8,8,core.MM_TO_COORD(1.2)));		 	    
         this.units=core.Units.MM;
         this.val=2.54;  
-        this.rotation=0;
+        //this.rotation=0;
 	}
 clone(){
         var copy=new PCBFootprint(this.copper.getLayerMaskID());
@@ -286,13 +286,11 @@ move(xoffset,yoffset){
 }
 setRotation(angle,center){		
 	let alpha=angle-this.rotation;
-	let rotation={originx:center.x,
-				  originy:center.y,
+	let rotation={origin:{x:center.x,y:center.y},
 				  angle:alpha};
 	let len=this.shapes.length;
 	
-	for(var i=0;i<len;i++){
-		
+	for(var i=0;i<len;i++){	
 	   this.shapes[i].rotate(rotation);  
 	}	
     this.value.rotate(alpha,center);

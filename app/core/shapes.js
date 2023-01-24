@@ -19,6 +19,7 @@ class Shape{
 		this.fillColor;		 
 		this.isControlPointVisible=true;
 		this.copper = core.Layer.Copper.resolve(layermaskId);
+		this.rotation=0;
 	}
 getCenter(){
 	return new d2.Point(this.x,this.y);
@@ -235,7 +236,7 @@ class AbstractLine extends Shape{
 																		// degree
 																		// forming
 		this.floatingEndPoint = new d2.Point();
-		this.rotation=0;
+		//this.rotation=0;
 	    this.resumeState=core.ResumeState.ADD_AT_END;
 		
 }

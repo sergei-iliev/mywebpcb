@@ -162,7 +162,7 @@ class RoundRect extends Shape{
 		this.setDisplayName("Rect");		
 		this.selectionRectWidth=3000;
 		this.resizingPoint = null;
-		this.rotation=0;
+		//this.rotation=0;
 		this.roundRect=new d2.RoundRectangle(new d2.Point(x,y),width,height,arc);		
 	}
 	clone() {
@@ -351,7 +351,7 @@ class Circle extends Shape{
 		this.selectionRectWidth=3000;
 		this.resizingPoint=null;
 		this.circle=new d2.Circle(new d2.Point(x,y),r);
-		this.rotation=0;
+		//this.rotation=0;
 	}
 clone() {
 	let copy=new Circle(this.circle.center.x,this.circle.center.y,this.circle.radius,this.thickness,this.copper.getLayerMaskID());
@@ -536,7 +536,7 @@ class Arc extends Shape{
 			this.A;
 			this.B;
 			this.M;
-			this.rotation=0;
+			//this.rotation=0;
 			this.arcType=core.ArcType.CENTER_POINT_ARC;
 	}
 	clone() {
@@ -951,7 +951,7 @@ class SolidRegion extends Shape{
         this.selectionRectWidth = 3000;
         this.polygon=new d2.Polygon();
         this.resizingPoint;
-        this.rotation=0;
+        //this.rotation=0;
     }
 clone(){
 	  var copy=new SolidRegion(this.copper.getLayerMaskID());
@@ -1326,7 +1326,7 @@ class Pad extends Shape{
 	constructor(x,y,width,height) {
 	   super(0, 0, width, height, -1, core.Layer.LAYER_BACK);
 	   this.drill=null;
-	   this.rotation=0;
+	   //this.rotation=0;
 	   this.offset=new d2.Point(0,0);
 	   this.shape=new CircularShape(0,0,width,this);
 	   this.setType(PadType.THROUGH_HOLE);	   

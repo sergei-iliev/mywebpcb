@@ -5,6 +5,7 @@ var events=require('core/events');
 var GlyphManager=require('core/text/d2glyph').GlyphManager;
 var ViewportWindow=require('core/core').ViewportWindow;
 var d2=require('d2/d2');
+var UndoProvider=require('core/undo').UndoProvider
 
 //**********************UnitMgr***************************************
 var UnitMgr=(function(){
@@ -175,6 +176,7 @@ class Unit{
         this.coordinateSystem;//=new core.CoordinateSystem(this);
 		this.ruler=new shape.Ruler();
 		this.shapeFactory=null;
+		this.undoProvider = new UndoProvider();
         
     }
 setViewportPositionValue(viewportPositionX,viewportPositionY) {
@@ -523,7 +525,16 @@ paint(g2, viewportWindow){
 	     this.frame.paint(g2, viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
        }
 }    
-       
+redo(){
+	
+}    
+undo(undocallback){
+	
+}  
+registerMemento(memento){
+	
+}
+
 }
 
 //**********************UnitContainer*******************************************
@@ -615,7 +626,7 @@ class UnitContainer{
 //**********************UnitComponent*******************************************
 class UnitComponent{
 	constructor(canvas,popup){
-	GlyphManager.getInstance();
+	GlyphManager.getInstance();    
     
 	if(canvas!=null){	
       this.canvas = j$('#'+canvas);
@@ -646,14 +657,6 @@ class UnitComponent{
 	this.viewportWindow=new ViewportWindow(0,0,this.width,this.height);
 	this.parameters=new Map();
 	this.parameters.set("snaptogrid",false);
-	//if(hbar!=null&&vbar!=null){
-	//	this.hbar = j$('#'+hbar);
-	//	this.vbar=j$('#'+vbar);
-	//	this.hbar.jqxScrollBar({ width: '100%', height: 18, min: 0, max: 100});
-	//	this.vbar.jqxScrollBar({ width: 18, height:'100%', min: 0, max: 100, vertical: true});
-	//	this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
-	//	this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
-	//}
 	
 	this.mode=core.ModeEnum.COMPONENT_MODE;
 	this.backgroundColor="black";
@@ -713,6 +716,14 @@ fireContainerEvent(event){
 	
 	  mywebpcb.trigger('container:inspector',event); 
 }
+defaultKeyPress(e){
+   if (event.ctrlKey && event.key === 'z') {
+         if (this.getModel().getUnit().undo(this.getEventMgr().targetEventHandle)) {         
+             this.repaint();
+         }
+   }
+	
+}
 keyPress(event){
 	  if(event.target.tagName=="INPUT"){
 		  return;
@@ -720,8 +731,8 @@ keyPress(event){
 	  
 	 //if(event.target instanceof HTMLBodyElement||event.target instanceof HTMLCanvasElement){
 		 event.preventDefault();
-	     if (this.getEventMgr().targetEventHandle != null && this.getModel().getUnit() != null) {
-	            this.getEventMgr().targetEventHandle.keyPressed(event);
+	     if (this.getEventMgr().targetEventHandle == null || !this.getEventMgr().targetEventHandle.keyPressed(event)) {
+	            this.defaultKeyPress(event)
 	     }
 	 //}	 
 }

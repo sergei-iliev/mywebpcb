@@ -1315,8 +1315,8 @@ calculateShape() {
  */
 setOrientation(orientation){
  let o=this.orientation;
- let r={originx:this.segment.ps.x,
-	       originy:this.segment.ps.y,
+ let r={origin:{x:this.segment.ps.x,
+	            y:this.segment.ps.y},
 	       angle:-90};
  
  while(o!=orientation){
