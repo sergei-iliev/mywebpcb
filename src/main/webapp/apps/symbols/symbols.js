@@ -1085,6 +1085,7 @@ require.register("core/events.js", function(exports, require, module) {
 var core = require('core/core');
 var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').DefaultLineBendingProcessor;
 var d2=require('d2/d2');
+var utilities =require('core/utilities'); 
 
 Event={
 	    SELECT_SHAPE:1,
@@ -1636,8 +1637,349 @@ class MouseScaledEvent{
 			 "; which="+this.which; 
  }
 }
-
+class MoveLineSegmentHandle extends EventHandle{
+constructor(component) {
+		 super(component);		 
+	     this.adapter;
+	 }
+mousePressed(event){
+    this.component.getModel().getUnit().setSelected(false);
+    this.target.setSelected(true);
+	this.component.repaint();
+    if(this.isRightMouseButton(event)){          
+		this.component.popup.registerLineSelectPopup(this.target,event);           
+        return;
+    }         
+    
+    let segment=this.target.getSegmentClicked(event);
+        
+    //this.adapter=new  MoveLineSegmentAdapter(this.target,segment)
+    this.adapter=new  End90DegreeMoveLineSegmentAdapter(this.target,segment)
+ }
+ mouseReleased(event){
+	 	if(this.isRightMouseButton(event)){ 
+			return
+		}
+		
+	    if(this.component.getParameter("snaptogrid")){
+          this.target.alignResizingPointToGrid(this.adapter.segment.ps);
+          this.target.alignResizingPointToGrid(this.adapter.segment.pe);	      
+		}	    
+		this.adapter.validateNonZeroVector();
+		
+		this.component.repaint();	 
+ }
+ mouseDragged(event){
+    this.adapter.moveSegment(new d2.Point(event.x,event.y));    
+	this.component.repaint();
+ }
+ mouseMove(event){
  
+ }
+}
+
+/**movable segment track  */
+class MoveLineSegmentAdapter{
+constructor(track,segment) {
+		 this.segments=track.polyline.segments
+		 this.segment=segment
+	     this.isMidSegment=false
+         this.copy=segment.clone()
+	 }
+moveSegment(p){	
+	 if(this.segment==null){
+	  return	
+	 }	 
+     if(this.isSingleSegment()){
+	   this.moveSingleSegment(p)
+	 }else if(this.isEndSegment()){
+	   this.isMidSegment=false
+	   this.moveEndSegment(p)	
+	 }else{
+		this.isMidSegment=true
+		this.moveMidSegment(p)
+	 }
+}
+isSingleSegment(){
+	return this.segments.length==1
+}	
+isEndSegment(){
+	 //find neigbor segment
+	 let segm=this.findPrev()     	 
+     if(segm==null){
+	     return true;
+	 }
+
+     segm=this.findNext()     
+     return segm==null;		
+}
+moveSingleSegment(p){
+}
+moveEndSegment(p){
+     //find neigbor segment
+	 let segm=this.findPrev()     
+	 if(segm==null){
+	   	segm=this.findNext()
+	 }
+	 //find common point and end point on same segm
+     let commonpoint=segm.pe //common point between target segment and segm
+     let endpoint1=segm.ps   //distant point from common one		
+	 if(segm.ps==this.segment.ps||segm.ps==this.segment.pe){	  
+	   commonpoint=segm.ps
+       endpoint1=segm.pe	   
+     }
+	 //find free end point on this.segment
+	 let endpoint2=this.segment.ps
+     if(commonpoint==this.segment.ps){
+	   endpoint2=this.segment.pe	
+	 }
+//find the direction of movement in regard to mouse point and segm end point
+     let invertDirection=true;
+     if(utilities.isLeftPlane(this.segment.ps,this.segment.pe,p)==utilities.isLeftPlane(this.segment.ps,this.segment.pe,endpoint1)){		
+	 	invertDirection=false;	    
+     }
+//1. move common point
+     let projPoint=this.segment.projectionPoint(p)	 
+     let distance=projPoint.distanceTo(p)		
+    
+     let vsegment=new d2.Vector(commonpoint,endpoint2);
+     let vsegm=new d2.Vector(commonpoint,endpoint1);
+
+	 
+     let angle=vsegment.angleTo(vsegm);
+     if(angle>180){
+        angle=360-angle    
+	 }
+	//find units to move along segm
+	let sina=Math.sin(d2.utils.radians(angle))
+    let delta=distance/sina
+
+    let inverted=vsegm.clone()
+    if(invertDirection){
+      inverted.invert();
+	}
+    let norm=inverted.normalize();
+	  
+      
+    let x=commonpoint.x +delta*norm.x;
+	let y=commonpoint.y +delta*norm.y;
+	
+//2. move free end point of this.segment
+    let xx=endpoint2.x +delta*norm.x;
+	let yy=endpoint2.y +delta*norm.y;
+    	
+    endpoint2.set(xx,yy)
+    commonpoint.set(x,y)
+	
+}
+moveMidSegment(p){
+	 //find neigbor segment
+	 let prevsegm=this.findPrev()     	      
+     let nextsegm=this.findNext()     
+
+//1. prev segment movement
+	 //find common point and end point of  prev segment
+     let prevpoint=prevsegm.pe	//common point between target segment and prev
+     let endpoint1=prevsegm.ps  //distance point
+	 if(prevsegm.ps==this.segment.ps||prevsegm.ps==this.segment.pe){	  
+	   prevpoint=prevsegm.ps
+       endpoint1=prevsegm.pe	   
+     }
+
+	 //find end point on this.segment
+	 let endpoint2=this.segment.ps
+     if(prevpoint==this.segment.ps){
+	   endpoint2=this.segment.pe	
+	 }
+
+     //find the direction of movement in regard to mouse point and prevsegm end point
+     let invertDirection=true;
+     if(utilities.isLeftPlane(this.segment.ps,this.segment.pe,p)==utilities.isLeftPlane(this.segment.ps,this.segment.pe,endpoint1)){		
+	 	invertDirection=false;	    
+     }	 
+
+     let projPoint=this.segment.projectionPoint(p)	 
+     let distance=projPoint.distanceTo(p)		
+    
+     let vsegment=new d2.Vector(prevpoint,endpoint2);
+     let vsegm=new d2.Vector(prevpoint,endpoint1);
+	 
+     let angle=vsegment.angleTo(vsegm);
+     if(angle>180){
+        angle=360-angle    
+	 }
+	//find units to move along segm
+	let sina=Math.sin(d2.utils.radians(angle))
+    let delta=distance/sina
+
+    let inverted=vsegm.clone()
+    if(invertDirection){
+    	inverted.invert();
+	}
+
+    let norm=inverted.normalize();
+	  
+      
+    let x=prevpoint.x +delta*norm.x;
+	let y=prevpoint.y +delta*norm.y;
+    
+
+
+//2. next segment movement
+	 //find common point and end point on same segm - prev
+     let nextpoint=nextsegm.pe //common point between target segment and next segment
+     endpoint1=nextsegm.ps
+	 if(nextsegm.ps==this.segment.ps||nextsegm.ps==this.segment.pe){	  
+	   nextpoint=nextsegm.ps
+       endpoint1=nextsegm.pe	   
+     }
+
+	 //find end point on this.segment
+	 endpoint2=this.segment.ps
+     if(nextpoint==this.segment.ps){
+	   endpoint2=this.segment.pe	
+	 }
+     //find the direction of movement in regard to mouse point and nextsegm end point
+     invertDirection=true;
+     if(utilities.isLeftPlane(this.segment.ps,this.segment.pe,p)==utilities.isLeftPlane(this.segment.ps,this.segment.pe,endpoint1)){		
+	 	invertDirection=false;	    
+     }	 
+
+      projPoint=this.segment.projectionPoint(p)	 
+      distance=projPoint.distanceTo(p)		
+    
+      vsegment=new d2.Vector(nextpoint,endpoint2);
+      vsegm=new d2.Vector(nextpoint,endpoint1);
+	 
+     angle=vsegment.angleTo(vsegm);
+     if(angle>180){
+        angle=360-angle    
+	 }
+	//find units to move along segm
+	 sina=Math.sin(d2.utils.radians(angle))
+     delta=distance/sina
+
+     inverted=vsegm.clone()
+     if(invertDirection){
+    	inverted.invert();
+	 }
+
+     norm=inverted.normalize();
+
+    let xx=nextpoint.x +delta*norm.x;
+	let yy=nextpoint.y +delta*norm.y;
+    nextpoint.set(xx,yy)
+    
+    prevpoint.set(x,y)	
+}
+/*
+Avoid loosing direction vectors by moving point to overlapping position
+*/
+validateNonZeroVector(){		  
+	  for(let s of this.segments){				
+		  if(isNaN(s.length)||d2.utils.EQ(s.length,0)){
+			this.segment.set(this.copy.ps.x,this.copy.ps.y,this.copy.pe.x,this.copy.pe.y);
+			break;
+		  }
+	  }		
+}
+findPrev(){
+	let prev=null;
+	for(let s of this.segments){				
+		if(s.same(this.segment)){
+			return prev;
+		}
+		prev=s;
+	}
+	return null;
+}
+findNext(){		
+	let next=null;
+	for (var i = this.segments.length - 1; i >= 0; i--) {
+		if(this.segments[i].same(this.segment)){
+			return next;
+		}
+		next=this.segments[i];
+    	
+	}
+	return null;		
+}
+}
+/*
+Make end segment move 90 degree wise only
+*/
+class End90DegreeMoveLineSegmentAdapter extends MoveLineSegmentAdapter{
+	constructor(track,segment) {
+	  super(track,segment)
+	}
+moveEndSegment(p){
+	if(!(this.segment.isVertical||this.segment.isHorizontal)){		
+		super.moveEndSegment(p)
+		return;
+	}
+	
+	 //find neigbor segment
+	 let segm=this.findPrev()     
+	 if(segm==null){
+	   	segm=this.findNext()
+	 }
+	 //find common point and end point on same segm
+     let commonpoint=segm.pe //common point between target segment and segm
+     let endpoint1=segm.ps   //distant point from common one		
+	 if(segm.ps==this.segment.ps||segm.ps==this.segment.pe){	  
+	   commonpoint=segm.ps
+       endpoint1=segm.pe	   
+     }
+	 //find free end point on this.segment
+	 let endpoint2=this.segment.ps
+     if(commonpoint==this.segment.ps){
+	   endpoint2=this.segment.pe	
+	 }
+//find the direction of movement in regard to mouse point and segm end point
+     let invertDirection=true;     
+     if(utilities.isLeftPlane(this.segment.ps,this.segment.pe,p)===utilities.isLeftPlane(this.segment.ps,this.segment.pe,endpoint1)){		
+	 	invertDirection=false;	    
+     }
+//1. move common point
+     let projPoint=this.segment.projectionPoint(p)	 
+     let distance=projPoint.distanceTo(p)		
+    
+     let vsegment=new d2.Vector(commonpoint,endpoint2);
+     let vsegm=new d2.Vector(commonpoint,endpoint1);
+
+	 
+     let angle=vsegment.angleTo(vsegm);
+     if(angle>180){
+        angle=360-angle    
+	 }
+	//find units to move along segm
+	let sina=Math.sin(d2.utils.radians(angle))
+    let delta=distance/sina
+
+    let inverted=vsegm.clone()
+    if(invertDirection){
+      inverted.invert();
+	}
+    let norm=inverted.normalize();
+	  
+      
+    let x=commonpoint.x +delta*norm.x;
+	let y=commonpoint.y +delta*norm.y;
+	
+//2. move free end point of this.segment
+    let xx,yy;   
+    if(this.segment.isHorizontal){     
+     xx=endpoint2.x
+	 yy=y
+    }else{
+	 xx=x
+	 yy=endpoint2.y
+	}	
+    endpoint2.set(xx,yy)
+    commonpoint.set(x,y)
+
+}	
+} 
 module.exports ={
    Event,
    MouseScaledEvent,
@@ -1651,7 +1993,9 @@ module.exports ={
    ResizeEventHandle,
    EventHandle,
    LineEventHandle,
-   MeasureEventHandle
+   MeasureEventHandle,
+   MoveLineSegmentAdapter,
+   MoveLineSegmentHandle
 }
 var UnitMgr = require('core/unit').UnitMgr;
 
@@ -2608,6 +2952,50 @@ alignResizingPointToGrid(targetPoint) {
 getClickableOrder(){
 	return 2;
 }
+isSegmentClicked(pt){				      
+	  if(this.isControlRectClicked(pt.x,pt.y))
+          return false;
+      if(this.polyline.isPointOnSegment(pt,this.selectionRectWidth/2)){
+	    return true;
+      }
+	  return false
+	}
+getSegmentClicked(pt){
+		      let segment=new d2.Segment(0,0,0,0);	   
+	          let prevPoint = this.polyline.points[0];        
+	          for(let point of this.polyline.points){    	        	  
+	              if(prevPoint.equals(point)){    	            	  
+	            	  prevPoint = point;
+	                  continue;
+	              }    	              	              
+                  segment.ps=prevPoint;
+                  segment.pe=point;
+	              if(segment.isPointOn(pt,this.selectionRectWidth)){
+	                  return segment
+	              }
+	              prevPoint = point;
+	          }			       	          
+	       return null;
+}
+/*
+getSegments(){
+    let list=[];
+    let prevPoint = this.polyline.points[0];        
+    for(let point of this.polyline.points){                          
+        if(prevPoint.equals(point)){                        
+            prevPoint = point;
+            continue;
+        }                       
+        list.push(new d2.Segment(prevPoint.x,prevPoint.y,point.x,point.y));
+        
+        prevPoint = point;
+    }
+    return list;         
+}
+*/
+isSingleSegment(){
+   return this.polyline.points.length==2;	
+}
 isClicked(x, y) {
 	 return this.polyline.isPointOn({"x":x,"y":y},this.thickness<4?4:this.thickness);
 }
@@ -2673,7 +3061,25 @@ shiftFloatingPoints(){
 	    
 }
 insertPoint( x, y) {
-    
+       let rect = d2.Box.fromRect(x - (this.thickness / 2), y- (this.thickness / 2), this.thickness,this.thickness);             
+       let count=-1,index=-1;
+        
+        
+        //***make lines and iterate one by one
+        let prevPoint =this.polyline.points[0];        
+        for(let point of this.polyline.points) {
+            count++;                     
+            if (utilities.intersectLineRectangle(prevPoint,point, rect.min, rect.max)) {		            
+                index=count;
+                break;
+            }    
+            prevPoint = point;
+        }        
+        if(index!=-1){
+           this.polyline.points.splice(index,0, new d2.Point(x,y)); 
+        }
+	
+/*    
     let flag = false;
     let point = this.owningUnit.grid.positionOnGrid(x, y);
 
@@ -2709,16 +3115,17 @@ insertPoint( x, y) {
     });
     if (flag)
         prev.setLocationPoint(tmp); //prev.setPin(tmp.getPin());
+*/
 }
 removePoint(x, y) {
     let point = this.isBendingPointClicked(x, y);
     if (point != null) {
     	
-    	var tempArr = this.points.filter(function(item) { 
+    	var tempArr = this.polyline.points.filter(function(item) { 
     	    return item !== point;
     	});
         
-    	this.points=tempArr;
+    	this.polyline.points=tempArr;
     }
 }
 deleteLastPoint() {
@@ -2862,7 +3269,7 @@ calculateShape() {
 
 
 drawControlShape(g2, viewportWindow, scale) {
-	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.polyline.points);	
+	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,(this.selectionRectWidth),this.polyline.points);	
 }
 
 isFloating() {
@@ -7110,7 +7517,27 @@ module.exports = function(d2) {
        }
 	   get vertices() {
 		    return this.points;	
-	   } 
+	   }
+	   get segments(){
+		  let list=[];
+     	  if(this.points.length<2) {
+    		return list;
+    	  }
+    	  let prevPoint = this.points[0]; 
+          for(let i=1;i<this.points.length;i++) {   
+				let point=this.points[i];        	                            
+        		if(prevPoint.equals(point)){                        
+            		prevPoint = point;
+            		continue;
+           		}                    
+            let segment=new d2.Segment(0,0,0,0);
+            segment.set(prevPoint,point);            
+   
+           	list.push(segment);        
+           	prevPoint = point;
+    	   }
+    	   return list;  
+	   }	 
        isPointOnSegment(pt,diviation){    	       
      	  let segment=new d2.Segment(0,0,0,0);	   
 	          let prevPoint = this.points[0];        
@@ -7886,9 +8313,14 @@ module.exports = function(d2) {
         clone() {
             return new Segment(this.ps, this.pe);
         }
-        set(x1,y1,x2,y2){
-        	this.ps.set(x1,y1);
-        	this.pe.set(x2,y2);
+        set(...args){
+          if(args.length==4){	
+			this.ps.set(args[0],args[1]);
+        	this.pe.set(args[2],args[3]);
+		  }else{
+			this.ps=args[0]
+        	this.pe=args[1]			
+		  }
         }
         get length() {
             return this.ps.distanceTo(this.pe);
@@ -8009,6 +8441,9 @@ module.exports = function(d2) {
         	this.ps.scale(alpha);
         	this.pe.scale(alpha);        	
         }
+		same(that){
+	       return this.ps===that.ps&&this.pe===that.pe;
+		}
 		paint(g2){	
 			g2.beginPath();
 			g2.moveTo(this.ps.x, this.ps.y);
@@ -8233,7 +8668,7 @@ module.exports = function(d2) {
             let norm2 = v.normalize();
             let angle = Math.atan2(norm1.cross(norm2), norm1.dot(norm2));
             if (angle<0) angle += 2*Math.PI;
-            return angle;
+            return d2.utils.degrees(angle);
         }
         /**
          * Return vector projection of the current vector on another vector
@@ -12708,5 +13143,3 @@ module.exports =ToggleButtonView
   
 });})();require('___globals___');
 
-
-//# sourceMappingURL=symbols.js.map
