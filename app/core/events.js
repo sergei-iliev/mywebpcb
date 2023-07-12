@@ -2,7 +2,7 @@ var core = require('core/core');
 var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').DefaultLineBendingProcessor;
 var d2=require('d2/d2');
 var utilities =require('core/utilities'); 
-
+var MementoType = require('core/undo').MementoType;
 Event={
 	    SELECT_SHAPE:1,
 	    DELETE_SHAPE:2,
@@ -89,13 +89,15 @@ class MoveEventHandle extends EventHandle{
 	    
 	    this.mx=event.x;
 		this.my=event.y;
+				
+		this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));    
 	 }
 	 mouseReleased(event){
 		if(super.isRightMouseButton(event)){
 			 return;
 		}
 		this.target.alignToGrid(false || this.component.getParameter("snaptogrid"));
-				 
+        this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));				 
 		this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
 		this.component.repaint();
 	 }
@@ -137,7 +139,7 @@ class ResizeEventHandle extends EventHandle{
 	        
 	    this.targetPoint=this.target.isControlRectClicked(event.x,event.y);
 	    this.target.setResizingPoint(this.targetPoint);
-	    
+	    this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));
 	    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
 	    
 		this.component.repaint();
@@ -147,6 +149,7 @@ class ResizeEventHandle extends EventHandle{
 	         this.target.alignResizingPointToGrid(this.targetPoint);
 		     this.component.repaint();	 
 			}
+			this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));
 			
 	 }
 	 mouseDragged(event){
@@ -371,11 +374,11 @@ class LineEventHandle extends EventHandle{
 	        
 	    if(this.component.lineBendingProcessor.addLinePoint(p)){
 	        if(justcreated){
-	            //getComponent().getModel().getUnit().registerMemento(getTarget().getState(MementoType.CREATE_MEMENTO));   
-	            //getComponent().getModel().getUnit().registerMemento(getTarget().getState(MementoType.MOVE_MEMENTO));    
+	            this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.CREATE_MEMENTO));   
+	            this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));    
 	        }
 	        if(this.target.getLinePoints().length>=2){
-	           //this.component.getModel().getUnit().registerMemento(getTarget().getState(MementoType.MOVE_MEMENTO));    
+	           this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));    
 	        }            
 	    }
 	    this.component.repaint();  

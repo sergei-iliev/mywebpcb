@@ -281,7 +281,7 @@ setMode(_mode){
 
 mouseDown(event){
     event.preventDefault();
-
+    j$(this.canvas).focus();
 	if (this.getModel().getUnit() == null) { 
 	   return; 
 	}

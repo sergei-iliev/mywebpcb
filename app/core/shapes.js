@@ -3,6 +3,11 @@ var utilities =require('core/utilities');
 var d2=require('d2/d2');
 var font = require('core/text/d2font');
 
+
+const ResumeState = Object.freeze({
+	ADD_AT_FRONT:0,
+	ADD_AT_END:1
+})
 class Shape{
 	constructor(x, y, width, height, thickness,
 			layermaskId) {
@@ -104,6 +109,9 @@ isClickedOnLayers(x, y, layermasks) {
 getBoundingShape() {
 	return this.calculateShape();
 	}
+setState(memento) {
+   memento.loadStateTo(this);
+} 
 setSelected (selection) {
 		this.selection = selection;
 	}
@@ -595,5 +603,6 @@ module.exports ={
 		Shape,
 		CoordinateSystem,
 		Ruler,
-		AbstractLine
+		AbstractLine,
+		ResumeState
 }

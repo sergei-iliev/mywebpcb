@@ -6,7 +6,8 @@ var GlyphManager=require('core/text/d2glyph').GlyphManager;
 var ViewportWindow=require('core/core').ViewportWindow;
 var d2=require('d2/d2');
 var UndoProvider=require('core/undo').UndoProvider
-
+var MementoType=require('core/undo').MementoType
+var CompositeMemento=require('core/undo').CompositeMemento
 //**********************UnitMgr***************************************
 var UnitMgr=(function(){
 	var instance=null;
@@ -526,13 +527,93 @@ paint(g2, viewportWindow){
        }
 }    
 redo(){
+	console.log(22);
+        let memento=null;
+        //***skip duplicates
+        while(true){
+            memento = this.undoProvider.redo();
+            if (memento == null) {
+              return false;
+            }else{                
+              if((memento.mementoType==MementoType.CREATE_MEMENTO)||(memento.mementoType==MementoType.DELETE_MEMENTO)){
+                  break;
+              }
+              //***eigther composite or single memento
+              if(memento.isSameState(this)){
+                   continue; 
+              }else{
+                   break;  
+              }                 
+            }            
+        }
+    switch (memento.mementoType) {
+	   case MementoType.CREATE_MEMENTO:
+              let shape=this.shapeFactory.createShapeFromMemento(memento);
+              this.add(shape);                 
+			break;
+		case MementoType.DELETE_MEMENTO:
+		
+		break;
+
+        default:
+            if(memento instanceof CompositeMemento){
+               //this.setState(memento); 
+               // ((CompositeMemento)memento).loadStateTo(this);
+            }else{
+               let element = this.getShape(memento.uuid);
+               element.setState(memento);
+               //fireShapeEvent(new ShapeEvent(element, ShapeEvent.PROPERTY_CHANGE));
+            
+            }
+			
+	}
+    
 	
 }    
 undo(undocallback){
+  let memento=null;
+          //***skip duplicates
+        while(true){
+          memento = this.undoProvider.undo();  
+        //***CHECK the validity of a memento   
+          if (memento == null) {
+            return false;
+          }else{
+              if((memento.mementoType==MementoType.CREATE_MEMENTO)||(memento.mementoType==MementoType.DELETE_MEMENTO)){
+                  break;
+              }
+              //***eigther composite or single memento
+              if(memento.isSameState(this)){                
+                 continue; 
+              }else{
+                 break;  
+              }                  
+          }
+        } 
+    switch (memento.mementoType) {
+	   case MementoType.CREATE_MEMENTO:
+            this.remove(memento.uuid);
+			break;
+		case MementoType.DELETE_MEMENTO:
+		
+		break;
+
+        default:
+            if(memento instanceof CompositeMemento){
+               //this.setState(memento); 
+               // ((CompositeMemento)memento).loadStateTo(this);
+            }else{
+               let element = this.getShape(memento.uuid);
+               element.setState(memento);
+               //fireShapeEvent(new ShapeEvent(element, ShapeEvent.PROPERTY_CHANGE));
+            
+            }
+			
+	}
 	
 }  
-registerMemento(memento){
-	
+registerMemento(memento){           
+   this.undoProvider.registerMemento(memento);    	
 }
 
 }
@@ -717,10 +798,12 @@ fireContainerEvent(event){
 	  mywebpcb.trigger('container:inspector',event); 
 }
 defaultKeyPress(e){
-   if (event.ctrlKey && event.key === 'z') {
-         if (this.getModel().getUnit().undo(this.getEventMgr().targetEventHandle)) {         
-             this.repaint();
-         }
+   if (event.ctrlKey && event.key === 'z') {	
+         this.getModel().getUnit().undo(this.getEventMgr().targetEventHandle);         
+         this.repaint();         
+   }else if(event.ctrlKey && event.key === 'y') {
+         this.getModel().getUnit().redo(this.getEventMgr().targetEventHandle);         
+         this.repaint();         	  
    }
 	
 }

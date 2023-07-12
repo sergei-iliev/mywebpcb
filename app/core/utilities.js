@@ -199,6 +199,13 @@ var hexToDec=function(hex) {
 	}
 	return result;
 }
+var arrayEquals=function(a, b) {
+    return Array.isArray(a) &&
+        Array.isArray(b) &&
+        a.length === b.length &&
+        a.every((val, index) => val === b[index]);
+}
+
 version=(function(){
 	return {
 		MYWEBPCB_VERSION:"8.0",
@@ -225,5 +232,6 @@ module.exports = {
   QUADRANT,
   POINT_TO_POINT,
   POSITION,
-  mirrorPoint
+  mirrorPoint,
+  arrayEquals
 }

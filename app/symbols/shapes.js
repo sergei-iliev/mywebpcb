@@ -5,6 +5,7 @@ var AbstractLine=require('core/shapes').AbstractLine;
 var glyph=require('core/text/d2glyph');
 var font=require('core/text/d2font');
 var d2=require('d2/d2');
+var undo=require('symbols/undo');
 
 class SymbolShapeFactory{
 	
@@ -49,6 +50,13 @@ class SymbolShapeFactory{
 			arrow.fromXML(data);		
 			return arrow;
 		}	
+	}
+	createShapeFromMemento(memento){
+		if(memento instanceof undo.LineMemento){
+           let line=new Line(1);
+           line.setState(memento);
+           return line;
+        }
 	}
 }
 
@@ -115,6 +123,11 @@ paint(g2, viewportWindow, scale,layersmask) {
 			this.drawControlShape(g2, viewportWindow, scale);
 		}
 
+}
+getState(operationType) {
+        let memento = new undo.LineMemento(operationType);
+        memento.saveStateFrom(this);
+        return memento;
 }
 fromXML(data){
    	   var tokens = data.textContent.split(",");
@@ -203,6 +216,11 @@ paint(g2, viewportWindow, scale,layersmask) {
 	  	return;
 	  }
 	  this.texture.paint(g2, viewportWindow, scale);
+}
+getState(operationType) {
+        let memento = new undo.FontLabelMemento(operationType);
+        memento.saveStateFrom(this);
+        return memento;
 }
 fromXML(data){	 		
     this.texture.fillColor ="#" +(j$(data).attr("color") & 0x00FFFFFF).toString(16).padStart(6, '0');
