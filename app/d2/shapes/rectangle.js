@@ -34,6 +34,12 @@ module.exports = function(d2) {
     	    });  
     	    return copy;
 		}
+		assign(drawing) {
+    	    this.points[0].set(drawing.points[0]);                        
+        	this.points[1].set(drawing.points[1]);
+        	this.points[2].set(drawing.points[2]);
+        	this.points[3].set(drawing.points[3]);                                                                       
+	    }		
 		get area(){
 			return (this.points[0].distanceTo(this.points[1]))*(this.points[1].distanceTo(this.points[2]));
 		}

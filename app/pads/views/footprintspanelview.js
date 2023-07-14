@@ -209,11 +209,13 @@ var PadPanelBuilder=BaseBuilder.extend({
         'keypress #netvaluexid' : 'onenter',	
         'keypress #netvalueyid' : 'onenter',
         'keypress #drillwidthid' : 'onenter',
+        'keypress #soldermaskid' : 'onenter',
         //'keypress #offsetxid' : 'onenter',
         //'keypress #offsetyid' : 'onenter',
         'change #layerid': 'onchange',
         'change #typeid': 'onchange', 
-        'change #shapeid': 'onchange', 
+        'change #shapeid': 'onchange',
+        'change #platedid': 'onchange',  
     },
     onchange:function(event){
         if(event.target.id=='layerid'){
@@ -227,7 +229,9 @@ var PadPanelBuilder=BaseBuilder.extend({
         	this.target.setShape(PadShape.parse(j$('#shapeid').find('option:selected').text()));
         	this.updateui();
         }
-        
+        if(event.target.id=='platedid'){        
+        	this.target.plated=(j$('#platedid').find('option:selected').text()==='true');        	
+        }
        this.component.repaint(); 
       },
     onenter:function(event){
@@ -266,8 +270,8 @@ var PadPanelBuilder=BaseBuilder.extend({
 		 if(event.target.id=='drillwidthid'){ 
 			 this.target.drill.setWidth(core.MM_TO_COORD(parseFloat(j$('#drillwidthid').val())));   
 		 }
-		 //if(event.target.id=='offsetxid'){ 
-		//	 this.target.offset.x=(core.MM_TO_COORD(parseFloat(j$('#offsetxid').val())));   
+		 if(event.target.id=='soldermaskid') 
+			 this.target.solderMaskExpansion=(core.MM_TO_COORD(parseFloat(j$('#soldermaskid').val())));   
 		 //}
 		 //if(event.target.id=='offsetyid'){ 
 		//	 this.target.offset.y=(core.MM_TO_COORD(parseFloat(j$('#offsetyid').val())));   
@@ -289,7 +293,8 @@ var PadPanelBuilder=BaseBuilder.extend({
 	        	j$('#padheightid').val(core.COORD_TO_MM(this.target.height));  
 	        }
 	        j$('#typeid').val(this.target.type);  
-	        j$('#shapeid').val(this.target.getShape());  
+	        j$('#shapeid').val(this.target.getShape());
+			j$('#platedid').val(this.target.plated?1:0);    
 	        //-------number---------
 	        j$('#numberid').val(this.target.getTextureByTag("number").shape.text); 
 	        j$('#numbersizeid').val(core.COORD_TO_MM(this.target.getTextureByTag("number").shape.fontSize)); 
@@ -321,13 +326,14 @@ var PadPanelBuilder=BaseBuilder.extend({
 			
 	        if(this.target.type== PadType.SMD){
 	        	 j$('#drillwidthid').prop('disabled',true);
-	        	 //j$('#offsetxid').prop('disabled',true);
+	        	 j$('#platedid').prop('disabled',true);
 	        	 //j$('#offsetyid').prop('disabled',true);
 	        }else{
 	        	 j$('#drillwidthid').prop('disabled',false);
-	        	 //j$('#offsetxid').prop('disabled',false);
+	        	 j$('#platedid').prop('disabled',false);
 	        	 //j$('#offsetyid').prop('disabled',false);	        	
-	        }	       
+	        }
+ 		    j$('#soldermaskid').val(core.COORD_TO_MM(this.target.solderMaskExpansion));	       
 	},
 	render:function(){
 		j$(this.el).empty();
@@ -352,7 +358,13 @@ var PadPanelBuilder=BaseBuilder.extend({
 				"<select class=\"form-control input-sm\" id=\"shapeid\">"+
 				this.fillComboBox([{id:0,value:'RECTANGULAR',selected:true},{id:1,value:'CIRCULAR'},{id:2,value:'OVAL'},{id:3,value:'POLYGON'}])+
 			    "</select>" +
+				"</td></tr>"+				
+				"<tr><td style='width:50%;padding:7px'>Plated</td><td>" +
+				"<select class=\"form-control input-sm\" id=\"platedid\">"+
+				this.fillComboBox([{id:0,value:'false'},{id:1,value:'true',selected:true}])+
+			    "</select>" +
 				"</td></tr>"+
+				"<tr><td style='padding:7px'>Solder Mask Ext</td><td><input type='text' id='soldermaskid' value='' class='form-control input-sm\'></td></tr>"+
 				"<tr><td style='padding:7px'>Drill Width</td><td><input type='text' id='drillwidthid' value='' class='form-control input-sm\'></td></tr>"+				
 				//"<tr><td style='padding:7px'>Offset X</td><td><input type='text' id='offsetxid' value='' class='form-control input-sm\'></td></tr>"+
 				//"<tr><td style='padding:7px'>Offset Y</td><td><input type='text' id='offsetyid' value='' class='form-control input-sm\'></td></tr>"+				

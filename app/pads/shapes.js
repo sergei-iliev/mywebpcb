@@ -1331,13 +1331,16 @@ class Pad extends Shape{
 	   this.shape=new CircularShape(0,0,width,this);
 	   this.setType(PadType.THROUGH_HOLE);	   
 	   this.setDisplayName("Pad");
-	   
+	   this.plated=true;
+       this.solderMaskExpansion=core.MM_TO_COORD(0.051);
 	   this.number=new font.FontTexture("1","number",x,y,4000,0);
 	   this.netvalue=new font.FontTexture("","netvalue",x,y,4000,0);   
 	}
 clone(){
 	     var copy=new Pad(0,0,this.width,this.height);
 	     copy.setType(this.type);
+         copy.plated=this.plated;
+		 copy.solderMaskExpansion=this.solderMaskExpansion
 	     copy.width=this.width;
 	     copy.height=this.height;
 	     copy.rotation=this.rotation;
@@ -1374,7 +1377,7 @@ getCenter(){
 	return this.shape.center;
 }
 toXML(){
-	    var xml="<pad copper=\""+this.copper.getName()+"\" type=\"" +PadType.format(this.type) + "\" shape=\""+PadShape.format(this.getShape())+"\" x=\""+utilities.roundFloat(this.shape.center.x,4)+"\" y=\""+utilities.roundFloat(this.shape.center.y,4)+"\" width=\""+utilities.roundFloat(this.getWidth(),2)+"\" height=\""+utilities.roundFloat(this.getHeight(),2)+"\" rt=\""+utilities.roundFloat(this.rotation,2)+"\">\r\n";
+	    var xml="<pad copper=\""+this.copper.getName()+"\" type=\"" +PadType.format(this.type) + "\" shape=\""+PadShape.format(this.getShape())+"\" plt=\""+(this.plated==true?1:0)+"\" solder=\""+utilities.roundFloat(this.solderMaskExpansion,4)+"\"  x=\""+utilities.roundFloat(this.shape.center.x,4)+"\" y=\""+utilities.roundFloat(this.shape.center.y,4)+"\" width=\""+utilities.roundFloat(this.getWidth(),2)+"\" height=\""+utilities.roundFloat(this.getHeight(),2)+"\" rt=\""+utilities.roundFloat(this.rotation,2)+"\">\r\n";
 	        //xml+=this.shape.toXML()+"\r\n";
 	        xml+="<offset x=\""+this.offset.x+"\" y=\""+this.offset.y+"\" />\r\n";
 	    
@@ -1404,6 +1407,12 @@ fromXML(data){
 		      if(j$(data).attr("rt")!=undefined)
 		        this.rotation=(parseFloat(j$(data).attr("rt")));
 		      
+	          if(j$(data).attr("plt")!=undefined)
+            	this.plated=(parseInt(j$(data).attr("plt"))!=0);
+        
+    	      if(j$(data).attr("solder")!=undefined)
+                this.solderMaskExpansion=parseFloat(j$(data).attr("solder"));
+         
 		      this.setShape(x,y,PadShape.parse(j$(data).attr("shape")));
 			  
 		      var offset=(j$(data).find("offset"));
@@ -1608,18 +1617,18 @@ drawClearence(g2,viewportWindow,scale,source){
 	this.shape.drawClearence(g2,viewportWindow,scale,source);
 	//g2.restore();
 }
-paint(g2,viewportWindow,scale,layersmask){
-	if((this.copper.getLayerMaskID()&layersmask)!=0) {
+paint(g2,viewportWindow,scale,layersmaskId){
+	if((this.copper.getLayerMaskID()&layersmaskId)!=0) {
 	switch(this.type){
 	    case PadType.THROUGH_HOLE:
-	        if(this.shape.paint(g2, viewportWindow, scale)){
+	        if(this.shape.paint(g2, viewportWindow, scale,layersmaskId)){
 	         if(this.drill!=null){
 	            this.drill.paint(g2, viewportWindow, scale);
 	         }
 	        }
 	        break;
 	    case PadType.SMD:
-	        this.shape.paint(g2, viewportWindow, scale);
+	        this.shape.paint(g2, viewportWindow, scale,layersmaskId);
 	        break;
 	    
 	    }
@@ -1632,7 +1641,7 @@ paint(g2,viewportWindow,scale,layersmask){
 class CircularShape{
 	constructor(x,y,width,pad){
 		this.pad=pad;
-		this.circle=new d2.Circle(new d2.Point(x,y),width/2);		
+		this.circle=new d2.Circle(new d2.Point(x,y),width/2);					
 	}
 	drawClearence(g2,viewportWindow,scale,source){
 	    let c=this.circle.clone();
@@ -1650,27 +1659,40 @@ class CircularShape{
 		
 	    g2._fill=false;			
 	}	
-    paint(g2,viewportWindow,scale){
+    paint(g2,viewportWindow,scale,layermaskId){
     	 var rect = this.circle.box;
+		 rect.grow(this.pad.solderMaskExpansion);
        	 rect.scale(scale.getScale());
        	 if (!rect.intersects(viewportWindow)) {
       		  return;
-       	 }
-	    
-		if(this.pad.isSelected())
-	        g2.fillStyle = "gray";  
-	    else{
-	        g2.fillStyle = this.pad.copper.getColor();
-	    }
-	    g2._fill=true;
-		
-	    let c=this.circle.clone();
-		c.scale(scale.getScale());
-        c.move(-viewportWindow.x,- viewportWindow.y);
-		c.paint(g2);
-		
-		g2._fill=false;
-		
+       	 }	    
+		g2._fill=true;
+        var c=PadFactory.acquire('Circle');
+        try {
+        //draw solder mask	
+        if((((this.pad.copper.getLayerMaskID()&core.Layer.LAYER_FRONT)!=0)&&((layermaskId&core.Layer.SOLDERMASK_LAYER_FRONT)!=0))||
+        	(((this.pad.copper.getLayerMaskID()&core.Layer.LAYER_BACK)!=0)&&((layermaskId&core.Layer.SOLDERMASK_LAYER_BACK)!=0))) {
+         c.assign(this.circle);                 
+         c.grow(this.pad.solderMaskExpansion);
+         c.scale(scale.getScale());
+         c.move(-viewportWindow.x, -viewportWindow.y);        
+         g2.fillStyle=(this.pad.isSelected() ? "gray" : core.Layer.Copper.BMask.getColor());
+
+         c.paint(g2);
+        }
+      //draw pad shape
+        if(((this.pad.copper.getLayerMaskID()&layermaskId)!=0)) {	                           
+        	c.assign(this.circle);
+        	c.scale(scale.getScale());
+        	c.move(-viewportWindow.x, -viewportWindow.y);
+            g2.fillStyle=(this.pad.isSelected() ? "gray" : this.pad.copper.getColor());
+        	c.paint(g2);
+        }
+        }finally {
+        	PadFactory.release(c);	
+            g2._fill=false;
+		}
+        		
 		return true;
 	}
     copy(pad){
@@ -1727,8 +1749,9 @@ drawClearence(g2,viewportWindow,scale,source){
 	
     g2._fill=false;			
 }
-paint(g2,viewportWindow,scale){
+paint(g2,viewportWindow,scale,layermaskId){
 	   var box=this.rect.box;
+       box.grow(this.pad.solderMaskExpansion);
 	   box.scale(scale.scale);     
        //check if outside of visible window
 	   var window=new d2.Box(0,0,0,0);
@@ -1736,7 +1759,7 @@ paint(g2,viewportWindow,scale){
        if(!box.intersects(window)){
          return false;
        }
-       
+       /*
 	    if(this.pad.isSelected())
 	      g2.fillStyle = "gray";  
 	    else{
@@ -1749,7 +1772,34 @@ paint(g2,viewportWindow,scale){
 		r.paint(g2);
 	    
 		g2._fill=false;
-	    return true;
+	    */
+ 		g2._fill=true;
+        var r=PadFactory.acquire('Rectangle');
+        try {
+            //draw solder mask	
+          if((((this.pad.copper.getLayerMaskID()&core.Layer.LAYER_FRONT)!=0)&&((layermaskId&core.Layer.SOLDERMASK_LAYER_FRONT)!=0))||
+            	(((this.pad.copper.getLayerMaskID()&core.Layer.LAYER_BACK)!=0)&&((layermaskId&core.Layer.SOLDERMASK_LAYER_BACK)!=0))) {        	       	
+        	r.assign(this.rect);
+            r.grow(this.pad.solderMaskExpansion);
+            r.scale(scale.getScale());
+            r.move(-viewportWindow.x, -viewportWindow.y);        
+            g2.fillStyle=(this.pad.isSelected() ? "gray" :core.Layer.Copper.BMask.getColor());
+            r.paint(g2);
+          }
+            	  
+          //draw pad shape  
+          if(((this.pad.copper.getLayerMaskID()&layermaskId)!=0)) {	                 
+            r.assign(this.rect);
+            r.scale(scale.getScale());
+            r.move(-viewportWindow.x, -viewportWindow.y);
+            g2.fillStyle=this.pad.isSelected() ? "gray" : this.pad.copper.getColor();
+            r.paint(g2);        	
+          }
+        }finally {
+        	PadFactory.release(r);
+			g2._fill=false;
+        }
+		return true;
 }
 copy(pad){
   let _copy=new RectangularShape(0,0,0,0,pad);
@@ -1800,8 +1850,9 @@ class OvalShape{
 		o.paint(g2);
 		
 	}
-paint(g2,viewportWindow,scale){
+paint(g2,viewportWindow,scale,layermaskId){
 	     var box=this.obround.box;
+         box.grow(this.pad.solderMaskExpansion);
 	     box.scale(scale.scale);     
        //check if outside of visible window
 	     var window=new d2.Box(0,0,0,0);
@@ -1809,7 +1860,7 @@ paint(g2,viewportWindow,scale){
          if(!box.intersects(window)){
            return false;
          }
-         
+         /*
 	     g2.lineWidth = this.obround.width * scale.getScale();
 	     if(this.pad.isSelected())
 	        g2.strokeStyle = "gray";  
@@ -1821,6 +1872,31 @@ paint(g2,viewportWindow,scale){
 		   o.scale(scale.getScale());
 	       o.move(-viewportWindow.x,- viewportWindow.y);
 		   o.paint(g2);
+*/
+        var o=PadFactory.acquire('Obround');
+        try {
+            //draw solder mask	
+        if((((this.pad.copper.getLayerMaskID()&core.Layer.LAYER_FRONT)!=0)&&((layermaskId&core.Layer.SOLDERMASK_LAYER_FRONT)!=0))||
+            	(((this.pad.copper.getLayerMaskID()&core.Layer.LAYER_BACK)!=0)&&((layermaskId&core.Layer.SOLDERMASK_LAYER_BACK)!=0))) {        	
+        	o.assign(this.obround);                
+        	o.grow(this.pad.solderMaskExpansion);
+        	o.scale(scale.getScale());
+        	o.move(-viewportWindow.x, -viewportWindow.y);        
+        	g2.strokeStyle=(this.pad.isSelected() ? "gray" : core.Layer.Copper.BMask.getColor());
+        	o.paint(g2);
+        }	  
+        //draw pad shape        
+        if(((this.pad.copper.getLayerMaskID()&layermaskId)!=0)) {	        
+        	o.assign(this.obround);
+        	o.scale(scale.getScale());
+        	o.move(-viewportWindow.x, -viewportWindow.y);
+            g2.strokeStyle=(this.pad.isSelected() ? "gray" : this.pad.copper.getColor());
+        	o.paint(g2);
+        }
+        }finally {
+        	PadFactory.release(o);	
+		}
+
 
 	      return true;
 }
@@ -1875,8 +1951,9 @@ drawClearence(g2,viewportWindow,scale,source){
 	    
 	    g2._fill=false;
 }
-paint(g2, viewportWindow, scale) {
+paint(g2, viewportWindow, scale,layermaskId) {
 		   var box=this.hexagon.box;
+           box.grow(this.pad.solderMaskExpansion);
 		   box.scale(scale.scale);     
 	       //check if outside of visible window
 		   var window=new d2.Box(0,0,0,0);
@@ -1884,21 +1961,34 @@ paint(g2, viewportWindow, scale) {
 	       if(!box.intersects(window)){
 	         return false;
 	       }
-	       if(this.pad.isSelected()){
-	         g2.fillStyle = "gray";  
-		   }else{
-	         g2.fillStyle = this.pad.copper.getColor();
-	       }
-	        
-		   g2._fill=true;		   
-	       let p=this.hexagon.clone();
-		   p.scale(scale.getScale());
-	       p.move(-viewportWindow.x,- viewportWindow.y);
-		   p.paint(g2);
-		    
-		   g2._fill=false;
-            
-           return true;
+		   g2._fill=true;
+        var h=PadFactory.acquire('Hexagon');
+        try {
+            //draw solder mask	
+        if((((this.pad.copper.getLayerMaskID()&core.Layer.LAYER_FRONT)!=0)&&((layermaskId&core.Layer.SOLDERMASK_LAYER_FRONT)!=0))||
+            	(((this.pad.copper.getLayerMaskID()&core.Layer.LAYER_BACK)!=0)&&((layermaskId&core.Layer.SOLDERMASK_LAYER_BACK)!=0))) {        	        	
+        	h.assign(this.hexagon);        
+        	h.grow(this.pad.solderMaskExpansion);
+        	h.scale(scale.getScale());
+        	h.move(-viewportWindow.x, -viewportWindow.y);        
+        	g2.fillStyle=(this.pad.isSelected() ? "gray" : core.Layer.Copper.BMask.getColor());
+        	h.paint(g2);
+        }
+        	  
+        //draw pad shape  
+        if(((this.pad.copper.getLayerMaskID()&layermaskId)!=0)) {	 
+        	h.assign(this.hexagon);
+        	h.scale(scale.getScale());
+        	h.move(-viewportWindow.x, -viewportWindow.y);
+        	g2.fillStyle=(this.pad.isSelected() ? "gray" : this.pad.copper.getColor());
+        	h.paint(g2);
+        }
+        }finally {
+        	PadFactory.release(h);	
+            g2._fill=false;
+		}
+                    
+        return true;
 }
 copy(pad){
 	  let _copy=new PolygonShape(0,0,0,pad);
@@ -1933,6 +2023,29 @@ setSize(width,height) {
 }
 	
 }
+var PadFactory = (function () {
+    var cache = new Map();
+		cache.set('Circle',new d2.Circle(new d2.Point(), 0));
+		cache.set('Rectangle',new d2.Rectangle(0, 0, 0, 0));
+		cache.set('Obround',new d2.Obround(new d2.Point(0, 0), 0, 0));
+		cache.set('Hexagon',new d2.Hexagon(new d2.Point(0, 0), 10));
+    return {
+
+        acquire: function (clazz) {
+		 var pad=cache.get(clazz);
+		 if(pad==null) {
+			 throw new Error("Unknown figure class: "+clazz);
+		 }else {
+		     cache.set(clazz, null);
+			 return pad;
+		 }
+        },
+
+        release: function (instance) {
+			cache.set(instance.constructor.name,instance)
+        }
+    }
+})();
 module.exports ={
 	GlyphLabel,
 	Line,

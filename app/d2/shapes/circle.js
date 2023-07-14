@@ -13,6 +13,10 @@ module.exports = function(d2) {
        clone() {
            return new d2.Circle(this.pc.clone(), this.r);
        } 
+       assign(drawing) {
+    	this.pc.set(drawing.pc);
+    	this.r=drawing.r;
+       }
        get area(){
            return  ( Math.PI * this.r*this.r );	
        }

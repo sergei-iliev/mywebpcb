@@ -125,8 +125,8 @@ var Layer=(function(){
 	      FIRST_NO_COPPER_LAYER  : 16,
 	      ADHESIVE_N_BACK        :16,
 	      ADHESIVE_N_FRONT       : 17,
-	      //SOLDERPASTE_N_BACK      :18,
-	      //SOLDERPASTE_N_FRONT     :19,
+	      SOLDERPASTE_N_BACK      :18,
+	      SOLDERPASTE_N_FRONT     :19,
 	      SILKSCREEN_N_BACK       :20,
 	      SILKSCREEN_N_FRONT      :21,
 	      SOLDERMASK_N_BACK       :22,
@@ -163,6 +163,7 @@ var Layer=(function(){
 	      LAYER_FRONT          :   (1 << 15),    ///< bit mask for component layer
 	      ADHESIVE_LAYER_BACK    : (1 << 16),
 	      ADHESIVE_LAYER_FRONT   : (1 << 17),
+
 		  SILKSCREEN_LAYER_BACK :  (1 << 20),
 	      SILKSCREEN_LAYER_FRONT : (1 << 21),
 		  SOLDERMASK_LAYER_BACK  : (1 << 22),
@@ -205,9 +206,7 @@ var Layer=(function(){
             } else if (layermaskId == Layer.SILKSCREEN_LAYER_BACK) {
                 return Layer.Side.BOTTOM;
             } else if (layermaskId == Layer.SOLDERMASK_LAYER_BACK) {
-                return Layer.Side.BOTTOM;
-            }else if(layermaskId == Layer.SOLDERMASK_LAYER_BACK) {
-				throw new Error('Unknown layer');
+                return Layer.Side.BOTTOM;            
 			}
             return Layer.Side.TOP;
            }
@@ -298,6 +297,34 @@ var Layer=(function(){
 //		                return Layer.BOARD_COLOR_BACK;
 //		          }
 		        }, 
+	        FMask:{
+		          toString:function(){
+		              return "F.Mask";
+		          },
+		          getName:function(){
+		              return "FMask";
+		          },
+		          getLayerMaskID:function(){
+		              return Layer.SOLDERMASK_LAYER_FRONT;
+		          },
+		          getColor:function(){
+		              return 'rgb(144, 12, 63)';
+		          },
+		        },
+	        BMask:{
+		          toString:function(){
+		              return "B.Mask";
+		          },
+		          getName:function(){
+		              return "BMask";
+		          },
+		          getLayerMaskID:function(){
+		              return Layer.SOLDERMASK_LAYER_BACK;
+		          },
+		          getColor:function(){
+		              return 'rgb(144, 12, 63)';
+		          },
+		        },
 			BOutln:{
 			          toString:function(){
 			              return "B.Outline";
@@ -368,6 +395,12 @@ var Layer=(function(){
 	            if(layermask==(Layer.LAYER_BACK|Layer.LAYER_FRONT)){
 	                return Layer.Copper.Cu;
 	            } 
+				if(layermask==Layer.SOLDERMASK_LAYER_BACK){
+				    return 	Layer.Copper.BMask;
+				}
+				if(layermask==Layer.SOLDERMASK_LAYER_FRONT){
+				    return 	Layer.Copper.FMask;
+				}				
 	            if (layermask == Layer.LAYER_ALL) {
 	                return Layer.Copper.All;
 	            }else{
@@ -381,6 +414,8 @@ var Layer=(function(){
 				case 'Cu': return this.Cu;
 				case 'FSilkS':return this.FSilkS;
 				case 'BSilkS':return this.BSilkS;
+				case 'FMask':return this.FMask;
+				case 'BMask':return this.BMask;				
 				case 'BOutln':return this.BOutln;
 				case 'All': return this.All;
 				case 'None': return this.None;
@@ -551,7 +586,8 @@ class ViewportWindow{
 
     //must be 10000 for printing
 var MM_TO_COORD=function(mm){
-      return Math.floor(mm*10000);
+      //return Math.floor(mm*10000);
+     return (mm*10000);
 }
  
 var COORD_TO_MM=function(coord){ 

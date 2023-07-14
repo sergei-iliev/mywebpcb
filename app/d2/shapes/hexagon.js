@@ -15,6 +15,13 @@ module.exports = function(d2) {
     	    });  
     		return copy;
     	}
+        assign(drawing) {
+        this.center.set(drawing.center);                        
+        this.width=drawing.width;
+        	for(let i=0;i<this.points.length;i++) {
+        		this.points[i].set(drawing.points[i]);
+    	    }
+	    }     
     	scale(alpha){
         	this.center.scale(alpha);
         	this.width*=alpha;  

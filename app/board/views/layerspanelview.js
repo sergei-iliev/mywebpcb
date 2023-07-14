@@ -31,9 +31,11 @@ var LayersPanelView=Backbone.View.extend({
     initialize: function(boardComponent){
     	j$(this.el).empty();
     	this.collection=new LayerCollection([
-                                         new LayerModel({ name: 'Top Layer',value:Layer.LAYER_FRONT,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.LAYER_FRONT)}),
-                                         new LayerModel({ name: 'Bottom Layer',value:Layer.LAYER_BACK,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.LAYER_BACK)}),
                                          new LayerModel({ name: 'Top Silk Layer',value:Layer.SILKSCREEN_LAYER_FRONT,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.SILKSCREEN_LAYER_FRONT)}),
+										 new LayerModel({ name: 'Top Solder Mask Layer',value:Layer.SOLDERMASK_LAYER_FRONT,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.SOLDERMASK_LAYER_FRONT)}),
+									     new LayerModel({ name: 'Top Copper Layer',value:Layer.LAYER_FRONT,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.LAYER_FRONT)}),
+                                         new LayerModel({ name: 'Bottom Copper Layer',value:Layer.LAYER_BACK,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.LAYER_BACK)}),
+                                         new LayerModel({ name: 'Bottom Solder Mask Layer',value:Layer.SOLDERMASK_LAYER_BACK,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.SOLDERMASK_LAYER_BACK)}),
                                          new LayerModel({ name: 'Bottom Silk Layer',value:Layer.SILKSCREEN_LAYER_BACK,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.SILKSCREEN_LAYER_BACK)}),
                                          new LayerModel({ name: 'Board Outline',value:Layer.BOARD_OUTLINE_LAYER,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.BOARD_OUTLINE_LAYER)})
                                      ]);

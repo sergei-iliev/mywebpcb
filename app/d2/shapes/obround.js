@@ -25,7 +25,13 @@ module.exports = function(d2) {
 			copy.pe.x=this.pe.x;
 			copy.pe.y=this.pe.y;
 			return copy;
-		}
+		}    
+        assign(drawing) {
+         this.pc.set(drawing.pc);                        
+         this.width=drawing.width;
+         this.height=drawing.height;
+         this.reset();
+        }    		
 		get box(){
 			 let r=this.getDiameter()/2;
 	         //first point		 
