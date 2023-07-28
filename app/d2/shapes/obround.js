@@ -30,7 +30,8 @@ module.exports = function(d2) {
          this.pc.set(drawing.pc);                        
          this.width=drawing.width;
          this.height=drawing.height;
-         this.reset();
+         this.ps.set(drawing.ps);
+         this.pe.set(drawing.pe);
         }    		
 		get box(){
 			 let r=this.getDiameter()/2;
