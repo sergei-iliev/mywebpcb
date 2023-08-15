@@ -1326,7 +1326,7 @@ class Pad extends Shape{
 	constructor(x,y,width,height) {
 	   super(0, 0, width, height, -1, core.Layer.LAYER_BACK);
 	   this.drill=null;
-	   //this.rotation=0;
+	   this.rotation=0;
 	   this.offset=new d2.Point(0,0);
 	   this.shape=new CircularShape(0,0,width,this);
 	   this.setType(PadType.THROUGH_HOLE);	   
@@ -1588,10 +1588,9 @@ calculateShape() {
 } 
 validateClearance(source){
     //1 is different layer and SMD -> no clearance
-    if ((source.copper.getLayerMaskID() & this.copper.getLayerMaskID()) == 0) {
-        //if(this.type==PadType.SMD)
+    if ((this.type==PadType.SMD)&&(source.copper.getLayerMaskID() & this.copper.getLayerMaskID()) == 0) {       
            return false; //not on the same layer
-    }	
+    }       
     //2. is same net 
     //if(isSameNet(source)&&source.getPadConnection()==PadShape.PadConnection.DIRECT){
     //    return;
@@ -1842,7 +1841,7 @@ class OvalShape{
 	}
 	drawClearence(g2,viewportWindow,scale,source){
 		let o=this.obround.clone();
-	    o.grow(source.clearance);
+	    o.grow(source.clearance,this.pad.rotation);
 	    g2.strokeStyle = "black";  
 
 		o.scale(scale.getScale());
@@ -1860,26 +1859,13 @@ paint(g2,viewportWindow,scale,layermaskId){
          if(!box.intersects(window)){
            return false;
          }
-         /*
-	     g2.lineWidth = this.obround.width * scale.getScale();
-	     if(this.pad.isSelected())
-	        g2.strokeStyle = "gray";  
-	     else{
-	        g2.strokeStyle = this.pad.copper.getColor();
-	     }
-	      
-		   let o=this.obround.clone();
-		   o.scale(scale.getScale());
-	       o.move(-viewportWindow.x,- viewportWindow.y);
-		   o.paint(g2);
-*/
         var o=PadFactory.acquire('Obround');
         try {
             //draw solder mask	
         if((((this.pad.copper.getLayerMaskID()&core.Layer.LAYER_FRONT)!=0)&&((layermaskId&core.Layer.SOLDERMASK_LAYER_FRONT)!=0))||
-            	(((this.pad.copper.getLayerMaskID()&core.Layer.LAYER_BACK)!=0)&&((layermaskId&core.Layer.SOLDERMASK_LAYER_BACK)!=0))) {        	
-        	o.assign(this.obround);                
-        	o.grow(this.pad.solderMaskExpansion);
+            	(((this.pad.copper.getLayerMaskID()&core.Layer.LAYER_BACK)!=0)&&((layermaskId&core.Layer.SOLDERMASK_LAYER_BACK)!=0))) {        	      	
+			o.assign(this.obround);                
+        	o.grow(this.pad.solderMaskExpansion,this.pad.rotation);
         	o.scale(scale.getScale());
         	o.move(-viewportWindow.x, -viewportWindow.y);        
         	g2.strokeStyle=(this.pad.isSelected() ? "gray" : core.Layer.Copper.BMask.getColor());

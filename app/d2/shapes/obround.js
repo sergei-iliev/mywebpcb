@@ -158,12 +158,11 @@ module.exports = function(d2) {
             this.ps.move(offsetX,offsetY);
             this.pe.move(offsetX,offsetY);
         }  
-	    grow(offset){
-	        if(d2.utils.GE(this.width,this.height)){
-	            this.height +=  2*offset;
-	        } else {
-	            this.width +=  2*offset;
-	        }
+	    grow(offset,angle){
+            this.height +=  2*offset;
+            this.width +=  2*offset;
+            this.reset();
+            this.rotate(angle);
 	    }
 	    getDiameter(){
 	        if(d2.utils.GE(this.width,this.height)){

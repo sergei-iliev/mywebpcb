@@ -1227,6 +1227,7 @@ class PCBCopperArea extends Shape{
     }
 clone(){
     let copy=new PCBCopperArea(this.copper.getLayerMaskID());
+    copy.clearance=this.clearance;
     copy.polygon=this.polygon.clone();  
     return copy;	
 }
@@ -1434,7 +1435,7 @@ drawControlShape(g2, viewportWindow, scale) {
 	  utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.polygon.points);
 	}
 }
-fromXML(data){
+fromXML(data){	
     this.copper =core.Layer.Copper.valueOf(j$(data).attr("layer"));
 	this.clearance = (parseInt(j$(data).attr("clearance")));
 	this.net=(j$(data).attr("net"));

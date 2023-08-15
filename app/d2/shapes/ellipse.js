@@ -6,7 +6,7 @@ module.exports = function(d2) {
             this.w = w;
             this.h=h;
         	this.vert=[new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0)];        	        	
-            //this.rotation=0;
+            this.rotation=0;
         }
         clone(){
         	let copy=new d2.Ellipse(this.pc.clone(),this.w,this.h);

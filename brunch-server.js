@@ -36,7 +36,7 @@ app.get('/rest/boards/workspaces/CardReader', (req, res, next) => {
 	);
 	});
 app.get('/rest/boards/workspaces/CardReader/proba', (req, res, next) => {
-    fs.readFile('D:\\sergei\\myNetPCB\\java_11\\deploy\\workspace\\boards\\demo\\proba.xml','utf8', function(err, data) {
+    fs.readFile('D:\\sergei\\myNetPCB\\java_11\\deploy\\workspace\\boards\\demo\\print_demo.xml','utf8', function(err, data) {
 		res.send(data);
   });
 });
