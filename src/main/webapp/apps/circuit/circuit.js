@@ -3950,8 +3950,8 @@ var Layer=(function(){
 	      FIRST_NO_COPPER_LAYER  : 16,
 	      ADHESIVE_N_BACK        :16,
 	      ADHESIVE_N_FRONT       : 17,
-	      //SOLDERPASTE_N_BACK      :18,
-	      //SOLDERPASTE_N_FRONT     :19,
+	      SOLDERPASTE_N_BACK      :18,
+	      SOLDERPASTE_N_FRONT     :19,
 	      SILKSCREEN_N_BACK       :20,
 	      SILKSCREEN_N_FRONT      :21,
 	      SOLDERMASK_N_BACK       :22,
@@ -3988,6 +3988,7 @@ var Layer=(function(){
 	      LAYER_FRONT          :   (1 << 15),    ///< bit mask for component layer
 	      ADHESIVE_LAYER_BACK    : (1 << 16),
 	      ADHESIVE_LAYER_FRONT   : (1 << 17),
+
 		  SILKSCREEN_LAYER_BACK :  (1 << 20),
 	      SILKSCREEN_LAYER_FRONT : (1 << 21),
 		  SOLDERMASK_LAYER_BACK  : (1 << 22),
@@ -4030,9 +4031,7 @@ var Layer=(function(){
             } else if (layermaskId == Layer.SILKSCREEN_LAYER_BACK) {
                 return Layer.Side.BOTTOM;
             } else if (layermaskId == Layer.SOLDERMASK_LAYER_BACK) {
-                return Layer.Side.BOTTOM;
-            }else if(layermaskId == Layer.SOLDERMASK_LAYER_BACK) {
-				throw new Error('Unknown layer');
+                return Layer.Side.BOTTOM;            
 			}
             return Layer.Side.TOP;
            }
@@ -4123,6 +4122,34 @@ var Layer=(function(){
 //		                return Layer.BOARD_COLOR_BACK;
 //		          }
 		        }, 
+	        FMask:{
+		          toString:function(){
+		              return "F.Mask";
+		          },
+		          getName:function(){
+		              return "FMask";
+		          },
+		          getLayerMaskID:function(){
+		              return Layer.SOLDERMASK_LAYER_FRONT;
+		          },
+		          getColor:function(){
+		              return 'rgb(144, 12, 63)';
+		          },
+		        },
+	        BMask:{
+		          toString:function(){
+		              return "B.Mask";
+		          },
+		          getName:function(){
+		              return "BMask";
+		          },
+		          getLayerMaskID:function(){
+		              return Layer.SOLDERMASK_LAYER_BACK;
+		          },
+		          getColor:function(){
+		              return 'rgb(144, 12, 63)';
+		          },
+		        },
 			BOutln:{
 			          toString:function(){
 			              return "B.Outline";
@@ -4193,6 +4220,12 @@ var Layer=(function(){
 	            if(layermask==(Layer.LAYER_BACK|Layer.LAYER_FRONT)){
 	                return Layer.Copper.Cu;
 	            } 
+				if(layermask==Layer.SOLDERMASK_LAYER_BACK){
+				    return 	Layer.Copper.BMask;
+				}
+				if(layermask==Layer.SOLDERMASK_LAYER_FRONT){
+				    return 	Layer.Copper.FMask;
+				}				
 	            if (layermask == Layer.LAYER_ALL) {
 	                return Layer.Copper.All;
 	            }else{
@@ -4206,6 +4239,8 @@ var Layer=(function(){
 				case 'Cu': return this.Cu;
 				case 'FSilkS':return this.FSilkS;
 				case 'BSilkS':return this.BSilkS;
+				case 'FMask':return this.FMask;
+				case 'BMask':return this.BMask;				
 				case 'BOutln':return this.BOutln;
 				case 'All': return this.All;
 				case 'None': return this.None;
@@ -4376,7 +4411,8 @@ class ViewportWindow{
 
     //must be 10000 for printing
 var MM_TO_COORD=function(mm){
-      return Math.floor(mm*10000);
+      //return Math.floor(mm*10000);
+     return (mm*10000);
 }
  
 var COORD_TO_MM=function(coord){ 
@@ -4760,7 +4796,7 @@ var core = require('core/core');
 var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').DefaultLineBendingProcessor;
 var d2=require('d2/d2');
 var utilities =require('core/utilities'); 
-
+var MementoType = require('core/undo').MementoType;
 Event={
 	    SELECT_SHAPE:1,
 	    DELETE_SHAPE:2,
@@ -4847,13 +4883,15 @@ class MoveEventHandle extends EventHandle{
 	    
 	    this.mx=event.x;
 		this.my=event.y;
+				
+		this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));    
 	 }
 	 mouseReleased(event){
 		if(super.isRightMouseButton(event)){
 			 return;
 		}
 		this.target.alignToGrid(false || this.component.getParameter("snaptogrid"));
-				 
+        this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));				 
 		this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
 		this.component.repaint();
 	 }
@@ -4895,7 +4933,7 @@ class ResizeEventHandle extends EventHandle{
 	        
 	    this.targetPoint=this.target.isControlRectClicked(event.x,event.y);
 	    this.target.setResizingPoint(this.targetPoint);
-	    
+	    this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));
 	    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
 	    
 		this.component.repaint();
@@ -4905,6 +4943,7 @@ class ResizeEventHandle extends EventHandle{
 	         this.target.alignResizingPointToGrid(this.targetPoint);
 		     this.component.repaint();	 
 			}
+			this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));
 			
 	 }
 	 mouseDragged(event){
@@ -5129,11 +5168,11 @@ class LineEventHandle extends EventHandle{
 	        
 	    if(this.component.lineBendingProcessor.addLinePoint(p)){
 	        if(justcreated){
-	            //getComponent().getModel().getUnit().registerMemento(getTarget().getState(MementoType.CREATE_MEMENTO));   
-	            //getComponent().getModel().getUnit().registerMemento(getTarget().getState(MementoType.MOVE_MEMENTO));    
+	            this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.CREATE_MEMENTO));   
+	            this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));    
 	        }
 	        if(this.target.getLinePoints().length>=2){
-	           //this.component.getModel().getUnit().registerMemento(getTarget().getState(MementoType.MOVE_MEMENTO));    
+	           this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));    
 	        }            
 	    }
 	    this.component.repaint();  
@@ -6375,6 +6414,11 @@ var utilities =require('core/utilities');
 var d2=require('d2/d2');
 var font = require('core/text/d2font');
 
+
+const ResumeState = Object.freeze({
+	ADD_AT_FRONT:0,
+	ADD_AT_END:1
+})
 class Shape{
 	constructor(x, y, width, height, thickness,
 			layermaskId) {
@@ -6391,6 +6435,7 @@ class Shape{
 		this.fillColor;		 
 		this.isControlPointVisible=true;
 		this.copper = core.Layer.Copper.resolve(layermaskId);
+		this.rotation=0;
 	}
 getCenter(){
 	return new d2.Point(this.x,this.y);
@@ -6475,6 +6520,9 @@ isClickedOnLayers(x, y, layermasks) {
 getBoundingShape() {
 	return this.calculateShape();
 	}
+setState(memento) {
+   memento.loadStateTo(this);
+} 
 setSelected (selection) {
 		this.selection = selection;
 	}
@@ -6607,7 +6655,7 @@ class AbstractLine extends Shape{
 																		// degree
 																		// forming
 		this.floatingEndPoint = new d2.Point();
-		this.rotation=0;
+		//this.rotation=0;
 	    this.resumeState=core.ResumeState.ADD_AT_END;
 		
 }
@@ -6966,7 +7014,8 @@ module.exports ={
 		Shape,
 		CoordinateSystem,
 		Ruler,
-		AbstractLine
+		AbstractLine,
+		ResumeState
 }
 });
 
@@ -7904,6 +7953,206 @@ module.exports ={
 			}	
 });
 
+;require.register("core/undo.js", function(exports, require, module) {
+var mywebpcb=require('core/core').mywebpcb;
+var core = require('core/core');
+var d2=require('d2/d2');
+
+
+const QUEUE_DEPTH = 20;
+const MementoType = Object.freeze({
+    CREATE_MEMENTO:0,
+    DELETE_MEMENTO:1,
+    MOVE_MEMENTO:2,    
+    MEMENTO:3
+})
+
+class AbstractMemento{
+
+    constructor(mementoType){    
+       this.uuid=null;
+       this.parentUUID=null;
+       this.mementoType;
+       this.layermaskId;    
+       this.thickness;    
+       this.fill;    
+       this.rotation;    
+       this.mementoType = mementoType;
+    }
+    
+        
+clear(){
+       //this.uuid=null;
+       //this.parentUUID=null;
+    }
+
+loadStateTo(shape){
+        shape.uuid=(this.uuid);
+        shape.copper=core.Layer.Copper.resolve(this.layermaskId);
+        shape.thickness=(this.thickness);
+        shape.fill=this.fill;
+        shape.rotation=this.rotation;
+    }
+    
+saveStateFrom(shape) {
+        //common fields
+        this.layermaskId=shape.copper.getLayerMaskID();
+        this.thickness=shape.thickness;
+        this.fill=shape.fill;
+        this.rotation=shape.rotation
+        this.uuid=shape.uuid          
+    }
+    
+equals(obj){
+        if(this==obj){
+          return true;  
+        }
+        if(!(obj instanceof AbstractMemento)){
+          return false;  
+        }         
+        let other=obj;
+        return (other.mementoType==this.mementoType&&
+                other.uuid==this.uuid&&
+                other.thickness==this.thickness&&
+                other.fill==this.fill&&
+                d2.utils.EQ(other.rotation,this.rotation)&&
+                other.layermaskId==this.layermaskId
+               );
+        
+      
+    }    
+    isSameState(unit) {
+        let other=unit.getShape(this.uuid);              
+        return (other.thickness==this.thickness&&other.fill==this.fill&&other.copper.getLayerMaskID()==this.layermaskId&& Utils.EQ(other.rotation,this.rotation));                                
+    }
+}
+class SymbolFontTextureMemento extends AbstractMemento{
+    constructor(mementoType){
+	 	super(mementoType);	
+	    this.text;      
+        this.alignment
+        this.fontSize
+        this.fontStyle;                         
+        this.x=0;
+        this.y=0;
+        this.tag;
+	}
+    loadStateTo(texture) {             
+             texture.shape.alignment=this.alignment;
+             texture.shape.fontSize=this.fontSize;
+             texture.shape.fontStyle=this.fontStyle;
+             texture.shape.anchorPoint.set(x, y);
+             texture.tag = this.tag;   
+             texture.setText(text);
+         }	
+   saveStateFrom(texture) {             
+             //this.id=symbol.id;
+             x = texture.shape.anchorPoint.x;
+             y = texture.shape.anchorPoint.y;
+             this.tag = texture.tag;
+             this.text = texture.shape.text;
+             this.fontSize=texture.shape.fontSize;
+             this.fontStyle=texture.shape.fontStyle;
+             this.alignment=texture.shape.alignment;
+         }	
+   equals(obj) {
+             if (this == obj) {
+                 return true;
+             }
+             if (!(obj instanceof SymbolFontTextureMemento)) {
+                 return false;
+             }            
+             return (                     
+                     other.tag.equals(this.tag) &&
+                     other.text.equals(this.text) &&
+                     Utils.EQ(other.x,this.x)  &&
+                     Utils.EQ(other.y,this.y) &&
+                     other.alignment==this.alignment &&
+                     other.fontSize==this.fontSize &&
+                     other.fontStyle==this.fontStyle);
+         }
+
+		
+}
+class CompositeMemento extends AbstractMemento{
+    constructor(mementoType){
+	 	super(mementoType);	
+	}
+
+}
+//**********************Undo Provider***************************************
+class UndoProvider{
+	constructor(){
+		this.queue=[];
+		this.currentIndex=0; 		
+	}
+redo() {
+        if (this.currentIndex >=(this.queue.length-1)) {
+            return null;
+        }
+        return this.queue[++this.currentIndex];
+    }
+
+undo() {
+        if (this.currentIndex ==-1) {
+            return null;
+        }
+        if(this.queue.length==0){
+           return null;  
+        }
+        return this.queue[this.currentIndex--];
+    }	
+clear() {
+        for (let memento in this.queue) {
+            memento.clear();
+        }
+        this.queue=[];
+        this.currentIndex = 0;
+    }
+registerMemento(memento) {	    
+        //***1.Skip add if same memento as last one on the stack
+        for(let i=this.queue.length-1;i>0;i--){
+            let prevMemento=this.queue[i];
+                if(prevMemento.equals(memento)){ 
+                  memento.clear();
+                  return;  
+                }              
+            break;
+        }   
+     
+        
+        if (this.currentIndex >= QUEUE_DEPTH) {
+            let _memento = this.queue.shift();
+            _memento.clear();
+            this.currentIndex = this.queue.length-1; 
+        }        
+        
+        if (this.queue.length == 0 || this.currentIndex == this.queue.length - 1) {
+        } else {
+             for (let j = this.currentIndex + 1; this.currentIndex < this.queue.length - 1; ) {
+	            let _memento=this.queue[j];           
+				_memento.clear();                
+				this.queue.splice(j,1);
+                
+             }
+        }
+
+        this.queue.push(memento);  
+        this.currentIndex = this.queue.length-1; 
+console.log(this.queue.length);
+    }
+
+}
+
+module.exports ={
+		UndoProvider,	
+		MementoType,
+		AbstractMemento,
+		CompositeMemento,
+		SymbolFontTextureMemento,	
+}
+});
+
 ;require.register("core/unit.js", function(exports, require, module) {
 var mywebpcb=require('core/core').mywebpcb;
 var core = require('core/core');
@@ -7912,7 +8161,9 @@ var events=require('core/events');
 var GlyphManager=require('core/text/d2glyph').GlyphManager;
 var ViewportWindow=require('core/core').ViewportWindow;
 var d2=require('d2/d2');
-
+var UndoProvider=require('core/undo').UndoProvider
+var MementoType=require('core/undo').MementoType
+var CompositeMemento=require('core/undo').CompositeMemento
 //**********************UnitMgr***************************************
 var UnitMgr=(function(){
 	var instance=null;
@@ -8082,6 +8333,7 @@ class Unit{
         this.coordinateSystem;//=new core.CoordinateSystem(this);
 		this.ruler=new shape.Ruler();
 		this.shapeFactory=null;
+		this.undoProvider = new UndoProvider();
         
     }
 setViewportPositionValue(viewportPositionX,viewportPositionY) {
@@ -8430,7 +8682,96 @@ paint(g2, viewportWindow){
 	     this.frame.paint(g2, viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
        }
 }    
-       
+redo(){
+	console.log(22);
+        let memento=null;
+        //***skip duplicates
+        while(true){
+            memento = this.undoProvider.redo();
+            if (memento == null) {
+              return false;
+            }else{                
+              if((memento.mementoType==MementoType.CREATE_MEMENTO)||(memento.mementoType==MementoType.DELETE_MEMENTO)){
+                  break;
+              }
+              //***eigther composite or single memento
+              if(memento.isSameState(this)){
+                   continue; 
+              }else{
+                   break;  
+              }                 
+            }            
+        }
+    switch (memento.mementoType) {
+	   case MementoType.CREATE_MEMENTO:
+              let shape=this.shapeFactory.createShapeFromMemento(memento);
+              this.add(shape);                 
+			break;
+		case MementoType.DELETE_MEMENTO:
+		
+		break;
+
+        default:
+            if(memento instanceof CompositeMemento){
+               //this.setState(memento); 
+               // ((CompositeMemento)memento).loadStateTo(this);
+            }else{
+               let element = this.getShape(memento.uuid);
+               element.setState(memento);
+               //fireShapeEvent(new ShapeEvent(element, ShapeEvent.PROPERTY_CHANGE));
+            
+            }
+			
+	}
+    
+	
+}    
+undo(undocallback){
+  let memento=null;
+          //***skip duplicates
+        while(true){
+          memento = this.undoProvider.undo();  
+        //***CHECK the validity of a memento   
+          if (memento == null) {
+            return false;
+          }else{
+              if((memento.mementoType==MementoType.CREATE_MEMENTO)||(memento.mementoType==MementoType.DELETE_MEMENTO)){
+                  break;
+              }
+              //***eigther composite or single memento
+              if(memento.isSameState(this)){                
+                 continue; 
+              }else{
+                 break;  
+              }                  
+          }
+        } 
+    switch (memento.mementoType) {
+	   case MementoType.CREATE_MEMENTO:
+            this.remove(memento.uuid);
+			break;
+		case MementoType.DELETE_MEMENTO:
+		
+		break;
+
+        default:
+            if(memento instanceof CompositeMemento){
+               //this.setState(memento); 
+               // ((CompositeMemento)memento).loadStateTo(this);
+            }else{
+               let element = this.getShape(memento.uuid);
+               element.setState(memento);
+               //fireShapeEvent(new ShapeEvent(element, ShapeEvent.PROPERTY_CHANGE));
+            
+            }
+			
+	}
+	
+}  
+registerMemento(memento){           
+   this.undoProvider.registerMemento(memento);    	
+}
+
 }
 
 //**********************UnitContainer*******************************************
@@ -8522,7 +8863,7 @@ class UnitContainer{
 //**********************UnitComponent*******************************************
 class UnitComponent{
 	constructor(canvas,popup){
-	GlyphManager.getInstance();
+	GlyphManager.getInstance();    
     
 	if(canvas!=null){	
       this.canvas = j$('#'+canvas);
@@ -8553,14 +8894,6 @@ class UnitComponent{
 	this.viewportWindow=new ViewportWindow(0,0,this.width,this.height);
 	this.parameters=new Map();
 	this.parameters.set("snaptogrid",false);
-	//if(hbar!=null&&vbar!=null){
-	//	this.hbar = j$('#'+hbar);
-	//	this.vbar=j$('#'+vbar);
-	//	this.hbar.jqxScrollBar({ width: '100%', height: 18, min: 0, max: 100});
-	//	this.vbar.jqxScrollBar({ width: 18, height:'100%', min: 0, max: 100, vertical: true});
-	//	this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
-	//	this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
-	//}
 	
 	this.mode=core.ModeEnum.COMPONENT_MODE;
 	this.backgroundColor="black";
@@ -8620,6 +8953,16 @@ fireContainerEvent(event){
 	
 	  mywebpcb.trigger('container:inspector',event); 
 }
+defaultKeyPress(e){
+   if (event.ctrlKey && event.key === 'z') {	
+         this.getModel().getUnit().undo(this.getEventMgr().targetEventHandle);         
+         this.repaint();         
+   }else if(event.ctrlKey && event.key === 'y') {
+         this.getModel().getUnit().redo(this.getEventMgr().targetEventHandle);         
+         this.repaint();         	  
+   }
+	
+}
 keyPress(event){
 	  if(event.target.tagName=="INPUT"){
 		  return;
@@ -8627,8 +8970,8 @@ keyPress(event){
 	  
 	 //if(event.target instanceof HTMLBodyElement||event.target instanceof HTMLCanvasElement){
 		 event.preventDefault();
-	     if (this.getEventMgr().targetEventHandle != null && this.getModel().getUnit() != null) {
-	            this.getEventMgr().targetEventHandle.keyPressed(event);
+	     if (this.getEventMgr().targetEventHandle == null || !this.getEventMgr().targetEventHandle.keyPressed(event)) {
+	            this.defaultKeyPress(event)
 	     }
 	 //}	 
 }
@@ -9014,6 +9357,13 @@ var hexToDec=function(hex) {
 	}
 	return result;
 }
+var arrayEquals=function(a, b) {
+    return Array.isArray(a) &&
+        Array.isArray(b) &&
+        a.length === b.length &&
+        a.every((val, index) => val === b[index]);
+}
+
 version=(function(){
 	return {
 		MYWEBPCB_VERSION:"8.0",
@@ -9040,7 +9390,8 @@ module.exports = {
   QUADRANT,
   POINT_TO_POINT,
   POSITION,
-  mirrorPoint
+  mirrorPoint,
+  arrayEquals
 }
 
 });
@@ -9364,7 +9715,7 @@ module.exports = function(d2) {
         constructor(pc,w,h) {
       	    super(pc,w,h);    	
             this.startAngle = 20;
-            this.rotation=0;
+            //this.rotation=0;
             this.endAngle = 190;           
         }
         clone(){
@@ -9687,6 +10038,10 @@ module.exports = function(d2) {
        clone() {
            return new d2.Circle(this.pc.clone(), this.r);
        } 
+       assign(drawing) {
+    	this.pc.set(drawing.pc);
+    	this.r=drawing.r;
+       }
        get area(){
            return  ( Math.PI * this.r*this.r );	
        }
@@ -10325,6 +10680,13 @@ module.exports = function(d2) {
     	    });  
     		return copy;
     	}
+        assign(drawing) {
+        this.center.set(drawing.center);                        
+        this.width=drawing.width;
+        	for(let i=0;i<this.points.length;i++) {
+        		this.points[i].set(drawing.points[i]);
+    	    }
+	    }     
     	scale(alpha){
         	this.center.scale(alpha);
         	this.width*=alpha;  
@@ -10474,7 +10836,14 @@ module.exports = function(d2) {
 			copy.pe.x=this.pe.x;
 			copy.pe.y=this.pe.y;
 			return copy;
-		}
+		}    
+        assign(drawing) {
+         this.pc.set(drawing.pc);                        
+         this.width=drawing.width;
+         this.height=drawing.height;
+         this.ps.set(drawing.ps);
+         this.pe.set(drawing.pe);
+        }    		
 		get box(){
 			 let r=this.getDiameter()/2;
 	         //first point		 
@@ -10600,12 +10969,11 @@ module.exports = function(d2) {
             this.ps.move(offsetX,offsetY);
             this.pe.move(offsetX,offsetY);
         }  
-	    grow(offset){
-	        if(d2.utils.GE(this.width,this.height)){
-	            this.height +=  2*offset;
-	        } else {
-	            this.width +=  2*offset;
-	        }
+	    grow(offset,angle){
+            this.height +=  2*offset;
+            this.width +=  2*offset;
+            this.reset();
+            this.rotate(angle);
 	    }
 	    getDiameter(){
 	        if(d2.utils.GE(this.width,this.height)){
@@ -11283,6 +11651,12 @@ module.exports = function(d2) {
     	    });  
     	    return copy;
 		}
+		assign(drawing) {
+    	    this.points[0].set(drawing.points[0]);                        
+        	this.points[1].set(drawing.points[1]);
+        	this.points[2].set(drawing.points[2]);
+        	this.points[3].set(drawing.points[3]);                                                                       
+	    }		
 		get area(){
 			return (this.points[0].distanceTo(this.points[1]))*(this.points[1].distanceTo(this.points[2]));
 		}
@@ -12812,7 +13186,7 @@ setMode(_mode){
 
 mouseDown(event){
     event.preventDefault();
-
+    j$(this.canvas).focus();
 	if (this.getModel().getUnit() == null) { 
 	   return; 
 	}
@@ -13164,6 +13538,7 @@ var AbstractLine=require('core/shapes').AbstractLine;
 var glyph=require('core/text/d2glyph');
 var font=require('core/text/d2font');
 var d2=require('d2/d2');
+var undo=require('symbols/undo');
 
 class SymbolShapeFactory{
 	
@@ -13208,6 +13583,13 @@ class SymbolShapeFactory{
 			arrow.fromXML(data);		
 			return arrow;
 		}	
+	}
+	createShapeFromMemento(memento){
+		if(memento instanceof undo.LineMemento){
+           let line=new Line(1);
+           line.setState(memento);
+           return line;
+        }
 	}
 }
 
@@ -13274,6 +13656,11 @@ paint(g2, viewportWindow, scale,layersmask) {
 			this.drawControlShape(g2, viewportWindow, scale);
 		}
 
+}
+getState(operationType) {
+        let memento = new undo.LineMemento(operationType);
+        memento.saveStateFrom(this);
+        return memento;
 }
 fromXML(data){
    	   var tokens = data.textContent.split(",");
@@ -13362,6 +13749,11 @@ paint(g2, viewportWindow, scale,layersmask) {
 	  	return;
 	  }
 	  this.texture.paint(g2, viewportWindow, scale);
+}
+getState(operationType) {
+        let memento = new undo.FontLabelMemento(operationType);
+        memento.saveStateFrom(this);
+        return memento;
 }
 fromXML(data){	 		
     this.texture.fillColor ="#" +(j$(data).attr("color") & 0x00FFFFFF).toString(16).padStart(6, '0');
@@ -14474,8 +14866,8 @@ calculateShape() {
  */
 setOrientation(orientation){
  let o=this.orientation;
- let r={originx:this.segment.ps.x,
-	       originy:this.segment.ps.y,
+ let r={origin:{x:this.segment.ps.x,
+	            y:this.segment.ps.y},
 	       angle:-90};
  
  while(o!=orientation){
@@ -14852,6 +15244,133 @@ module.exports ={
 	}
 });
 
+;require.register("symbols/undo.js", function(exports, require, module) {
+var mywebpcb=require('core/core').mywebpcb;
+var core = require('core/core');
+var AbstractMemento = require('core/undo').AbstractMemento;
+var SymbolFontTextureMemento = require('core/undo').SymbolFontTextureMemento;
+var shape = require('core/shapes');
+var utilities=require('core/utilities');
+var d2=require('d2/d2');
+
+class LineMemento extends AbstractMemento{
+	constructor(mementoType){
+		super(mementoType);
+		this.Ax=[];
+        this.Ay=[];  
+		this.resumeState;      
+	}
+loadStateTo(shape) {
+            super.loadStateTo(shape);
+            shape.polyline.points=[];
+            for (let i = 0; i < this.Ax.length; i++) {
+                shape.polyline.points.push(new d2.Point(this.Ax[i], this.Ay[i]));
+            }
+            shape.resumeState=this.resumeState;
+            
+            //***reset floating start point
+            if (shape.polyline.points.length > 0) {
+                if(shape.resumeState==core.ResumeState.ADD_AT_END){
+                  shape.floatingStartPoint.set(shape.polyline.points[shape.polyline.points.length - 1]);
+                }else{
+                  shape.floatingStartPoint.set(shape.polyline.points[0]);  
+                }
+                shape.reset();
+            }
+        }	
+saveStateFrom( shape) {
+            super.saveStateFrom(shape);
+            this.Ax = [];
+            this.Ay = [];
+            for (let i = 0; i < shape.polyline.points.length; i++) {
+                this.Ax[i] = (shape.polyline.points[i]).x;
+                this.Ay[i] = (shape.polyline.points[i]).y;
+            }
+            this.resumeState=shape.resumeState;            
+        }	
+clear() {
+            super.clear();
+            this.Ax = [];
+            this.Ay = [];
+        }
+equals(obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (!(obj instanceof LineMemento)) {
+                return false;
+            }
+            let other = obj;
+            return (super.equals(obj)&&this.resumeState==other.resumeState&&
+                    utilities.arrayEquals(this.Ax, other.Ax) &&  utilities.arrayEquals(this.Ay, other.Ay));
+
+        }
+isSameState(unit) {
+            let line =unit.getShape(this.uuid);
+            return (line.getState(this.mementoType).equals(this));
+        }
+}
+class FontLabelMemento extends AbstractMemento{
+	constructor(mementoType){
+		super(mementoType);
+		this.textureMemento=new SymbolFontTextureMemento();      
+	}
+loadStateTo(shape) {
+            super.loadStateTo(shape);
+            shape.polyline.points=[];
+            for (let i = 0; i < this.Ax.length; i++) {
+                shape.polyline.points.push(new d2.Point(this.Ax[i], this.Ay[i]));
+            }
+            shape.resumeState=this.resumeState;
+            
+            //***reset floating start point
+            if (shape.polyline.points.length > 0) {
+                if(shape.resumeState==core.ResumeState.ADD_AT_END){
+                  shape.floatingStartPoint.set(shape.polyline.points[shape.polyline.points.length - 1]);
+                }else{
+                  shape.floatingStartPoint.set(shape.polyline.points[0]);  
+                }
+                shape.reset();
+            }
+        }	
+saveStateFrom( shape) {
+            super.saveStateFrom(shape);
+            this.Ax = [];
+            this.Ay = [];
+            for (let i = 0; i < shape.polyline.points.length; i++) {
+                this.Ax[i] = (shape.polyline.points[i]).x;
+                this.Ay[i] = (shape.polyline.points[i]).y;
+            }
+            this.resumeState=shape.resumeState;            
+        }	
+clear() {
+            super.clear();
+            this.Ax = [];
+            this.Ay = [];
+        }
+equals(obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (!(obj instanceof FontLabelMemento)) {
+                return false;
+            }
+            let other = obj;
+            return (super.equals(obj)&&this.resumeState==other.resumeState&&
+                    utilities.arrayEquals(this.Ax, other.Ax) &&  utilities.arrayEquals(this.Ay, other.Ay));
+
+        }
+isSameState(unit) {
+            let label =unit.getShape(this.uuid);
+            return (label.getState(this.mementoType).equals(this));
+        }
+}
+module.exports ={
+	LineMemento,
+	FontLabelMemento,	
+}
+});
+
 ;require.register("symbols/views/symbolloadview.js", function(exports, require, module) {
 var mywebpcb=require('core/core').mywebpcb;
 var core=require('core/core');
@@ -15094,3 +15613,5 @@ module.exports =SymbolLoadView
   
 });})();require('___globals___');
 
+
+//# sourceMappingURL=circuit.js.map

@@ -1320,7 +1320,7 @@ constructor(layermaskId){
 	    this.value=(new glyph.GlyphTexture("","value", 8,8,core.MM_TO_COORD(1.2)));		 	    
         this.units=core.Units.MM;
         this.val=2.54;  
-        this.rotation=0;
+        //this.rotation=0;
 	}
 clone(){
         var copy=new PCBFootprint(this.copper.getLayerMaskID());
@@ -1524,13 +1524,11 @@ move(xoffset,yoffset){
 }
 setRotation(angle,center){		
 	let alpha=angle-this.rotation;
-	let rotation={originx:center.x,
-				  originy:center.y,
+	let rotation={origin:{x:center.x,y:center.y},
 				  angle:alpha};
 	let len=this.shapes.length;
 	
-	for(var i=0;i<len;i++){
-		
+	for(var i=0;i<len;i++){	
 	   this.shapes[i].rotate(rotation);  
 	}	
     this.value.rotate(alpha,center);
@@ -2236,7 +2234,8 @@ clone(){
 	   	var copy = new PCBHole();
 		 copy.circle.pc.x=this.circle.pc.x;
 		 copy.circle.pc.y=this.circle.pc.y;
-		 copy.circle.r=this.circle.r;	        	        
+		 copy.circle.r=this.circle.r;	
+	     copy.clearance=this.clearance;        	        
 	     return copy;
 }	
 alignToGrid(isRequired) {
@@ -2337,6 +2336,8 @@ constructor() {
 
 clone(){
    	var copy = new PCBVia();
+        copy.net=this.net;
+        copy.clearance=this.clearance;
         copy.inner=this.inner.clone();
         copy.outer=this.outer.clone();
         return copy;
@@ -2446,6 +2447,7 @@ fromXML(data) {
 	this.outer.r=(parseInt(j$(data).attr("width")))/2;
 	this.inner.r = (parseInt(j$(data).attr("drill")))/2;
 	this.clearance=(parseInt(j$(data).attr("clearance")));
+	this.net=(j$(data).attr("net"));
 }
 toXML() {
     return "<via x=\""+utilities.roundFloat(this.inner.center.x,5)+"\" y=\""+utilities.roundFloat(this.inner.center.y,5)+"\" width=\""+this.outer.r*2+"\" drill=\""+this.inner.r*2+"\"   clearance=\""+this.clearance+"\" net=\""+(this.net==null?"":this.net)+"\" />";    
@@ -2463,10 +2465,12 @@ class PCBCopperArea extends Shape{
         this.polygon=new d2.Polygon();
         this.resizingPoint;
         this.clip=null;
-        this.net='gnd';
+        this.net='GND';
     }
 clone(){
     let copy=new PCBCopperArea(this.copper.getLayerMaskID());
+    copy.net=this.net
+    copy.clearance=this.clearance;
     copy.polygon=this.polygon.clone();  
     return copy;	
 }
@@ -2674,7 +2678,7 @@ drawControlShape(g2, viewportWindow, scale) {
 	  utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.polygon.points);
 	}
 }
-fromXML(data){
+fromXML(data){	
     this.copper =core.Layer.Copper.valueOf(j$(data).attr("layer"));
 	this.clearance = (parseInt(j$(data).attr("clearance")));
 	this.net=(j$(data).attr("net"));
@@ -4398,9 +4402,11 @@ var LayersPanelView=Backbone.View.extend({
     initialize: function(boardComponent){
     	j$(this.el).empty();
     	this.collection=new LayerCollection([
-                                         new LayerModel({ name: 'Top Layer',value:Layer.LAYER_FRONT,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.LAYER_FRONT)}),
-                                         new LayerModel({ name: 'Bottom Layer',value:Layer.LAYER_BACK,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.LAYER_BACK)}),
                                          new LayerModel({ name: 'Top Silk Layer',value:Layer.SILKSCREEN_LAYER_FRONT,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.SILKSCREEN_LAYER_FRONT)}),
+										 new LayerModel({ name: 'Top Solder Mask Layer',value:Layer.SOLDERMASK_LAYER_FRONT,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.SOLDERMASK_LAYER_FRONT)}),
+									     new LayerModel({ name: 'Top Copper Layer',value:Layer.LAYER_FRONT,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.LAYER_FRONT)}),
+                                         new LayerModel({ name: 'Bottom Copper Layer',value:Layer.LAYER_BACK,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.LAYER_BACK)}),
+                                         new LayerModel({ name: 'Bottom Solder Mask Layer',value:Layer.SOLDERMASK_LAYER_BACK,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.SOLDERMASK_LAYER_BACK)}),
                                          new LayerModel({ name: 'Bottom Silk Layer',value:Layer.SILKSCREEN_LAYER_BACK,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.SILKSCREEN_LAYER_BACK)}),
                                          new LayerModel({ name: 'Board Outline',value:Layer.BOARD_OUTLINE_LAYER,checked:boardComponent.getModel().getUnit().compositeLayer.isLayerVisible(Layer.BOARD_OUTLINE_LAYER)})
                                      ]);
@@ -4829,8 +4835,8 @@ var Layer=(function(){
 	      FIRST_NO_COPPER_LAYER  : 16,
 	      ADHESIVE_N_BACK        :16,
 	      ADHESIVE_N_FRONT       : 17,
-	      //SOLDERPASTE_N_BACK      :18,
-	      //SOLDERPASTE_N_FRONT     :19,
+	      SOLDERPASTE_N_BACK      :18,
+	      SOLDERPASTE_N_FRONT     :19,
 	      SILKSCREEN_N_BACK       :20,
 	      SILKSCREEN_N_FRONT      :21,
 	      SOLDERMASK_N_BACK       :22,
@@ -4867,6 +4873,7 @@ var Layer=(function(){
 	      LAYER_FRONT          :   (1 << 15),    ///< bit mask for component layer
 	      ADHESIVE_LAYER_BACK    : (1 << 16),
 	      ADHESIVE_LAYER_FRONT   : (1 << 17),
+
 		  SILKSCREEN_LAYER_BACK :  (1 << 20),
 	      SILKSCREEN_LAYER_FRONT : (1 << 21),
 		  SOLDERMASK_LAYER_BACK  : (1 << 22),
@@ -4909,9 +4916,7 @@ var Layer=(function(){
             } else if (layermaskId == Layer.SILKSCREEN_LAYER_BACK) {
                 return Layer.Side.BOTTOM;
             } else if (layermaskId == Layer.SOLDERMASK_LAYER_BACK) {
-                return Layer.Side.BOTTOM;
-            }else if(layermaskId == Layer.SOLDERMASK_LAYER_BACK) {
-				throw new Error('Unknown layer');
+                return Layer.Side.BOTTOM;            
 			}
             return Layer.Side.TOP;
            }
@@ -5002,6 +5007,34 @@ var Layer=(function(){
 //		                return Layer.BOARD_COLOR_BACK;
 //		          }
 		        }, 
+	        FMask:{
+		          toString:function(){
+		              return "F.Mask";
+		          },
+		          getName:function(){
+		              return "FMask";
+		          },
+		          getLayerMaskID:function(){
+		              return Layer.SOLDERMASK_LAYER_FRONT;
+		          },
+		          getColor:function(){
+		              return 'rgb(144, 12, 63)';
+		          },
+		        },
+	        BMask:{
+		          toString:function(){
+		              return "B.Mask";
+		          },
+		          getName:function(){
+		              return "BMask";
+		          },
+		          getLayerMaskID:function(){
+		              return Layer.SOLDERMASK_LAYER_BACK;
+		          },
+		          getColor:function(){
+		              return 'rgb(144, 12, 63)';
+		          },
+		        },
 			BOutln:{
 			          toString:function(){
 			              return "B.Outline";
@@ -5072,6 +5105,12 @@ var Layer=(function(){
 	            if(layermask==(Layer.LAYER_BACK|Layer.LAYER_FRONT)){
 	                return Layer.Copper.Cu;
 	            } 
+				if(layermask==Layer.SOLDERMASK_LAYER_BACK){
+				    return 	Layer.Copper.BMask;
+				}
+				if(layermask==Layer.SOLDERMASK_LAYER_FRONT){
+				    return 	Layer.Copper.FMask;
+				}				
 	            if (layermask == Layer.LAYER_ALL) {
 	                return Layer.Copper.All;
 	            }else{
@@ -5085,6 +5124,8 @@ var Layer=(function(){
 				case 'Cu': return this.Cu;
 				case 'FSilkS':return this.FSilkS;
 				case 'BSilkS':return this.BSilkS;
+				case 'FMask':return this.FMask;
+				case 'BMask':return this.BMask;				
 				case 'BOutln':return this.BOutln;
 				case 'All': return this.All;
 				case 'None': return this.None;
@@ -5255,7 +5296,8 @@ class ViewportWindow{
 
     //must be 10000 for printing
 var MM_TO_COORD=function(mm){
-      return Math.floor(mm*10000);
+      //return Math.floor(mm*10000);
+     return (mm*10000);
 }
  
 var COORD_TO_MM=function(coord){ 
@@ -5639,7 +5681,7 @@ var core = require('core/core');
 var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').DefaultLineBendingProcessor;
 var d2=require('d2/d2');
 var utilities =require('core/utilities'); 
-
+var MementoType = require('core/undo').MementoType;
 Event={
 	    SELECT_SHAPE:1,
 	    DELETE_SHAPE:2,
@@ -5726,13 +5768,15 @@ class MoveEventHandle extends EventHandle{
 	    
 	    this.mx=event.x;
 		this.my=event.y;
+				
+		this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));    
 	 }
 	 mouseReleased(event){
 		if(super.isRightMouseButton(event)){
 			 return;
 		}
 		this.target.alignToGrid(false || this.component.getParameter("snaptogrid"));
-				 
+        this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));				 
 		this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
 		this.component.repaint();
 	 }
@@ -5774,7 +5818,7 @@ class ResizeEventHandle extends EventHandle{
 	        
 	    this.targetPoint=this.target.isControlRectClicked(event.x,event.y);
 	    this.target.setResizingPoint(this.targetPoint);
-	    
+	    this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));
 	    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
 	    
 		this.component.repaint();
@@ -5784,6 +5828,7 @@ class ResizeEventHandle extends EventHandle{
 	         this.target.alignResizingPointToGrid(this.targetPoint);
 		     this.component.repaint();	 
 			}
+			this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));
 			
 	 }
 	 mouseDragged(event){
@@ -6008,11 +6053,11 @@ class LineEventHandle extends EventHandle{
 	        
 	    if(this.component.lineBendingProcessor.addLinePoint(p)){
 	        if(justcreated){
-	            //getComponent().getModel().getUnit().registerMemento(getTarget().getState(MementoType.CREATE_MEMENTO));   
-	            //getComponent().getModel().getUnit().registerMemento(getTarget().getState(MementoType.MOVE_MEMENTO));    
+	            this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.CREATE_MEMENTO));   
+	            this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));    
 	        }
 	        if(this.target.getLinePoints().length>=2){
-	           //this.component.getModel().getUnit().registerMemento(getTarget().getState(MementoType.MOVE_MEMENTO));    
+	           this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));    
 	        }            
 	    }
 	    this.component.repaint();  
@@ -7254,6 +7299,11 @@ var utilities =require('core/utilities');
 var d2=require('d2/d2');
 var font = require('core/text/d2font');
 
+
+const ResumeState = Object.freeze({
+	ADD_AT_FRONT:0,
+	ADD_AT_END:1
+})
 class Shape{
 	constructor(x, y, width, height, thickness,
 			layermaskId) {
@@ -7270,6 +7320,7 @@ class Shape{
 		this.fillColor;		 
 		this.isControlPointVisible=true;
 		this.copper = core.Layer.Copper.resolve(layermaskId);
+		this.rotation=0;
 	}
 getCenter(){
 	return new d2.Point(this.x,this.y);
@@ -7354,6 +7405,9 @@ isClickedOnLayers(x, y, layermasks) {
 getBoundingShape() {
 	return this.calculateShape();
 	}
+setState(memento) {
+   memento.loadStateTo(this);
+} 
 setSelected (selection) {
 		this.selection = selection;
 	}
@@ -7486,7 +7540,7 @@ class AbstractLine extends Shape{
 																		// degree
 																		// forming
 		this.floatingEndPoint = new d2.Point();
-		this.rotation=0;
+		//this.rotation=0;
 	    this.resumeState=core.ResumeState.ADD_AT_END;
 		
 }
@@ -7845,7 +7899,8 @@ module.exports ={
 		Shape,
 		CoordinateSystem,
 		Ruler,
-		AbstractLine
+		AbstractLine,
+		ResumeState
 }
 });
 
@@ -8783,6 +8838,206 @@ module.exports ={
 			}	
 });
 
+;require.register("core/undo.js", function(exports, require, module) {
+var mywebpcb=require('core/core').mywebpcb;
+var core = require('core/core');
+var d2=require('d2/d2');
+
+
+const QUEUE_DEPTH = 20;
+const MementoType = Object.freeze({
+    CREATE_MEMENTO:0,
+    DELETE_MEMENTO:1,
+    MOVE_MEMENTO:2,    
+    MEMENTO:3
+})
+
+class AbstractMemento{
+
+    constructor(mementoType){    
+       this.uuid=null;
+       this.parentUUID=null;
+       this.mementoType;
+       this.layermaskId;    
+       this.thickness;    
+       this.fill;    
+       this.rotation;    
+       this.mementoType = mementoType;
+    }
+    
+        
+clear(){
+       //this.uuid=null;
+       //this.parentUUID=null;
+    }
+
+loadStateTo(shape){
+        shape.uuid=(this.uuid);
+        shape.copper=core.Layer.Copper.resolve(this.layermaskId);
+        shape.thickness=(this.thickness);
+        shape.fill=this.fill;
+        shape.rotation=this.rotation;
+    }
+    
+saveStateFrom(shape) {
+        //common fields
+        this.layermaskId=shape.copper.getLayerMaskID();
+        this.thickness=shape.thickness;
+        this.fill=shape.fill;
+        this.rotation=shape.rotation
+        this.uuid=shape.uuid          
+    }
+    
+equals(obj){
+        if(this==obj){
+          return true;  
+        }
+        if(!(obj instanceof AbstractMemento)){
+          return false;  
+        }         
+        let other=obj;
+        return (other.mementoType==this.mementoType&&
+                other.uuid==this.uuid&&
+                other.thickness==this.thickness&&
+                other.fill==this.fill&&
+                d2.utils.EQ(other.rotation,this.rotation)&&
+                other.layermaskId==this.layermaskId
+               );
+        
+      
+    }    
+    isSameState(unit) {
+        let other=unit.getShape(this.uuid);              
+        return (other.thickness==this.thickness&&other.fill==this.fill&&other.copper.getLayerMaskID()==this.layermaskId&& Utils.EQ(other.rotation,this.rotation));                                
+    }
+}
+class SymbolFontTextureMemento extends AbstractMemento{
+    constructor(mementoType){
+	 	super(mementoType);	
+	    this.text;      
+        this.alignment
+        this.fontSize
+        this.fontStyle;                         
+        this.x=0;
+        this.y=0;
+        this.tag;
+	}
+    loadStateTo(texture) {             
+             texture.shape.alignment=this.alignment;
+             texture.shape.fontSize=this.fontSize;
+             texture.shape.fontStyle=this.fontStyle;
+             texture.shape.anchorPoint.set(x, y);
+             texture.tag = this.tag;   
+             texture.setText(text);
+         }	
+   saveStateFrom(texture) {             
+             //this.id=symbol.id;
+             x = texture.shape.anchorPoint.x;
+             y = texture.shape.anchorPoint.y;
+             this.tag = texture.tag;
+             this.text = texture.shape.text;
+             this.fontSize=texture.shape.fontSize;
+             this.fontStyle=texture.shape.fontStyle;
+             this.alignment=texture.shape.alignment;
+         }	
+   equals(obj) {
+             if (this == obj) {
+                 return true;
+             }
+             if (!(obj instanceof SymbolFontTextureMemento)) {
+                 return false;
+             }            
+             return (                     
+                     other.tag.equals(this.tag) &&
+                     other.text.equals(this.text) &&
+                     Utils.EQ(other.x,this.x)  &&
+                     Utils.EQ(other.y,this.y) &&
+                     other.alignment==this.alignment &&
+                     other.fontSize==this.fontSize &&
+                     other.fontStyle==this.fontStyle);
+         }
+
+		
+}
+class CompositeMemento extends AbstractMemento{
+    constructor(mementoType){
+	 	super(mementoType);	
+	}
+
+}
+//**********************Undo Provider***************************************
+class UndoProvider{
+	constructor(){
+		this.queue=[];
+		this.currentIndex=0; 		
+	}
+redo() {
+        if (this.currentIndex >=(this.queue.length-1)) {
+            return null;
+        }
+        return this.queue[++this.currentIndex];
+    }
+
+undo() {
+        if (this.currentIndex ==-1) {
+            return null;
+        }
+        if(this.queue.length==0){
+           return null;  
+        }
+        return this.queue[this.currentIndex--];
+    }	
+clear() {
+        for (let memento in this.queue) {
+            memento.clear();
+        }
+        this.queue=[];
+        this.currentIndex = 0;
+    }
+registerMemento(memento) {	    
+        //***1.Skip add if same memento as last one on the stack
+        for(let i=this.queue.length-1;i>0;i--){
+            let prevMemento=this.queue[i];
+                if(prevMemento.equals(memento)){ 
+                  memento.clear();
+                  return;  
+                }              
+            break;
+        }   
+     
+        
+        if (this.currentIndex >= QUEUE_DEPTH) {
+            let _memento = this.queue.shift();
+            _memento.clear();
+            this.currentIndex = this.queue.length-1; 
+        }        
+        
+        if (this.queue.length == 0 || this.currentIndex == this.queue.length - 1) {
+        } else {
+             for (let j = this.currentIndex + 1; this.currentIndex < this.queue.length - 1; ) {
+	            let _memento=this.queue[j];           
+				_memento.clear();                
+				this.queue.splice(j,1);
+                
+             }
+        }
+
+        this.queue.push(memento);  
+        this.currentIndex = this.queue.length-1; 
+console.log(this.queue.length);
+    }
+
+}
+
+module.exports ={
+		UndoProvider,	
+		MementoType,
+		AbstractMemento,
+		CompositeMemento,
+		SymbolFontTextureMemento,	
+}
+});
+
 ;require.register("core/unit.js", function(exports, require, module) {
 var mywebpcb=require('core/core').mywebpcb;
 var core = require('core/core');
@@ -8791,7 +9046,9 @@ var events=require('core/events');
 var GlyphManager=require('core/text/d2glyph').GlyphManager;
 var ViewportWindow=require('core/core').ViewportWindow;
 var d2=require('d2/d2');
-
+var UndoProvider=require('core/undo').UndoProvider
+var MementoType=require('core/undo').MementoType
+var CompositeMemento=require('core/undo').CompositeMemento
 //**********************UnitMgr***************************************
 var UnitMgr=(function(){
 	var instance=null;
@@ -8961,6 +9218,7 @@ class Unit{
         this.coordinateSystem;//=new core.CoordinateSystem(this);
 		this.ruler=new shape.Ruler();
 		this.shapeFactory=null;
+		this.undoProvider = new UndoProvider();
         
     }
 setViewportPositionValue(viewportPositionX,viewportPositionY) {
@@ -9309,7 +9567,96 @@ paint(g2, viewportWindow){
 	     this.frame.paint(g2, viewportWindow,this.scalableTransformation,core.Layer.LAYER_ALL);
        }
 }    
-       
+redo(){
+	console.log(22);
+        let memento=null;
+        //***skip duplicates
+        while(true){
+            memento = this.undoProvider.redo();
+            if (memento == null) {
+              return false;
+            }else{                
+              if((memento.mementoType==MementoType.CREATE_MEMENTO)||(memento.mementoType==MementoType.DELETE_MEMENTO)){
+                  break;
+              }
+              //***eigther composite or single memento
+              if(memento.isSameState(this)){
+                   continue; 
+              }else{
+                   break;  
+              }                 
+            }            
+        }
+    switch (memento.mementoType) {
+	   case MementoType.CREATE_MEMENTO:
+              let shape=this.shapeFactory.createShapeFromMemento(memento);
+              this.add(shape);                 
+			break;
+		case MementoType.DELETE_MEMENTO:
+		
+		break;
+
+        default:
+            if(memento instanceof CompositeMemento){
+               //this.setState(memento); 
+               // ((CompositeMemento)memento).loadStateTo(this);
+            }else{
+               let element = this.getShape(memento.uuid);
+               element.setState(memento);
+               //fireShapeEvent(new ShapeEvent(element, ShapeEvent.PROPERTY_CHANGE));
+            
+            }
+			
+	}
+    
+	
+}    
+undo(undocallback){
+  let memento=null;
+          //***skip duplicates
+        while(true){
+          memento = this.undoProvider.undo();  
+        //***CHECK the validity of a memento   
+          if (memento == null) {
+            return false;
+          }else{
+              if((memento.mementoType==MementoType.CREATE_MEMENTO)||(memento.mementoType==MementoType.DELETE_MEMENTO)){
+                  break;
+              }
+              //***eigther composite or single memento
+              if(memento.isSameState(this)){                
+                 continue; 
+              }else{
+                 break;  
+              }                  
+          }
+        } 
+    switch (memento.mementoType) {
+	   case MementoType.CREATE_MEMENTO:
+            this.remove(memento.uuid);
+			break;
+		case MementoType.DELETE_MEMENTO:
+		
+		break;
+
+        default:
+            if(memento instanceof CompositeMemento){
+               //this.setState(memento); 
+               // ((CompositeMemento)memento).loadStateTo(this);
+            }else{
+               let element = this.getShape(memento.uuid);
+               element.setState(memento);
+               //fireShapeEvent(new ShapeEvent(element, ShapeEvent.PROPERTY_CHANGE));
+            
+            }
+			
+	}
+	
+}  
+registerMemento(memento){           
+   this.undoProvider.registerMemento(memento);    	
+}
+
 }
 
 //**********************UnitContainer*******************************************
@@ -9401,7 +9748,7 @@ class UnitContainer{
 //**********************UnitComponent*******************************************
 class UnitComponent{
 	constructor(canvas,popup){
-	GlyphManager.getInstance();
+	GlyphManager.getInstance();    
     
 	if(canvas!=null){	
       this.canvas = j$('#'+canvas);
@@ -9432,14 +9779,6 @@ class UnitComponent{
 	this.viewportWindow=new ViewportWindow(0,0,this.width,this.height);
 	this.parameters=new Map();
 	this.parameters.set("snaptogrid",false);
-	//if(hbar!=null&&vbar!=null){
-	//	this.hbar = j$('#'+hbar);
-	//	this.vbar=j$('#'+vbar);
-	//	this.hbar.jqxScrollBar({ width: '100%', height: 18, min: 0, max: 100});
-	//	this.vbar.jqxScrollBar({ width: 18, height:'100%', min: 0, max: 100, vertical: true});
-	//	this.hbar.on('valueChanged', j$.proxy(this.hStateChanged,this));
-	//	this.vbar.on('valueChanged',j$.proxy(this.vStateChanged,this));
-	//}
 	
 	this.mode=core.ModeEnum.COMPONENT_MODE;
 	this.backgroundColor="black";
@@ -9499,6 +9838,16 @@ fireContainerEvent(event){
 	
 	  mywebpcb.trigger('container:inspector',event); 
 }
+defaultKeyPress(e){
+   if (event.ctrlKey && event.key === 'z') {	
+         this.getModel().getUnit().undo(this.getEventMgr().targetEventHandle);         
+         this.repaint();         
+   }else if(event.ctrlKey && event.key === 'y') {
+         this.getModel().getUnit().redo(this.getEventMgr().targetEventHandle);         
+         this.repaint();         	  
+   }
+	
+}
 keyPress(event){
 	  if(event.target.tagName=="INPUT"){
 		  return;
@@ -9506,8 +9855,8 @@ keyPress(event){
 	  
 	 //if(event.target instanceof HTMLBodyElement||event.target instanceof HTMLCanvasElement){
 		 event.preventDefault();
-	     if (this.getEventMgr().targetEventHandle != null && this.getModel().getUnit() != null) {
-	            this.getEventMgr().targetEventHandle.keyPressed(event);
+	     if (this.getEventMgr().targetEventHandle == null || !this.getEventMgr().targetEventHandle.keyPressed(event)) {
+	            this.defaultKeyPress(event)
 	     }
 	 //}	 
 }
@@ -9893,6 +10242,13 @@ var hexToDec=function(hex) {
 	}
 	return result;
 }
+var arrayEquals=function(a, b) {
+    return Array.isArray(a) &&
+        Array.isArray(b) &&
+        a.length === b.length &&
+        a.every((val, index) => val === b[index]);
+}
+
 version=(function(){
 	return {
 		MYWEBPCB_VERSION:"8.0",
@@ -9919,7 +10275,8 @@ module.exports = {
   QUADRANT,
   POINT_TO_POINT,
   POSITION,
-  mirrorPoint
+  mirrorPoint,
+  arrayEquals
 }
 
 });
@@ -10243,7 +10600,7 @@ module.exports = function(d2) {
         constructor(pc,w,h) {
       	    super(pc,w,h);    	
             this.startAngle = 20;
-            this.rotation=0;
+            //this.rotation=0;
             this.endAngle = 190;           
         }
         clone(){
@@ -10566,6 +10923,10 @@ module.exports = function(d2) {
        clone() {
            return new d2.Circle(this.pc.clone(), this.r);
        } 
+       assign(drawing) {
+    	this.pc.set(drawing.pc);
+    	this.r=drawing.r;
+       }
        get area(){
            return  ( Math.PI * this.r*this.r );	
        }
@@ -11204,6 +11565,13 @@ module.exports = function(d2) {
     	    });  
     		return copy;
     	}
+        assign(drawing) {
+        this.center.set(drawing.center);                        
+        this.width=drawing.width;
+        	for(let i=0;i<this.points.length;i++) {
+        		this.points[i].set(drawing.points[i]);
+    	    }
+	    }     
     	scale(alpha){
         	this.center.scale(alpha);
         	this.width*=alpha;  
@@ -11353,7 +11721,14 @@ module.exports = function(d2) {
 			copy.pe.x=this.pe.x;
 			copy.pe.y=this.pe.y;
 			return copy;
-		}
+		}    
+        assign(drawing) {
+         this.pc.set(drawing.pc);                        
+         this.width=drawing.width;
+         this.height=drawing.height;
+         this.ps.set(drawing.ps);
+         this.pe.set(drawing.pe);
+        }    		
 		get box(){
 			 let r=this.getDiameter()/2;
 	         //first point		 
@@ -11479,12 +11854,11 @@ module.exports = function(d2) {
             this.ps.move(offsetX,offsetY);
             this.pe.move(offsetX,offsetY);
         }  
-	    grow(offset){
-	        if(d2.utils.GE(this.width,this.height)){
-	            this.height +=  2*offset;
-	        } else {
-	            this.width +=  2*offset;
-	        }
+	    grow(offset,angle){
+            this.height +=  2*offset;
+            this.width +=  2*offset;
+            this.reset();
+            this.rotate(angle);
 	    }
 	    getDiameter(){
 	        if(d2.utils.GE(this.width,this.height)){
@@ -12162,6 +12536,12 @@ module.exports = function(d2) {
     	    });  
     	    return copy;
 		}
+		assign(drawing) {
+    	    this.points[0].set(drawing.points[0]);                        
+        	this.points[1].set(drawing.points[1]);
+        	this.points[2].set(drawing.points[2]);
+        	this.points[3].set(drawing.points[3]);                                                                       
+	    }		
 		get area(){
 			return (this.points[0].distanceTo(this.points[1]))*(this.points[1].distanceTo(this.points[2]));
 		}
@@ -14330,7 +14710,7 @@ class RoundRect extends Shape{
 		this.setDisplayName("Rect");		
 		this.selectionRectWidth=3000;
 		this.resizingPoint = null;
-		this.rotation=0;
+		//this.rotation=0;
 		this.roundRect=new d2.RoundRectangle(new d2.Point(x,y),width,height,arc);		
 	}
 	clone() {
@@ -14519,7 +14899,7 @@ class Circle extends Shape{
 		this.selectionRectWidth=3000;
 		this.resizingPoint=null;
 		this.circle=new d2.Circle(new d2.Point(x,y),r);
-		this.rotation=0;
+		//this.rotation=0;
 	}
 clone() {
 	let copy=new Circle(this.circle.center.x,this.circle.center.y,this.circle.radius,this.thickness,this.copper.getLayerMaskID());
@@ -14704,7 +15084,7 @@ class Arc extends Shape{
 			this.A;
 			this.B;
 			this.M;
-			this.rotation=0;
+			//this.rotation=0;
 			this.arcType=core.ArcType.CENTER_POINT_ARC;
 	}
 	clone() {
@@ -15119,7 +15499,7 @@ class SolidRegion extends Shape{
         this.selectionRectWidth = 3000;
         this.polygon=new d2.Polygon();
         this.resizingPoint;
-        this.rotation=0;
+        //this.rotation=0;
     }
 clone(){
 	  var copy=new SolidRegion(this.copper.getLayerMaskID());
@@ -15499,13 +15879,16 @@ class Pad extends Shape{
 	   this.shape=new CircularShape(0,0,width,this);
 	   this.setType(PadType.THROUGH_HOLE);	   
 	   this.setDisplayName("Pad");
-	   
+	   this.plated=true;
+       this.solderMaskExpansion=core.MM_TO_COORD(0.051);
 	   this.number=new font.FontTexture("1","number",x,y,4000,0);
 	   this.netvalue=new font.FontTexture("","netvalue",x,y,4000,0);   
 	}
 clone(){
 	     var copy=new Pad(0,0,this.width,this.height);
 	     copy.setType(this.type);
+         copy.plated=this.plated;
+		 copy.solderMaskExpansion=this.solderMaskExpansion
 	     copy.width=this.width;
 	     copy.height=this.height;
 	     copy.rotation=this.rotation;
@@ -15542,7 +15925,7 @@ getCenter(){
 	return this.shape.center;
 }
 toXML(){
-	    var xml="<pad copper=\""+this.copper.getName()+"\" type=\"" +PadType.format(this.type) + "\" shape=\""+PadShape.format(this.getShape())+"\" x=\""+utilities.roundFloat(this.shape.center.x,4)+"\" y=\""+utilities.roundFloat(this.shape.center.y,4)+"\" width=\""+utilities.roundFloat(this.getWidth(),2)+"\" height=\""+utilities.roundFloat(this.getHeight(),2)+"\" rt=\""+utilities.roundFloat(this.rotation,2)+"\">\r\n";
+	    var xml="<pad copper=\""+this.copper.getName()+"\" type=\"" +PadType.format(this.type) + "\" shape=\""+PadShape.format(this.getShape())+"\" plt=\""+(this.plated==true?1:0)+"\" solder=\""+utilities.roundFloat(this.solderMaskExpansion,4)+"\"  x=\""+utilities.roundFloat(this.shape.center.x,4)+"\" y=\""+utilities.roundFloat(this.shape.center.y,4)+"\" width=\""+utilities.roundFloat(this.getWidth(),2)+"\" height=\""+utilities.roundFloat(this.getHeight(),2)+"\" rt=\""+utilities.roundFloat(this.rotation,2)+"\">\r\n";
 	        //xml+=this.shape.toXML()+"\r\n";
 	        xml+="<offset x=\""+this.offset.x+"\" y=\""+this.offset.y+"\" />\r\n";
 	    
@@ -15572,6 +15955,12 @@ fromXML(data){
 		      if(j$(data).attr("rt")!=undefined)
 		        this.rotation=(parseFloat(j$(data).attr("rt")));
 		      
+	          if(j$(data).attr("plt")!=undefined)
+            	this.plated=(parseInt(j$(data).attr("plt"))!=0);
+        
+    	      if(j$(data).attr("solder")!=undefined)
+                this.solderMaskExpansion=parseFloat(j$(data).attr("solder"));
+         
 		      this.setShape(x,y,PadShape.parse(j$(data).attr("shape")));
 			  
 		      var offset=(j$(data).find("offset"));
@@ -15747,10 +16136,9 @@ calculateShape() {
 } 
 validateClearance(source){
     //1 is different layer and SMD -> no clearance
-    if ((source.copper.getLayerMaskID() & this.copper.getLayerMaskID()) == 0) {
-        //if(this.type==PadType.SMD)
+    if ((this.type==PadType.SMD)&&(source.copper.getLayerMaskID() & this.copper.getLayerMaskID()) == 0) {       
            return false; //not on the same layer
-    }	
+    }       
     //2. is same net 
     //if(isSameNet(source)&&source.getPadConnection()==PadShape.PadConnection.DIRECT){
     //    return;
@@ -15776,18 +16164,18 @@ drawClearence(g2,viewportWindow,scale,source){
 	this.shape.drawClearence(g2,viewportWindow,scale,source);
 	//g2.restore();
 }
-paint(g2,viewportWindow,scale,layersmask){
-	if((this.copper.getLayerMaskID()&layersmask)!=0) {
+paint(g2,viewportWindow,scale,layersmaskId){
+	if((this.copper.getLayerMaskID()&layersmaskId)!=0) {
 	switch(this.type){
 	    case PadType.THROUGH_HOLE:
-	        if(this.shape.paint(g2, viewportWindow, scale)){
+	        if(this.shape.paint(g2, viewportWindow, scale,layersmaskId)){
 	         if(this.drill!=null){
 	            this.drill.paint(g2, viewportWindow, scale);
 	         }
 	        }
 	        break;
 	    case PadType.SMD:
-	        this.shape.paint(g2, viewportWindow, scale);
+	        this.shape.paint(g2, viewportWindow, scale,layersmaskId);
 	        break;
 	    
 	    }
@@ -15800,7 +16188,7 @@ paint(g2,viewportWindow,scale,layersmask){
 class CircularShape{
 	constructor(x,y,width,pad){
 		this.pad=pad;
-		this.circle=new d2.Circle(new d2.Point(x,y),width/2);		
+		this.circle=new d2.Circle(new d2.Point(x,y),width/2);					
 	}
 	drawClearence(g2,viewportWindow,scale,source){
 	    let c=this.circle.clone();
@@ -15818,27 +16206,40 @@ class CircularShape{
 		
 	    g2._fill=false;			
 	}	
-    paint(g2,viewportWindow,scale){
+    paint(g2,viewportWindow,scale,layermaskId){
     	 var rect = this.circle.box;
+		 rect.grow(this.pad.solderMaskExpansion);
        	 rect.scale(scale.getScale());
        	 if (!rect.intersects(viewportWindow)) {
       		  return;
-       	 }
-	    
-		if(this.pad.isSelected())
-	        g2.fillStyle = "gray";  
-	    else{
-	        g2.fillStyle = this.pad.copper.getColor();
-	    }
-	    g2._fill=true;
-		
-	    let c=this.circle.clone();
-		c.scale(scale.getScale());
-        c.move(-viewportWindow.x,- viewportWindow.y);
-		c.paint(g2);
-		
-		g2._fill=false;
-		
+       	 }	    
+		g2._fill=true;
+        var c=PadFactory.acquire('Circle');
+        try {
+        //draw solder mask	
+        if((((this.pad.copper.getLayerMaskID()&core.Layer.LAYER_FRONT)!=0)&&((layermaskId&core.Layer.SOLDERMASK_LAYER_FRONT)!=0))||
+        	(((this.pad.copper.getLayerMaskID()&core.Layer.LAYER_BACK)!=0)&&((layermaskId&core.Layer.SOLDERMASK_LAYER_BACK)!=0))) {
+         c.assign(this.circle);                 
+         c.grow(this.pad.solderMaskExpansion);
+         c.scale(scale.getScale());
+         c.move(-viewportWindow.x, -viewportWindow.y);        
+         g2.fillStyle=(this.pad.isSelected() ? "gray" : core.Layer.Copper.BMask.getColor());
+
+         c.paint(g2);
+        }
+      //draw pad shape
+        if(((this.pad.copper.getLayerMaskID()&layermaskId)!=0)) {	                           
+        	c.assign(this.circle);
+        	c.scale(scale.getScale());
+        	c.move(-viewportWindow.x, -viewportWindow.y);
+            g2.fillStyle=(this.pad.isSelected() ? "gray" : this.pad.copper.getColor());
+        	c.paint(g2);
+        }
+        }finally {
+        	PadFactory.release(c);	
+            g2._fill=false;
+		}
+        		
 		return true;
 	}
     copy(pad){
@@ -15895,8 +16296,9 @@ drawClearence(g2,viewportWindow,scale,source){
 	
     g2._fill=false;			
 }
-paint(g2,viewportWindow,scale){
+paint(g2,viewportWindow,scale,layermaskId){
 	   var box=this.rect.box;
+       box.grow(this.pad.solderMaskExpansion);
 	   box.scale(scale.scale);     
        //check if outside of visible window
 	   var window=new d2.Box(0,0,0,0);
@@ -15904,7 +16306,7 @@ paint(g2,viewportWindow,scale){
        if(!box.intersects(window)){
          return false;
        }
-       
+       /*
 	    if(this.pad.isSelected())
 	      g2.fillStyle = "gray";  
 	    else{
@@ -15917,7 +16319,34 @@ paint(g2,viewportWindow,scale){
 		r.paint(g2);
 	    
 		g2._fill=false;
-	    return true;
+	    */
+ 		g2._fill=true;
+        var r=PadFactory.acquire('Rectangle');
+        try {
+            //draw solder mask	
+          if((((this.pad.copper.getLayerMaskID()&core.Layer.LAYER_FRONT)!=0)&&((layermaskId&core.Layer.SOLDERMASK_LAYER_FRONT)!=0))||
+            	(((this.pad.copper.getLayerMaskID()&core.Layer.LAYER_BACK)!=0)&&((layermaskId&core.Layer.SOLDERMASK_LAYER_BACK)!=0))) {        	       	
+        	r.assign(this.rect);
+            r.grow(this.pad.solderMaskExpansion);
+            r.scale(scale.getScale());
+            r.move(-viewportWindow.x, -viewportWindow.y);        
+            g2.fillStyle=(this.pad.isSelected() ? "gray" :core.Layer.Copper.BMask.getColor());
+            r.paint(g2);
+          }
+            	  
+          //draw pad shape  
+          if(((this.pad.copper.getLayerMaskID()&layermaskId)!=0)) {	                 
+            r.assign(this.rect);
+            r.scale(scale.getScale());
+            r.move(-viewportWindow.x, -viewportWindow.y);
+            g2.fillStyle=this.pad.isSelected() ? "gray" : this.pad.copper.getColor();
+            r.paint(g2);        	
+          }
+        }finally {
+        	PadFactory.release(r);
+			g2._fill=false;
+        }
+		return true;
 }
 copy(pad){
   let _copy=new RectangularShape(0,0,0,0,pad);
@@ -15960,7 +16389,7 @@ class OvalShape{
 	}
 	drawClearence(g2,viewportWindow,scale,source){
 		let o=this.obround.clone();
-	    o.grow(source.clearance);
+	    o.grow(source.clearance,this.pad.rotation);
 	    g2.strokeStyle = "black";  
 
 		o.scale(scale.getScale());
@@ -15968,8 +16397,9 @@ class OvalShape{
 		o.paint(g2);
 		
 	}
-paint(g2,viewportWindow,scale){
+paint(g2,viewportWindow,scale,layermaskId){
 	     var box=this.obround.box;
+         box.grow(this.pad.solderMaskExpansion);
 	     box.scale(scale.scale);     
        //check if outside of visible window
 	     var window=new d2.Box(0,0,0,0);
@@ -15977,18 +16407,30 @@ paint(g2,viewportWindow,scale){
          if(!box.intersects(window)){
            return false;
          }
-         
-	     g2.lineWidth = this.obround.width * scale.getScale();
-	     if(this.pad.isSelected())
-	        g2.strokeStyle = "gray";  
-	     else{
-	        g2.strokeStyle = this.pad.copper.getColor();
-	     }
-	      
-		   let o=this.obround.clone();
-		   o.scale(scale.getScale());
-	       o.move(-viewportWindow.x,- viewportWindow.y);
-		   o.paint(g2);
+        var o=PadFactory.acquire('Obround');
+        try {
+            //draw solder mask	
+        if((((this.pad.copper.getLayerMaskID()&core.Layer.LAYER_FRONT)!=0)&&((layermaskId&core.Layer.SOLDERMASK_LAYER_FRONT)!=0))||
+            	(((this.pad.copper.getLayerMaskID()&core.Layer.LAYER_BACK)!=0)&&((layermaskId&core.Layer.SOLDERMASK_LAYER_BACK)!=0))) {        	      	
+			o.assign(this.obround);                
+        	o.grow(this.pad.solderMaskExpansion,this.pad.rotation);
+        	o.scale(scale.getScale());
+        	o.move(-viewportWindow.x, -viewportWindow.y);        
+        	g2.strokeStyle=(this.pad.isSelected() ? "gray" : core.Layer.Copper.BMask.getColor());
+        	o.paint(g2);
+        }	  
+        //draw pad shape        
+        if(((this.pad.copper.getLayerMaskID()&layermaskId)!=0)) {	        
+        	o.assign(this.obround);
+        	o.scale(scale.getScale());
+        	o.move(-viewportWindow.x, -viewportWindow.y);
+            g2.strokeStyle=(this.pad.isSelected() ? "gray" : this.pad.copper.getColor());
+        	o.paint(g2);
+        }
+        }finally {
+        	PadFactory.release(o);	
+		}
+
 
 	      return true;
 }
@@ -16043,8 +16485,9 @@ drawClearence(g2,viewportWindow,scale,source){
 	    
 	    g2._fill=false;
 }
-paint(g2, viewportWindow, scale) {
+paint(g2, viewportWindow, scale,layermaskId) {
 		   var box=this.hexagon.box;
+           box.grow(this.pad.solderMaskExpansion);
 		   box.scale(scale.scale);     
 	       //check if outside of visible window
 		   var window=new d2.Box(0,0,0,0);
@@ -16052,21 +16495,34 @@ paint(g2, viewportWindow, scale) {
 	       if(!box.intersects(window)){
 	         return false;
 	       }
-	       if(this.pad.isSelected()){
-	         g2.fillStyle = "gray";  
-		   }else{
-	         g2.fillStyle = this.pad.copper.getColor();
-	       }
-	        
-		   g2._fill=true;		   
-	       let p=this.hexagon.clone();
-		   p.scale(scale.getScale());
-	       p.move(-viewportWindow.x,- viewportWindow.y);
-		   p.paint(g2);
-		    
-		   g2._fill=false;
-            
-           return true;
+		   g2._fill=true;
+        var h=PadFactory.acquire('Hexagon');
+        try {
+            //draw solder mask	
+        if((((this.pad.copper.getLayerMaskID()&core.Layer.LAYER_FRONT)!=0)&&((layermaskId&core.Layer.SOLDERMASK_LAYER_FRONT)!=0))||
+            	(((this.pad.copper.getLayerMaskID()&core.Layer.LAYER_BACK)!=0)&&((layermaskId&core.Layer.SOLDERMASK_LAYER_BACK)!=0))) {        	        	
+        	h.assign(this.hexagon);        
+        	h.grow(this.pad.solderMaskExpansion);
+        	h.scale(scale.getScale());
+        	h.move(-viewportWindow.x, -viewportWindow.y);        
+        	g2.fillStyle=(this.pad.isSelected() ? "gray" : core.Layer.Copper.BMask.getColor());
+        	h.paint(g2);
+        }
+        	  
+        //draw pad shape  
+        if(((this.pad.copper.getLayerMaskID()&layermaskId)!=0)) {	 
+        	h.assign(this.hexagon);
+        	h.scale(scale.getScale());
+        	h.move(-viewportWindow.x, -viewportWindow.y);
+        	g2.fillStyle=(this.pad.isSelected() ? "gray" : this.pad.copper.getColor());
+        	h.paint(g2);
+        }
+        }finally {
+        	PadFactory.release(h);	
+            g2._fill=false;
+		}
+                    
+        return true;
 }
 copy(pad){
 	  let _copy=new PolygonShape(0,0,0,pad);
@@ -16101,6 +16557,29 @@ setSize(width,height) {
 }
 	
 }
+var PadFactory = (function () {
+    var cache = new Map();
+		cache.set('Circle',new d2.Circle(new d2.Point(), 0));
+		cache.set('Rectangle',new d2.Rectangle(0, 0, 0, 0));
+		cache.set('Obround',new d2.Obround(new d2.Point(0, 0), 0, 0));
+		cache.set('Hexagon',new d2.Hexagon(new d2.Point(0, 0), 10));
+    return {
+
+        acquire: function (clazz) {
+		 var pad=cache.get(clazz);
+		 if(pad==null) {
+			 throw new Error("Unknown figure class: "+clazz);
+		 }else {
+		     cache.set(clazz, null);
+			 return pad;
+		 }
+        },
+
+        release: function (instance) {
+			cache.set(instance.constructor.name,instance)
+        }
+    }
+})();
 module.exports ={
 	GlyphLabel,
 	Line,
@@ -16349,3 +16828,5 @@ module.exports =FootprintLoadView
   
 });})();require('___globals___');
 
+
+//# sourceMappingURL=board.js.map
