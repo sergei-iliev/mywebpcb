@@ -996,7 +996,8 @@ clone(){
 	   	var copy = new PCBHole();
 		 copy.circle.pc.x=this.circle.pc.x;
 		 copy.circle.pc.y=this.circle.pc.y;
-		 copy.circle.r=this.circle.r;	        	        
+		 copy.circle.r=this.circle.r;	
+	     copy.clearance=this.clearance;        	        
 	     return copy;
 }	
 alignToGrid(isRequired) {
@@ -1097,6 +1098,8 @@ constructor() {
 
 clone(){
    	var copy = new PCBVia();
+        copy.net=this.net;
+        copy.clearance=this.clearance;
         copy.inner=this.inner.clone();
         copy.outer=this.outer.clone();
         return copy;
@@ -1206,6 +1209,7 @@ fromXML(data) {
 	this.outer.r=(parseInt(j$(data).attr("width")))/2;
 	this.inner.r = (parseInt(j$(data).attr("drill")))/2;
 	this.clearance=(parseInt(j$(data).attr("clearance")));
+	this.net=(j$(data).attr("net"));
 }
 toXML() {
     return "<via x=\""+utilities.roundFloat(this.inner.center.x,5)+"\" y=\""+utilities.roundFloat(this.inner.center.y,5)+"\" width=\""+this.outer.r*2+"\" drill=\""+this.inner.r*2+"\"   clearance=\""+this.clearance+"\" net=\""+(this.net==null?"":this.net)+"\" />";    
@@ -1223,10 +1227,11 @@ class PCBCopperArea extends Shape{
         this.polygon=new d2.Polygon();
         this.resizingPoint;
         this.clip=null;
-        this.net='gnd';
+        this.net='GND';
     }
 clone(){
     let copy=new PCBCopperArea(this.copper.getLayerMaskID());
+    copy.net=this.net
     copy.clearance=this.clearance;
     copy.polygon=this.polygon.clone();  
     return copy;	
