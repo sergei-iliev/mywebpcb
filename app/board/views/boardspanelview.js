@@ -444,7 +444,7 @@ var CopperAreaPanelBuilder=BaseBuilder.extend({
 });
 var FootprintPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
-	  BoardPanelBuilder.__super__.initialize(component);
+	  FootprintPanelBuilder.__super__.initialize(component);
       this.id="footprintpanelbuilder";
     },
     events: {
@@ -495,7 +495,7 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 		   j$("#valueid").val(texture==null?"":texture.text);
 		   j$("#sideid").val(this.target.getSide());
 	},
-	render:function(){	
+	render:function(){					
 		j$(this.el).empty();
 		j$(this.el).append(
 		"<table width='100%'>"+
@@ -513,7 +513,98 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 		return this;
 	}
 });
+/**Footprint and Pad properties 
+var FootprintPanelBuilderExt=BaseBuilder.extend({
+	initialize:function(component){
+	  FootprintPanelBuilderExt.__super__.initialize(component);
+      this.id="footprintpanelbuilderext";
+    },
+    events: {
+        'keypress #rotateid' : 'onenter',
+        'keypress #nameid' : 'onenter',   
+        'keypress #valueid' : 'onenter',	
+        'keypress #referenceid' : 'onenter',	
+        'change #sideid': 'onchange',
+    },
+	onenter:function(event){
+		 if(event.keyCode != 13){
+			return; 
+	     }
+		  if(event.target.id=='rotateid'){
+			  let center=this.target.getBoundingShape().center;
+		      this.target.setRotation(Math.abs(utilities.round(j$('#rotateid').val())),center); 
+		  }	
+		 if(event.target.id=='nameid'){
+			 this.target.displayName=j$("#nameid").val(); 
+			 this.component.getModel().fireUnitEvent({target:this.target,type:events.Event.RENAME_UNIT});		   
+		 }
+		 if(event.target.id=='referenceid'){
+		   var texture=this.target.reference;
+		   texture.setText(j$("#referenceid").val());
+		 }
+		 if(event.target.id=='valueid'){
+		   var texture=this.target.value;
+		   texture.setText(j$("#valueid").val());
+		 }
+		 this.component.repaint();   
+	},   
+	onchange:function(event){
+		if(event.target.id=='sideid'){
+			this.target.setSide(j$("#sideid").val());
+			this.component.repaint();
+		}		      
+	},	
+	updateui:function(){
+		   j$("#nameid").val(this.target.displayName);
+		   
+		   j$("#rotateid").val(this.target.rotation); 	
+		   
+		   var texture=this.target.reference;
+		   j$("#referenceid").val(texture==null?"":texture.text);
 
+			 
+		   texture=this.target.value;
+		   j$("#valueid").val(texture==null?"":texture.text);
+		   j$("#sideid").val(this.target.getSide());
+
+/**pad props 
+		   j$('#layerid').val("Cu")
+		   j$('#padwidthid').val(core.COORD_TO_MM(this.target.selectedPad.width));
+	        if(this.target.selectedPad.getShape()==PadShape.CIRCULAR||this.target.selectedPad.getShape()==PadShape.POLYGON){
+	        	j$('#padheightid').prop('disabled',true);
+	        	j$('#padheightid').val('');
+	        }else{
+	        	j$('#padheightid').prop('disabled',false);
+	        	j$('#padheightid').val(core.COORD_TO_MM(this.target.selectedPad.height));  
+	        }
+	},
+	render:function(){				
+		j$(this.el).empty();
+		j$(this.el).append(
+		"<table width='100%'>"+
+		"<tr><td style='width:50%;padding:7px'>OO Side</td><td>" +
+		"<select class=\"form-control input-sm\" id=\"sideid\">"+
+	    this.fillComboBox([{id:'1',value:'TOP',selected:true},{id:'2',value:'BOTTOM'}])+
+	    "</select>" +
+		"</td></tr>"+
+		"<tr><td style='width:50%;padding:7px'>Name</td><td><input type='text' id='nameid' value='' class='form-control input-sm\'></td></tr>"+
+		"<tr><td style='width:50%;padding:7px'>Reference</td><td><input type='text' id='referenceid' value='' class='form-control input-sm\'></td></tr>"+
+		"<tr><td style='width:50%;padding:7px'>Value</td><td><input type='text' id='valueid' value='' class='form-control input-sm\'></td></tr>"+
+		"<tr><td style='width:50%;padding:7px'>Rotate</td><td><input type='text' id='rotateid' value='' class='form-control input-sm\'></td></tr>"+						
+        "<tr><td style='width:50%;padding:7px'>Layer</td><td>" +
+		        "<select class=\"form-control input-sm\" id=\"layerid\">"+
+				this.fillComboBox([{id:'FCu',value:'FCu',selected:true},{id:'BCu',value:'BCu'},{id:'Cu',value:'Cu'}])+
+			    "</select>" +
+		"</td></tr>"+
+		"<tr><td style='padding:7px'>Width</td><td><input type='text' id='padwidthid' value='' class='form-control input-sm\'></td></tr>"+
+   	    "<tr><td style='padding:7px'>Height</td><td><input type='text' id='padheightid' value='' class='form-control input-sm\'></td></tr>"+							
+
+		"</table>");
+			
+		return this;
+	}
+});
+*/
 var BoardPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
 	  BoardPanelBuilder.__super__.initialize(component);
@@ -1049,7 +1140,8 @@ var BoardsInspector=Backbone.View.extend({
 		                                         new BoardPanelBuilder(this.boardComponent),
 		                                         new TrackPanelBuilder(this.boardComponent),
 		                                         new FootprintPanelBuilder(this.boardComponent),
-		                                         new ViaPanelBuilder(this.boardComponent),
+												 //new FootprintPanelBuilderExt(this.boardComponent),		                                         
+												 new ViaPanelBuilder(this.boardComponent),
 		                                         new LabelPanelBuilder(this.boardComponent),
 		                                         new ComponentPanelBuilder(this.boardComponent),
 		                                         new CirclePanelBuilder(this.boardComponent),
@@ -1138,13 +1230,22 @@ var BoardsInspector=Backbone.View.extend({
 		switch(event.type){
 		case events.Event.PROPERTY_CHANGE:
 		case events.Event.SELECT_SHAPE:
-		if(event.target instanceof PCBFootprint){
-			if(this.panel.id!='footprintpanelbuilder'){
+		if(event.target instanceof PCBFootprint){			
+			//if(event.target.selectedPad==null){
+			 if(this.panel.id!='footprintpanelbuilder'){				
 					this.panel.attributes.remove();
 					this.panel=this.collection.get('footprintpanelbuilder');
 					this.panel.attributes.delegateEvents();
 					this.render();
-		    }
+		     } 
+            //}else{  //draw extended pad view
+	        //  if(this.panel.id!='footprintpanelbuilderext'){				
+			//		this.panel.attributes.remove();
+			//		this.panel=this.collection.get('footprintpanelbuilderext');
+			//		this.panel.attributes.delegateEvents();
+			//		this.render();
+		    // }
+			//}
 		}			
 		if(event.target instanceof PCBLabel){
 			if(this.panel.id!='labelpanelbuilder'){

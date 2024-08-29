@@ -82,6 +82,7 @@ constructor(layermaskId){
 	    this.value=(new glyph.GlyphTexture("","value", 8,8,core.MM_TO_COORD(1.2)));		 	    
         this.units=core.Units.MM;
         this.val=2.54;  
+        this.selectedPad=null;  //show pad properties in 
         //this.rotation=0;
 	}
 clone(){
@@ -183,6 +184,14 @@ getClickableOrder() {
    var r=this.getBoundingShape();
    return (r.area);
 }
+isPadClicked(x,y) {
+    	for(let  pad of this.getPads()) {
+    		if(pad.isClicked(x, y))
+    			return pad;
+    	}
+    	return null;
+}
+
 isClicked(x,y){
 	var r=this.getBoundingShape();
 	if(!r.contains(x,y)){
@@ -344,7 +353,15 @@ paint(g2, viewportWindow, scale,layersmask) {
 		
 	var len=this.shapes.length;
 	for(i=0;i<len;i++){
-		  this.shapes[i].paint(g2,viewportWindow,scale,layersmask);  
+		  this.shapes[i].paint(g2,viewportWindow,scale,layersmask);
+          if(this.isSelected()&&this.shapes[i] instanceof Pad&& this.shapes[i]==this.selectedPad){	        
+        	var box=this.shapes[i].getBoundingShape().clone();        	
+            box.scale(scale.getScale());
+            box.move(-viewportWindow.getX(), -viewportWindow.getY());                             
+			g2.lineWidth = 1;            
+			g2.strokeStyle='white';
+            box.paint(g2, false); 
+          }
 	}    
 	if((this.value.layermaskId&layersmask)!=0) {
     	this.value.fillColor=core.Layer.Copper.resolve(this.value.layermaskId).getColor();

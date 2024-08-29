@@ -41,7 +41,7 @@ mousePressed(event){
 		}
 		this.target.alignToGrid(false || this.component.getParameter("snaptogrid"));
 				 
-		this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
+		//this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
 		this.component.repaint();
 	 }
 	 
@@ -61,7 +61,9 @@ mousePressed(event){
 	 mouseMove(event){
 	 
 	 }	 
-	
+clear(){
+ this.target.selectedPad=null		 
+	 }	
 }
 class TrackEventHandle extends EventHandle{
 constructor(component) {
@@ -227,7 +229,8 @@ class BoardEventMgr{
 		if(handle!=null){
 		  handle.setTarget(target);
 		  if(eventKey=="move"||eventKey=="copperarea"||eventKey=="track"||eventKey=="line"||eventKey=="texture"||eventKey=="symbol"||eventKey=="resize"||eventKey=="move.segment"||eventKey=="solidregion"){		        	
-		     this.component.getModel().getUnit().fireShapeEvent({target:target,type:events.Event.SELECT_SHAPE});
+		      //target.selectedPad=pad  //***** HACK TO RESTORE reference!!!!!!!!!!!!
+              this.component.getModel().getUnit().fireShapeEvent({target:target,type:events.Event.SELECT_SHAPE});
 		  }
 		  if(eventKey=='component'||eventKey=="origin"){
 			 this.component.getModel().fireUnitEvent({target:this.component.getModel().getUnit(),type:events.Event.SELECT_UNIT});

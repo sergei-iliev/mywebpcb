@@ -197,10 +197,10 @@ var ToggleButtonView=Backbone.View.extend({
             this.symbolComponent.repaint();
 		}
 		if(event.data.model.id=='zoominid'){
-			this.symbolComponent.ZoomIn(parseInt(this.symbolComponent.width/2),parseInt(this.symbolComponent.height/2));
+			this.symbolComponent.zoomIn(parseInt(this.symbolComponent.width/2),parseInt(this.symbolComponent.height/2));
 		}
 		if(event.data.model.id=='zoomoutid'){
-			this.symbolComponent.ZoomOut(parseInt(this.symbolComponent.width/2),parseInt(this.symbolComponent.height/2));
+			this.symbolComponent.zoomOut(parseInt(this.symbolComponent.width/2),parseInt(this.symbolComponent.height/2));
 		}	
 		if(event.data.model.id=='grabid'){
 			 this.symbolComponent.setMode(core.ModeEnum.DRAGHEAND_MODE);

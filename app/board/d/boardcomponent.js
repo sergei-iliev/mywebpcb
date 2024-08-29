@@ -404,7 +404,10 @@ mouseDown(event){
 		       }else if ((!(shape instanceof PCBLabel))&&(undefined !=shape['getTextureByTag'])&&shape.getClickedTexture(scaledEvent.x, scaledEvent.y)!=null){
 			     this.getEventMgr().setEventHandle("texture",shape);
                }else if(shape instanceof PCBFootprint){
-            	 this.getEventMgr().setEventHandle("symbol",shape);
+	              //is this pad click?
+                  var pad=shape.isPadClicked(scaledEvent.x, scaledEvent.y);                                     	                                  	  	  		          
+                  this.getEventMgr().setEventHandle("symbol",shape,pad);
+				  //shape.selectedPad=pad	 
 			   }else if(shape instanceof PCBTrack){				    
 	                if(shape.isSegmentClicked(scaledEvent)){
 					  if(shape.isSingleSegment()){
