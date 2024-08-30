@@ -41,7 +41,7 @@ mousePressed(event){
 		}
 		this.target.alignToGrid(false || this.component.getParameter("snaptogrid"));
 				 
-		//this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
+		this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
 		this.component.repaint();
 	 }
 	 
@@ -62,7 +62,7 @@ mousePressed(event){
 	 
 	 }	 
 clear(){
- this.target.selectedPad=null		 
+    this.target.selectedPad=null		 
 	 }	
 }
 class TrackEventHandle extends EventHandle{

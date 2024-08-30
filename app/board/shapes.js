@@ -82,7 +82,7 @@ constructor(layermaskId){
 	    this.value=(new glyph.GlyphTexture("","value", 8,8,core.MM_TO_COORD(1.2)));		 	    
         this.units=core.Units.MM;
         this.val=2.54;  
-        this.selectedPad=null;  //show pad properties in 
+        this.selectedPad=null  //show pad properties in 
         //this.rotation=0;
 	}
 clone(){

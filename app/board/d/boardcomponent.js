@@ -405,9 +405,9 @@ mouseDown(event){
 			     this.getEventMgr().setEventHandle("texture",shape);
                }else if(shape instanceof PCBFootprint){
 	              //is this pad click?
-                  var pad=shape.isPadClicked(scaledEvent.x, scaledEvent.y);                                     	                                  	  	  		          
-                  this.getEventMgr().setEventHandle("symbol",shape,pad);
-				  //shape.selectedPad=pad	 
+                  var pad=shape.isPadClicked(scaledEvent.x, scaledEvent.y);                                                  	                                  	  	  		         
+                  this.getEventMgr().setEventHandle("symbol",shape);       
+				  shape.selectedPad=pad               
 			   }else if(shape instanceof PCBTrack){				    
 	                if(shape.isSegmentClicked(scaledEvent)){
 					  if(shape.isSingleSegment()){
