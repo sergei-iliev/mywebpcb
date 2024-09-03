@@ -1,5 +1,6 @@
 HELP.md
 target/
+public/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
@@ -22,7 +23,6 @@ target/
 
 ### NetBeans ###
 /nbproject/private/
-public/
 /dist/
 /nbdist/
 /.nb-gradle/
