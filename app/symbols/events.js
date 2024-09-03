@@ -62,6 +62,7 @@ class ArcStartAngleEventHandle extends EventHandle{
 		 super(component);
 	 }
 	 mousePressed(event){
+		this.target.resizingPoint=this.target.arc.start
 	 }
 	 mouseDragged(event){
 	 	let new_mx = event.x;
@@ -93,7 +94,9 @@ class ArcStartAngleEventHandle extends EventHandle{
 	mouseMove(event){
 	 
 	}
-
+	clear(){
+		this.target.resizingPoint=null
+	}
 }	
 class ArcExtendAngleEventHandler extends EventHandle{
 	 constructor(component) {

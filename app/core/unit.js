@@ -408,14 +408,14 @@ isShapeVisibleOnLayers(shape){
 // 		   
 // 		   return result;
 // 	}
-isControlRectClicked( x,  y) {
+isControlRectClicked( x,  y,viewportWindow) {
          /*
           * if two symbols overlap and one is selected
           * then the selected should be checked for control rect click first
           */
          
          var shape = this.getShape(this.getSelected());		 
-         if ((shape != null)&&(shape['isControlRectClicked']!=undefined)&&(shape.isControlRectClicked(x, y) != null)){
+         if ((shape != null)&&(shape['isControlRectClicked']!=undefined)&&(shape.isControlRectClicked(x, y,viewportWindow) != null)){
                 return shape;
          }
          return null;

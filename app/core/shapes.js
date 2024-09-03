@@ -25,6 +25,7 @@ class Shape{
 		this.isControlPointVisible=true;
 		this.copper = core.Layer.Copper.resolve(layermaskId);
 		this.rotation=0;
+		this.selectionRectWidth=5
 	}
 getCenter(){
 	return new d2.Point(this.x,this.y);
@@ -232,7 +233,7 @@ paint(g2, viewportWindow, scale) {
 class AbstractLine extends Shape{
 	constructor(thickness,layermaskId) {
 		super(0, 0, 0, 0, thickness,layermaskId);
-		this.selectionRectWidth = 3000;
+		//this.selectionRectWidth = 3000;
 		this.setDisplayName("Line");			
 		this.polyline=new d2.Polyline();
 		this.floatingStartPoint = new d2.Point(); // ***the
@@ -527,23 +528,25 @@ isBendingPointClicked( x,  y) {
 
 	return point;
 }
-isControlRectClicked(x, y) {
-	return this.isBendingPointClicked(x,y);
-	/*
-	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
-	let point = null;
+isControlRectClicked(x, y,viewportWindow) {
+        let pt=new d2.Point(x,y);
+		pt.scale(this.owningUnit.scalableTransformation.getScale())
+		pt.move(-viewportWindow.x,- viewportWindow.y);
+        let result=null;
+		this.polyline.points.every(v=>{
+			var tmp=v.clone();
+	        tmp.scale(this.owningUnit.scalableTransformation.getScale());
+	        tmp.move(-viewportWindow.x,- viewportWindow.y);
 
-	this.polyline.points.some(function(wirePoint) {
-		if (rect.contains(wirePoint)) {
-					point = wirePoint;
-		  return true;
-		}else{
-		  return false;
-		}
-	});
+	        if(d2.utils.LE(pt.distanceTo(tmp),this.selectionRectWidth/2)){
+		          result=v
+	              return false
+	        }	        
+            return true
+		})
+        
+        return result;
 
-	return point;
-	*/
 }
 
 move(xoffset, yoffset) {
@@ -580,7 +583,18 @@ calculateShape() {
 
 
 drawControlShape(g2, viewportWindow, scale) {
-	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,(this.selectionRectWidth),this.polyline.points);	
+        let pt=null;
+        if(this.resizingPoint!=null){
+            pt=this.resizingPoint.clone();
+            pt.scale(scale.getScale());
+            pt.move(-viewportWindow.x,- viewportWindow.y);
+        }
+        let r=this.polyline.clone(); 
+        r.scale(scale.getScale());
+        r.move(-viewportWindow.x,- viewportWindow.y);    
+        utilities.drawCircle(g2,  pt,this.selectionRectWidth,r.points); 
+     	
+	
 }
 
 isFloating() {

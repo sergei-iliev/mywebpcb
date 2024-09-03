@@ -41,7 +41,7 @@ var POSITION=(function(){
 
 
 var POINT_TO_POINT=8;
-
+var  DISTANCE = 3000;
 var roundDouble=function(number){
 	return roundFloat(number,4);
 }
@@ -82,6 +82,22 @@ var getQuadrantLocation=function(origin,point) {
             return QUADRANT.THIRD;
         else
             return QUADRANT.FORTH;
+}
+var drawCircle=function(g2,resizingPoint,length,points) {    	    	
+    	let circle=new d2.Circle(new d2.Point(0,0),length)
+        points.forEach(function(point) {
+            if (resizingPoint != null && resizingPoint.equals(point))
+                g2.fillStyle ='yellow'
+            else
+                g2.fillStyle ='blue'
+
+            circle.pc.x=point.x
+            circle.pc.y=point.y
+			g2._fill=true
+            circle.paint(g2)
+			g2._fill=false
+            
+        })            	    	    	
 }
 var drawCrosshair=function(g2,viewportWindow,scale,resizingPoint,length,points){
         let line = new d2.Segment(0,0,0,0);
@@ -224,6 +240,7 @@ module.exports = {
   roundFloat,
   getQuadrantLocation,  
   drawCrosshair,
+  drawCircle,
   intersectLineRectangle,
   intersectLineLine,
   degrees,

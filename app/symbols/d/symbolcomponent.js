@@ -305,18 +305,17 @@ mouseDown(event){
           } 
          }
     		
-    	  var shape=this.getModel().getUnit().isControlRectClicked(scaledEvent.x, scaledEvent.y);
+    	  var shape=this.getModel().getUnit().isControlRectClicked(scaledEvent.x, scaledEvent.y,this.viewportWindow);
     	  if(shape!=null){
                 if(shape instanceof Arc){
-                     if(shape.isStartAnglePointClicked(scaledEvent.x , scaledEvent.y)){ 
-                         this.getEventMgr().setEventHandle("arc.start.angle",shape);                    
-                     }else if(shape.isExtendAnglePointClicked(scaledEvent.x , scaledEvent.y)){
-                         this.getEventMgr().setEventHandle("arc.extend.angle",shape);                      
-//                     }else if(shape.isMidPointClicked(scaledEvent.x , scaledEvent.y)){
-//                    	  this.getEventMgr().setEventHandle("arc.mid.point",shape);
-                     }else{
-                          this.getEventMgr().setEventHandle("resize",shape);    
-                     }
+                    	let pt=shape.isControlRectClicked(scaledEvent.x , scaledEvent.y,this.viewportWindow);
+                        if(pt.equals(shape.arc.start)){ 
+                        	this.getEventMgr().setEventHandle("arc.start.angle",shape);                    
+                        }else if(pt.equals(shape.arc.end)){
+                            this.getEventMgr().setEventHandle("arc.extend.angle",shape);                                              
+                        }else{
+                             this.getEventMgr().setEventHandle("resize",shape);    
+                        }                    
                    }else{
 						this.getEventMgr().setEventHandle("resize",shape); 
                     }

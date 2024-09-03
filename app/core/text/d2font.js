@@ -228,9 +228,8 @@ class SymbolFontTexture{
 	    this.tag=tag;
 		this.shape=new d2.BaseFontText(x,y,text,alignment,fontSize);    
 		this.selection=false;
-		this.selectionRectWidth=3000;
 		this.constSize=false;		    
-		this.selectionRectWidth=4;
+		this.selectionRectWidth=3;
 		this.fillColor='#000000';
 	    this.isTextLayoutVisible=false;
 	}
@@ -360,8 +359,8 @@ class SymbolFontTexture{
 	 		 g2.strokeStyle = 'blue';
 	 		 let p=this.shape.anchorPoint.clone();
 	         p.scale(scale.getScale());
-	         p.move(-viewportWindow.x,- viewportWindow.y);
-	         p.paint(g2);    	 
+	         p.move(-viewportWindow.x,- viewportWindow.y);	            
+             utilities.drawCircle(g2, null,this.selectionRectWidth,[p]); 	 
 	     }
 		
 	}	

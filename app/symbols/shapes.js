@@ -64,7 +64,6 @@ class Line extends AbstractLine{
 constructor(thickness) {
 	super(1,core.Layer.LAYER_ALL);	
 	this.fillColor='#000000';
-	this.selectionRectWidth=4;
 }
 clone() {
 	  var copy = new Line(this.thickness);
@@ -119,7 +118,7 @@ paint(g2, viewportWindow, scale,layersmask) {
 		a.paint(g2);
 		
 		
-		if (this.selection&&this.isControlPointVisible) {
+		if (this.selection&&this.isControlPointVisible) {			
 			this.drawControlShape(g2, viewportWindow, scale);
 		}
 
@@ -241,7 +240,6 @@ class Arc extends Shape{
 	   super(x,y, w, h, 1,core.Layer.LAYER_ALL);
 		this.setDisplayName("Arc");		
 		this.arc=new d2.Arcellipse(new d2.Point(x,y),w,h);
-		this.selectionRectWidth=4;
 		this.fillColor='#000000';							
 	}
 	clone(){
@@ -260,18 +258,32 @@ class Arc extends Shape{
 	calculateShape() {
 		return this.arc.box;		
 	}
-	isControlRectClicked(x,y){
+	isControlRectClicked(x,y,viewportWindow){
 	   	let pt=new d2.Point(x,y);
-	   	let result=null;
+
+
+
+		pt.scale(this.owningUnit.scalableTransformation.getScale())
+		pt.move(-viewportWindow.x,- viewportWindow.y)
+		
+	   	let result=null
 		this.arc.vertices.some(v=>{
-	   		if(d2.utils.LE(pt.distanceTo(v),this.selectionRectWidth/2)){
+			let tmp=v.clone()
+			tmp.scale(this.owningUnit.scalableTransformation.getScale())
+			tmp.move(-viewportWindow.x,- viewportWindow.y)
+			
+	   		if(d2.utils.LE(pt.distanceTo(tmp),this.selectionRectWidth/2)){
 	   		  	result=v;
 	   			return true;
 	   		}else{
 	   			return false;
 	   		}
+
 	   	});
 	   	return result;
+
+
+
 	}	
 	isClicked(x, y) {
     	if(this.fill==core.Fill.EMPTY) {
@@ -280,6 +292,7 @@ class Arc extends Shape{
     	  return this.arc.contains(x, y);	
     	}		
 	}
+	/*
 	isStartAnglePointClicked(x,y){	
 	    let p=this.arc.start;
 	    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
@@ -299,7 +312,8 @@ class Arc extends Shape{
 	    }else{                   
 	        return false;
 		}
-	}	
+	}
+	*/	
 	setSelected (selection) {
 		super.setSelected(selection);
 			if (!selection) {
@@ -384,12 +398,16 @@ class Arc extends Shape{
 			
 			
 			if (this.isSelected()) {
-				this.drawControlPoints(g2, viewportWindow, scale);
+		    	let pt=null
+				if(this.resizingPoint!=null){
+               		pt=this.resizingPoint.clone();
+               		pt.scale(scale.getScale());
+               		pt.move(-viewportWindow.x,- viewportWindow.y);
+            	} 							
+				utilities.drawCircle(g2,pt,this.selectionRectWidth,[...e.vertices,e.start,e.end]);
 			}		
 	}
-drawControlPoints(g2, viewportWindow, scale){
-		utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.arc.vertices); 		
-}	
+	
 setResizingPoint(pt){
 	this.resizingPoint=pt;
 }
@@ -441,8 +459,6 @@ class Ellipse extends Shape{
 		super(0,0, w, h, 1,core.Layer.LAYER_ALL);
 		this.setDisplayName("Ellipse");		
 		this.ellipse=new d2.Ellipse(new d2.Point(0,0),w,h);
-		//this.ellipse.rotate(60);
-		this.selectionRectWidth=4;
 		this.fillColor='#000000';	
 	}
 	clone(){
@@ -477,16 +493,24 @@ class Ellipse extends Shape{
 				this.resizingPoint = null;
 	        }
 	}	
-	isControlRectClicked(x,y){
+	isControlRectClicked(x,y,viewportWindow){
 	   	let pt=new d2.Point(x,y);
+		pt.scale(this.owningUnit.scalableTransformation.getScale())
+		pt.move(-viewportWindow.x,- viewportWindow.y)
+		
 	   	let result=null
 		this.ellipse.vertices.some(v=>{
-	   		if(d2.utils.LE(pt.distanceTo(v),this.selectionRectWidth/2)){
+			let tmp=v.clone()
+			tmp.scale(this.owningUnit.scalableTransformation.getScale())
+			tmp.move(-viewportWindow.x,- viewportWindow.y)
+			
+	   		if(d2.utils.LE(pt.distanceTo(tmp),this.selectionRectWidth/2)){
 	   		  	result=v;
 	   			return true;
 	   		}else{
 	   			return false;
 	   		}
+
 	   	});
 	   	return result;
 	}	
@@ -548,12 +572,18 @@ class Ellipse extends Shape{
 		} 
 		
 		if (this.isSelected()) {
-			this.drawControlPoints(g2, viewportWindow, scale);
+		    let pt=null
+			if(this.resizingPoint!=null){
+               pt=this.resizingPoint.clone();
+               pt.scale(scale.getScale());
+               pt.move(-viewportWindow.x,- viewportWindow.y);
+            }  			
+			utilities.drawCircle(g2,pt,this.selectionRectWidth,e.vertices); 
 		}
 	}	
-drawControlPoints(g2, viewportWindow, scale){
-		utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.ellipse.vertices); 		
-	}	
+//drawControlPoints(g2, viewportWindow, scale){
+//		utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.ellipse.vertices); 		
+//	}	
 setResizingPoint(pt){
 	this.resizingPoint=pt;
 }
@@ -593,7 +623,6 @@ class RoundRect extends Shape{
 	constructor(x, y, width, height,arc,thickness) {
 		super(x, y, width, height, thickness,core.Layer.LAYER_ALL);
 		this.setDisplayName("Rect");		
-		this.selectionRectWidth=4;
 		this.resizingPoint = null;
 		this.fillColor='#000000';
 		this.roundRect=new d2.RoundRectangle(new d2.Point(x,y),width,height,arc);		
@@ -631,11 +660,18 @@ class RoundRect extends Shape{
 		 return this.roundRect.contains(new d2.Point(x, y));	
 		}				
 	}
-	isControlRectClicked(x,y){
+	isControlRectClicked(x,y,viewportWindow){
 	   	let pt=new d2.Point(x,y);
+		pt.scale(this.owningUnit.scalableTransformation.getScale())
+		pt.move(-viewportWindow.x,- viewportWindow.y)
+
 	   	let result=null
 		this.roundRect.points.some(v=>{
-	   		if(d2.utils.LE(pt.distanceTo(v),this.selectionRectWidth/2)){
+			let tmp=v.clone()
+			tmp.scale(this.owningUnit.scalableTransformation.getScale())
+			tmp.move(-viewportWindow.x,- viewportWindow.y)
+			
+	   		if(d2.utils.LE(pt.distanceTo(tmp),this.selectionRectWidth/2)){
 	   		  	result=v;
 	   			return true;
 	   		}else{
@@ -719,12 +755,15 @@ class RoundRect extends Shape{
 		
 
 		if (this.isSelected()&&this.isControlPointVisible) {
-			this.drawControlPoints(g2, viewportWindow, scale);
+            let pt=null
+			if(this.resizingPoint!=null){
+               pt=this.resizingPoint.clone();
+               pt.scale(scale.getScale());
+               pt.move(-viewportWindow.x,- viewportWindow.y);
+            }  			
+			utilities.drawCircle(g2,pt,this.selectionRectWidth,r.vertices); 
 		}
-	}	
-drawControlPoints(g2, viewportWindow, scale){
-		utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.roundRect.vertices); 		
-}	
+	}		
 fromXML(data){
     if(j$(data).attr("points")!=undefined){                
         this.roundRect.rounding=(parseInt(j$(data).attr("arc")));
@@ -758,7 +797,6 @@ class ArrowLine extends Shape{
 	constructor() {
 		super(0, 0, 0,0, 1,core.Layer.LAYER_ALL);
 		this.setDisplayName("Arrow");		
-		this.selectionRectWidth=4;
 		this.resizingPoint = null;
 		this.fillColor='#000000';	
 	    this.line=new d2.Segment(0,0,20,20);
@@ -799,16 +837,25 @@ isClicked(x, y) {
 			}
 	}
 }
-isControlRectClicked(x, y) {
-	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
-	
-		if (rect.contains(this.line.ps)){
-		  return this.line.ps;	
-		}else if(rect.contains(this.line.pe)) {					
-		  return this.line.pe;
-		}else{
-		  return null;
-		}
+isControlRectClicked(x, y,viewportWindow) {				
+	   	let pt=new d2.Point(x,y);
+		pt.scale(this.owningUnit.scalableTransformation.getScale())
+		pt.move(-viewportWindow.x,- viewportWindow.y)
+
+			let tmp=this.line.ps.clone()
+			tmp.scale(this.owningUnit.scalableTransformation.getScale())
+			tmp.move(-viewportWindow.x,- viewportWindow.y)
+			
+	   		if(d2.utils.LE(pt.distanceTo(tmp),this.selectionRectWidth/2))
+	   		  	return this.line.ps
+
+			tmp=this.line.pe.clone()
+			tmp.scale(this.owningUnit.scalableTransformation.getScale())
+			tmp.move(-viewportWindow.x,- viewportWindow.y)
+			
+	   		if(d2.utils.LE(pt.distanceTo(tmp),this.selectionRectWidth/2))
+	   		  	return this.line.pe
+		
 }
 setHeadSize(headSize) {
 
@@ -881,11 +928,14 @@ paint(g2, viewportWindow, scale,layersmask) {
 	g2._fill=false;	
 	
 	if (this.isSelected()) {
-		this.drawControlPoints(g2, viewportWindow, scale);
+		    	let pt=null
+				if(this.resizingPoint!=null){
+               		pt=this.resizingPoint.clone();
+               		pt.scale(scale.getScale());
+               		pt.move(-viewportWindow.x,- viewportWindow.y);
+            	} 		
+		utilities.drawCircle(g2,  pt,this.selectionRectWidth,[l.ps,a.points[0]]);             		
 	}
-}	
-drawControlPoints(g2, viewportWindow, scale){
-	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,[this.line.ps,this.line.pe]); 		
 }	
 setResizingPoint(pt){
 	this.resizingPoint=pt;
@@ -918,7 +968,6 @@ class Triangle extends Shape{
 	constructor() {
 		super(0, 0, 0,0, 1,core.Layer.LAYER_ALL);
 		this.setDisplayName("Triangle");		
-		this.selectionRectWidth=4;
 		this.resizingPoint = null;
 		this.fillColor='#000000';
 	    this.shape=new d2.Polygon();
@@ -950,20 +999,26 @@ isClicked(x, y) {
 	return this.shape.contains({"x":x,"y":y});
   }	
 }
-isControlRectClicked(x, y) {
-	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
-	let point = null;
+isControlRectClicked(x, y,viewportWindow) {
+	   	let pt=new d2.Point(x,y);
+		pt.scale(this.owningUnit.scalableTransformation.getScale())
+		pt.move(-viewportWindow.x,- viewportWindow.y)
+		
+	   	let result=null
+		this.shape.points.some(v=>{
+			let tmp=v.clone()
+			tmp.scale(this.owningUnit.scalableTransformation.getScale())
+			tmp.move(-viewportWindow.x,- viewportWindow.y)
+			
+	   		if(d2.utils.LE(pt.distanceTo(tmp),this.selectionRectWidth/2)){
+	   		  	result=v;
+	   			return true;
+	   		}else{
+	   			return false;
+	   		}
 
-	this.shape.points.some(function(wirePoint) {
-		if (rect.contains(wirePoint)) {
-		  point = wirePoint;
-		  return true;
-		}else{
-		  return false;
-		}
-	});
-
-	return point;
+	   	});
+	   	return result;
 }
 Resize(xoffset, yoffset, clickedPoint) {
 	clickedPoint.set(clickedPoint.x + xoffset,
@@ -1019,7 +1074,13 @@ paint(g2, viewportWindow, scale,layersmask) {
 	} 
 
 	if (this.isSelected()) {
-		this.drawControlPoints(g2, viewportWindow, scale);
+		    let pt=null
+			if(this.resizingPoint!=null){
+               pt=this.resizingPoint.clone();
+               pt.scale(scale.getScale());
+               pt.move(-viewportWindow.x,- viewportWindow.y);
+            }  			
+			utilities.drawCircle(g2,pt,this.selectionRectWidth,a.vertices); 		
 	}
 }
 //***old schema
@@ -1073,9 +1134,7 @@ toXML(){
 	});	
     return "<triangle thickness=\"" + this.thickness + "\" fill=\"" + this.fill + "\">"+points+"</triangle>\r\n";	
 }
-drawControlPoints(g2, viewportWindow, scale){
-	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.shape.points); 		
-}
+
 setResizingPoint(pt){
 	this.resizingPoint=pt;
 }

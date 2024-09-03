@@ -90,14 +90,14 @@ class MoveEventHandle extends EventHandle{
 	    this.mx=event.x;
 		this.my=event.y;
 				
-		this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));    
+		//uncomment this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));    
 	 }
 	 mouseReleased(event){
 		if(super.isRightMouseButton(event)){
 			 return;
 		}
 		this.target.alignToGrid(false || this.component.getParameter("snaptogrid"));
-        this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));				 
+        //uncomment this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));				 
 		this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
 		this.component.repaint();
 	 }
@@ -137,9 +137,9 @@ class ResizeEventHandle extends EventHandle{
 		this.mx=event.x;
 		this.my=event.y;
 	        
-	    this.targetPoint=this.target.isControlRectClicked(event.x,event.y);
+	    this.targetPoint=this.target.isControlRectClicked(event.x,event.y,this.component.viewportWindow);
 	    this.target.setResizingPoint(this.targetPoint);
-	    this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));
+	    //uncomment this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));
 	    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
 	    
 		this.component.repaint();
@@ -149,7 +149,7 @@ class ResizeEventHandle extends EventHandle{
 	         this.target.alignResizingPointToGrid(this.targetPoint);
 		     this.component.repaint();	 
 			}
-			this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));
+			//uncomment this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));
 			
 	 }
 	 mouseDragged(event){
@@ -164,7 +164,10 @@ class ResizeEventHandle extends EventHandle{
 	 mouseMove(event){
 	 
 	 }
-	 
+	clear() {
+    	this.target.setResizingPoint(null);
+        this.targetPoint=null;        
+    }
 }
 class DragingEventHandle extends EventHandle{
 constructor(component) {
@@ -374,11 +377,11 @@ class LineEventHandle extends EventHandle{
 	        
 	    if(this.component.lineBendingProcessor.addLinePoint(p)){
 	        if(justcreated){
-	            this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.CREATE_MEMENTO));   
-	            this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));    
+	           //uncomment this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.CREATE_MEMENTO));   
+	           //uncomment this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));    
 	        }
 	        if(this.target.getLinePoints().length>=2){
-	           this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));    
+	          //uncomment this.component.getModel().getUnit().registerMemento(this.target.getState(MementoType.MOVE_MEMENTO));    
 	        }            
 	    }
 	    this.component.repaint();  
