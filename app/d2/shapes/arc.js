@@ -12,7 +12,8 @@ module.exports = function(d2) {
             this.pc = pc;
             this.r = r;
             this.startAngle = startAngle;
-            this.endAngle = endAngle;            
+            this.endAngle = endAngle; 
+            this.vert=[new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0)];//start,middle,end           
         } 
         clone(){
            return new d2.Arc(this.pc.clone(),this.r,this.startAngle,this.endAngle);  	
@@ -23,25 +24,28 @@ module.exports = function(d2) {
         get center(){
         	return this.pc;
         }
-        get start() {
-            let p0 = new d2.Point(this.pc.x + this.r, this.pc.y);
-            p0.rotate(this.startAngle, this.pc);
-            return p0;
+        get start() {            
+    		this.vert[0].x=this.pc.x + this.r;
+    		this.vert[0].y=this.pc.y;        
+        	this.vert[0].rotate(this.startAngle, this.pc);
+        	return this.vert[0];
         }
                 
         get middle() {
-            let angle = this.endAngle>0 ? this.startAngle + this.sweep/2 : this.startAngle - this.sweep/2;
-            let p0 = new d2.Point(this.pc.x + this.r, this.pc.y);
-            p0.rotate(angle, this.pc);
-            return p0;
+            let angle = this.endAngle>0 ? this.startAngle + this.sweep/2 : this.startAngle - this.sweep/2;                   
+            this.vert[1].x=this.pc.x + this.r;
+            this.vert[1].y=this.pc.y;        
+            this.vert[1].rotate(angle, this.pc);
+            return this.vert[1];
         }
         get length() {
             return Math.abs(this.sweep * this.r);
         }
-        get end() {
-            let p0 = new d2.Point(this.pc.x + this.r, this.pc.y);
-            p0.rotate((this.startAngle+this.endAngle), this.pc);
-            return p0;
+        get end() {            
+        	this.vert[2].x=this.pc.x + this.r;
+        	this.vert[2].y=this.pc.y;    	
+        	this.vert[2].rotate((this.startAngle+this.endAngle), this.pc);
+            return this.vert[2];
         }
         
         get sweep(){
@@ -72,7 +76,7 @@ module.exports = function(d2) {
         }
       
         get vertices() {
-            return this.box.vertices;
+            return this.vert;
         }
         
         isPointOn(pt,diviation){

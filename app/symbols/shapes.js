@@ -577,7 +577,7 @@ class Ellipse extends Shape{
                pt=this.resizingPoint.clone();
                pt.scale(scale.getScale());
                pt.move(-viewportWindow.x,- viewportWindow.y);
-            }  			
+            }  
 			utilities.drawCircle(g2,pt,this.selectionRectWidth,e.vertices); 
 		}
 	}	

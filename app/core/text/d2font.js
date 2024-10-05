@@ -109,14 +109,14 @@ paint(g2,viewportWindow,scale){
  		g2.strokeStyle = 'blue';
 	  	box.paint(g2);
 	 }
-     if(this.selection){
+/*     if(this.selection){
  		 g2.lineWidth =1;
  		 g2.strokeStyle = 'blue';
  		 let p=this.shape.anchorPoint.clone();
          p.scale(scale.getScale());
          p.move(-viewportWindow.x,- viewportWindow.y);
          p.paint(g2);    	 
-     }
+     }*/
 	
 }
 toXML(){

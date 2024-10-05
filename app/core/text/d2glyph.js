@@ -133,7 +133,7 @@ class GlyphTexture{
 	    this.glyphs = [];
 	    this.thickness = core.MM_TO_COORD(0.2);	    
 		
-	    this.selectionRectWidth=3000;        
+	    this.selectionRectWidth=3;        
 	    this.text = text;
 		this.height=0;
 		this.width=0;
@@ -412,7 +412,10 @@ paint(g2,viewportWindow,scale,layermaskId){
    }   
 }
 drawControlShape(g2, viewportWindow,scale){
-    utilities.drawCrosshair(g2, viewportWindow, scale, null, this.selectionRectWidth, [this.anchorPoint]);
+	            let pt=this.anchorPoint.clone();
+                pt.scale(scale.getScale());
+                pt.move(-viewportWindow.x,- viewportWindow.y);
+    utilities.drawCircle(g2, null, this.selectionRectWidth, [pt]);
 }
 toXML(){
     return (this.isEmpty()? "" :

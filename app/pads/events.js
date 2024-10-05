@@ -23,7 +23,7 @@ mousePressed(event){
 	this.target.A=this.target.arc.start.clone();
 	this.target.B=this.target.arc.end.clone();
 	this.target.M=this.target.arc.middle.clone();
-	
+	this.target.setResizingPoint(this.target.arc.middle);
     this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
     
 	this.component.repaint();
@@ -56,6 +56,8 @@ class ArcStartAngleEventHandle extends EventHandle{
 	 super(component);
  }
  mousePressed(event){
+	 this.target.setResizingPoint(this.target.arc.start);
+	 this.component.repaint();
  }
  mouseDragged(event){
  	let new_mx = event.x;
@@ -87,6 +89,10 @@ mouseReleased(event){
 mouseMove(event){
  
 }
+clear(){
+	super.clear()
+	this.target.setResizingPoint(null);
+}
 
 }	
 class ArcExtendAngleEventHandler extends EventHandle{
@@ -95,6 +101,8 @@ class ArcExtendAngleEventHandler extends EventHandle{
 
  }
  mousePressed(event){
+	this.target.setResizingPoint(this.target.arc.end);
+	this.component.repaint();
  }
  mouseDragged(event){
  	let new_mx = event.x;
@@ -139,13 +147,17 @@ mouseReleased(event){
 mouseMove(event){
  
 }
+clear(){
+	super.clear()
+	this.target.setResizingPoint(null);
+}
 
 }
 /*
  * resizing of arcs start and end points
  * Arc type - Two point arc 
  */
-class ResizeEventHandle extends EventHandle{
+class ArcResizeEventHandle extends EventHandle{
 	 constructor(component) {
 		 super(component);	 
 		 this.isStartPoint;
@@ -156,7 +168,8 @@ class ResizeEventHandle extends EventHandle{
 		this.mx=event.x;
 		this.my=event.y;	        
 	    
-	    this.isStartPoint=this.target.isStartAnglePointClicked(event.x,event.y);
+	    this.isStartPoint=this.target.isStartAnglePointClicked(event.x,event.y,this.component.viewportWindow);        
+        this.target.setResizingPoint(this.isStartPoint?this.target.arc.start:this.target.arc.end);
 	    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
 	    
 		this.component.repaint();
@@ -182,7 +195,10 @@ class ResizeEventHandle extends EventHandle{
 	 mouseMove(event){
 	 
 	 }
-	 
+clear(){
+	super.clear()
+	this.target.setResizingPoint(null);
+}
 }
 class SolidRegionEventHandle extends EventHandle{
 	constructor(component) {
@@ -250,7 +266,7 @@ class FootprintEventMgr{
 	this.hash.set("arc.mid.point",new ArcMidPointEventHandle(component));
 	this.hash.set("arc.start.angle",new ArcStartAngleEventHandle(component));
 	this.hash.set("arc.extend.angle",new ArcExtendAngleEventHandler(component));
-	this.hash.set("arc.resize",new ResizeEventHandle(component));
+	this.hash.set("arc.resize",new ArcResizeEventHandle(component));
 	this.hash.set("move",new events.MoveEventHandle(component));
 	this.hash.set("resize",new events.ResizeEventHandle(component));
 	this.hash.set("component",new events.UnitEventHandle(component));
@@ -304,6 +320,6 @@ module.exports ={
 	  ArcExtendAngleEventHandler,
 	  ArcStartAngleEventHandle,
 	  ArcMidPointEventHandle,
-	  ResizeEventHandle,
+	  ArcResizeEventHandle,
 	  SolidRegionEventHandle
 }

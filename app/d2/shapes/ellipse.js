@@ -5,7 +5,7 @@ module.exports = function(d2) {
             this.pc = pc;
             this.w = w;
             this.h=h;
-        	this.vert=[new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0)];        	        	
+        	this.vert=[new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0)];        	        	
             this.rotation=0;
         }
         clone(){

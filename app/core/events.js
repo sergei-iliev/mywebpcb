@@ -155,6 +155,7 @@ class ResizeEventHandle extends EventHandle{
 	 mouseDragged(event){
 	 	let new_mx = event.x;
 	    let new_my = event.y;
+
 	    this.target.Resize(new_mx - this.mx, new_my - this.my,this.targetPoint);
 	    this.component.getModel().getUnit().fireShapeEvent({target:this.target,type:Event.PROPERTY_CHANGE});
 	    this.mx = new_mx;

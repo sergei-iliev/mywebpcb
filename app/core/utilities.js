@@ -249,6 +249,7 @@ module.exports = {
   QUADRANT,
   POINT_TO_POINT,
   POSITION,
+  DISTANCE,
   mirrorPoint,
   arrayEquals
 }

@@ -11,7 +11,7 @@ module.exports = function(d2) {
         constructor(pc,w,h) {
       	    super(pc,w,h);    	
             this.startAngle = 20;
-            //this.rotation=0;
+            this.vert=[new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0)];
             this.endAngle = 190;           
         }
         clone(){

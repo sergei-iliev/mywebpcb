@@ -746,7 +746,6 @@ class UnitComponent{
 	
 }
 resumeLine(line,handleKey,event) {	
-	console.log(this.lineBendingProcessor);
 	  line.resumeLine(event.x,event.y);
 	  this.eventMgr.setEventHandle(handleKey,line);
 } 

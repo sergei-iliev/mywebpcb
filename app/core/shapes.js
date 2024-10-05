@@ -512,8 +512,8 @@ setSelected(selection) {
 }
 isBendingPointClicked( x,  y) {
 	var rect = d2.Box.fromRect(x
-			- this.selectionRectWidth / 2, y - this.selectionRectWidth
-			/ 2, this.selectionRectWidth, this.selectionRectWidth);
+			- utilities.DISTANCE / 2, y - utilities.DISTANCE
+			/ 2, utilities.DISTANCE, utilities.DISTANCE);
 
     let point = null;
 

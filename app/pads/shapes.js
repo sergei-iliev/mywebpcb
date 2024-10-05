@@ -160,7 +160,7 @@ class RoundRect extends Shape{
 	constructor(x, y, width, height,arc,thickness,layermaskid) {
 		super(x, y, width, height, thickness,layermaskid);
 		this.setDisplayName("Rect");		
-		this.selectionRectWidth=3000;
+		//this.selectionRectWidth=3000;
 		this.resizingPoint = null;
 		//this.rotation=0;
 		this.roundRect=new d2.RoundRectangle(new d2.Point(x,y),width,height,arc);		
@@ -199,11 +199,18 @@ class RoundRect extends Shape{
       	    return this.roundRect.contains(new d2.Point(x, y));	
       } 			
 	}
-	isControlRectClicked(x,y){
+	isControlRectClicked(x,y,viewportWindow){
 	   	let pt=new d2.Point(x,y);
+		pt.scale(this.owningUnit.scalableTransformation.getScale())
+		pt.move(-viewportWindow.x,- viewportWindow.y)
+
 	   	let result=null
 		this.roundRect.points.some(v=>{
-	   		if(d2.utils.LE(pt.distanceTo(v),this.selectionRectWidth/2)){
+			let tmp=v.clone()
+			tmp.scale(this.owningUnit.scalableTransformation.getScale())
+			tmp.move(-viewportWindow.x,- viewportWindow.y)
+			
+	   		if(d2.utils.LE(pt.distanceTo(tmp),this.selectionRectWidth/2)){
 	   		  	result=v;
 	   			return true;
 	   		}else{
@@ -226,6 +233,7 @@ class RoundRect extends Shape{
 	  this.roundRect.setRounding(rounding);
 	}
 	setResizingPoint(pt){
+console.log(pt?.x)		
 		this.resizingPoint=pt;
 	}
 	getResizingPoint() {
@@ -339,8 +347,18 @@ class RoundRect extends Shape{
 	}
 
 drawControlShape(g2, viewportWindow, scale){
-	utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,this.roundRect.vertices); 		
-	}	
+            let pt=null;
+            if(this.resizingPoint!=null){
+                pt=this.resizingPoint.clone();
+                pt.scale(scale.getScale());
+                pt.move(-viewportWindow.x,- viewportWindow.y);
+            }
+            let r=this.roundRect.clone();   
+            r.scale(scale.getScale());
+            r.move(-viewportWindow.x,- viewportWindow.y);	
+
+	        utilities.drawCircle(g2,pt,this.selectionRectWidth,r.vertices); 		
+	}		
 }
 
 class Circle extends Shape{
@@ -348,7 +366,6 @@ class Circle extends Shape{
 		super(0, 0, 0, 0, thickness,
 				layermaskId);
 		this.setDisplayName("Circle");
-		this.selectionRectWidth=3000;
 		this.resizingPoint=null;
 		this.circle=new d2.Circle(new d2.Point(x,y),r);
 		//this.rotation=0;
@@ -382,18 +399,25 @@ isClicked(x, y) {
         	  return this.circle.contains(new d2.Point(x, y));	
         }
 	}
-isControlRectClicked(x,y) {
-   	let pt=new d2.Point(x,y);
-   	let result=null
-	this.circle.vertices.some(v=>{
-   		if(d2.utils.LE(pt.distanceTo(v),this.selectionRectWidth/2)){
-   		  	result=v;
-   			return true;
-   		}else{
-   			return false;
-   		}
-   	});
-   	return result;
+isControlRectClicked(x,y,viewportWindow) {
+	   	let pt=new d2.Point(x,y);
+		pt.scale(this.owningUnit.scalableTransformation.getScale())
+		pt.move(-viewportWindow.x,- viewportWindow.y)
+
+	   	let result=null
+		this.circle.vertices.some(v=>{
+			let tmp=v.clone()
+			tmp.scale(this.owningUnit.scalableTransformation.getScale())
+			tmp.move(-viewportWindow.x,- viewportWindow.y)
+			
+	   		if(d2.utils.LE(pt.distanceTo(tmp),this.selectionRectWidth/2)){
+	   		  	result=v;
+	   			return true;
+	   		}else{
+	   			return false;
+	   		}
+	   	});
+	   	return result;
     }	
 toXML() {
         return "<circle copper=\""+this.copper.getName()+"\" x=\""+utilities.roundFloat(this.circle.pc.x,4)+"\" y=\""+utilities.roundFloat(this.circle.pc.y,4)+"\" radius=\""+utilities.roundFloat(this.circle.r,4)+"\" thickness=\""+this.thickness+"\" fill=\""+this.fill+"\"/>";
@@ -512,7 +536,22 @@ fromXML(data) {
 		  
  }
 drawControlShape(g2, viewportWindow, scale) {
-	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.circle.vertices);	
+	        let pt=null;
+            if(this.resizingPoint!=null){
+                pt=this.resizingPoint.clone();
+                pt.scale(scale.getScale());
+                pt.move(-viewportWindow.x,- viewportWindow.y);
+            }
+            let c=this.circle.clone();   
+            c.scale(scale.getScale());
+            c.move(-viewportWindow.x,- viewportWindow.y);	
+
+	        utilities.drawCircle(g2,pt,this.selectionRectWidth,c.vertices); 
+		
+}
+setResizingPoint(pt){
+	console.log(pt?.x)
+	this.resizingPoint=pt;
 }
 getClickableOrder(){
 	return this.circle.area; 
@@ -521,16 +560,11 @@ getResizingPoint() {
         return null;
 }
 
-setResizingPoint(point) {
-
-}
-
 }
 class Arc extends Shape{
 	constructor(x,y,r,thickness,layermaskid){	
 	        super(0, 0, 0,0,thickness,layermaskid);  
-			this.setDisplayName("Arc");
-			this.selectionRectWidth=3000;
+			this.setDisplayName("Arc");			
 			this.resizingPoint=null;
 			this.arc=new d2.Arc(new d2.Point(x,y),r,50,170);
 			this.A;
@@ -601,18 +635,35 @@ class Arc extends Shape{
 	get vertices(){
 		  return this.arc.vertices;	
 		}
-	isControlRectClicked(x,y) {
-		 if(this.isStartAnglePointClicked(x,y)){
-			    return this.arc.start;
-			 }
-		 if(this.isExtendAnglePointClicked(x,y)){
-			    return this.arc.end;
-			 }
-		 if(this.isMidPointClicked(x,y)){
-			    return this.arc.middle;	 
-			 }
-		     return null;
-		}
+	isControlRectClicked(x,y,viewportWindow) {
+	   	let pt=new d2.Point(x,y);
+		pt.scale(this.owningUnit.scalableTransformation.getScale())
+		pt.move(-viewportWindow.x,- viewportWindow.y)
+		
+  		let p=this.arc.start;
+  		var tmp=p.clone();
+		tmp.scale(this.owningUnit.scalableTransformation.getScale())
+		tmp.move(-viewportWindow.x,- viewportWindow.y)
+   		if(d2.utils.LE(pt.distanceTo(tmp),this.selectionRectWidth/2)){
+ 	   	     
+ 	         return p
+ 	   	}		 
+  		p=this.arc.end;
+  		var tmp=p.clone();
+		tmp.scale(this.owningUnit.scalableTransformation.getScale())
+		tmp.move(-viewportWindow.x,- viewportWindow.y)
+		if(d2.utils.LE(pt.distanceTo(tmp),this.selectionRectWidth/2))
+ 	   		 return p
+ 	   	        
+  		p=this.arc.middle;
+  		var tmp=p.clone();
+		tmp.scale(this.owningUnit.scalableTransformation.getScale())
+		tmp.move(-viewportWindow.x,- viewportWindow.y)
+		if(d2.utils.LE(pt.distanceTo(tmp),this.selectionRectWidth/2))
+ 	   		 return p
+
+   	    return null	
+	}
 	isClicked(x, y) {		
     	if(this.fill==core.Fill.EMPTY) {
       	  return (this.arc.isPointOn(new d2.Point(x,y),this.thickness/2));
@@ -620,35 +671,48 @@ class Arc extends Shape{
       	  return this.arc.contains(new d2.Point(x, y));	
       	}
 	}
-	isMidPointClicked(x,y){
-	    let p=this.arc.middle;
-	    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
-	                 this.selectionRectWidth, this.selectionRectWidth);
-	    if (box.contains({x,y})) {
-	        return true;
-	    }else{                   
-	        return false;
-		}	
+	isMidPointClicked(x,y,viewportWindow){
+	   	let pt=new d2.Point(x,y);
+		pt.scale(this.owningUnit.scalableTransformation.getScale())
+		pt.move(-viewportWindow.x,- viewportWindow.y)
+		  
+		let tmp=this.arc.middle.clone();
+		tmp.scale(this.owningUnit.scalableTransformation.getScale())
+		tmp.move(-viewportWindow.x,- viewportWindow.y)
+   		if(d2.utils.LE(pt.distanceTo(tmp),this.selectionRectWidth/2)){ 	   	     
+ 	         return true
+ 	   	}else{
+            return false;
+        }		
 	}
-	isStartAnglePointClicked(x,y){	
-	    let p=this.arc.start;
-	    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
-	                 this.selectionRectWidth, this.selectionRectWidth);
-	    if (box.contains({x,y})) {
-	        return true;
-	    }else{                   
-	        return false;
-		}
+	isStartAnglePointClicked(x,y,viewportWindow){		    	
+	   	let pt=new d2.Point(x,y);
+		pt.scale(this.owningUnit.scalableTransformation.getScale())
+		pt.move(-viewportWindow.x,- viewportWindow.y)
+		  
+		let tmp=this.arc.start.clone();
+		tmp.scale(this.owningUnit.scalableTransformation.getScale())
+		tmp.move(-viewportWindow.x,- viewportWindow.y)
+   		if(d2.utils.LE(pt.distanceTo(tmp),this.selectionRectWidth/2)){ 	   	     
+ 	         return true
+ 	   	}else{
+            return false;
+        }		
+		
 	}
-	isExtendAnglePointClicked(x,y){
-	    let p=this.arc.end;
-	    let box=d2.Box.fromRect(p.x - this.selectionRectWidth / 2, p.y - this.selectionRectWidth / 2,
-	                 this.selectionRectWidth, this.selectionRectWidth);
-	    if (box.contains({x,y})) {
-	        return true;
-	    }else{                   
-	        return false;
-		}
+	isExtendAnglePointClicked(x,y,viewportWindow){
+	   	let pt=new d2.Point(x,y);
+		pt.scale(this.owningUnit.scalableTransformation.getScale())
+		pt.move(-viewportWindow.x,- viewportWindow.y)
+		  
+		let tmp=this.arc.end.clone();
+		tmp.scale(this.owningUnit.scalableTransformation.getScale())
+		tmp.move(-viewportWindow.x,- viewportWindow.y)
+   		if(d2.utils.LE(pt.distanceTo(tmp),this.selectionRectWidth/2)){ 	   	     
+ 	         return true
+ 	   	}else{
+            return false;
+        }
 	}	
 	setRotation(rotate,center){
 		let alpha=rotate-this.rotation;
@@ -931,7 +995,20 @@ paint(g2, viewportWindow, scale,layersmask) {
 
 	}
 	drawControlShape(g2, viewportWindow, scale) {		
-		utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,[this.arc.center,this.arc.start,this.arc.end,this.arc.middle]);	
+		//utilities.drawCrosshair(g2,viewportWindow,scale,this.resizingPoint,this.selectionRectWidth,[this.arc.center,this.arc.start,this.arc.end,this.arc.middle]);
+		
+            let pt=null;
+            if(this.resizingPoint!=null){
+                pt=this.resizingPoint.clone();
+                pt.scale(scale.getScale());
+                pt.move(-viewportWindow.x,- viewportWindow.y);
+            }
+            let r=this.arc.clone();   
+            r.scale(scale.getScale());
+            r.move(-viewportWindow.x,- viewportWindow.y);	
+
+	        utilities.drawCircle(g2,pt,this.selectionRectWidth,[r.start,r.end,r.middle]); 		
+				
 	}
 	setResizingPoint(pt){
 		this.resizingPoint=pt;
@@ -947,8 +1024,7 @@ class SolidRegion extends Shape{
         super( 0, 0, 0,0, 0, layermaskId);
         this.displayName = "Solid Region";
         this.floatingStartPoint=new d2.Point();
-        this.floatingEndPoint=new d2.Point();                 
-        this.selectionRectWidth = 3000;
+        this.floatingEndPoint=new d2.Point();                         
         this.polygon=new d2.Polygon();
         this.resizingPoint;
         //this.rotation=0;
@@ -983,20 +1059,25 @@ isFloating() {
 isClicked(x,y){
 	  return this.polygon.contains(x,y);
 }
-isControlRectClicked(x, y) {
-	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
-	let point = null;
+isControlRectClicked(x, y,viewportWindow) {
+	let pt=new d2.Point(x,y);
+	pt.scale(this.owningUnit.scalableTransformation.getScale())
+	pt.move(-viewportWindow.x,- viewportWindow.y)
+	
+        let result=null;
+		this.polygon.points.every(v=>{
+			var tmp=v.clone();
+	        tmp.scale(this.owningUnit.scalableTransformation.getScale());
+	        tmp.move(-viewportWindow.x,- viewportWindow.y);
 
-	this.polygon.points.some(function(wirePoint) {
-		if (rect.contains(wirePoint)) {
-					point = wirePoint;
-		  return true;
-		}else{
-		  return false;
-		}
-	});
-
-	return point;
+	        if(d2.utils.LE(pt.distanceTo(tmp),this.selectionRectWidth/2)){
+		          result=v
+	              return false
+	        }	        
+            return true
+		})
+        
+    return result;	
 }
 Resize(xoffset, yoffset, clickedPoint) {
 	clickedPoint.set(clickedPoint.x + xoffset,
@@ -1075,8 +1156,18 @@ paint(g2, viewportWindow, scale,layersmask) {
 	g2._fill=false;    
 }
 
-drawControlShape(g2, viewportWindow, scale) {
-	utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.polygon.points);	
+drawControlShape(g2, viewportWindow, scale) {	
+        let pt=null;
+        if(this.resizingPoint!=null){
+            pt=this.resizingPoint.clone();
+            pt.scale(scale.getScale());
+            pt.move(-viewportWindow.x,- viewportWindow.y);
+        }
+
+        let r=this.polygon.clone(); 
+        r.scale(scale.getScale());
+        r.move(-viewportWindow.x,- viewportWindow.y);    
+        utilities.drawCircle(g2,  pt,this.selectionRectWidth,r.points); 	
 }
 toXML() {
 	var result = "<solidregion copper=\"" + this.copper.getName() + "\">";
