@@ -562,7 +562,21 @@ var SolidRegionPanelBuilder=BaseBuilder.extend({
 		this.id="solidregionpanelbuilder";  
     },	
     events: {
+	    'keypress #xid' : 'onenter',	
+        'keypress #yid' : 'onenter',
         'change #layerid':'onchange'
+    },
+   onenter:function(event){
+		 if(event.keyCode != 13){
+				return; 
+		 }		          
+		 if(event.target.id=='xid'){	            
+			 this.target.resizingPoint.x=this.fromUnitX(j$('#xid').val()); 
+	     }	         
+		 if(event.target.id=='yid'){	            
+			 this.target.resizingPoint.y=this.fromUnitY(j$('#yid').val());  
+	     }	 
+		 this.component.repaint();     		    	
     },
     onchange:function(event){
         if(event.target.id=='layerid'){
@@ -571,7 +585,10 @@ var SolidRegionPanelBuilder=BaseBuilder.extend({
         this.component.repaint(); 
     }, 
 	updateui:function(){
-		
+        j$('#xid').prop('disabled',this.target.resizingPoint==null?true:false);  
+        j$('#yid').prop('disabled',this.target.resizingPoint==null?true:false);
+        j$('#xid').val(this.toUnitX(this.target.resizingPoint==null?0:this.target.resizingPoint.x));
+        j$('#yid').val(this.toUnitY(this.target.resizingPoint==null?0:this.target.resizingPoint.y)); 			
 	},
 	render:function(){
 		j$(this.el).empty();
@@ -581,7 +598,9 @@ var SolidRegionPanelBuilder=BaseBuilder.extend({
 				"<select class=\"form-control input-sm\" id=\"layerid\">"+
 				this.fillComboBox(core.PCB_SYMBOL_LAYERS)+
 			    "</select>" +
-				"</td></tr>"+							
+				"</td></tr>"+
+    		    "<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
 		"</table>");				
 			
 		return this;
