@@ -133,7 +133,7 @@ module.exports = function(d2) {
            return this.x+","+this.y;	
         }
 		paint(g2){
-		  d2.utils.drawCrosshair(g2,10,[this]);
+		  //d2.utils.drawCrosshair(g2,10,[this]);
 		}
 	}
 

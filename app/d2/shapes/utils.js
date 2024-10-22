@@ -3,7 +3,7 @@ const DP_TOL = 0.000001;
 module.exports = function(d2) {
 	d2.utils={
 		 DP_TOL: DP_TOL,
-			
+		/*	
 		 drawCrosshair:function(g2,length,points){                
 				
 
@@ -15,6 +15,7 @@ module.exports = function(d2) {
 					line.paint(g2);
 		        });	
 	   	 },
+*/
 	   	/*****
 	   	*
 	   	*   Intersect Line with Line

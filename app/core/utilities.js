@@ -41,7 +41,9 @@ var POSITION=(function(){
 
 
 var POINT_TO_POINT=8;
-var  DISTANCE = 3000;
+var DISTANCE = 3000;
+var CIRCLE_DIAMETER = 6;
+
 var roundDouble=function(number){
 	return roundFloat(number,4);
 }
@@ -250,6 +252,7 @@ module.exports = {
   POINT_TO_POINT,
   POSITION,
   DISTANCE,
+  CIRCLE_DIAMETER,
   mirrorPoint,
   arrayEquals
 }

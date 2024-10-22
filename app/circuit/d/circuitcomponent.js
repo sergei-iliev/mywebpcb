@@ -341,7 +341,7 @@ mouseDown(event){
 	           }  
 	    	  }
 	   
-	    	  var shape=this.getModel().getUnit().isControlRectClicked(scaledEvent.x, scaledEvent.y);
+	    	  var shape=this.getModel().getUnit().isControlRectClicked(scaledEvent.x, scaledEvent.y,this.viewportWindow);
 	    	  if(shape!=null){
 //	              if(shape instanceof PCBArc){
 //	                  if(shape.isStartAnglePointClicked(scaledEvent.x , scaledEvent.y)){ 
@@ -368,7 +368,7 @@ mouseDown(event){
 	               }else if(shape instanceof SCHSymbol){
 	            	 this.getEventMgr().setEventHandle("symbol",shape);
 				   }else if(shape instanceof SCHWire){
-	                  if(shape.isSegmentClicked(scaledEvent)){
+	                  if(shape.isSegmentClicked(scaledEvent,this.viewportWindow)){
 						  if(shape.isSingleSegment()){
 			            	 this.getEventMgr().setEventHandle("move",shape);
                       	  }else{

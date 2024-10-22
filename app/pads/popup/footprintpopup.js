@@ -6,7 +6,7 @@ constructor(component,placeholderid){
 		super(component,placeholderid);	
 	}	
 registerLineSelectPopup(target,event){
-	  let bending=target.isBendingPointClicked(event.x,event.y);
+	  let bending=target.isControlRectClicked(event.x,event.y,this.component.viewportWindow);
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
 	    items+="<tr id='cloneid' ><td style='padding: 0.4em;'>Clone</td></tr>";
 	    if(bending!=null){

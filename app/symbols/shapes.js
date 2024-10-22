@@ -116,11 +116,11 @@ paint(g2, viewportWindow, scale,layersmask) {
 		a.scale(scale.getScale());
 		a.move( - viewportWindow.x, - viewportWindow.y);		
 		a.paint(g2);
+
 		
-		
-		if (this.selection&&this.isControlPointVisible) {			
-			this.drawControlShape(g2, viewportWindow, scale);
-		}
+		//if (this.selection&&this.isControlPointVisible) {			
+		//	this.drawControlShape(g2, viewportWindow, scale);
+		//}
 
 }
 getState(operationType) {
@@ -821,21 +821,24 @@ getClickableOrder() {
     return 4;
 }
 isClicked(x, y) {
-	if (this.arrow.contains(new d2.Point(x, y))){
+ 
+	let pt=new d2.Point(x,y);
+	if (this.arrow.contains(pt)){
 		return true;
-	}else{
-		  var rect = d2.Box.fromRect(x
-					- (this.selectionRectWidth / 2), y
-					- (this.selectionRectWidth / 2), this.selectionRectWidth,
-					this.selectionRectWidth);
-		  
-			if (utilities.intersectLineRectangle(
-					this.line.ps,this.line.pe, rect.min, rect.max)) {			
-				return true;
-			}else{
-				return false
-			}
-	}
+	}else{		  
+        let projectionPoint = this.line.projectionPoint(pt);
+        
+        if(projectionPoint.distanceTo(pt)>(this.thickness/2<1?1:this.thickness/2)){
+            return false;
+        }    
+        let a = (projectionPoint.x - this.line.ps.x) / ((this.line.pe.x - this.line.ps.x) == 0 ? 1 : this.line.pe.x - this.line.ps.x);
+        let b = (projectionPoint.y - this.line.ps.y) / ((this.line.pe.y - this.line.ps.y) == 0 ? 1 : this.line.pe.y - this.line.ps.y);
+
+        if (0 <= a && a <= 1 && 0 <= b && b <= 1) { //is projection between start and end point                                                    
+                    return true;
+        }             
+           return false;   
+    	}	
 }
 isControlRectClicked(x, y,viewportWindow) {				
 	   	let pt=new d2.Point(x,y);

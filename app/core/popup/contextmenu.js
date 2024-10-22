@@ -2,7 +2,7 @@ var core=require('core/core');
 var UnitMgr = require('core/unit').UnitMgr;
 var d2=require('d2/d2');
 var DefaultLineBendingProcessor=require('core/line/linebendingprocessor').DefaultLineBendingProcessor;
-
+var utilities=require('core/utilities');
 class ContextMenu{
 constructor(component,placeholderid){
 	this.menu=j$('#popup-menu');
@@ -40,7 +40,7 @@ registerShapePopup(target,event){
 	  items+="<tr id='cloneid'><td style='padding: 0.4em;'>Clone</td></tr>";
 	  items+="<tr id='topbottomid'><td style='padding: 0.4em'>Mirror Top-Bottom</td></tr>";
 	  items+="<tr id='leftrightid'><td style='padding: 0.4em'>Mirror Left-Right</td></tr>";
-	  items+="<tr id='sendbackid'><td style='padding: 0.4em'>Send To Back</td></tr>";
+	  items+="<tr id='sendbackid'><td style='padding: 0.4em'>Send Tro Back</td></tr>";
 	  items+="<tr id='bringfrontid'><td style='padding: 0.4em'>Bring To Front</td></tr>";	  
 	  items+="<tr id='deleteid'><td style='padding: 0.4em'>Delete</td></tr>";	
 	  items+="</table></div>";
@@ -48,7 +48,7 @@ registerShapePopup(target,event){
 	  //this.open(event);	
 	}
 registerLineSelectPopup(target,event){
-	  let bending=target.isBendingPointClicked(event.x,event.y);
+	  let bending=target.getBendingPointClicked(event.x,event.y,target.bendingPointDistance);
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		  		  			  
 	    items+="<tr id='cloneid' ><td style='padding: 0.4em;'>Clone</td></tr>";
 	    if(bending!=null){
@@ -165,12 +165,13 @@ actionPerformed(id,context){
      }
      if(id=='deletebendingpointid'){
     	 let line=context.target;
-    	 line.removePoint(this.x,this.y);
-         //***delete wire if one point remains only
-         if (line.getLinePoints().length == 1) {
+         if(line.isShapeDeletable()) {
         	 this.component.getEventMgr().resetEventHandle();
-        	 this.component.getModel().getUnit().remove(line.uuid);
-         }
+        	 this.component.getModel().getUnit().remove(line.uuid);	      
+         }else{
+    	    line.removePoint(this.x,this.y);
+		 }
+         
          this.component.repaint();
          return;
      }

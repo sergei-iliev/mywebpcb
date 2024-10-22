@@ -2,12 +2,13 @@ var core=require('core/core');
 var utilities =require('core/utilities');
 var d2=require('d2/d2');
 var font = require('core/text/d2font');
-
+var mixin=require('core/mixin');
 
 const ResumeState = Object.freeze({
 	ADD_AT_FRONT:0,
 	ADD_AT_END:1
 })
+
 class Shape{
 	constructor(x, y, width, height, thickness,
 			layermaskId) {
@@ -26,6 +27,7 @@ class Shape{
 		this.copper = core.Layer.Copper.resolve(layermaskId);
 		this.rotation=0;
 		this.selectionRectWidth=5
+		this.bendingPointDistance=5
 	}
 getCenter(){
 	return new d2.Point(this.x,this.y);
@@ -255,6 +257,9 @@ get vertices(){
 getLinePoints(){
 		return this.polyline.points;
 	}
+isShapeDeletable() {
+     return this.polyline.points.length==2;  //line must hold more then 2 points
+}	
 clear(){
 		this.polyline.points=null;		
 	}
@@ -264,8 +269,8 @@ alignResizingPointToGrid(targetPoint) {
 getClickableOrder(){
 	return 2;
 }
-isSegmentClicked(pt){				      
-	  if(this.isControlRectClicked(pt.x,pt.y))
+isSegmentClicked(pt,viewportWindow){				      
+	  if(this.isControlRectClicked(pt.x,pt.y,viewportWindow))
           return false;
       if(this.polyline.isPointOnSegment(pt,this.selectionRectWidth/2)){
 	    return true;
@@ -344,7 +349,7 @@ resumeLine( x,  y) {
       return;
     }
     
-    let point=this.isBendingPointClicked(x, y);
+    let point=this.getBendingPointClicked(x, y,this.bendingPointDistance);
     if(point==null){
         this.resumeState=code.ResumeState.ADD_AT_END;
     }
@@ -429,8 +434,9 @@ insertPoint( x, y) {
         prev.setLocationPoint(tmp); //prev.setPin(tmp.getPin());
 */
 }
+/*
 removePoint(x, y) {
-    let point = this.isBendingPointClicked(x, y);
+    let point=this.getBendingPointClicked(x, y,this.bendingPointDistance);
     if (point != null) {
     	
     	var tempArr = this.polyline.points.filter(function(item) { 
@@ -440,6 +446,7 @@ removePoint(x, y) {
     	this.polyline.points=tempArr;
     }
 }
+*/
 deleteLastPoint() {
 	if (this.polyline.points.length == 0)
 		return;
@@ -459,7 +466,7 @@ isEndPoint(x,y){
         return false;
     }
 
-    let point = this.isBendingPointClicked(x, y);
+    let point=this.getBendingPointClicked(x, y,this.bendingPointDistance);
     if (point == null) {
         return false;
     }
@@ -478,7 +485,7 @@ getEndPoint(x,y){
         return null;
     }
 
-    let point = this.isBendingPointClicked(x, y);
+    let point=this.getBendingPointClicked(x, y,this.bendingPointDistance);
     if (point == null) {
         return null;
     }
@@ -510,6 +517,7 @@ setSelected(selection) {
         this.resizingPoint = null;
      }
 }
+/*
 isBendingPointClicked( x,  y) {
 	var rect = d2.Box.fromRect(x
 			- utilities.DISTANCE / 2, y - utilities.DISTANCE
@@ -528,6 +536,8 @@ isBendingPointClicked( x,  y) {
 
 	return point;
 }
+*/
+/*
 isControlRectClicked(x, y,viewportWindow) {
         let pt=new d2.Point(x,y);
 		pt.scale(this.owningUnit.scalableTransformation.getScale())
@@ -548,7 +558,7 @@ isControlRectClicked(x, y,viewportWindow) {
         return result;
 
 }
-
+*/
 move(xoffset, yoffset) {
 	this.polyline.move(xoffset,yoffset);
 }
@@ -613,6 +623,7 @@ setResizingPoint(point) {
 
 
 }
+Object.assign(AbstractLine.prototype, mixin.Resizable);
 module.exports ={
 		Shape,
 		CoordinateSystem,

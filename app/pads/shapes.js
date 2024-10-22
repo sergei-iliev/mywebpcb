@@ -5,7 +5,7 @@ var AbstractLine=require('core/shapes').AbstractLine;
 var glyph=require('core/text/d2glyph');
 var font=require('core/text/d2font');
 var d2=require('d2/d2');
-
+var mixin=require('core/mixin');
 
 class FootprintShapeFactory{
 	
@@ -1027,7 +1027,7 @@ class SolidRegion extends Shape{
         this.floatingEndPoint=new d2.Point();                         
         this.polygon=new d2.Polygon();
         this.resizingPoint;
-        //this.rotation=0;
+        this.bendingPointDistance=utilities.DISTANCE;
     }
 clone(){
 	  var copy=new SolidRegion(this.copper.getLayerMaskID());
@@ -1044,6 +1044,9 @@ alignResizingPointToGrid(targetPoint) {
 calculateShape() {
 	return this.polygon.box;	
 }
+isShapeDeletable() {
+   	return this.polygon.points.length==3; 
+}
 getLinePoints() {
 	   return this.polygon.points;
 }
@@ -1056,9 +1059,13 @@ setResizingPoint(point) {
 isFloating() {
     return (!this.floatingStartPoint.equals(this.floatingEndPoint));                
 }
+isEndPoint(x,y) {        
+        return false;
+}
 isClicked(x,y){
 	  return this.polygon.contains(x,y);
 }
+/*
 isControlRectClicked(x, y,viewportWindow) {
 	let pt=new d2.Point(x,y);
 	pt.scale(this.owningUnit.scalableTransformation.getScale())
@@ -1079,6 +1086,7 @@ isControlRectClicked(x, y,viewportWindow) {
         
     return result;	
 }
+*/
 Resize(xoffset, yoffset, clickedPoint) {
 	clickedPoint.set(clickedPoint.x + xoffset,
 								clickedPoint.y + yoffset);
@@ -1192,10 +1200,12 @@ fromXML(data) {
 		}
 }
 }
+Object.assign(SolidRegion.prototype, mixin.Resizable);
 
 class Line extends AbstractLine{
 constructor(thickness,layermaskId) {
-			super(thickness,layermaskId);	
+			super(thickness,layermaskId);
+			this.bendingPointDistance=utilities.DISTANCE;	
 }
 clone() {
 		  var copy = new Line(this.thickness,this.copper.getLayerMaskID());

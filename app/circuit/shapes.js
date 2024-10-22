@@ -319,7 +319,7 @@ class SCHWire extends AbstractLine{
 	constructor(){
 		   super(1,core.Layer.LAYER_ALL);
 	       this.displayName = "Wire";	
-	   	   this.selectionRectWidth=4;
+
 		}
 	clone() {
 		var copy = new SCHWire();		
@@ -371,7 +371,7 @@ class SCHWire extends AbstractLine{
 		g2.lineWidth = this.thickness * scale.getScale();
 
 		if (this.selection)
-			g2.strokeStyle = "blue";
+			g2.strokeStyle = "gray";
 		else
 			g2.strokeStyle = "black";
 
