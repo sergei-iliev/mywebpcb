@@ -14,7 +14,7 @@ var GlyphLabel=require('pads/shapes').GlyphLabel;
 var AbstractLine=require('core/shapes').AbstractLine;
 var FootprintShapeFactory=require('pads/shapes').FootprintShapeFactory;
 var d2=require('d2/d2');
-
+var mixin=require('core/mixin');
 
 class BoardShapeFactory{
 	
@@ -760,6 +760,7 @@ constructor(thickness,layermaskId){
        super(thickness,layermaskId);
        this.displayName = "Track";
        this.clearance=0;
+       this.bendingPointDistance=utilities.DISTANCE;
 	}
 clone() {
 	var copy = new PCBTrack(this.thickness,this.copper.getLayerMaskID());
@@ -800,8 +801,8 @@ drawClearence(g2,viewportWindow,scale,source){
    g2.restore();
 }
 
-isSegmentClicked(pt){				     
-	  if(this.isControlRectClicked(pt.x,pt.y))
+isSegmentClicked(pt,viewportWindow){				     
+	  if(this.isControlRectClicked(pt.x,pt.y,viewportWindow))
           return false;
       if(this.polyline.isPointOnSegment(pt,this.thickness)){
 	    return true;
@@ -1005,7 +1006,7 @@ class PCBHole extends Shape{
 		super(0, 0, 0, 0,0,core.Layer.LAYER_ALL);		
 		this.displayName='Hole';	
         this.fillColor='white';
-        this.selectionRectWidth = 3000;
+        this.selectionRectWidth=utilities.DISTANCE;
         this.circle=new d2.Circle(new d2.Point(0,0),core.MM_TO_COORD(1.6)/2);
         this.clearance=0;
    	}
@@ -1106,7 +1107,7 @@ constructor() {
 		super(0, 0, 0, 0,core.MM_TO_COORD(0.3),core.Layer.LAYER_BACK|core.Layer.LAYER_FRONT);		
 		this.outer=new d2.Circle(new d2.Point(0,0),core.MM_TO_COORD(0.8));
 		this.inner=new d2.Circle(new d2.Point(0,0),core.MM_TO_COORD(0.4));
-        this.selectionRectWidth = 3000;
+        this.selectionRectWidth=utilities.DISTANCE;
 		this.displayName='Via';	
 		this.net='';
         this.fillColor='white'; 
@@ -1239,7 +1240,7 @@ class PCBCopperArea extends Shape{
         this.clearance=core.MM_TO_COORD(0.2); 
         this.floatingStartPoint=new d2.Point();
         this.floatingEndPoint=new d2.Point();                 
-        this.selectionRectWidth = 3000;
+        this.bendingPointDistance=utilities.DISTANCE;
         this.fill=core.Fill.FILLED;
         this.polygon=new d2.Polygon();
         this.resizingPoint;
@@ -1281,6 +1282,9 @@ calculateShape(){
 getLinePoints() {
    return this.polygon.points;
 }
+isShapeDeletable() {
+   	return this.polygon.points.length==3; 
+}
 add(point) {
     this.polygon.add(point);
 }
@@ -1305,9 +1309,9 @@ isClicked(x,y){
 	  var result = false;
 		// build testing rect
 	  var rect = d2.Box.fromRect(x
-								- (3000 / 2), y
-								- (3000 / 2), 3000,
-								3000);
+								- (utilities.DISTANCE / 2), y
+								- (utilities.DISTANCE / 2), utilities.DISTANCE,
+								utilities.DISTANCE);
 	  var r1 = rect.min;
 	  var r2 = rect.max;
 
@@ -1329,20 +1333,8 @@ isClicked(x,y){
 
 	return result;
 }
-isControlRectClicked(x, y) {
-	var rect = d2.Box.fromRect(x-this.selectionRectWidth / 2, y - this.selectionRectWidth/ 2, this.selectionRectWidth, this.selectionRectWidth);
-	let point = null;
-
-	this.polygon.points.some(function(wirePoint) {
-		if (rect.contains(wirePoint)) {
-					point = wirePoint;
-		  return true;
-		}else{
-		  return false;
-		}
-	});
-
-	return point;
+isEndPoint(x,y) {
+        return false;
 }
 isInRect(r) {
 
@@ -1453,9 +1445,17 @@ paint(g2,viewportWindow,scale, layersmask){
 //	g2.globalCompositeOperation = 'source-over';
 }	
 drawControlShape(g2, viewportWindow, scale) {
-	if (this.isSelected()) {	
-	  utilities.drawCrosshair(g2,viewportWindow,scale,null,this.selectionRectWidth,this.polygon.points);
-	}
+        let pt=null;
+        if(this.resizingPoint!=null){
+            pt=this.resizingPoint.clone();
+            pt.scale(scale.getScale());
+            pt.move(-viewportWindow.x,- viewportWindow.y);
+        }
+
+        let r=this.polygon.clone(); 
+        r.scale(scale.getScale());
+        r.move(-viewportWindow.x,- viewportWindow.y);    
+        utilities.drawCircle(g2,  pt,this.selectionRectWidth,r.points); 	
 }
 fromXML(data){	
     this.copper =core.Layer.Copper.valueOf(j$(data).attr("layer"));
@@ -1480,6 +1480,7 @@ toXML() {
 	return result;
 }
 }
+Object.assign(PCBCopperArea.prototype, mixin.Resizable);
 class BoardOutlineShapeFactory{
 	static createRect(board){
 		//create 4 lines connected

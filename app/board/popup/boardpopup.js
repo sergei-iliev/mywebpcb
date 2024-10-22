@@ -47,8 +47,8 @@ registerUnitPopup(target,event){
 	    this.setContent(event,items,{target:target});		    
 	    
 }
-registerLineSelectPopup(target,event){
-	  let bending=target.isBendingPointClicked(event.x,event.y);
+registerLineSelectPopup(target,event){	  
+	  let bending=target.getBendingPointClicked(event.x,event.y,target.bendingPointDistance);
 	  var items="<div id='menu-items'><table style='cursor: default;'>";		
 	    items+="<tr id='tracknetselectid' ><td style='padding: 0.4em;'>Track Net Select</td></tr>";
 	    items+="<tr id='cloneid' ><td style='padding: 0.4em;'>Clone</td></tr>";	    

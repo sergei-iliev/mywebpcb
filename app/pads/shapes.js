@@ -472,6 +472,8 @@ fromXML(data) {
 		this.circle.rotate(rotation.angle,rotation.origin);
 	}
 	Resize(xoffset, yoffset,point) {    
+	    this.resizingPoint=this.circle.resize(xoffset, yoffset,point);    
+		/*	
 		let radius=this.circle.r;
 
         if(d2.utils.EQ(point.x,this.circle.pc.x)){
@@ -491,6 +493,7 @@ fromXML(data) {
         if(radius>0){ 
           this.circle.r=radius;
         }
+	  */
     }	
 	paint(g2, viewportWindow, scale,layersmask) {
 	    if((this.copper.getLayerMaskID()&layersmask)==0){
@@ -550,7 +553,6 @@ drawControlShape(g2, viewportWindow, scale) {
 		
 }
 setResizingPoint(pt){
-	console.log(pt?.x)
 	this.resizingPoint=pt;
 }
 getClickableOrder(){

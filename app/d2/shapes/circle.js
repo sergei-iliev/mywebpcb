@@ -1,3 +1,4 @@
+
 module.exports = function(d2) {
 
     d2.Circle = class Circle {
@@ -9,6 +10,7 @@ module.exports = function(d2) {
        constructor(pc, r) {
            this.pc = pc;
            this.r = r;
+           this.vert=[new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0),new d2.Point(0,0)]
        }
        clone() {
            return new d2.Circle(this.pc.clone(), this.r);
@@ -35,7 +37,15 @@ module.exports = function(d2) {
            );
        }       
 	   get vertices() {
-		   return [new d2.Point(this.pc.x-this.r,this.pc.y),new d2.Point(this.pc.x,this.pc.y-this.r),new d2.Point(this.pc.x+this.r,this.pc.y),new d2.Point(this.pc.x,this.pc.y+this.r)];
+		  this.vert[0].x=this.pc.x-this.r;
+          this.vert[0].y=this.pc.y;
+		  this.vert[1].x=this.pc.x;
+          this.vert[1].y=this.pc.y-this.r;
+		  this.vert[2].x=this.pc.x+this.r;
+		  this.vert[2].y=this.pc.y;
+          this.vert[3].x=this.pc.x;
+		  this.vert[3].y=this.pc.y+this.r;
+          return this.vert;
 	   }
        contains(pt){
     	   return d2.utils.LE(pt.distanceTo(this), this.r);    	   
@@ -58,7 +68,34 @@ module.exports = function(d2) {
     	   this.pc.scale(alpha);
     	   this.r*=alpha;
        }
-       grow(offset){
+       resize(xoffset, yoffset, point) {
+        let radius=this.r;
+
+        if(d2.utils.EQ(point.x,this.pc.x)){
+          if(point.y>this.pc.y){
+                  radius+=yoffset;
+          }else{
+                  radius-=yoffset;  
+          }     
+        }
+        if(d2.utils.EQ(point.y,this.pc.y)){
+            if(point.x>this.pc.x){
+                  radius+=xoffset;
+            }else{
+                  radius-=xoffset;  
+            }   
+        }
+        if(radius>0){ 
+          this.r=radius;
+        }       
+        for(let p of this.vertices){
+        	if(point==p) {
+        		return p;
+        	}
+        }
+        return null;
+    }    
+    grow(offset){
      	  this.r+=offset; 
        }
        paint(g2){
