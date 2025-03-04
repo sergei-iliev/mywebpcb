@@ -164,7 +164,10 @@ var ToggleButtonView=Backbone.View.extend({
 		}
 		if(event.data.model.id=='padid'){
 			this.footprintComponent.setMode(core.ModeEnum.PAD_MODE);
-		}
+		}		
+		if(event.data.model.id=='holeid'){
+			this.footprintComponent.setMode(core.ModeEnum.HOLE_MODE);
+		}		
 		if(event.data.model.id=='solidregionid'){
 			this.footprintComponent.setMode(core.ModeEnum.SOLID_REGION);
 		}		

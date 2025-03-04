@@ -11,6 +11,7 @@ var	RoundRect=require('pads/shapes').RoundRect;
 var	Circle=require('pads/shapes').Circle;
 var	Arc=require('pads/shapes').Arc;
 var	Pad=require('pads/shapes').Pad;
+var	Hole=require('pads/shapes').Hole;
 var	SolidRegion=require('pads/shapes').SolidRegion;
 
 var ComponentPanelBuilder=BaseBuilder.extend({
@@ -188,7 +189,56 @@ var FootprintPanelBuilder=BaseBuilder.extend({
 		return this;
 	}
 });
+var HolePanelBuilder=BaseBuilder.extend({
+	initialize:function(component){
+		HolePanelBuilder.__super__.initialize(component);
+		this.id="holepanelbuilder"; 
+    },
+    events: {
+        'keypress #xid' : 'onenter',	
+        'keypress #yid' : 'onenter',	
+        'keypress #drillsizeid' : 'onenter',   
+		'keypress #clearanceid' : 'onenter',     
+    },
+    onenter:function(event){
+		 if(event.keyCode != 13){
+				return; 
+		     }
+		 if(event.target.id=='drillsizeid'){
+			 this.target.setWidth(core.MM_TO_COORD(parseFloat(j$('#drillsizeid').val()))); 
+		 }     
 
+		 if(event.target.id=='xid'){	            
+			 this.target.x=this.fromUnitX(j$('#xid').val()); 
+	     }	         
+		 if(event.target.id=='yid'){	            
+			 this.target.y=this.fromUnitY(j$('#yid').val());  
+	     }
+		 if(event.target.id=='clearanceid'){
+			   this.target.clearance=(core.MM_TO_COORD(parseFloat(j$('#clearanceid').val())));			 
+		 }
+		 this.component.repaint();  
+   },
+	updateui:function(){		
+        j$('#xid').val(this.toUnitX(this.target.circle.center.x));
+        j$('#yid').val(this.toUnitY(this.target.circle.center.y)); 
+        j$('#drillsizeid').val(core.COORD_TO_MM(2*this.target.circle.r));
+		j$('#clearanceid').val(core.COORD_TO_MM(this.target.clearance));
+        
+	},
+	render:function(){
+		j$(this.el).empty();
+		j$(this.el).append(
+				"<table width='100%'>"+			
+				"<tr><td style='width:50%;padding:7px'>X</td><td><input type='text' id='xid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Y</td><td><input type='text' id='yid' value='' class='form-control input-sm\'></td></tr>"+				
+				"<tr><td style='padding:7px'>Drill size</td><td><input type='text' id='drillsizeid' value='' class='form-control input-sm\'></td></tr>"+
+				"<tr><td style='padding:7px'>Clearance</td><td><input type='text' id='clearanceid' value='' class='form-control input-sm\'></td></tr>"+
+				"</table>");
+			
+		return this;
+	}    
+});
 var PadPanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
 		PadPanelBuilder.__super__.initialize(component);
@@ -964,6 +1014,7 @@ var FootprintsInspector=Backbone.View.extend({
 		                                         new LinePanelBuilder(this.footprintComponent),
 		                                         new RectPanelBuilder(this.footprintComponent),
 		                                         new PadPanelBuilder(this.footprintComponent),
+												 new HolePanelBuilder(this.footprintComponent),
 		                                         new LabelPanelBuilder(this.footprintComponent),
 		                                         new ComponentPanelBuilder(this.footprintComponent),
 		                                         new CirclePanelBuilder(this.footprintComponent),
@@ -1071,6 +1122,14 @@ var FootprintsInspector=Backbone.View.extend({
 				this.render();
 		    }
 		}
+		if(event.target instanceof Hole){
+			if(this.panel.id!='holepanelbuilder'){
+				this.panel.attributes.remove();
+				this.panel=this.collection.get('holepanelbuilder');
+				this.panel.attributes.delegateEvents();
+				this.render();
+		    }
+		}		
 		if(event.target instanceof Line){
 			if(this.panel.id!='linepanelbuilder'){
 				this.panel.attributes.remove();

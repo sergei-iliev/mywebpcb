@@ -721,7 +721,7 @@ var BoardPanelBuilder=BaseBuilder.extend({
 });
 var HolePanelBuilder=BaseBuilder.extend({
 	initialize:function(component){
-		ViaPanelBuilder.__super__.initialize(component);
+		HolePanelBuilder.__super__.initialize(component);
 		this.id="holepanelbuilder"; 
     },
     events: {

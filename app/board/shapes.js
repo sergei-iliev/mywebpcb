@@ -5,6 +5,7 @@ var ResizeableShape=require('core/core').ResizeableShape;
 var glyph=require('core/text/d2glyph');
 var font=require('core/text/d2font');
 var Circle =require('pads/shapes').Circle;
+var Hole =require('pads/shapes').Hole;
 var Arc =require('pads/shapes').Arc;
 var Pad =require('pads/shapes').Pad;
 var Line =require('pads/shapes').Line;
@@ -1001,15 +1002,8 @@ toXML() {
 	return result;
 }
 }
-class PCBHole extends Shape{
-	constructor() {
-		super(0, 0, 0, 0,0,core.Layer.LAYER_ALL);		
-		this.displayName='Hole';	
-        this.fillColor='white';
-        this.selectionRectWidth=utilities.DISTANCE;
-        this.circle=new d2.Circle(new d2.Point(0,0),core.MM_TO_COORD(1.6)/2);
-        this.clearance=0;
-   	}
+class PCBHole extends Hole{
+	
 clone(){
 	   	var copy = new PCBHole();
 		 copy.circle.pc.x=this.circle.pc.x;
@@ -1018,6 +1012,7 @@ clone(){
 	     copy.clearance=this.clearance;        	        
 	     return copy;
 }	
+/*
 alignToGrid(isRequired) {
 	    if(isRequired){
 	       return super.alignToGrid(isRequired);
@@ -1100,7 +1095,7 @@ fromXML(data) {
 	this.circle.r=(parseInt(j$(data).attr("width")))/2;	
 	this.clearance=(parseInt(j$(data).attr("clearance")));		
 } 
-
+*/
 }
 class PCBVia extends Shape{
 constructor() {

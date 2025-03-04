@@ -49,10 +49,116 @@ createShape(data){
 		var region = new SolidRegion(0);
 		region.fromXML(data);		
 		return region;
+	}
+	if (data.tagName.toLowerCase() == 'hole') {
+		var hole = new Hole(0);
+		hole.fromXML(data);		
+		return hole;
 	}	
 
 }
 }	
+class Hole extends Shape{
+	constructor() {
+		super(0, 0, 0, 0,0,core.Layer.LAYER_ALL);		
+		this.displayName='Hole';	
+        this.fillColor='white';
+        this.selectionRectWidth=utilities.DISTANCE;
+        this.circle=new d2.Circle(new d2.Point(0,0),core.MM_TO_COORD(1.6)/2);
+        this.clearance=0;
+   	}
+clone(){
+	   	var copy = new Hole();
+		 copy.circle.pc.x=this.circle.pc.x;
+		 copy.circle.pc.y=this.circle.pc.y;
+		 copy.circle.r=this.circle.r;	
+	     copy.clearance=this.clearance;        	        
+	     return copy;
+}	
+alignToGrid(isRequired) {
+	    if(isRequired){
+	       return super.alignToGrid(isRequired);
+	    }else{
+	        return null;
+	    }
+	}
+rotate(rotation) {
+        this.circle.rotate(rotation.angle,rotation.origin);  
+}    
+	
+move(xoffset, yoffset) {
+	this.circle.move(xoffset,yoffset);
+}
+getDrawingLayerPriority() {
+  return 110;
+}
+getClickableOrder() {
+    return 3;
+}
+setWidth(width){
+	  this.circle.r=width/2;
+	}
+calculateShape() {
+	    return this.circle.box;
+	}
+drawClearence(g2, viewportWindow,scale, source) {
+	
+    let r=this.circle.r+(this.clearance!=0?this.clearance:source.clearance);
+    let c=new d2.Circle(this.circle.pc.clone(),r);
+	let rect=c.box;
+	if (!rect.intersects(source.getBoundingShape())) {
+		return;
+	}
+
+	rect.scale(scale.getScale());
+	if (!rect.intersects(viewportWindow)) {
+		return;
+	}
+	g2._fill=true;
+	g2.fillStyle = "black";	
+	
+	c.scale(scale.getScale());
+    c.move(-viewportWindow.x,- viewportWindow.y);
+	c.paint(g2);
+	
+    g2._fill=false;	
+}
+paint(g2, viewportWindow, scale,layersmask) {	
+	var rect = this.calculateShape();
+	rect.scale(scale.getScale());
+	if (!rect.intersects(viewportWindow)) {
+		return;
+	}
+	
+	g2.lineWidth=(scale.getScale())*1000;
+	if (this.selection) {
+		g2.strokeStyle = "gray";
+	} else {
+		g2.strokeStyle = "white";
+	}
+
+    let c=this.circle.clone();
+	c.scale(scale.getScale());
+    c.move(-viewportWindow.x,- viewportWindow.y);
+	c.paint(g2);
+	
+}
+drawControlShape(g2, viewportWindow,scale){
+	utilities.drawCrosshair(g2, viewportWindow, scale,null,this.selectionRectWidth,[this.circle.center]);
+}
+toXML(){
+    return "<hole x=\""+utilities.roundFloat(this.circle.pc.x,5)+"\" y=\""+utilities.roundFloat(this.circle.pc.y,5)+"\" width=\""+this.circle.r*2+"\"  clearance=\""+this.clearance+"\" />";	
+}
+fromXML(data) {
+	let x=parseFloat(j$(data).attr("x"));
+	let y=parseFloat(j$(data).attr("y"));
+    this.circle.pc.set(x,y);
+
+	this.circle.r=(parseInt(j$(data).attr("width")))/2;	
+	this.clearance=(parseInt(j$(data).attr("clearance")));		
+} 
+
+}
 
 class GlyphLabel extends Shape{
 constructor(text,thickness,layermaskId) {
@@ -2141,6 +2247,7 @@ module.exports ={
 	RoundRect,
 	Circle,
 	Arc,
+	Hole,
 	SolidRegion,
 	Pad,Drill,PadType,
 	FootprintShapeFactory

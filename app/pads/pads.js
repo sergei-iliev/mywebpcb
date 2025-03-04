@@ -46,7 +46,8 @@ var FootprintComponent=require('pads/d/footprintcomponent').FootprintComponent;
 			 new togglebutton.ToggleButtonModel({id:'lineid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'solidregionid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'padid',group:'lefttogglegroup'}),
-			 new togglebutton.ToggleButtonModel({id:'labelid',group:'lefttogglegroup'}),
+			 new togglebutton.ToggleButtonModel({id:'holeid',group:'lefttogglegroup'}),
+		     new togglebutton.ToggleButtonModel({id:'labelid',group:'lefttogglegroup'}),
 			 new togglebutton.ToggleButtonModel({id:'anchorid'}),
 			 new togglebutton.ToggleButtonModel({id:'originid'}),
 			 new togglebutton.ToggleButtonModel({id:'measureid',group:'lefttogglegroup'})

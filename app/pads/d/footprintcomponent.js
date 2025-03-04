@@ -8,6 +8,7 @@ var FootprintEventMgr = require('pads/events').FootprintEventMgr;
 var events=require('core/events');
 var RoundRect=require('pads/shapes').RoundRect;
 var Circle=require('pads/shapes').Circle;
+var Hole=require('pads/shapes').Hole;
 var Arc=require('pads/shapes').Arc;
 var Pad=require('pads/shapes').Pad;
 var SolidRegion=require('pads/shapes').SolidRegion;
@@ -189,6 +190,12 @@ setMode(_mode){
 	            this.setContainerCursor(shape);               
 	            this.getEventMgr().setEventHandle("cursor",shape);  
 	          break;
+	        case core.ModeEnum.HOLE_MODE:
+	            shape=new Hole();	            	            		                        
+	            this.setContainerCursor(shape);               
+	            this.getEventMgr().setEventHandle("cursor",shape);  
+	          break;
+
 	        case  core.ModeEnum.RECT_MODE:
 	            shape=new RoundRect(0,0,core.MM_TO_COORD(7),core.MM_TO_COORD(7),core.MM_TO_COORD(0.8),core.MM_TO_COORD(0.2),core.Layer.SILKSCREEN_LAYER_FRONT);	            
 	            this.setContainerCursor(shape);               
